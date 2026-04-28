@@ -202,22 +202,17 @@ export default function HomePage() {
       ]);
     }
 
-    if (preparedBy.name || preparedBy.email || preparedBy.phone) {
-      const preparedY = Math.max(y + 4, 240);
-      doc.setDrawColor(...navy);
-      doc.line(14, preparedY, pageWidth - 14, preparedY);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text('Prepared by', 14, preparedY + 8);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      let py = preparedY + 16;
-      if (preparedBy.name) { doc.text(`Name: ${preparedBy.name}`, 14, py); py += 6; }
-      if (preparedBy.email) { doc.text(`Email: ${preparedBy.email}`, 14, py); py += 6; }
-      if (preparedBy.phone) { doc.text(`Phone: ${preparedBy.phone}`, 14, py); py += 6; }
+    const preparedRows: Array<[string, string]> = [
+      ['Name', preparedBy.name || '—'],
+      ['Email', preparedBy.email || '—'],
+      ['Phone', preparedBy.phone || '—'],
+    ];
+    const neededHeight = 9 + preparedRows.length * 6 + 6;
+    if (y + neededHeight > 275) {
+      doc.addPage();
+      y = 20;
     }
+    writeSection('Prepared By', preparedRows);
 
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
