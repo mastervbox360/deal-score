@@ -275,7 +275,7 @@ export default function HomePage() {
                   <Calculator className="w-5 h-5" style={{ color: '#1B3A6B' }} /> Deal Numbers
                 </h2>
               </div>
-              <CardContent className="p-6 flex-1 flex flex-col justify-center">
+              <CardContent className="p-6 flex-1">
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
