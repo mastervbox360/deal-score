@@ -27,6 +27,7 @@ export default function HomePage() {
     depositPercent: 25,
     mortgageRate: 5.5,
     mortgageTerm: 25,
+    mortgageType: 'IO',
     monthlyRent: 1200,
     monthlyExpenses: 200
   });
@@ -38,6 +39,8 @@ export default function HomePage() {
     otherCosts: 3000,
     depositPercent: 25,
     mortgageRate: 6.0,
+    mortgageTerm: 25,
+    mortgageType: 'IO',
     rooms: 5,
     rentPerRoom: 650,
     occupancyRate: 90,
@@ -283,7 +286,17 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <Label>Mortgage Rate (%)</Label>
                       <Input type="number" step="0.1" value={btlInputs.mortgageRate} onChange={(e) => handleBtlChange('mortgageRate', e.target.value)} />
+                      <MortgageTypeToggle
+                        value={btlInputs.mortgageType}
+                        onChange={(v) => setBtlInputs(prev => ({ ...prev, mortgageType: v }))}
+                      />
                     </div>
+                    {btlInputs.mortgageType === 'REPAYMENT' && (
+                      <div className="space-y-2">
+                        <Label>Mortgage Term (years)</Label>
+                        <Input type="number" value={btlInputs.mortgageTerm} onChange={(e) => handleBtlChange('mortgageTerm', e.target.value)} />
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label>Monthly Rent (£)</Label>
                       <Input type="number" value={btlInputs.monthlyRent} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
@@ -339,7 +352,17 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <Label>Mortgage Rate (%)</Label>
                       <Input type="number" step="0.1" value={hmoInputs.mortgageRate} onChange={(e) => handleHmoChange('mortgageRate', e.target.value)} />
+                      <MortgageTypeToggle
+                        value={hmoInputs.mortgageType}
+                        onChange={(v) => setHmoInputs(prev => ({ ...prev, mortgageType: v }))}
+                      />
                     </div>
+                    {hmoInputs.mortgageType === 'REPAYMENT' && (
+                      <div className="space-y-2">
+                        <Label>Mortgage Term (years)</Label>
+                        <Input type="number" value={hmoInputs.mortgageTerm} onChange={(e) => handleHmoChange('mortgageTerm', e.target.value)} />
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -480,6 +503,36 @@ function MetricBox({ label, value, highlight = false }: { label: string, value: 
       <span className={`text-xl font-bold tracking-tight ${highlight ? 'text-destructive' : 'text-foreground'}`}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function MortgageTypeToggle({ value, onChange }: { value: 'IO' | 'REPAYMENT', onChange: (v: 'IO' | 'REPAYMENT') => void }) {
+  const baseBtn = 'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors';
+  const active = 'bg-white shadow-sm text-foreground';
+  const inactive = 'text-muted-foreground hover:text-foreground';
+  return (
+    <div className="inline-flex w-full p-1 rounded-lg bg-muted border border-border" role="radiogroup" aria-label="Mortgage type">
+      <button
+        type="button"
+        role="radio"
+        aria-checked={value === 'IO'}
+        onClick={() => onChange('IO')}
+        className={`${baseBtn} ${value === 'IO' ? active : inactive}`}
+        data-testid="toggle-mortgage-io"
+      >
+        Interest Only
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={value === 'REPAYMENT'}
+        onClick={() => onChange('REPAYMENT')}
+        className={`${baseBtn} ${value === 'REPAYMENT' ? active : inactive}`}
+        data-testid="toggle-mortgage-repayment"
+      >
+        Repayment
+      </button>
     </div>
   );
 }

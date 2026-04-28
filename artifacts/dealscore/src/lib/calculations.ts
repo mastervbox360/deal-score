@@ -1,4 +1,5 @@
 export type DealType = 'BTL' | 'HMO' | 'FLIP';
+export type MortgageType = 'IO' | 'REPAYMENT';
 
 export interface BaseInputs {
   purchasePrice: number;
@@ -11,6 +12,7 @@ export interface BTLInputs extends BaseInputs {
   depositPercent: number;
   mortgageRate: number;
   mortgageTerm: number;
+  mortgageType: MortgageType;
   monthlyRent: number;
   monthlyExpenses: number;
 }
@@ -18,10 +20,29 @@ export interface BTLInputs extends BaseInputs {
 export interface HMOInputs extends BaseInputs {
   depositPercent: number;
   mortgageRate: number;
+  mortgageTerm: number;
+  mortgageType: MortgageType;
   rooms: number;
   rentPerRoom: number;
   occupancyRate: number;
   monthlyExpenses: number;
+}
+
+function calculateMonthlyMortgagePayment(
+  principal: number,
+  annualRatePercent: number,
+  termYears: number,
+  type: MortgageType,
+): number {
+  if (principal <= 0) return 0;
+  const monthlyRate = annualRatePercent / 100 / 12;
+  if (type === 'IO') {
+    return principal * monthlyRate;
+  }
+  const n = termYears * 12;
+  if (n <= 0) return 0;
+  if (monthlyRate === 0) return principal / n;
+  return (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -n));
 }
 
 export interface FlipInputs extends BaseInputs {
@@ -61,7 +82,12 @@ export function calculateBTL(inputs: BTLInputs) {
   const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
   const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
   const mortgageAmount = inputs.purchasePrice - deposit;
-  const monthlyMortgageInterest = (mortgageAmount * (inputs.mortgageRate / 100)) / 12;
+  const monthlyMortgageInterest = calculateMonthlyMortgagePayment(
+    mortgageAmount,
+    inputs.mortgageRate,
+    inputs.mortgageTerm,
+    inputs.mortgageType,
+  );
   const monthlyCashFlow = inputs.monthlyRent - monthlyMortgageInterest - inputs.monthlyExpenses;
   const annualCashFlow = monthlyCashFlow * 12;
   const annualRent = inputs.monthlyRent * 12;
@@ -97,7 +123,12 @@ export function calculateHMO(inputs: HMOInputs) {
   const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
   const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
   const mortgageAmount = inputs.purchasePrice - deposit;
-  const monthlyMortgageInterest = (mortgageAmount * (inputs.mortgageRate / 100)) / 12;
+  const monthlyMortgageInterest = calculateMonthlyMortgagePayment(
+    mortgageAmount,
+    inputs.mortgageRate,
+    inputs.mortgageTerm,
+    inputs.mortgageType,
+  );
   
   const grossMonthlyRent = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
   const annualRent = grossMonthlyRent * 12;
