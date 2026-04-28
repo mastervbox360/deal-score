@@ -98,7 +98,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="bg-primary text-primary-foreground py-6 shadow-md border-b-4 border-accent">
+      <header className="text-primary-foreground py-6 shadow-md" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
           <div>
