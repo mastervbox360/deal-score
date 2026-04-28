@@ -1,0 +1,367 @@
+import React, { useState } from 'react';
+import { Building2, Home, Hammer, TrendingUp, Calculator } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { calculateBTL, calculateHMO, calculateFlip, calculateSDLT, type DealType, type BTLInputs, type HMOInputs, type FlipInputs } from '@/lib/calculations';
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(value);
+}
+
+function formatPercent(value: number) {
+  return `${value.toFixed(1)}%`;
+}
+
+export default function HomePage() {
+  const [dealType, setDealType] = useState<DealType>('BTL');
+
+  const [btlInputs, setBtlInputs] = useState<BTLInputs>({
+    purchasePrice: 200000,
+    stampDuty: 6000,
+    refurbCost: 10000,
+    otherCosts: 2500,
+    depositPercent: 25,
+    mortgageRate: 5.5,
+    mortgageTerm: 25,
+    monthlyRent: 1200,
+    monthlyExpenses: 200
+  });
+
+  const [hmoInputs, setHmoInputs] = useState<HMOInputs>({
+    purchasePrice: 300000,
+    stampDuty: 14000,
+    refurbCost: 40000,
+    otherCosts: 3000,
+    depositPercent: 25,
+    mortgageRate: 6.0,
+    rooms: 5,
+    rentPerRoom: 650,
+    occupancyRate: 90,
+    monthlyExpenses: 800
+  });
+
+  const [flipInputs, setFlipInputs] = useState<FlipInputs>({
+    purchasePrice: 150000,
+    stampDuty: 4500,
+    refurbCost: 35000,
+    otherCosts: 2500,
+    holdingCostsPerMonth: 800,
+    projectLengthMonths: 6,
+    expectedSalePrice: 240000,
+    sellingCostsPercent: 2.0
+  });
+
+  const handleBtlChange = (field: keyof BTLInputs, value: string) => {
+    setBtlInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const handleHmoChange = (field: keyof HMOInputs, value: string) => {
+    setHmoInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const handleFlipChange = (field: keyof FlipInputs, value: string) => {
+    setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const autoCalcSDLT = () => {
+    if (dealType === 'BTL') {
+      setBtlInputs(prev => ({ ...prev, stampDuty: calculateSDLT(prev.purchasePrice) }));
+    } else if (dealType === 'HMO') {
+      setHmoInputs(prev => ({ ...prev, stampDuty: calculateSDLT(prev.purchasePrice) }));
+    } else if (dealType === 'FLIP') {
+      setFlipInputs(prev => ({ ...prev, stampDuty: calculateSDLT(prev.purchasePrice) }));
+    }
+  };
+
+  const btlResults = calculateBTL(btlInputs);
+  const hmoResults = calculateHMO(hmoInputs);
+  const flipResults = calculateFlip(flipInputs);
+
+  const renderScoreBadge = (score: string) => {
+    if (score === 'Incomplete') return null;
+    
+    const colors = {
+      Strong: 'bg-emerald-500 text-white',
+      Average: 'bg-amber-500 text-white',
+      Weak: 'bg-red-500 text-white'
+    };
+
+    return (
+      <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${colors[score as keyof typeof colors]}`}>
+        {score} DEAL
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      <header className="bg-primary text-primary-foreground py-6 shadow-md border-b-4 border-accent">
+        <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
+          <TrendingUp className="w-8 h-8 text-accent" />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">DealScore</h1>
+            <p className="text-primary-foreground/80 text-sm">Professional property deal analyser</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="container max-w-5xl mx-auto px-4 mt-8">
+        <div className="mb-8">
+          <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
+            <TabsList className="w-full grid grid-cols-3 h-14 bg-muted rounded-xl p-1">
+              <TabsTrigger value="BTL" className="rounded-lg text-base font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                <Home className="w-4 h-4 mr-2" /> Buy-to-Let
+              </TabsTrigger>
+              <TabsTrigger value="HMO" className="rounded-lg text-base font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                <Building2 className="w-4 h-4 mr-2" /> HMO
+              </TabsTrigger>
+              <TabsTrigger value="FLIP" className="rounded-lg text-base font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                <Hammer className="w-4 h-4 mr-2" /> Flip / Refurb
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Inputs Panel */}
+          <div className="lg:col-span-7 space-y-6">
+            <Card className="border-0 shadow-lg bg-card rounded-2xl overflow-hidden">
+              <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center">
+                <h2 className="font-semibold text-lg flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-primary" /> Deal Numbers
+                </h2>
+              </div>
+              <CardContent className="p-6">
+                {dealType === 'BTL' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2">
+                      <Label>Purchase Price (£)</Label>
+                      <Input type="number" value={btlInputs.purchasePrice} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label>Stamp Duty (£)</Label>
+                        <button onClick={autoCalcSDLT} className="text-xs text-primary hover:underline font-medium">Auto-calc</button>
+                      </div>
+                      <Input type="number" value={btlInputs.stampDuty} onChange={(e) => handleBtlChange('stampDuty', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Refurb Cost (£)</Label>
+                      <Input type="number" value={btlInputs.refurbCost} onChange={(e) => handleBtlChange('refurbCost', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Costs (Legal, Broker) (£)</Label>
+                      <Input type="number" value={btlInputs.otherCosts} onChange={(e) => handleBtlChange('otherCosts', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Deposit (%)</Label>
+                      <Input type="number" value={btlInputs.depositPercent} onChange={(e) => handleBtlChange('depositPercent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mortgage Rate (%)</Label>
+                      <Input type="number" step="0.1" value={btlInputs.mortgageRate} onChange={(e) => handleBtlChange('mortgageRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Rent (£)</Label>
+                      <Input type="number" value={btlInputs.monthlyRent} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Expenses (£)</Label>
+                      <Input type="number" value={btlInputs.monthlyExpenses} onChange={(e) => handleBtlChange('monthlyExpenses', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'HMO' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2">
+                      <Label>Purchase Price (£)</Label>
+                      <Input type="number" value={hmoInputs.purchasePrice} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label>Stamp Duty (£)</Label>
+                        <button onClick={autoCalcSDLT} className="text-xs text-primary hover:underline font-medium">Auto-calc</button>
+                      </div>
+                      <Input type="number" value={hmoInputs.stampDuty} onChange={(e) => handleHmoChange('stampDuty', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Refurb Cost (£)</Label>
+                      <Input type="number" value={hmoInputs.refurbCost} onChange={(e) => handleHmoChange('refurbCost', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Costs (£)</Label>
+                      <Input type="number" value={hmoInputs.otherCosts} onChange={(e) => handleHmoChange('otherCosts', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Number of Rooms</Label>
+                      <Input type="number" value={hmoInputs.rooms} onChange={(e) => handleHmoChange('rooms', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Rent Per Room (£/mo)</Label>
+                      <Input type="number" value={hmoInputs.rentPerRoom} onChange={(e) => handleHmoChange('rentPerRoom', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Occupancy Rate (%)</Label>
+                      <Input type="number" value={hmoInputs.occupancyRate} onChange={(e) => handleHmoChange('occupancyRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Expenses (£)</Label>
+                      <Input type="number" value={hmoInputs.monthlyExpenses} onChange={(e) => handleHmoChange('monthlyExpenses', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Deposit (%)</Label>
+                      <Input type="number" value={hmoInputs.depositPercent} onChange={(e) => handleHmoChange('depositPercent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mortgage Rate (%)</Label>
+                      <Input type="number" step="0.1" value={hmoInputs.mortgageRate} onChange={(e) => handleHmoChange('mortgageRate', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'FLIP' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2">
+                      <Label>Purchase Price (£)</Label>
+                      <Input type="number" value={flipInputs.purchasePrice} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label>Stamp Duty (£)</Label>
+                        <button onClick={autoCalcSDLT} className="text-xs text-primary hover:underline font-medium">Auto-calc</button>
+                      </div>
+                      <Input type="number" value={flipInputs.stampDuty} onChange={(e) => handleFlipChange('stampDuty', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Refurb Cost (£)</Label>
+                      <Input type="number" value={flipInputs.refurbCost} onChange={(e) => handleFlipChange('refurbCost', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Costs (£)</Label>
+                      <Input type="number" value={flipInputs.otherCosts} onChange={(e) => handleFlipChange('otherCosts', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Holding Costs/mo (£)</Label>
+                      <Input type="number" value={flipInputs.holdingCostsPerMonth} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Project Length (months)</Label>
+                      <Input type="number" value={flipInputs.projectLengthMonths} onChange={(e) => handleFlipChange('projectLengthMonths', e.target.value)} />
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <div className="h-px w-full bg-border my-2" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Expected Sale Price / GDV (£)</Label>
+                      <Input type="number" value={flipInputs.expectedSalePrice} onChange={(e) => handleFlipChange('expectedSalePrice', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Selling Costs (%)</Label>
+                      <Input type="number" step="0.1" value={flipInputs.sellingCostsPercent} onChange={(e) => handleFlipChange('sellingCostsPercent', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Results Panel */}
+          <div className="lg:col-span-5 space-y-6">
+            <Card className="border-0 shadow-xl bg-primary text-primary-foreground rounded-2xl overflow-hidden">
+              <div className="p-8 pb-6 flex flex-col items-center justify-center text-center space-y-4">
+                <h2 className="text-primary-foreground/80 font-medium uppercase tracking-widest text-sm">Deal Score</h2>
+                {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
+                {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
+                {dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
+                
+                {(dealType === 'BTL' && btlResults.score === 'Incomplete') ||
+                 (dealType === 'HMO' && hmoResults.score === 'Incomplete') ||
+                 (dealType === 'FLIP' && flipResults.score === 'Incomplete') ? (
+                  <p className="text-sm opacity-80 mt-2">Enter properties to see verdict</p>
+                ) : null}
+              </div>
+              
+              <div className="bg-card text-card-foreground p-6 rounded-t-3xl min-h-[400px]">
+                {dealType === 'BTL' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} />
+                      <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(btlResults.monthlyCashFlow)} highlight={btlResults.monthlyCashFlow < 0} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(btlResults.annualCashFlow)} highlight={btlResults.annualCashFlow < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Gross Yield" value={formatPercent(btlResults.grossYield)} />
+                      <Row label="Net Yield" value={formatPercent(btlResults.netYield)} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(btlResults.cashOnCashROI)} isBold />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'HMO' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} />
+                      <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(hmoResults.monthlyCashFlow)} highlight={hmoResults.monthlyCashFlow < 0} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(hmoResults.annualCashFlow)} highlight={hmoResults.annualCashFlow < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} />
+                      <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'FLIP' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} />
+                      <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} />
+                      <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} />
+                      <MetricBox label="Profit / Month" value={formatCurrency(flipResults.profitPerMonth)} highlight={flipResults.profitPerMonth < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold />
+                      <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function MetricBox({ label, value, highlight = false }: { label: string, value: string, highlight?: boolean }) {
+  return (
+    <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center">
+      <span className="text-xs text-muted-foreground mb-1">{label}</span>
+      <span className={`text-xl font-bold tracking-tight ${highlight ? 'text-destructive' : 'text-foreground'}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function Row({ label, value, isBold = false }: { label: string, value: string, isBold?: boolean }) {
+  return (
+    <div className="flex justify-between items-center py-1">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className={`text-base ${isBold ? 'font-bold text-primary' : 'font-medium text-foreground'}`}>
+        {value}
+      </span>
+    </div>
+  );
+}

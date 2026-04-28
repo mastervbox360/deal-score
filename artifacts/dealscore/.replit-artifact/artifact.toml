@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "DealScore"
+version = "1.0.0"
+id = "artifacts/dealscore"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24740
+
+[services.development]
+run = "pnpm --filter @workspace/dealscore run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dealscore", "run", "build" ]
+publicDir = "artifacts/dealscore/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24740"
+BASE_PATH = "/"
