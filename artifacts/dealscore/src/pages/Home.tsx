@@ -271,9 +271,9 @@ export default function HomePage() {
 
           {/* Results Panel */}
           <div className="lg:col-span-5 space-y-6">
-            <Card className="border-0 shadow-xl bg-primary text-primary-foreground rounded-2xl overflow-hidden">
+            <Card className="shadow-xl bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: '1px solid #1B3A6B' }}>
               <div className="p-8 pb-6 flex flex-col items-center justify-center text-center space-y-4">
-                <h2 className="text-primary-foreground/80 font-medium uppercase tracking-widest text-sm">Deal Score</h2>
+                <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
                 {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
                 {dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
