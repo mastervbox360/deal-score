@@ -238,7 +238,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen pb-20" style={{ backgroundColor: '#F5F7FA' }}>
       <header className="text-primary-foreground py-6 shadow-md" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
@@ -252,14 +252,14 @@ export default function HomePage() {
       <main className="container max-w-5xl mx-auto px-4 mt-8">
         <div className="mb-8">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="w-full grid grid-cols-3 h-14 bg-muted rounded-xl p-1">
-              <TabsTrigger value="BTL" className="rounded-lg text-base font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+            <TabsList className="w-full grid grid-cols-3 h-14 bg-white border border-border rounded-xl p-1 shadow-sm">
+              <TabsTrigger value="BTL" className="rounded-lg text-base font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Home className="w-4 h-4 mr-2" /> Buy-to-Let
               </TabsTrigger>
-              <TabsTrigger value="HMO" className="rounded-lg text-base font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="HMO" className="rounded-lg text-base font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Building2 className="w-4 h-4 mr-2" /> HMO
               </TabsTrigger>
-              <TabsTrigger value="FLIP" className="rounded-lg text-base font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger value="FLIP" className="rounded-lg text-base font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Hammer className="w-4 h-4 mr-2" /> Flip / Refurb
               </TabsTrigger>
             </TabsList>
@@ -269,13 +269,13 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Inputs Panel */}
           <div className="lg:col-span-7 flex flex-col h-full">
-            <Card className="border-0 shadow-lg bg-card rounded-2xl overflow-hidden flex-1 flex flex-col">
-              <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center">
+            <Card className="border-0 bg-white rounded-2xl overflow-hidden flex-1 flex flex-col" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+              <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center" style={{ borderLeft: '4px solid #1B3A6B' }}>
                 <h2 className="font-semibold text-lg flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-primary" /> Deal Numbers
+                  <Calculator className="w-5 h-5" style={{ color: '#1B3A6B' }} /> Deal Numbers
                 </h2>
               </div>
-              <CardContent className="p-6 flex-1">
+              <CardContent className="p-6 flex-1 flex flex-col justify-center">
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
@@ -432,7 +432,7 @@ export default function HomePage() {
 
           {/* Results Panel */}
           <div className="lg:col-span-5 flex flex-col h-full">
-            <Card className="shadow-xl bg-white text-foreground rounded-2xl overflow-hidden flex-1 flex flex-col" style={{ border: '1px solid #1B3A6B' }}>
+            <Card className="bg-white text-foreground rounded-2xl overflow-hidden flex-1 flex flex-col" style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <div className="p-8 pb-6 flex flex-col items-center justify-center text-center space-y-4">
                 <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
