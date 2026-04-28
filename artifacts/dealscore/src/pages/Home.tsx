@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Building2, Home, Hammer, TrendingUp, Calculator } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -80,6 +81,125 @@ export default function HomePage() {
   const hmoResults = calculateHMO(hmoInputs);
   const flipResults = calculateFlip(flipInputs);
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    const navy: [number, number, number] = [27, 58, 107];
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(...navy);
+    doc.rect(0, 0, pageWidth, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DealScore', 14, 14);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Investor Summary', 14, 22);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 38);
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...navy);
+    const dealLabel = dealType === 'BTL' ? 'Buy-to-Let' : dealType === 'HMO' ? 'HMO' : 'Flip / Refurb';
+    doc.text(`Deal Type: ${dealLabel}`, 14, 50);
+
+    let y = 62;
+    const writeSection = (title: string, rows: Array<[string, string]>) => {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text(title, 14, y);
+      y += 2;
+      doc.setDrawColor(...navy);
+      doc.line(14, y, pageWidth - 14, y);
+      y += 7;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      rows.forEach(([label, value]) => {
+        doc.text(label, 14, y);
+        doc.text(value, pageWidth - 14, y, { align: 'right' });
+        y += 6;
+      });
+      y += 6;
+    };
+
+    if (dealType === 'BTL') {
+      writeSection('Inputs', [
+        ['Purchase Price', formatCurrency(btlInputs.purchasePrice)],
+        ['Stamp Duty', formatCurrency(btlInputs.stampDuty)],
+        ['Refurb Cost', formatCurrency(btlInputs.refurbCost)],
+        ['Other Costs', formatCurrency(btlInputs.otherCosts)],
+        ['Deposit', `${btlInputs.depositPercent}%`],
+        ['Mortgage Rate', `${btlInputs.mortgageRate}%`],
+        ['Monthly Rent', formatCurrency(btlInputs.monthlyRent)],
+        ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', btlResults.score],
+        ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
+        ['Mortgage Amount', formatCurrency(btlResults.mortgageAmount)],
+        ['Monthly Cash Flow', formatCurrency(btlResults.monthlyCashFlow)],
+        ['Annual Cash Flow', formatCurrency(btlResults.annualCashFlow)],
+        ['Gross Yield', formatPercent(btlResults.grossYield)],
+        ['Net Yield', formatPercent(btlResults.netYield)],
+        ['Cash-on-Cash ROI', formatPercent(btlResults.cashOnCashROI)],
+      ]);
+    } else if (dealType === 'HMO') {
+      writeSection('Inputs', [
+        ['Purchase Price', formatCurrency(hmoInputs.purchasePrice)],
+        ['Stamp Duty', formatCurrency(hmoInputs.stampDuty)],
+        ['Refurb / Conversion Cost', formatCurrency(hmoInputs.refurbCost)],
+        ['Other Costs', formatCurrency(hmoInputs.otherCosts)],
+        ['Deposit', `${hmoInputs.depositPercent}%`],
+        ['Mortgage Rate', `${hmoInputs.mortgageRate}%`],
+        ['Rooms', `${hmoInputs.rooms}`],
+        ['Rent per Room (monthly)', formatCurrency(hmoInputs.rentPerRoom)],
+        ['Occupancy Rate', `${hmoInputs.occupancyRate}%`],
+        ['Monthly Expenses', formatCurrency(hmoInputs.monthlyExpenses)],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', hmoResults.score],
+        ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
+        ['Gross Monthly Rent', formatCurrency(hmoResults.grossMonthlyRent)],
+        ['Monthly Cash Flow', formatCurrency(hmoResults.monthlyCashFlow)],
+        ['Annual Cash Flow', formatCurrency(hmoResults.annualCashFlow)],
+        ['Gross Yield', formatPercent(hmoResults.grossYield)],
+        ['Net Yield', formatPercent(hmoResults.netYield)],
+        ['Cash-on-Cash ROI', formatPercent(hmoResults.cashOnCashROI)],
+      ]);
+    } else {
+      writeSection('Inputs', [
+        ['Purchase Price', formatCurrency(flipInputs.purchasePrice)],
+        ['Stamp Duty', formatCurrency(flipInputs.stampDuty)],
+        ['Refurb Cost', formatCurrency(flipInputs.refurbCost)],
+        ['Other Costs', formatCurrency(flipInputs.otherCosts)],
+        ['Holding Costs (per month)', formatCurrency(flipInputs.holdingCostsPerMonth)],
+        ['Project Length', `${flipInputs.projectLengthMonths} months`],
+        ['Expected Sale Price (GDV)', formatCurrency(flipInputs.expectedSalePrice)],
+        ['Selling Costs', `${flipInputs.sellingCostsPercent}%`],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', flipResults.score],
+        ['Total Cost', formatCurrency(flipResults.totalCost)],
+        ['Selling Costs', formatCurrency(flipResults.sellingCosts)],
+        ['Net Profit', formatCurrency(flipResults.netProfit)],
+        ['Profit per Month', formatCurrency(flipResults.profitPerMonth)],
+        ['Total ROI', formatPercent(flipResults.roi)],
+        ['Annualised ROI', formatPercent(flipResults.annualisedROI)],
+      ]);
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text('DealScore — for informational purposes only. Not financial advice.', 14, 285);
+
+    doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   const renderScoreBadge = (score: string) => {
     if (score === 'Incomplete') return null;
     
@@ -97,7 +217,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-white pb-20">
       <header className="text-primary-foreground py-6 shadow-md" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
@@ -337,6 +457,15 @@ export default function HomePage() {
                 )}
               </div>
             </Card>
+            <button
+              onClick={downloadPDF}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
+              style={{ backgroundColor: '#1B3A6B' }}
+              data-testid="button-download-pdf"
+            >
+              <Download className="w-4 h-4" />
+              Download Investor Summary PDF
+            </button>
           </div>
         </div>
       </main>
