@@ -52,30 +52,81 @@ export interface FlipInputs extends BaseInputs {
   sellingCostsPercent: number;
 }
 
-export function calculateSDLT(price: number, isSecondHome: boolean = true): number {
+export type Country = 'ENGLAND' | 'WALES' | 'SCOTLAND';
+export type BuyerType = 'STANDARD' | 'ADDITIONAL';
+
+interface TaxBand {
+  upTo: number;
+  rate: number;
+}
+
+const ENGLAND_BANDS: TaxBand[] = [
+  { upTo: 125000, rate: 0 },
+  { upTo: 250000, rate: 0.02 },
+  { upTo: 925000, rate: 0.05 },
+  { upTo: Infinity, rate: 0.10 },
+];
+
+const WALES_BANDS: TaxBand[] = [
+  { upTo: 225000, rate: 0 },
+  { upTo: 400000, rate: 0.06 },
+  { upTo: 750000, rate: 0.075 },
+  { upTo: Infinity, rate: 0.10 },
+];
+
+const SCOTLAND_BANDS: TaxBand[] = [
+  { upTo: 145000, rate: 0 },
+  { upTo: 250000, rate: 0.02 },
+  { upTo: 325000, rate: 0.05 },
+  { upTo: 750000, rate: 0.10 },
+  { upTo: Infinity, rate: 0.12 },
+];
+
+const SURCHARGE: Record<Country, number> = {
+  ENGLAND: 0.05,
+  WALES: 0.05,
+  SCOTLAND: 0.08,
+};
+
+export const TAX_LABEL: Record<Country, string> = {
+  ENGLAND: 'SDLT',
+  WALES: 'LTT',
+  SCOTLAND: 'LBTT',
+};
+
+export const COUNTRY_LABEL: Record<Country, string> = {
+  ENGLAND: 'England / N. Ireland',
+  WALES: 'Wales',
+  SCOTLAND: 'Scotland',
+};
+
+export function calculatePropertyTax(
+  price: number,
+  country: Country,
+  buyerType: BuyerType,
+): number {
   if (price <= 0) return 0;
-  
-  // Simplified SDLT bands for BTL/Second home (assuming 3% surcharge -> 5% in 2024? rules say 3% mostly but prompt said 5% surcharge on second properties as of 2024. Wait, UK announced 5% in Oct 2024 budget).
-  const surcharge = isSecondHome ? 0.05 : 0;
+  const bands =
+    country === 'ENGLAND' ? ENGLAND_BANDS :
+    country === 'WALES' ? WALES_BANDS :
+    SCOTLAND_BANDS;
+  const surcharge = buyerType === 'ADDITIONAL' ? SURCHARGE[country] : 0;
+
   let tax = 0;
-  
-  if (price > 1500000) {
-    tax += (price - 1500000) * (0.12 + surcharge);
-    price = 1500000;
+  let lower = 0;
+  for (const band of bands) {
+    if (price <= lower) break;
+    const upper = Math.min(price, band.upTo);
+    const slice = upper - lower;
+    tax += slice * (band.rate + surcharge);
+    lower = upper;
+    if (price <= band.upTo) break;
   }
-  if (price > 925000) {
-    tax += (price - 925000) * (0.10 + surcharge);
-    price = 925000;
-  }
-  if (price > 250000) {
-    tax += (price - 250000) * (0.05 + surcharge);
-    price = 250000;
-  }
-  if (price > 0) {
-    tax += price * surcharge; // First £250k is 0% standard, so only surcharge
-  }
-  
   return tax;
+}
+
+export function calculateSDLT(price: number, isSecondHome: boolean = true): number {
+  return calculatePropertyTax(price, 'ENGLAND', isSecondHome ? 'ADDITIONAL' : 'STANDARD');
 }
 
 export function calculateBTL(inputs: BTLInputs) {

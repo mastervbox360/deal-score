@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { calculateBTL, calculateHMO, calculateFlip, calculateSDLT, type DealType, type BTLInputs, type HMOInputs, type FlipInputs } from '@/lib/calculations';
+import { calculateBTL, calculateHMO, calculateFlip, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type Country, type BuyerType } from '@/lib/calculations';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(value);
@@ -48,6 +49,8 @@ export default function HomePage() {
   });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
+  const [taxCountry, setTaxCountry] = useState<Country>('WALES');
+  const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
   const [flipInputs, setFlipInputs] = useState<FlipInputs>({
     purchasePrice: 150000,
@@ -72,19 +75,16 @@ export default function HomePage() {
     setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const autoCalcSDLT = () => {
-    if (dealType === 'BTL') {
-      setBtlInputs(prev => ({ ...prev, stampDuty: calculateSDLT(prev.purchasePrice) }));
-    } else if (dealType === 'HMO') {
-      setHmoInputs(prev => ({ ...prev, stampDuty: calculateSDLT(prev.purchasePrice) }));
-    } else if (dealType === 'FLIP') {
-      setFlipInputs(prev => ({ ...prev, stampDuty: calculateSDLT(prev.purchasePrice) }));
-    }
-  };
+  const btlTax = calculatePropertyTax(btlInputs.purchasePrice, taxCountry, buyerType);
+  const hmoTax = calculatePropertyTax(hmoInputs.purchasePrice, taxCountry, buyerType);
+  const flipTax = calculatePropertyTax(flipInputs.purchasePrice, taxCountry, buyerType);
 
-  const btlResults = calculateBTL(btlInputs);
-  const hmoResults = calculateHMO(hmoInputs);
-  const flipResults = calculateFlip(flipInputs);
+  const btlResults = calculateBTL({ ...btlInputs, stampDuty: btlTax });
+  const hmoResults = calculateHMO({ ...hmoInputs, stampDuty: hmoTax });
+  const flipResults = calculateFlip({ ...flipInputs, stampDuty: flipTax });
+
+  const taxLabel = TAX_LABEL[taxCountry];
+  const buyerLabel = buyerType === 'ADDITIONAL' ? 'Additional Property' : 'Standard Buyer';
 
   const downloadPDF = () => {
     const doc = new jsPDF();
@@ -135,7 +135,7 @@ export default function HomePage() {
     if (dealType === 'BTL') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(btlInputs.purchasePrice)],
-        ['Stamp Duty', formatCurrency(btlInputs.stampDuty)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(btlTax)],
         ['Refurb Cost', formatCurrency(btlInputs.refurbCost)],
         ['Other Costs', formatCurrency(btlInputs.otherCosts)],
         ['Deposit', `${btlInputs.depositPercent}%`],
@@ -158,7 +158,7 @@ export default function HomePage() {
     } else if (dealType === 'HMO') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(hmoInputs.purchasePrice)],
-        ['Stamp Duty', formatCurrency(hmoInputs.stampDuty)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(hmoTax)],
         ['Refurb / Conversion Cost', formatCurrency(hmoInputs.refurbCost)],
         ['Other Costs', formatCurrency(hmoInputs.otherCosts)],
         ['Deposit', `${hmoInputs.depositPercent}%`],
@@ -183,7 +183,7 @@ export default function HomePage() {
     } else {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(flipInputs.purchasePrice)],
-        ['Stamp Duty', formatCurrency(flipInputs.stampDuty)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(flipTax)],
         ['Refurb Cost', formatCurrency(flipInputs.refurbCost)],
         ['Other Costs', formatCurrency(flipInputs.otherCosts)],
         ['Holding Costs (per month)', formatCurrency(flipInputs.holdingCostsPerMonth)],
@@ -282,13 +282,7 @@ export default function HomePage() {
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={btlInputs.purchasePrice} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label>Stamp Duty (£)</Label>
-                        <button onClick={autoCalcSDLT} className="text-xs text-primary hover:underline font-medium">Auto-calc</button>
-                      </div>
-                      <Input type="number" value={btlInputs.stampDuty} onChange={(e) => handleBtlChange('stampDuty', e.target.value)} />
-                    </div>
+                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={btlTax} />
                     <div className="space-y-2">
                       <Label>Refurb Cost (£)</Label>
                       <Input type="number" value={btlInputs.refurbCost} onChange={(e) => handleBtlChange('refurbCost', e.target.value)} />
@@ -332,13 +326,7 @@ export default function HomePage() {
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={hmoInputs.purchasePrice} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label>Stamp Duty (£)</Label>
-                        <button onClick={autoCalcSDLT} className="text-xs text-primary hover:underline font-medium">Auto-calc</button>
-                      </div>
-                      <Input type="number" value={hmoInputs.stampDuty} onChange={(e) => handleHmoChange('stampDuty', e.target.value)} />
-                    </div>
+                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={hmoTax} />
                     <div className="space-y-2">
                       <Label>Refurb Cost (£)</Label>
                       <Input type="number" value={hmoInputs.refurbCost} onChange={(e) => handleHmoChange('refurbCost', e.target.value)} />
@@ -390,13 +378,7 @@ export default function HomePage() {
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={flipInputs.purchasePrice} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label>Stamp Duty (£)</Label>
-                        <button onClick={autoCalcSDLT} className="text-xs text-primary hover:underline font-medium">Auto-calc</button>
-                      </div>
-                      <Input type="number" value={flipInputs.stampDuty} onChange={(e) => handleFlipChange('stampDuty', e.target.value)} />
-                    </div>
+                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={flipTax} />
                     <div className="space-y-2">
                       <Label>Refurb Cost (£)</Label>
                       <Input type="number" value={flipInputs.refurbCost} onChange={(e) => handleFlipChange('refurbCost', e.target.value)} />
@@ -567,6 +549,57 @@ function MetricBox({ label, value, highlight = false }: { label: string, value: 
       <span className={`text-xl font-bold tracking-tight ${highlight ? 'text-destructive' : 'text-foreground'}`}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function TaxSection({
+  country,
+  buyerType,
+  onCountry,
+  onBuyerType,
+  amount,
+}: {
+  country: Country;
+  buyerType: BuyerType;
+  onCountry: (v: Country) => void;
+  onBuyerType: (v: BuyerType) => void;
+  amount: number;
+}) {
+  const label = TAX_LABEL[country];
+  return (
+    <div className="md:col-span-2 rounded-xl bg-muted/40 border border-border p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>
+          Property Tax ({label})
+        </Label>
+        <span className="text-base font-bold" style={{ color: '#1B3A6B' }} data-testid="tax-amount">
+          {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(amount)}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Country</Label>
+          <Select value={country} onValueChange={(v) => onCountry(v as Country)}>
+            <SelectTrigger data-testid="select-country"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ENGLAND">England / N. Ireland (SDLT)</SelectItem>
+              <SelectItem value="WALES">Wales (LTT)</SelectItem>
+              <SelectItem value="SCOTLAND">Scotland (LBTT)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Buyer Type</Label>
+          <Select value={buyerType} onValueChange={(v) => onBuyerType(v as BuyerType)}>
+            <SelectTrigger data-testid="select-buyer-type"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="STANDARD">Standard Buyer</SelectItem>
+              <SelectItem value="ADDITIONAL">Additional Property</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </div>
   );
 }
