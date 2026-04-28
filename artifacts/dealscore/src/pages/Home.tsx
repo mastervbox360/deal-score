@@ -138,6 +138,8 @@ export default function HomePage() {
         ['Other Costs', formatCurrency(btlInputs.otherCosts)],
         ['Deposit', `${btlInputs.depositPercent}%`],
         ['Mortgage Rate', `${btlInputs.mortgageRate}%`],
+        ['Mortgage Type', btlInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(btlInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${btlInputs.mortgageTerm} years`] as [string, string]] : []),
         ['Monthly Rent', formatCurrency(btlInputs.monthlyRent)],
         ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
       ]);
@@ -159,6 +161,8 @@ export default function HomePage() {
         ['Other Costs', formatCurrency(hmoInputs.otherCosts)],
         ['Deposit', `${hmoInputs.depositPercent}%`],
         ['Mortgage Rate', `${hmoInputs.mortgageRate}%`],
+        ['Mortgage Type', hmoInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(hmoInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${hmoInputs.mortgageTerm} years`] as [string, string]] : []),
         ['Rooms', `${hmoInputs.rooms}`],
         ['Rent per Room (monthly)', formatCurrency(hmoInputs.rentPerRoom)],
         ['Occupancy Rate', `${hmoInputs.occupancyRate}%`],
