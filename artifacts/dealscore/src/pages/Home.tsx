@@ -497,61 +497,63 @@ export default function HomePage() {
                   </div>
                 )}
 
-                <div className="h-px bg-border my-6" />
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
-                    Prepared by
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="prepared-name" className="text-xs">Name</Label>
-                      <Input
-                        id="prepared-name"
-                        type="text"
-                        placeholder="Your name"
-                        value={preparedBy.name}
-                        onChange={(e) => setPreparedBy(prev => ({ ...prev, name: e.target.value }))}
-                        data-testid="input-prepared-name"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="prepared-email" className="text-xs">Email</Label>
-                      <Input
-                        id="prepared-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={preparedBy.email}
-                        onChange={(e) => setPreparedBy(prev => ({ ...prev, email: e.target.value }))}
-                        data-testid="input-prepared-email"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="prepared-phone" className="text-xs">Phone Number</Label>
-                      <Input
-                        id="prepared-phone"
-                        type="tel"
-                        placeholder="07123 456789"
-                        value={preparedBy.phone}
-                        onChange={(e) => setPreparedBy(prev => ({ ...prev, phone: e.target.value }))}
-                        data-testid="input-prepared-phone"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={downloadPDF}
-                  className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
-                  style={{ backgroundColor: '#1B3A6B' }}
-                  data-testid="button-download-pdf"
-                >
-                  <Download className="w-4 h-4" />
-                  Download Investor Summary PDF
-                </button>
               </div>
             </Card>
           </div>
+        </div>
+
+        <div
+          className="mt-8 bg-white rounded-2xl p-6"
+          style={{ borderTop: '2px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+        >
+          <h3 className="font-semibold text-sm uppercase tracking-widest mb-5" style={{ color: '#1B3A6B' }}>
+            Prepared by
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-name" className="text-xs">Name</Label>
+              <Input
+                id="prepared-name"
+                type="text"
+                placeholder="Your name"
+                value={preparedBy.name}
+                onChange={(e) => setPreparedBy(prev => ({ ...prev, name: e.target.value }))}
+                data-testid="input-prepared-name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-email" className="text-xs">Email</Label>
+              <Input
+                id="prepared-email"
+                type="email"
+                placeholder="you@example.com"
+                value={preparedBy.email}
+                onChange={(e) => setPreparedBy(prev => ({ ...prev, email: e.target.value }))}
+                data-testid="input-prepared-email"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-phone" className="text-xs">Phone Number</Label>
+              <Input
+                id="prepared-phone"
+                type="tel"
+                placeholder="07123 456789"
+                value={preparedBy.phone}
+                onChange={(e) => setPreparedBy(prev => ({ ...prev, phone: e.target.value }))}
+                data-testid="input-prepared-phone"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={downloadPDF}
+            className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
+            style={{ backgroundColor: '#1B3A6B' }}
+            data-testid="button-download-pdf"
+          >
+            <Download className="w-4 h-4" />
+            Download Investor Summary PDF
+          </button>
         </div>
       </main>
     </div>
