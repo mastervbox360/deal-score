@@ -266,16 +266,16 @@ export default function HomePage() {
           </Tabs>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Inputs Panel */}
-          <div className="lg:col-span-7 flex flex-col h-full">
-            <Card className="border-0 bg-white rounded-2xl overflow-hidden flex-1 flex flex-col" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+          <div className="lg:col-span-7">
+            <Card className="border-0 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center" style={{ borderLeft: '4px solid #1B3A6B' }}>
                 <h2 className="font-semibold text-lg flex items-center gap-2">
                   <Calculator className="w-5 h-5" style={{ color: '#1B3A6B' }} /> Deal Numbers
                 </h2>
               </div>
-              <CardContent className="p-6 flex-1">
+              <CardContent className="p-6">
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
@@ -431,9 +431,9 @@ export default function HomePage() {
           </div>
 
           {/* Results Panel */}
-          <div className="lg:col-span-5 flex flex-col h-full">
-            <Card className="bg-white text-foreground rounded-2xl overflow-hidden flex-1 flex flex-col" style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
-              <div className="p-8 pb-6 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="lg:col-span-5">
+            <Card className="bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+              <div className="p-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
                 <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
                 {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
@@ -446,7 +446,7 @@ export default function HomePage() {
                 ) : null}
               </div>
               
-              <div className="bg-card text-card-foreground p-6 rounded-t-3xl min-h-[400px]">
+              <div className="bg-card text-card-foreground p-6 rounded-t-3xl">
                 {dealType === 'BTL' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
