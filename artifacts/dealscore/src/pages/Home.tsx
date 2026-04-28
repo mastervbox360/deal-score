@@ -47,6 +47,8 @@ export default function HomePage() {
     monthlyExpenses: 800
   });
 
+  const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
+
   const [flipInputs, setFlipInputs] = useState<FlipInputs>({
     purchasePrice: 150000,
     stampDuty: 4500,
@@ -198,6 +200,23 @@ export default function HomePage() {
         ['Total ROI', formatPercent(flipResults.roi)],
         ['Annualised ROI', formatPercent(flipResults.annualisedROI)],
       ]);
+    }
+
+    if (preparedBy.name || preparedBy.email || preparedBy.phone) {
+      const preparedY = Math.max(y + 4, 240);
+      doc.setDrawColor(...navy);
+      doc.line(14, preparedY, pageWidth - 14, preparedY);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text('Prepared by', 14, preparedY + 8);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      let py = preparedY + 16;
+      if (preparedBy.name) { doc.text(`Name: ${preparedBy.name}`, 14, py); py += 6; }
+      if (preparedBy.email) { doc.text(`Email: ${preparedBy.email}`, 14, py); py += 6; }
+      if (preparedBy.phone) { doc.text(`Phone: ${preparedBy.phone}`, 14, py); py += 6; }
     }
 
     doc.setFontSize(8);
@@ -493,6 +512,49 @@ export default function HomePage() {
               <Download className="w-4 h-4" />
               Download Investor Summary PDF
             </button>
+
+            <Card className="shadow-sm bg-white rounded-2xl" style={{ border: '1px solid #1B3A6B' }}>
+              <CardContent className="p-5 space-y-4">
+                <h3 className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                  Prepared by
+                </h3>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="prepared-name" className="text-xs">Name</Label>
+                    <Input
+                      id="prepared-name"
+                      type="text"
+                      placeholder="Your name"
+                      value={preparedBy.name}
+                      onChange={(e) => setPreparedBy(prev => ({ ...prev, name: e.target.value }))}
+                      data-testid="input-prepared-name"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="prepared-email" className="text-xs">Email</Label>
+                    <Input
+                      id="prepared-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={preparedBy.email}
+                      onChange={(e) => setPreparedBy(prev => ({ ...prev, email: e.target.value }))}
+                      data-testid="input-prepared-email"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="prepared-phone" className="text-xs">Phone Number</Label>
+                    <Input
+                      id="prepared-phone"
+                      type="tel"
+                      placeholder="07123 456789"
+                      value={preparedBy.phone}
+                      onChange={(e) => setPreparedBy(prev => ({ ...prev, phone: e.target.value }))}
+                      data-testid="input-prepared-phone"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
