@@ -266,16 +266,16 @@ export default function HomePage() {
           </Tabs>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Inputs Panel */}
-          <div className="lg:col-span-7 space-y-6">
-            <Card className="border-0 shadow-lg bg-card rounded-2xl overflow-hidden">
+          <div className="lg:col-span-7 flex flex-col h-full">
+            <Card className="border-0 shadow-lg bg-card rounded-2xl overflow-hidden flex-1 flex flex-col">
               <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center">
                 <h2 className="font-semibold text-lg flex items-center gap-2">
                   <Calculator className="w-5 h-5 text-primary" /> Deal Numbers
                 </h2>
               </div>
-              <CardContent className="p-6">
+              <CardContent className="p-6 flex-1">
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
@@ -431,8 +431,8 @@ export default function HomePage() {
           </div>
 
           {/* Results Panel */}
-          <div className="lg:col-span-5 space-y-6">
-            <Card className="shadow-xl bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: '1px solid #1B3A6B' }}>
+          <div className="lg:col-span-5 flex flex-col h-full">
+            <Card className="shadow-xl bg-white text-foreground rounded-2xl overflow-hidden flex-1 flex flex-col" style={{ border: '1px solid #1B3A6B' }}>
               <div className="p-8 pb-6 flex flex-col items-center justify-center text-center space-y-4">
                 <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
