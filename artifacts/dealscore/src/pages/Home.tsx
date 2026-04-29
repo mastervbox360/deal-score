@@ -56,6 +56,9 @@ export default function HomePage() {
   const [marketValue, setMarketValue] = useState<number>(0);
   const [strategyRecommendation, setStrategyRecommendation] = useState<string>('Buy-to-Let');
   const [strategyNotes, setStrategyNotes] = useState<string>('');
+  const [propertyDescription, setPropertyDescription] = useState<string>('');
+  const [vendorSituation, setVendorSituation] = useState<string>('');
+  const [comparableProperties, setComparableProperties] = useState<string>('');
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
@@ -297,6 +300,57 @@ export default function HomePage() {
       });
     }
     y += 6;
+
+    const dealNotes: Array<[string, string]> = [
+      ['Property Description', propertyDescription.trim()],
+      ['Vendor Situation', vendorSituation.trim()],
+      ['Comparable Properties', comparableProperties.trim()],
+    ].filter(([, v]) => v.length > 0) as Array<[string, string]>;
+
+    if (dealNotes.length) {
+      const wrapped = dealNotes.map(([label, val]) => ({
+        label,
+        lines: doc.splitTextToSize(val, pageWidth - 28) as string[],
+      }));
+      const dealNotesHeight =
+        9 +
+        wrapped.reduce((acc, w) => acc + 5 + w.lines.length * 5 + 4, 0) +
+        6;
+      if (y + dealNotesHeight > 275) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text('Deal Notes', 14, y);
+      y += 2;
+      doc.setDrawColor(...navy);
+      doc.line(14, y, pageWidth - 14, y);
+      y += 7;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      wrapped.forEach(({ label, lines }) => {
+        if (y + 5 + lines.length * 5 + 4 > 285) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, 14, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        lines.forEach((line: string) => {
+          if (y > 285) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, 14, y);
+          y += 5;
+        });
+        y += 4;
+      });
+      y += 2;
+    }
 
     const preparedRows: Array<[string, string]> = [
       ['Name', preparedBy.name || '—'],
@@ -589,6 +643,45 @@ export default function HomePage() {
                       onChange={(e) => setStrategyNotes(e.target.value)}
                       rows={4}
                       data-testid="input-strategy-notes"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-5 border-t border-border space-y-5">
+                  <h3 className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                    Deal Notes
+                  </h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="property-description">Property Description</Label>
+                    <Textarea
+                      id="property-description"
+                      placeholder="e.g. 3-bed mid-terrace, 90 sqm, double glazing, gas central heating, west-facing garden, off-road parking…"
+                      value={propertyDescription}
+                      onChange={(e) => setPropertyDescription(e.target.value)}
+                      rows={3}
+                      data-testid="input-property-description"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vendor-situation">Vendor Situation</Label>
+                    <Textarea
+                      id="vendor-situation"
+                      placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
+                      value={vendorSituation}
+                      onChange={(e) => setVendorSituation(e.target.value)}
+                      rows={3}
+                      data-testid="input-vendor-situation"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="comparable-properties">Comparable Properties</Label>
+                    <Textarea
+                      id="comparable-properties"
+                      placeholder="e.g. 8 High Street sold £215k (Mar 2026), 14 High Street SSTC £220k, similar 3-bed terraces averaging £210–225k on this street…"
+                      value={comparableProperties}
+                      onChange={(e) => setComparableProperties(e.target.value)}
+                      rows={3}
+                      data-testid="input-comparable-properties"
                     />
                   </div>
                 </div>
