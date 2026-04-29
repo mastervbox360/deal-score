@@ -3,6 +3,7 @@ import { Building2, Home, Hammer, TrendingUp, Calculator, Download } from 'lucid
 import jsPDF from 'jspdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -53,6 +54,8 @@ export default function HomePage() {
   const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [marketValue, setMarketValue] = useState<number>(0);
+  const [strategyRecommendation, setStrategyRecommendation] = useState<string>('Buy-to-Let');
+  const [strategyNotes, setStrategyNotes] = useState<string>('');
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
@@ -259,6 +262,41 @@ export default function HomePage() {
         ] : []),
       ]);
     }
+
+    const notesLines = strategyNotes.trim()
+      ? doc.splitTextToSize(strategyNotes.trim(), pageWidth - 28)
+      : [];
+    const strategyHeight = 9 + 6 + (notesLines.length ? 6 + notesLines.length * 5 : 0) + 6;
+    if (y + strategyHeight > 275) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...navy);
+    doc.text('Recommended Strategy', 14, y);
+    y += 2;
+    doc.setDrawColor(...navy);
+    doc.line(14, y, pageWidth - 14, y);
+    y += 7;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Strategy', 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(strategyRecommendation, pageWidth - 14, y, { align: 'right' });
+    y += 6;
+    if (notesLines.length) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Notes', 14, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      notesLines.forEach((line: string) => {
+        doc.text(line, 14, y);
+        y += 5;
+      });
+    }
+    y += 6;
 
     const preparedRows: Array<[string, string]> = [
       ['Name', preparedBy.name || '—'],
@@ -520,6 +558,38 @@ export default function HomePage() {
                         data-testid="input-sourcing-fee"
                       />
                     </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-5 border-t border-border space-y-5">
+                  <h3 className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                    Recommended Strategy
+                  </h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="strategy-recommendation">Strategy Recommendation</Label>
+                    <Select value={strategyRecommendation} onValueChange={setStrategyRecommendation}>
+                      <SelectTrigger id="strategy-recommendation" data-testid="select-strategy-recommendation">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Buy-to-Let">Buy-to-Let</SelectItem>
+                        <SelectItem value="HMO">HMO</SelectItem>
+                        <SelectItem value="Flip/Refurb">Flip / Refurb</SelectItem>
+                        <SelectItem value="Serviced Accommodation">Serviced Accommodation</SelectItem>
+                        <SelectItem value="BRRR">BRRR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="strategy-notes">Strategy Notes</Label>
+                    <Textarea
+                      id="strategy-notes"
+                      placeholder="Explain why this strategy fits the deal — e.g. strong rental demand, room to add value, exit options, etc."
+                      value={strategyNotes}
+                      onChange={(e) => setStrategyNotes(e.target.value)}
+                      rows={4}
+                      data-testid="input-strategy-notes"
+                    />
                   </div>
                 </div>
               </CardContent>
