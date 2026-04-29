@@ -50,6 +50,7 @@ export default function HomePage() {
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [propertyAddress, setPropertyAddress] = useState('');
+  const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
@@ -228,12 +229,19 @@ export default function HomePage() {
       ['Email', preparedBy.email || '—'],
       ['Phone', preparedBy.phone || '—'],
     ];
-    const neededHeight = 9 + preparedRows.length * 6 + 6;
+    const neededHeight = 9 + preparedRows.length * 6 + 6 + 10;
     if (y + neededHeight > 275) {
       doc.addPage();
       y = 20;
     }
     writeSection('Prepared By', preparedRows);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...navy);
+    doc.text('Sourcing Fee', 14, y);
+    doc.text(formatCurrency(sourcingFee), pageWidth - 14, y, { align: 'right' });
+    y += 8;
 
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
@@ -441,6 +449,21 @@ export default function HomePage() {
                     </div>
                   </div>
                 )}
+
+                <div className="mt-6 pt-5 border-t border-border">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="sourcing-fee">Sourcing Fee (£)</Label>
+                      <Input
+                        id="sourcing-fee"
+                        type="number"
+                        value={sourcingFee}
+                        onChange={(e) => setSourcingFee(Number(e.target.value) || 0)}
+                        data-testid="input-sourcing-fee"
+                      />
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
