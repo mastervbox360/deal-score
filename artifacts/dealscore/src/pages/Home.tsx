@@ -49,6 +49,7 @@ export default function HomePage() {
   });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
+  const [propertyAddress, setPropertyAddress] = useState('');
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
@@ -105,13 +106,33 @@ export default function HomePage() {
     doc.setFontSize(11);
     doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 38);
 
+    let cursorY = 38;
+    if (propertyAddress.trim()) {
+      cursorY += 10;
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      const labelText = 'Property Address: ';
+      doc.text(labelText, 14, cursorY);
+      const labelWidth = doc.getTextWidth(labelText);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      const addrLines = doc.splitTextToSize(propertyAddress.trim(), pageWidth - 28 - labelWidth);
+      doc.text(addrLines[0], 14 + labelWidth, cursorY);
+      for (let i = 1; i < addrLines.length; i++) {
+        cursorY += 6;
+        doc.text(addrLines[i], 14, cursorY);
+      }
+    }
+
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
     const dealLabel = dealType === 'BTL' ? 'Buy-to-Let' : dealType === 'HMO' ? 'HMO' : 'Flip / Refurb';
-    doc.text(`Deal Type: ${dealLabel}`, 14, 50);
+    const dealTypeY = cursorY + 12;
+    doc.text(`Deal Type: ${dealLabel}`, 14, dealTypeY);
 
-    let y = 62;
+    let y = dealTypeY + 12;
     const writeSection = (title: string, rows: Array<[string, string]>) => {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
@@ -278,6 +299,10 @@ export default function HomePage() {
               <CardContent className="p-6">
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={btlInputs.purchasePrice} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
@@ -322,6 +347,10 @@ export default function HomePage() {
 
                 {dealType === 'HMO' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={hmoInputs.purchasePrice} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
@@ -374,6 +403,10 @@ export default function HomePage() {
 
                 {dealType === 'FLIP' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={flipInputs.purchasePrice} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
