@@ -50,6 +50,7 @@ export default function HomePage() {
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [propertyAddress, setPropertyAddress] = useState('');
+  const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [marketValue, setMarketValue] = useState<number>(0);
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
@@ -134,6 +135,17 @@ export default function HomePage() {
         doc.text(addrLines[i], 14, cursorY);
       }
     }
+
+    cursorY += propertyAddress.trim() ? 7 : 10;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...navy);
+    const typeLabel = 'Property Type: ';
+    doc.text(typeLabel, 14, cursorY);
+    const typeLabelWidth = doc.getTextWidth(typeLabel);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(propertyType, 14 + typeLabelWidth, cursorY);
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -335,6 +347,10 @@ export default function HomePage() {
                       <Label>Property Address</Label>
                       <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                    </div>
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={btlInputs.purchasePrice} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
@@ -382,6 +398,10 @@ export default function HomePage() {
                     <div className="space-y-2 md:col-span-2">
                       <Label>Property Address</Label>
                       <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
@@ -438,6 +458,10 @@ export default function HomePage() {
                     <div className="space-y-2 md:col-span-2">
                       <Label>Property Address</Label>
                       <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
@@ -676,6 +700,21 @@ function MetricBox({ label, value, highlight = false }: { label: string, value: 
         {value}
       </span>
     </div>
+  );
+}
+
+const PROPERTY_TYPES = ['Terraced', 'Semi-Detached', 'Detached', 'Flat', 'Bungalow', 'HMO'] as const;
+
+function PropertyTypeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger data-testid="select-property-type"><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {PROPERTY_TYPES.map((t) => (
+          <SelectItem key={t} value={t}>{t}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
