@@ -51,6 +51,7 @@ export default function HomePage() {
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [propertyAddress, setPropertyAddress] = useState('');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
+  const [marketValue, setMarketValue] = useState<number>(0);
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
@@ -87,6 +88,12 @@ export default function HomePage() {
 
   const taxLabel = TAX_LABEL[taxCountry];
   const buyerLabel = buyerType === 'ADDITIONAL' ? 'Additional Property' : 'Standard Buyer';
+
+  const currentPurchasePrice =
+    dealType === 'BTL' ? btlInputs.purchasePrice :
+    dealType === 'HMO' ? hmoInputs.purchasePrice :
+    flipInputs.purchasePrice;
+  const equityDayOne = marketValue - currentPurchasePrice;
 
   const downloadPDF = () => {
     const doc = new jsPDF();
@@ -176,6 +183,10 @@ export default function HomePage() {
         ['Gross Yield', formatPercent(btlResults.grossYield)],
         ['Net Yield', formatPercent(btlResults.netYield)],
         ['Cash-on-Cash ROI', formatPercent(btlResults.cashOnCashROI)],
+        ...(marketValue > 0 ? [
+          ['Market Value', formatCurrency(marketValue)] as [string, string],
+          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+        ] : []),
       ]);
     } else if (dealType === 'HMO') {
       writeSection('Inputs', [
@@ -201,6 +212,10 @@ export default function HomePage() {
         ['Gross Yield', formatPercent(hmoResults.grossYield)],
         ['Net Yield', formatPercent(hmoResults.netYield)],
         ['Cash-on-Cash ROI', formatPercent(hmoResults.cashOnCashROI)],
+        ...(marketValue > 0 ? [
+          ['Market Value', formatCurrency(marketValue)] as [string, string],
+          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+        ] : []),
       ]);
     } else {
       writeSection('Inputs', [
@@ -221,6 +236,10 @@ export default function HomePage() {
         ['Profit per Month', formatCurrency(flipResults.profitPerMonth)],
         ['Total ROI', formatPercent(flipResults.roi)],
         ['Annualised ROI', formatPercent(flipResults.annualisedROI)],
+        ...(marketValue > 0 ? [
+          ['Market Value', formatCurrency(marketValue)] as [string, string],
+          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+        ] : []),
       ]);
     }
 
@@ -453,6 +472,16 @@ export default function HomePage() {
                 <div className="mt-6 pt-5 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
+                      <Label htmlFor="market-value">Market Value (£)</Label>
+                      <Input
+                        id="market-value"
+                        type="number"
+                        value={marketValue}
+                        onChange={(e) => setMarketValue(Number(e.target.value) || 0)}
+                        data-testid="input-market-value"
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="sourcing-fee">Sourcing Fee (£)</Label>
                       <Input
                         id="sourcing-fee"
@@ -498,6 +527,9 @@ export default function HomePage() {
                       <Row label="Gross Yield" value={formatPercent(btlResults.grossYield)} />
                       <Row label="Net Yield" value={formatPercent(btlResults.netYield)} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(btlResults.cashOnCashROI)} isBold />
+                      {marketValue > 0 && (
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                      )}
                     </div>
                   </div>
                 )}
@@ -515,6 +547,9 @@ export default function HomePage() {
                       <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} />
                       <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold />
+                      {marketValue > 0 && (
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                      )}
                     </div>
                   </div>
                 )}
@@ -531,6 +566,9 @@ export default function HomePage() {
                     <div className="space-y-3">
                       <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold />
                       <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} />
+                      {marketValue > 0 && (
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                      )}
                     </div>
                   </div>
                 )}
