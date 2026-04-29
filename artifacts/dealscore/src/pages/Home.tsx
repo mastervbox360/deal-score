@@ -94,6 +94,8 @@ export default function HomePage() {
     dealType === 'HMO' ? hmoInputs.purchasePrice :
     flipInputs.purchasePrice;
   const equityDayOne = marketValue - currentPurchasePrice;
+  const bmvAmount = equityDayOne;
+  const bmvPercent = marketValue > 0 ? (bmvAmount / marketValue) * 100 : 0;
 
   const downloadPDF = () => {
     const doc = new jsPDF();
@@ -186,6 +188,7 @@ export default function HomePage() {
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as [string, string],
           ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
         ] : []),
       ]);
     } else if (dealType === 'HMO') {
@@ -215,6 +218,7 @@ export default function HomePage() {
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as [string, string],
           ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
         ] : []),
       ]);
     } else {
@@ -239,6 +243,7 @@ export default function HomePage() {
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as [string, string],
           ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
         ] : []),
       ]);
     }
@@ -511,6 +516,33 @@ export default function HomePage() {
                  (dealType === 'FLIP' && flipResults.score === 'Incomplete') ? (
                   <p className="text-sm opacity-80 mt-2">Enter properties to see verdict</p>
                 ) : null}
+
+                {marketValue > 0 && (
+                  <div
+                    className="w-full mt-2 rounded-xl px-4 py-3 flex items-center justify-between"
+                    style={{
+                      backgroundColor: bmvAmount >= 0 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                      border: `1px solid ${bmvAmount >= 0 ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                    }}
+                    data-testid="bmv-banner"
+                  >
+                    <div className="text-left">
+                      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        Below Market Value
+                      </div>
+                      <div className="text-lg font-bold" style={{ color: bmvAmount >= 0 ? '#047857' : '#b91c1c' }}>
+                        {formatCurrency(bmvAmount)}
+                      </div>
+                    </div>
+                    <div
+                      className="text-2xl font-extrabold"
+                      style={{ color: bmvAmount >= 0 ? '#047857' : '#b91c1c' }}
+                      data-testid="bmv-percent"
+                    >
+                      {bmvPercent.toFixed(1)}%
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="bg-card text-card-foreground p-6 rounded-t-3xl">
