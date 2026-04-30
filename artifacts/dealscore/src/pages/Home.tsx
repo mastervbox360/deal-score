@@ -192,25 +192,25 @@ export default function HomePage() {
     const white: [number, number, number] = [255, 255, 255];
     const pageWidth = doc.internal.pageSize.getWidth();
     const MARGIN = 14;
-    const ROW_H = 5;
-    const SEC_GAP = 3;
+    const ROW_H = 5.2;
+    const SEC_GAP = 2;
 
     // ── Header ──────────────────────────────────────────────────────────────
     const HEADER_H = 30;
     doc.setFillColor(...navy);
     doc.rect(0, 0, pageWidth, HEADER_H, 'F');
     doc.setTextColor(...white);
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', MARGIN, 14);
-    doc.setFontSize(9);
+    doc.text('DealScore', MARGIN, 13);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(185, 205, 230);
-    doc.text('Investor Summary', MARGIN, 23);
-    // thin rule below header
-    doc.setDrawColor(...navy);
-    doc.setLineWidth(0.4);
-    doc.line(0, HEADER_H, pageWidth, HEADER_H);
+    doc.text('Investor Summary', MARGIN, 22);
+    // thin rule at bottom of navy header block
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.line(MARGIN, HEADER_H - 2, pageWidth - MARGIN, HEADER_H - 2);
 
     const dealLabel =
       dealType === 'BTL' ? 'Buy-to-Let' :
@@ -225,7 +225,7 @@ export default function HomePage() {
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    let cursorY = HEADER_H + 7;
+    let cursorY = HEADER_H + 5;
     doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, MARGIN, cursorY);
 
     if (propertyAddress.trim()) {
@@ -274,15 +274,15 @@ export default function HomePage() {
     };
 
     const writeSection = (title: string, rows: PDFRow[]) => {
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       doc.text(title, MARGIN, y);
-      y += 2;
+      y += 1.5;
       doc.setDrawColor(...navy);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 4.5;
+      y += 4;
 
       rows.forEach((row) => {
         const label = row[0];
@@ -546,15 +546,15 @@ export default function HomePage() {
         label,
         lines: doc.splitTextToSize(text, pageWidth - 28) as string[],
       }));
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       doc.text('Deal Notes', MARGIN, y);
-      y += 2;
+      y += 1.5;
       doc.setDrawColor(...navy);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 4.5;
+      y += 4;
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
       wrapped.forEach(({ label, lines }) => {
