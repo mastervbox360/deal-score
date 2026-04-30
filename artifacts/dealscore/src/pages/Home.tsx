@@ -187,12 +187,6 @@ export default function HomePage() {
   const bmvPercent = marketValue > 0 ? (bmvAmount / marketValue) * 100 : 0;
 
   const downloadPDF = () => {
-    const doc = new jsPDF();
-    const navy: [number, number, number] = [27, 58, 107];
-    const navyPanel: [number, number, number] = [232, 239, 252];
-    const white: [number, number, number] = [255, 255, 255];
-    const rowAlt: [number, number, number] = [245, 247, 250];
-    const pageWidth = doc.internal.pageSize.getWidth();
     const MARGIN = 14;
     const ROW_H = 5.0;
     const SEC_GAP = 2;
@@ -222,6 +216,14 @@ export default function HomePage() {
       dealType === 'BRRR' ? brrrResults.score :
       dealType === 'R2R' ? r2rResults.score :
       socialResults.score;
+
+    // Render to a jsPDF instance; returns final page height in mm
+    const doRender = (doc: jsPDF): number => {
+    const navy: [number, number, number] = [27, 58, 107];
+    const navyPanel: [number, number, number] = [238, 242, 248];
+    const white: [number, number, number] = [255, 255, 255];
+    const rowAlt: [number, number, number] = [245, 247, 250];
+    const pageWidth = doc.internal.pageSize.getWidth();
 
     // ── Header banner ────────────────────────────────────────────────────────
     const HEADER_H = 48;
@@ -608,6 +610,10 @@ export default function HomePage() {
 
     // ── Sourcing Fee ─────────────────────────────────────────────────────────
     if (sourcingFee > 0) {
+      doc.setDrawColor(...navy);
+      doc.setLineWidth(0.3);
+      doc.line(MARGIN, y - 1, pageWidth - MARGIN, y - 1);
+      y += 2;
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
@@ -617,11 +623,11 @@ export default function HomePage() {
     }
 
     // ── Deal Notes ───────────────────────────────────────────────────────────
-    const allNotes: Array<{ label: string; text: string; highlight: boolean }> = [
-      { label: 'Why This Strategy?', text: strategyNotes.trim(), highlight: true },
-      { label: 'Property Description', text: propertyDescription.trim(), highlight: false },
-      { label: 'Vendor Situation', text: vendorSituation.trim(), highlight: false },
-      { label: 'Comparable Properties', text: comparableProperties.trim(), highlight: false },
+    const allNotes: Array<{ label: string; text: string }> = [
+      { label: 'Why This Strategy?', text: strategyNotes.trim() },
+      { label: 'Property Description', text: propertyDescription.trim() },
+      { label: 'Vendor Situation', text: vendorSituation.trim() },
+      { label: 'Comparable Properties', text: comparableProperties.trim() },
     ].filter((n) => n.text.length > 0);
 
     if (allNotes.length) {
@@ -635,34 +641,26 @@ export default function HomePage() {
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
       y += 9;
 
-      allNotes.forEach(({ label, text, highlight }) => {
+      // All subsections get the same subtle grey (#F5F7FA) panel
+      const noteGrey: [number, number, number] = [245, 247, 250];
+      const paddingTop = 2;
+      const paddingBottom = 4;
+
+      allNotes.forEach(({ label, text }) => {
         const lines = doc.splitTextToSize(text, pageWidth - 30) as string[];
-        if (highlight) {
-          const paddingTop = 2;
-          const paddingBottom = 4;
-          const panelH = paddingTop + ROW_H + lines.length * ROW_H + paddingBottom;
-          const panelY = y - ROW_H + 0.5 - paddingTop;
-          doc.setFillColor(...navyPanel);
-          doc.rect(MARGIN, panelY, pageWidth - 2 * MARGIN, panelH, 'F');
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...navy);
-          doc.text(`${label}:`, MARGIN + 1.5, y);
-          y += ROW_H;
-          doc.setFont('helvetica', 'italic');
-          doc.setTextColor(35, 55, 100);
-          lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
-          y += paddingBottom;
-        } else {
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(60, 65, 75);
-          doc.text(`${label}:`, MARGIN + 1.5, y);
-          y += ROW_H;
-          doc.setFont('helvetica', 'normal');
-          lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
-          y += 1.5;
-        }
+        const panelH = paddingTop + ROW_H + lines.length * ROW_H + paddingBottom;
+        const panelY = y - ROW_H + 0.5 - paddingTop;
+        doc.setFillColor(...noteGrey);
+        doc.rect(MARGIN, panelY, pageWidth - 2 * MARGIN, panelH, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...navy);
+        doc.text(`${label}:`, MARGIN + 1.5, y);
+        y += ROW_H;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 65, 75);
+        lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
+        y += paddingBottom + 2;
       });
     }
 
@@ -686,10 +684,16 @@ export default function HomePage() {
     doc.setTextColor(185, 205, 230);
     doc.text('For informational purposes only. Not financial advice.', pageWidth - MARGIN, FOOTER_Y + 7, { align: 'right' });
 
-    // Trim page to end exactly at the footer — no trailing white space
-    (doc.internal.pageSize as unknown as { height: number }).height = FOOTER_Y + FOOTER_H;
+    return FOOTER_Y + FOOTER_H;
+    }; // end doRender
 
-    doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
+    // Two-pass render: measure height with A4, then render at exact size
+    const tmpDoc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const finalH = doRender(tmpDoc);
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [210, finalH] });
+    doRender(doc);
+
+    doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${now.toISOString().slice(0, 10)}.pdf`);
   };
 
   const renderScoreBadge = (score: string) => {
