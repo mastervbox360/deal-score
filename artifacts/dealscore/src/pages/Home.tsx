@@ -148,26 +148,33 @@ export default function HomePage() {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     doc.setFillColor(...navy);
-    doc.rect(0, 0, pageWidth, 28, 'F');
+    doc.rect(0, 0, pageWidth, 24, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', 14, 14);
-    doc.setFontSize(10);
+    doc.text('DealScore', 14, 11);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Investor Summary', 14, 22);
+    doc.text('Investor Summary', 14, 18);
+
+    const dealLabel =
+      dealType === 'BTL' ? 'Buy-to-Let' :
+      dealType === 'HMO' ? 'HMO' :
+      dealType === 'FLIP' ? 'Flip / Refurb' :
+      dealType === 'SA' ? 'Serviced Accommodation' :
+      'BRRR';
 
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
-    doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 38);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    let cursorY = 30;
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, cursorY);
 
-    let cursorY = 38;
     if (propertyAddress.trim()) {
-      cursorY += 10;
-      doc.setFontSize(13);
+      cursorY += 5;
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
-      const labelText = 'Property Address: ';
+      const labelText = 'Address: ';
       doc.text(labelText, 14, cursorY);
       const labelWidth = doc.getTextWidth(labelText);
       doc.setFont('helvetica', 'normal');
@@ -175,13 +182,12 @@ export default function HomePage() {
       const addrLines = doc.splitTextToSize(propertyAddress.trim(), pageWidth - 28 - labelWidth);
       doc.text(addrLines[0], 14 + labelWidth, cursorY);
       for (let i = 1; i < addrLines.length; i++) {
-        cursorY += 6;
+        cursorY += 4;
         doc.text(addrLines[i], 14, cursorY);
       }
     }
 
-    cursorY += propertyAddress.trim() ? 7 : 10;
-    doc.setFontSize(12);
+    cursorY += 5;
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
     const typeLabel = 'Property Type: ';
@@ -191,37 +197,34 @@ export default function HomePage() {
     doc.setTextColor(0, 0, 0);
     doc.text(propertyType, 14 + typeLabelWidth, cursorY);
 
-    doc.setFontSize(14);
+    cursorY += 5;
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
-    const dealLabel =
-      dealType === 'BTL' ? 'Buy-to-Let' :
-      dealType === 'HMO' ? 'HMO' :
-      dealType === 'FLIP' ? 'Flip / Refurb' :
-      dealType === 'SA' ? 'Serviced Accommodation' :
-      'BRRR';
-    const dealTypeY = cursorY + 12;
-    doc.text(`Deal Type: ${dealLabel}`, 14, dealTypeY);
+    doc.text(`Deal Type: ${dealLabel}`, 14, cursorY);
 
-    let y = dealTypeY + 12;
+    let y = cursorY + 7;
+    const ROW_H = 4.5;
+    const SEC_GAP = 3;
     const writeSection = (title: string, rows: Array<[string, string]>) => {
-      doc.setFontSize(12);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       doc.text(title, 14, y);
-      y += 2;
+      y += 1.5;
       doc.setDrawColor(...navy);
+      doc.setLineWidth(0.3);
       doc.line(14, y, pageWidth - 14, y);
-      y += 7;
-      doc.setFontSize(10);
+      y += 4;
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       rows.forEach(([label, value]) => {
         doc.text(label, 14, y);
         doc.text(value, pageWidth - 14, y, { align: 'right' });
-        y += 6;
+        y += ROW_H;
       });
-      y += 6;
+      y += SEC_GAP;
     };
 
     if (dealType === 'BTL') {
@@ -366,120 +369,60 @@ export default function HomePage() {
       ]);
     }
 
-    const notesLines = strategyNotes.trim()
-      ? doc.splitTextToSize(strategyNotes.trim(), pageWidth - 28)
-      : [];
-    const strategyHeight = 9 + 6 + (notesLines.length ? 6 + notesLines.length * 5 : 0) + 6;
-    if (y + strategyHeight > 275) {
-      doc.addPage();
-      y = 20;
-    }
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...navy);
-    doc.text('Recommended Strategy', 14, y);
-    y += 2;
-    doc.setDrawColor(...navy);
-    doc.line(14, y, pageWidth - 14, y);
-    y += 7;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('Strategy', 14, y);
-    doc.setFont('helvetica', 'normal');
-    const strategyLabel =
-      dealType === 'BTL' ? 'Buy-to-Let' :
-      dealType === 'HMO' ? 'HMO' :
-      dealType === 'FLIP' ? 'Flip / Refurb' :
-      dealType === 'SA' ? 'Serviced Accommodation' :
-      'BRRR';
-    doc.text(strategyLabel, pageWidth - 14, y, { align: 'right' });
-    y += 6;
-    if (notesLines.length) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Why This Strategy?', 14, y);
-      y += 5;
-      doc.setFont('helvetica', 'normal');
-      notesLines.forEach((line: string) => {
-        doc.text(line, 14, y);
-        y += 5;
-      });
-    }
-    y += 6;
+    const allNotes: Array<{ label: string; text: string }> = [
+      { label: 'Why This Strategy?', text: strategyNotes.trim() },
+      { label: 'Property Description', text: propertyDescription.trim() },
+      { label: 'Vendor Situation', text: vendorSituation.trim() },
+      { label: 'Comparable Properties', text: comparableProperties.trim() },
+    ].filter((n) => n.text.length > 0);
 
-    const dealNotes: Array<[string, string]> = [
-      ['Property Description', propertyDescription.trim()],
-      ['Vendor Situation', vendorSituation.trim()],
-      ['Comparable Properties', comparableProperties.trim()],
-    ].filter(([, v]) => v.length > 0) as Array<[string, string]>;
-
-    if (dealNotes.length) {
-      const wrapped = dealNotes.map(([label, val]) => ({
+    if (allNotes.length) {
+      const wrapped = allNotes.map(({ label, text }) => ({
         label,
-        lines: doc.splitTextToSize(val, pageWidth - 28) as string[],
+        lines: doc.splitTextToSize(text, pageWidth - 28) as string[],
       }));
-      const dealNotesHeight =
-        9 +
-        wrapped.reduce((acc, w) => acc + 5 + w.lines.length * 5 + 4, 0) +
-        6;
-      if (y + dealNotesHeight > 275) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.setFontSize(12);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       doc.text('Deal Notes', 14, y);
-      y += 2;
+      y += 1.5;
       doc.setDrawColor(...navy);
+      doc.setLineWidth(0.3);
       doc.line(14, y, pageWidth - 14, y);
-      y += 7;
-      doc.setFontSize(10);
+      y += 4;
+      doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
       wrapped.forEach(({ label, lines }) => {
-        if (y + 5 + lines.length * 5 + 4 > 285) {
-          doc.addPage();
-          y = 20;
-        }
         doc.setFont('helvetica', 'bold');
-        doc.text(label, 14, y);
-        y += 5;
+        doc.text(`${label}:`, 14, y);
+        y += ROW_H;
         doc.setFont('helvetica', 'normal');
         lines.forEach((line: string) => {
-          if (y > 285) {
-            doc.addPage();
-            y = 20;
-          }
           doc.text(line, 14, y);
-          y += 5;
+          y += ROW_H;
         });
-        y += 4;
+        y += 1;
       });
-      y += 2;
+      y += SEC_GAP;
     }
 
-    const preparedRows: Array<[string, string]> = [
+    writeSection('Prepared By', [
       ['Name', preparedBy.name || '—'],
       ['Email', preparedBy.email || '—'],
       ['Phone', preparedBy.phone || '—'],
-    ];
-    const neededHeight = 9 + preparedRows.length * 6 + 6 + 10;
-    if (y + neededHeight > 275) {
-      doc.addPage();
-      y = 20;
-    }
-    writeSection('Prepared By', preparedRows);
+    ]);
 
-    doc.setFontSize(11);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
     doc.text('Sourcing Fee', 14, y);
     doc.text(formatCurrency(sourcingFee), pageWidth - 14, y, { align: 'right' });
-    y += 8;
+    y += 6;
 
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(120, 120, 120);
-    doc.text('DealScore — for informational purposes only. Not financial advice.', 14, 285);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DealScore — for informational purposes only. Not financial advice.', 14, 289);
 
     doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
