@@ -633,7 +633,7 @@ export default function HomePage() {
       doc.setDrawColor(...navy);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 3.5;
+      y += 9;
 
       allNotes.forEach(({ label, text, highlight }) => {
         const lines = doc.splitTextToSize(text, pageWidth - 30) as string[];
@@ -685,6 +685,9 @@ export default function HomePage() {
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(185, 205, 230);
     doc.text('For informational purposes only. Not financial advice.', pageWidth - MARGIN, FOOTER_Y + 7, { align: 'right' });
+
+    // Trim page to end exactly at the footer — no trailing white space
+    (doc.internal.pageSize as unknown as { height: number }).height = FOOTER_Y + FOOTER_H;
 
     doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
