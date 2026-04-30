@@ -52,6 +52,8 @@ export default function HomePage() {
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [propertyAddress, setPropertyAddress] = useState('');
   const [propertyType, setPropertyType] = useState<string>('Terraced');
+  const [tenure, setTenure] = useState<'Freehold' | 'Leasehold'>('Freehold');
+  const [leaseLengthYears, setLeaseLengthYears] = useState<number>(125);
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [marketValue, setMarketValue] = useState<number>(0);
   const [strategyNotes, setStrategyNotes] = useState<string>('');
@@ -322,6 +324,11 @@ export default function HomePage() {
       y += SEC_GAP;
     };
 
+    const tenureRows: PDFRow[] = [
+      ['Tenure', tenure],
+      ...(tenure === 'Leasehold' ? [['Remaining Lease Length', `${leaseLengthYears} years`] as PDFRow] : []),
+    ];
+
     if (dealType === 'BTL') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(btlInputs.purchasePrice)],
@@ -334,6 +341,7 @@ export default function HomePage() {
         ...(btlInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${btlInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Monthly Rent', formatCurrency(btlInputs.monthlyRent)],
         ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', btlResults.score],
@@ -364,6 +372,7 @@ export default function HomePage() {
         ['Rent per Room (monthly)', formatCurrency(hmoInputs.rentPerRoom)],
         ['Occupancy Rate', `${hmoInputs.occupancyRate}%`],
         ['Monthly Expenses', formatCurrency(hmoInputs.monthlyExpenses)],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', hmoResults.score],
@@ -390,6 +399,7 @@ export default function HomePage() {
         ['Project Length', `${flipInputs.projectLengthMonths} months`],
         ['Expected Sale Price (GDV)', formatCurrency(flipInputs.expectedSalePrice)],
         ['Selling Costs', `${flipInputs.sellingCostsPercent}%`],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', flipResults.score],
@@ -419,6 +429,7 @@ export default function HomePage() {
         ['Avg Occupancy', `${saInputs.occupancyPercent}%`],
         ['Platform Fees', `${saInputs.platformFeesPercent}%`],
         ['Monthly Running Costs', formatCurrency(saInputs.monthlyRunningCosts)],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', saResults.score],
@@ -450,6 +461,7 @@ export default function HomePage() {
         ['New Mortgage Rate', `${brrrInputs.newMortgageRate}%`],
         ['Monthly Rent', formatCurrency(brrrInputs.monthlyRent)],
         ['Monthly Expenses', formatCurrency(brrrInputs.monthlyExpenses)],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', brrrResults.score],
@@ -477,6 +489,7 @@ export default function HomePage() {
         ['Management / Platform Fees', `${r2rInputs.managementFeesPercent}%`],
         ['Monthly Running Costs', formatCurrency(r2rInputs.monthlyRunningCosts)],
         ['Setup Costs', formatCurrency(r2rInputs.setupCosts)],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', r2rResults.score],
@@ -501,6 +514,7 @@ export default function HomePage() {
         ['Guaranteed Lease Income/mo', formatCurrency(socialInputs.leaseIncomePerMonth)],
         ['Lease Length', `${socialInputs.leaseLengthYears} years`],
         ['Management Costs/mo', formatCurrency(socialInputs.managementCostsPerMonth)],
+        ...tenureRows,
       ]);
       writeSection('Results', [
         ['Deal Score', socialResults.score],
@@ -658,6 +672,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={btlInputs.purchasePrice} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
@@ -710,6 +725,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={hmoInputs.purchasePrice} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
@@ -770,6 +786,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={flipInputs.purchasePrice} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
@@ -815,6 +832,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={saInputs.purchasePrice} onChange={(e) => handleSaChange('purchasePrice', e.target.value)} data-testid="input-sa-purchase-price" />
@@ -886,6 +904,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={brrrInputs.purchasePrice} onChange={(e) => handleBrrrChange('purchasePrice', e.target.value)} data-testid="input-brrr-purchase-price" />
@@ -935,6 +954,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Monthly Rent to Landlord (£)</Label>
                       <Input type="number" value={r2rInputs.monthlyRentPaid} onChange={(e) => handleR2rChange('monthlyRentPaid', e.target.value)} />
@@ -976,6 +996,7 @@ export default function HomePage() {
                       <Label>Property Type</Label>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
+                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
                       <Label>Purchase Price (£)</Label>
                       <Input type="number" value={socialInputs.purchasePrice} onChange={(e) => handleSocialChange('purchasePrice', e.target.value)} />
@@ -1434,6 +1455,60 @@ function PropertyTypeSelect({ value, onChange }: { value: string; onChange: (v: 
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+function TenureSection({
+  tenure,
+  onChange,
+  leaseLength,
+  onLeaseLength,
+}: {
+  tenure: 'Freehold' | 'Leasehold';
+  onChange: (v: 'Freehold' | 'Leasehold') => void;
+  leaseLength: number;
+  onLeaseLength: (v: number) => void;
+}) {
+  return (
+    <>
+      <div className="space-y-2 md:col-span-2">
+        <Label>Tenure</Label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onChange('Freehold')}
+            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${tenure === 'Freehold' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
+          >
+            Freehold
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange('Leasehold')}
+            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${tenure === 'Leasehold' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
+          >
+            Leasehold
+          </button>
+        </div>
+      </div>
+      {tenure === 'Leasehold' && (
+        <>
+          <div className="space-y-2">
+            <Label>Remaining Lease Length (years)</Label>
+            <Input
+              type="number"
+              value={leaseLength}
+              onChange={(e) => onLeaseLength(Number(e.target.value) || 0)}
+              data-testid="input-lease-length"
+            />
+          </div>
+          <div className="md:col-span-2 rounded-xl bg-amber-50 border border-amber-200 p-3">
+            <p className="text-xs text-amber-800">
+              Most mortgage lenders require 70+ years remaining on a lease. Ground rent over £250/year may affect mortgageability and lender eligibility.
+            </p>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
