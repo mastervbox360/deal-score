@@ -187,17 +187,28 @@ export default function HomePage() {
   const downloadPDF = () => {
     const doc = new jsPDF();
     const navy: [number, number, number] = [27, 58, 107];
+    const white: [number, number, number] = [255, 255, 255];
     const pageWidth = doc.internal.pageSize.getWidth();
+    const MARGIN = 14;
+    const ROW_H = 5;
+    const SEC_GAP = 3;
 
+    // ── Header ──────────────────────────────────────────────────────────────
+    const HEADER_H = 30;
     doc.setFillColor(...navy);
-    doc.rect(0, 0, pageWidth, 24, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
+    doc.rect(0, 0, pageWidth, HEADER_H, 'F');
+    doc.setTextColor(...white);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', 14, 11);
-    doc.setFontSize(8);
+    doc.text('DealScore', MARGIN, 14);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Investor Summary', 14, 18);
+    doc.setTextColor(185, 205, 230);
+    doc.text('Investor Summary', MARGIN, 23);
+    // thin rule below header
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(0.4);
+    doc.line(0, HEADER_H, pageWidth, HEADER_H);
 
     const dealLabel =
       dealType === 'BTL' ? 'Buy-to-Let' :
@@ -208,64 +219,104 @@ export default function HomePage() {
       dealType === 'R2R' ? 'Rent to Rent' :
       'Social Housing';
 
+    // ── Sub-header meta ──────────────────────────────────────────────────────
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    let cursorY = 30;
-    doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, cursorY);
+    let cursorY = HEADER_H + 7;
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, MARGIN, cursorY);
 
     if (propertyAddress.trim()) {
-      cursorY += 5;
+      cursorY += ROW_H;
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       const labelText = 'Address: ';
-      doc.text(labelText, 14, cursorY);
+      doc.text(labelText, MARGIN, cursorY);
       const labelWidth = doc.getTextWidth(labelText);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       const addrLines = doc.splitTextToSize(propertyAddress.trim(), pageWidth - 28 - labelWidth);
-      doc.text(addrLines[0], 14 + labelWidth, cursorY);
+      doc.text(addrLines[0], MARGIN + labelWidth, cursorY);
       for (let i = 1; i < addrLines.length; i++) {
         cursorY += 4;
-        doc.text(addrLines[i], 14, cursorY);
+        doc.text(addrLines[i], MARGIN, cursorY);
       }
     }
 
-    cursorY += 5;
+    cursorY += ROW_H;
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
     const typeLabel = 'Property Type: ';
-    doc.text(typeLabel, 14, cursorY);
+    doc.text(typeLabel, MARGIN, cursorY);
     const typeLabelWidth = doc.getTextWidth(typeLabel);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    doc.text(propertyType, 14 + typeLabelWidth, cursorY);
+    doc.text(propertyType, MARGIN + typeLabelWidth, cursorY);
 
-    cursorY += 5;
-    doc.setFontSize(11);
+    cursorY += ROW_H;
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
-    doc.text(`Deal Type: ${dealLabel}`, 14, cursorY);
+    doc.text(`Deal Type: ${dealLabel}`, MARGIN, cursorY);
 
-    let y = cursorY + 7;
-    const ROW_H = 4.5;
-    const SEC_GAP = 3;
-    const writeSection = (title: string, rows: Array<[string, string]>) => {
-      doc.setFontSize(9);
+    let y = cursorY + 6;
+
+    // ── Section renderer ─────────────────────────────────────────────────────
+    // Row tuple: [label, value, isBold?]
+    // Special label 'Deal Score' renders a coloured pill badge for the value.
+    type PDFRow = [string, string] | [string, string, boolean];
+    const scoreColors: Record<string, [number, number, number]> = {
+      Strong: [22, 163, 74],
+      Average: [217, 119, 6],
+      Weak: [220, 38, 38],
+    };
+
+    const writeSection = (title: string, rows: PDFRow[]) => {
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
-      doc.text(title, 14, y);
-      y += 1.5;
+      doc.text(title, MARGIN, y);
+      y += 2;
       doc.setDrawColor(...navy);
-      doc.setLineWidth(0.3);
-      doc.line(14, y, pageWidth - 14, y);
-      y += 4;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      rows.forEach(([label, value]) => {
-        doc.text(label, 14, y);
-        doc.text(value, pageWidth - 14, y, { align: 'right' });
+      doc.setLineWidth(0.4);
+      doc.line(MARGIN, y, pageWidth - MARGIN, y);
+      y += 4.5;
+
+      rows.forEach((row) => {
+        const label = row[0];
+        const value = row[1];
+        const isBold = row.length === 3 ? row[2] : false;
+
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+
+        if (label === 'Deal Score') {
+          doc.setFont('helvetica', 'normal');
+          doc.text(label, MARGIN, y);
+          // draw pill badge
+          const bg = scoreColors[value] ?? ([100, 100, 100] as [number, number, number]);
+          const pillText = `${value} Deal`.toUpperCase();
+          doc.setFontSize(7);
+          doc.setFont('helvetica', 'bold');
+          const textW = doc.getTextWidth(pillText);
+          const pillW = textW + 7;
+          const pillH = 5.2;
+          const pillX = pageWidth - MARGIN - pillW;
+          const pillY = y - 3.8;
+          doc.setFillColor(...bg);
+          doc.roundedRect(pillX, pillY, pillW, pillH, 2, 2, 'F');
+          doc.setTextColor(...white);
+          doc.text(pillText, pillX + pillW / 2, pillY + 3.5, { align: 'center' });
+          doc.setFontSize(9);
+          y += ROW_H;
+          return;
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.text(label, MARGIN, y);
+        doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+        doc.setTextColor(isBold ? navy[0] : 0, isBold ? navy[1] : 0, isBold ? navy[2] : 0);
+        doc.text(value, pageWidth - MARGIN, y, { align: 'right' });
         y += ROW_H;
       });
       y += SEC_GAP;
@@ -280,7 +331,7 @@ export default function HomePage() {
         ['Deposit', `${btlInputs.depositPercent}%`],
         ['Mortgage Rate', `${btlInputs.mortgageRate}%`],
         ['Mortgage Type', btlInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(btlInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${btlInputs.mortgageTerm} years`] as [string, string]] : []),
+        ...(btlInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${btlInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Monthly Rent', formatCurrency(btlInputs.monthlyRent)],
         ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
       ]);
@@ -288,15 +339,15 @@ export default function HomePage() {
         ['Deal Score', btlResults.score],
         ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(btlResults.mortgageAmount)],
-        ['Monthly Cash Flow', formatCurrency(btlResults.monthlyCashFlow)],
+        ['Monthly Cash Flow', formatCurrency(btlResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(btlResults.annualCashFlow)],
         ['Gross Yield', formatPercent(btlResults.grossYield)],
         ['Net Yield', formatPercent(btlResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(btlResults.cashOnCashROI)],
+        ['Cash-on-Cash ROI', formatPercent(btlResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as [string, string],
-          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+          ['Market Value', formatCurrency(marketValue)] as PDFRow,
+          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
         ] : []),
       ]);
     } else if (dealType === 'HMO') {
@@ -308,7 +359,7 @@ export default function HomePage() {
         ['Deposit', `${hmoInputs.depositPercent}%`],
         ['Mortgage Rate', `${hmoInputs.mortgageRate}%`],
         ['Mortgage Type', hmoInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(hmoInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${hmoInputs.mortgageTerm} years`] as [string, string]] : []),
+        ...(hmoInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${hmoInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Rooms', `${hmoInputs.rooms}`],
         ['Rent per Room (monthly)', formatCurrency(hmoInputs.rentPerRoom)],
         ['Occupancy Rate', `${hmoInputs.occupancyRate}%`],
@@ -318,15 +369,15 @@ export default function HomePage() {
         ['Deal Score', hmoResults.score],
         ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
         ['Gross Monthly Rent', formatCurrency(hmoResults.grossMonthlyRent)],
-        ['Monthly Cash Flow', formatCurrency(hmoResults.monthlyCashFlow)],
+        ['Monthly Cash Flow', formatCurrency(hmoResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(hmoResults.annualCashFlow)],
         ['Gross Yield', formatPercent(hmoResults.grossYield)],
         ['Net Yield', formatPercent(hmoResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(hmoResults.cashOnCashROI)],
+        ['Cash-on-Cash ROI', formatPercent(hmoResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as [string, string],
-          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+          ['Market Value', formatCurrency(marketValue)] as PDFRow,
+          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
         ] : []),
       ]);
     } else if (dealType === 'FLIP') {
@@ -344,14 +395,14 @@ export default function HomePage() {
         ['Deal Score', flipResults.score],
         ['Total Cost', formatCurrency(flipResults.totalCost)],
         ['Selling Costs', formatCurrency(flipResults.sellingCosts)],
-        ['Net Profit', formatCurrency(flipResults.netProfit)],
+        ['Net Profit', formatCurrency(flipResults.netProfit), true],
         ['Profit per Month', formatCurrency(flipResults.profitPerMonth)],
-        ['Total ROI', formatPercent(flipResults.roi)],
+        ['Total ROI', formatPercent(flipResults.roi), true],
         ['Annualised ROI', formatPercent(flipResults.annualisedROI)],
         ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as [string, string],
-          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+          ['Market Value', formatCurrency(marketValue)] as PDFRow,
+          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
         ] : []),
       ]);
     } else if (dealType === 'SA') {
@@ -363,7 +414,7 @@ export default function HomePage() {
         ['Deposit', `${saInputs.depositPercent}%`],
         ['Mortgage Rate', `${saInputs.mortgageRate}%`],
         ['Mortgage Type', saInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(saInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${saInputs.mortgageTerm} years`] as [string, string]] : []),
+        ...(saInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${saInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Nightly Rate', formatCurrency(saInputs.nightlyRate)],
         ['Avg Occupancy', `${saInputs.occupancyPercent}%`],
         ['Platform Fees', `${saInputs.platformFeesPercent}%`],
@@ -377,15 +428,15 @@ export default function HomePage() {
         ['Platform Fees/mo', formatCurrency(saResults.platformFees)],
         ['Net Monthly Revenue', formatCurrency(saResults.netMonthlyRevenue)],
         ['Monthly Mortgage', formatCurrency(saResults.monthlyMortgage)],
-        ['Monthly Cash Flow', formatCurrency(saResults.monthlyCashFlow)],
+        ['Monthly Cash Flow', formatCurrency(saResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(saResults.annualCashFlow)],
         ['Gross Yield', formatPercent(saResults.grossYield)],
         ['Net Yield', formatPercent(saResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(saResults.cashOnCashROI)],
+        ['Cash-on-Cash ROI', formatPercent(saResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as [string, string],
-          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+          ['Market Value', formatCurrency(marketValue)] as PDFRow,
+          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
         ] : []),
       ]);
     } else if (dealType === 'BRRR') {
@@ -406,15 +457,15 @@ export default function HomePage() {
         ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
         ['Cash Left in Deal', brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
         ['Equity Created', formatCurrency(brrrResults.equityCreated)],
-        ['Monthly Cash Flow', formatCurrency(brrrResults.monthlyCashFlow)],
+        ['Monthly Cash Flow', formatCurrency(brrrResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(brrrResults.annualCashFlow)],
         ['Gross Yield', formatPercent(brrrResults.grossYield)],
         ['Net Yield', formatPercent(brrrResults.netYield)],
-        ['Cash-on-Cash ROI', brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI)],
+        ['Cash-on-Cash ROI', brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as [string, string],
-          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+          ['Market Value', formatCurrency(marketValue)] as PDFRow,
+          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
         ] : []),
       ]);
     } else if (dealType === 'R2R') {
@@ -432,10 +483,10 @@ export default function HomePage() {
         ['Gross Monthly Income', formatCurrency(r2rResults.grossMonthlyIncome)],
         ['Management Fees/mo', formatCurrency(r2rResults.managementFees)],
         ['Net Monthly Income', formatCurrency(r2rResults.netMonthlyIncome)],
-        ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit)],
+        ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit), true],
         ['Annual Profit', formatCurrency(r2rResults.annualProfit)],
         ['Gross Return on Setup', formatPercent(r2rResults.grossYield)],
-        ['Net ROI on Setup Costs', formatPercent(r2rResults.roi)],
+        ['Net ROI on Setup Costs', formatPercent(r2rResults.roi), true],
       ]);
     } else {
       writeSection('Inputs', [
@@ -446,7 +497,7 @@ export default function HomePage() {
         ['Deposit', `${socialInputs.depositPercent}%`],
         ['Mortgage Rate', `${socialInputs.mortgageRate}%`],
         ['Mortgage Type', socialInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(socialInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${socialInputs.mortgageTerm} years`] as [string, string]] : []),
+        ...(socialInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${socialInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Guaranteed Lease Income/mo', formatCurrency(socialInputs.leaseIncomePerMonth)],
         ['Lease Length', `${socialInputs.leaseLengthYears} years`],
         ['Management Costs/mo', formatCurrency(socialInputs.managementCostsPerMonth)],
@@ -456,15 +507,15 @@ export default function HomePage() {
         ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(socialResults.mortgageAmount)],
         ['Monthly Mortgage', formatCurrency(socialResults.monthlyMortgage)],
-        ['Monthly Cash Flow', formatCurrency(socialResults.monthlyCashFlow)],
+        ['Monthly Cash Flow', formatCurrency(socialResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(socialResults.annualCashFlow)],
         ['Gross Yield', formatPercent(socialResults.grossYield)],
         ['Net Yield', formatPercent(socialResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(socialResults.cashOnCashROI)],
+        ['Cash-on-Cash ROI', formatPercent(socialResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as [string, string],
-          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+          ['Market Value', formatCurrency(marketValue)] as PDFRow,
+          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
         ] : []),
       ]);
     }
@@ -481,24 +532,24 @@ export default function HomePage() {
         label,
         lines: doc.splitTextToSize(text, pageWidth - 28) as string[],
       }));
-      doc.setFontSize(9);
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
-      doc.text('Deal Notes', 14, y);
-      y += 1.5;
+      doc.text('Deal Notes', MARGIN, y);
+      y += 2;
       doc.setDrawColor(...navy);
-      doc.setLineWidth(0.3);
-      doc.line(14, y, pageWidth - 14, y);
-      y += 4;
+      doc.setLineWidth(0.4);
+      doc.line(MARGIN, y, pageWidth - MARGIN, y);
+      y += 4.5;
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
       wrapped.forEach(({ label, lines }) => {
         doc.setFont('helvetica', 'bold');
-        doc.text(`${label}:`, 14, y);
+        doc.text(`${label}:`, MARGIN, y);
         y += ROW_H;
         doc.setFont('helvetica', 'normal');
         lines.forEach((line: string) => {
-          doc.text(line, 14, y);
+          doc.text(line, MARGIN, y);
           y += ROW_H;
         });
         y += 1;
@@ -512,17 +563,20 @@ export default function HomePage() {
       ['Phone', preparedBy.phone || '—'],
     ]);
 
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...navy);
-    doc.text('Sourcing Fee', 14, y);
-    doc.text(formatCurrency(sourcingFee), pageWidth - 14, y, { align: 'right' });
-    y += 6;
+    if (sourcingFee > 0) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text('Sourcing Fee', MARGIN, y);
+      doc.setTextColor(...navy);
+      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN, y, { align: 'right' });
+      y += 6;
+    }
 
     doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
+    doc.setTextColor(150, 150, 150);
     doc.setFont('helvetica', 'normal');
-    doc.text('DealScore — for informational purposes only. Not financial advice.', 14, 289);
+    doc.text('DealScore — for informational purposes only. Not financial advice.', MARGIN, 289);
 
     doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
   };

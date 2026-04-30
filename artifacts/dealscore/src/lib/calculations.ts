@@ -164,7 +164,7 @@ export function calculateBTL(inputs: BTLInputs) {
   const annualExpenses = inputs.monthlyExpenses * 12 + (monthlyMortgageInterest * 12);
   
   const grossYield = inputs.purchasePrice > 0 ? (annualRent / inputs.purchasePrice) * 100 : 0;
-  const netYield = (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts) > 0 ? ((annualRent - annualExpenses) / (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts)) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? ((annualRent - annualExpenses) / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -207,7 +207,7 @@ export function calculateHMO(inputs: HMOInputs) {
   const annualExpenses = inputs.monthlyExpenses * 12 + (monthlyMortgageInterest * 12);
 
   const grossYield = inputs.purchasePrice > 0 ? (annualRent / inputs.purchasePrice) * 100 : 0;
-  const netYield = (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts) > 0 ? ((annualRent - annualExpenses) / (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts)) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? ((annualRent - annualExpenses) / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -282,7 +282,7 @@ export function calculateSA(inputs: SAInputs) {
   const annualRevenue = grossMonthlyRevenue * 12;
 
   const grossYield = inputs.purchasePrice > 0 ? (annualRevenue / inputs.purchasePrice) * 100 : 0;
-  const netYield = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualCashFlow / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -381,7 +381,7 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
   const monthlyCashFlow = inputs.leaseIncomePerMonth - monthlyMortgage - inputs.managementCostsPerMonth;
   const annualCashFlow = monthlyCashFlow * 12;
   const grossYield = inputs.purchasePrice > 0 ? (inputs.leaseIncomePerMonth * 12 / inputs.purchasePrice) * 100 : 0;
-  const netYield = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualCashFlow / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -417,7 +417,7 @@ export function calculateBRRR(inputs: BRRRInputs) {
   const annualRent = inputs.monthlyRent * 12;
 
   const grossYield = inputs.postRefurbValue > 0 ? (annualRent / inputs.postRefurbValue) * 100 : 0;
-  const netYield = totalCostIn > 0 ? (annualCashFlow / totalCostIn) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualCashFlow / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = cashLeftInDeal > 0
     ? (annualCashFlow / cashLeftInDeal) * 100
     : cashLeftInDeal <= 0 && annualCashFlow > 0
