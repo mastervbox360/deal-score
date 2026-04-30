@@ -237,10 +237,10 @@ export function calculateBTL(inputs: BTLInputs) {
   const monthlyCashFlow = inputs.monthlyRent - monthlyMortgageInterest - inputs.monthlyExpenses;
   const annualCashFlow = monthlyCashFlow * 12;
   const annualRent = inputs.monthlyRent * 12;
-  const annualExpenses = inputs.monthlyExpenses * 12 + (monthlyMortgageInterest * 12);
-  
+  const annualOperatingIncome = (inputs.monthlyRent - inputs.monthlyExpenses) * 12;
+
   const grossYield = inputs.purchasePrice > 0 ? (annualRent / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? ((annualRent - annualExpenses) / inputs.purchasePrice) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualOperatingIncome / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -280,10 +280,10 @@ export function calculateHMO(inputs: HMOInputs) {
   const annualRent = grossMonthlyRent * 12;
   const monthlyCashFlow = grossMonthlyRent - monthlyMortgageInterest - inputs.monthlyExpenses;
   const annualCashFlow = monthlyCashFlow * 12;
-  const annualExpenses = inputs.monthlyExpenses * 12 + (monthlyMortgageInterest * 12);
+  const annualOperatingIncome = (grossMonthlyRent - inputs.monthlyExpenses) * 12;
 
   const grossYield = inputs.purchasePrice > 0 ? (annualRent / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? ((annualRent - annualExpenses) / inputs.purchasePrice) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualOperatingIncome / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -493,9 +493,10 @@ export function calculateBRRR(inputs: BRRRInputs) {
   const monthlyCashFlow = inputs.monthlyRent - monthlyMortgage - inputs.monthlyExpenses;
   const annualCashFlow = monthlyCashFlow * 12;
   const annualRent = inputs.monthlyRent * 12;
+  const annualOperatingIncome = (inputs.monthlyRent - inputs.monthlyExpenses) * 12;
 
   const grossYield = inputs.postRefurbValue > 0 ? (annualRent / inputs.postRefurbValue) * 100 : 0;
-  const netYield = inputs.postRefurbValue > 0 ? (annualCashFlow / inputs.postRefurbValue) * 100 : 0;
+  const netYield = inputs.postRefurbValue > 0 ? (annualOperatingIncome / inputs.postRefurbValue) * 100 : 0;
   const cashOnCashROI = cashLeftInDeal > 0
     ? (annualCashFlow / cashLeftInDeal) * 100
     : cashLeftInDeal <= 0 && annualCashFlow > 0
