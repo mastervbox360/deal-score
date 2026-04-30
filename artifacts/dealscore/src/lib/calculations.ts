@@ -29,6 +29,10 @@ export interface HMOInputs extends BaseInputs {
 }
 
 export interface SAInputs extends BaseInputs {
+  depositPercent: number;
+  mortgageRate: number;
+  mortgageTerm: number;
+  mortgageType: MortgageType;
   nightlyRate: number;
   occupancyPercent: number;
   platformFeesPercent: number;
@@ -166,9 +170,9 @@ export function calculateBTL(inputs: BTLInputs) {
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.monthlyRent) {
     score = 'Incomplete';
-  } else if (cashOnCashROI >= 8 && monthlyCashFlow >= 200) {
+  } else if (cashOnCashROI >= 5 && monthlyCashFlow >= 100) {
     score = 'Strong';
-  } else if (cashOnCashROI >= 5) {
+  } else if (cashOnCashROI >= 3) {
     score = 'Average';
   }
 
@@ -241,9 +245,9 @@ export function calculateFlip(inputs: FlipInputs) {
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.expectedSalePrice) {
     score = 'Incomplete';
-  } else if (roi >= 20 && netProfit >= 25000) {
+  } else if (roi >= 12 && netProfit >= 18000) {
     score = 'Strong';
-  } else if (roi >= 12) {
+  } else if (roi >= 8) {
     score = 'Average';
   }
 
@@ -259,19 +263,26 @@ export function calculateFlip(inputs: FlipInputs) {
 }
 
 export function calculateSA(inputs: SAInputs) {
-  const totalCashInvested = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
+  const mortgageAmount = inputs.purchasePrice - deposit;
+  const monthlyMortgage = calculateMonthlyMortgagePayment(
+    mortgageAmount,
+    inputs.mortgageRate,
+    inputs.mortgageTerm,
+    inputs.mortgageType,
+  );
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+
   const nightsPerMonth = 365 / 12;
   const grossMonthlyRevenue = inputs.nightlyRate * (inputs.occupancyPercent / 100) * nightsPerMonth;
   const platformFees = grossMonthlyRevenue * (inputs.platformFeesPercent / 100);
   const netMonthlyRevenue = grossMonthlyRevenue - platformFees;
-  const monthlyCashFlow = netMonthlyRevenue - inputs.monthlyRunningCosts;
+  const monthlyCashFlow = netMonthlyRevenue - monthlyMortgage - inputs.monthlyRunningCosts;
   const annualCashFlow = monthlyCashFlow * 12;
   const annualRevenue = grossMonthlyRevenue * 12;
 
   const grossYield = inputs.purchasePrice > 0 ? (annualRevenue / inputs.purchasePrice) * 100 : 0;
-  const netYield = (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts) > 0
-    ? (annualCashFlow / (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts)) * 100
-    : 0;
+  const netYield = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -279,12 +290,14 @@ export function calculateSA(inputs: SAInputs) {
     score = 'Incomplete';
   } else if (cashOnCashROI >= 15 && monthlyCashFlow >= 500) {
     score = 'Strong';
-  } else if (cashOnCashROI >= 10) {
+  } else if (cashOnCashROI >= 8) {
     score = 'Average';
   }
 
   return {
     totalCashInvested,
+    mortgageAmount,
+    monthlyMortgage,
     grossMonthlyRevenue,
     platformFees,
     netMonthlyRevenue,
@@ -320,9 +333,9 @@ export function calculateBRRR(inputs: BRRRInputs) {
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.postRefurbValue) {
     score = 'Incomplete';
-  } else if (monthlyCashFlow >= 200 && (moneyOut || cashOnCashROI >= 15)) {
+  } else if (monthlyCashFlow > 0 && (moneyOut || cashOnCashROI >= 15)) {
     score = 'Strong';
-  } else if (monthlyCashFlow >= 0 && cashOnCashROI >= 8) {
+  } else if (monthlyCashFlow >= 0 && cashOnCashROI >= 5) {
     score = 'Average';
   }
 

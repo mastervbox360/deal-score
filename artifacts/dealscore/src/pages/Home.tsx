@@ -79,6 +79,10 @@ export default function HomePage() {
     stampDuty: 0,
     refurbCost: 15000,
     otherCosts: 2500,
+    depositPercent: 25,
+    mortgageRate: 5.5,
+    mortgageTerm: 25,
+    mortgageType: 'IO',
     nightlyRate: 120,
     occupancyPercent: 70,
     platformFeesPercent: 15,
@@ -110,7 +114,7 @@ export default function HomePage() {
   };
 
   const handleSaChange = (field: keyof SAInputs, value: string) => {
-    setSaInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+    setSaInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
   };
 
   const handleBrrrChange = (field: keyof BRRRInputs, value: string) => {
@@ -316,6 +320,10 @@ export default function HomePage() {
         [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(saTax)],
         ['Refurb Cost', formatCurrency(saInputs.refurbCost)],
         ['Other Costs', formatCurrency(saInputs.otherCosts)],
+        ['Deposit', `${saInputs.depositPercent}%`],
+        ['Mortgage Rate', `${saInputs.mortgageRate}%`],
+        ['Mortgage Type', saInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(saInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${saInputs.mortgageTerm} years`] as [string, string]] : []),
         ['Nightly Rate', formatCurrency(saInputs.nightlyRate)],
         ['Avg Occupancy', `${saInputs.occupancyPercent}%`],
         ['Platform Fees', `${saInputs.platformFeesPercent}%`],
@@ -324,9 +332,11 @@ export default function HomePage() {
       writeSection('Results', [
         ['Deal Score', saResults.score],
         ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
+        ['Mortgage Amount', formatCurrency(saResults.mortgageAmount)],
         ['Gross Monthly Revenue', formatCurrency(saResults.grossMonthlyRevenue)],
         ['Platform Fees/mo', formatCurrency(saResults.platformFees)],
         ['Net Monthly Revenue', formatCurrency(saResults.netMonthlyRevenue)],
+        ['Monthly Mortgage', formatCurrency(saResults.monthlyMortgage)],
         ['Monthly Cash Flow', formatCurrency(saResults.monthlyCashFlow)],
         ['Annual Cash Flow', formatCurrency(saResults.annualCashFlow)],
         ['Gross Yield', formatPercent(saResults.grossYield)],
@@ -668,6 +678,35 @@ export default function HomePage() {
                       <Label>Other Costs (Legal, Broker) (£)</Label>
                       <Input type="number" value={saInputs.otherCosts} onChange={(e) => handleSaChange('otherCosts', e.target.value)} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Deposit (%)</Label>
+                      <Input type="number" value={saInputs.depositPercent} onChange={(e) => handleSaChange('depositPercent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mortgage Rate (%)</Label>
+                      <Input type="number" step="0.1" value={saInputs.mortgageRate} onChange={(e) => handleSaChange('mortgageRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Mortgage Type</Label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSaChange('mortgageType', 'IO')}
+                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${saInputs.mortgageType === 'IO' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
+                        >Interest Only</button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaChange('mortgageType', 'REPAYMENT')}
+                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${saInputs.mortgageType === 'REPAYMENT' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
+                        >Repayment</button>
+                      </div>
+                    </div>
+                    {saInputs.mortgageType === 'REPAYMENT' && (
+                      <div className="space-y-2">
+                        <Label>Mortgage Term (years)</Label>
+                        <Input type="number" value={saInputs.mortgageTerm} onChange={(e) => handleSaChange('mortgageTerm', e.target.value)} />
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label>Nightly Rate (£)</Label>
                       <Input type="number" value={saInputs.nightlyRate} onChange={(e) => handleSaChange('nightlyRate', e.target.value)} data-testid="input-sa-nightly-rate" />
