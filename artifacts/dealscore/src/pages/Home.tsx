@@ -1089,7 +1089,7 @@ function MetricBox({ label, value, highlight = false }: { label: string, value: 
   );
 }
 
-const PROPERTY_TYPES = ['Terraced', 'Semi-Detached', 'Detached', 'Flat', 'Bungalow', 'HMO'] as const;
+const PROPERTY_TYPES = ['Terraced', 'End of Terrace', 'Semi-Detached', 'Detached', 'Flat/Apartment', 'Bungalow', 'HMO', 'Commercial Conversion', 'Mixed Use'] as const;
 
 function PropertyTypeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
