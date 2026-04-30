@@ -72,40 +72,74 @@ export interface FlipInputs extends BaseInputs {
 }
 
 export type Country = 'ENGLAND' | 'WALES' | 'SCOTLAND';
-export type BuyerType = 'STANDARD' | 'ADDITIONAL';
+// COMPANY maps to additional property rates
+// NON_UK_RESIDENT: England only — standard/FTB base + 2% surcharge on full price
+// FTB: nil-rate relief (England + Scotland only; Wales has no FTB relief)
+export type BuyerType = 'STANDARD' | 'FTB' | 'ADDITIONAL' | 'COMPANY' | 'NON_UK_RESIDENT';
 
 interface TaxBand {
   upTo: number;
   rate: number;
 }
 
-const ENGLAND_BANDS: TaxBand[] = [
+// ── England / Northern Ireland (SDLT) ────────────────────────────────────────
+const ENGLAND_STANDARD_BANDS: TaxBand[] = [
   { upTo: 125000, rate: 0 },
   { upTo: 250000, rate: 0.02 },
   { upTo: 925000, rate: 0.05 },
-  { upTo: Infinity, rate: 0.10 },
+  { upTo: 1500000, rate: 0.10 },
+  { upTo: Infinity, rate: 0.12 },
+];
+// Additional property: all bands have 5% surcharge applied directly
+const ENGLAND_ADDITIONAL_BANDS: TaxBand[] = [
+  { upTo: 125000, rate: 0.05 },
+  { upTo: 250000, rate: 0.07 },
+  { upTo: 925000, rate: 0.10 },
+  { upTo: 1500000, rate: 0.15 },
+  { upTo: Infinity, rate: 0.17 },
+];
+// FTB relief: 0% to £300k · 5% to £500k · no relief above £500k (use standard)
+const ENGLAND_FTB_BANDS: TaxBand[] = [
+  { upTo: 300000, rate: 0 },
+  { upTo: 500000, rate: 0.05 },
 ];
 
-const WALES_BANDS: TaxBand[] = [
+// ── Wales (LTT) ──────────────────────────────────────────────────────────────
+// Wales uses two completely separate rate tables, not a surcharge model
+const WALES_STANDARD_BANDS: TaxBand[] = [
   { upTo: 225000, rate: 0 },
   { upTo: 400000, rate: 0.06 },
   { upTo: 750000, rate: 0.075 },
-  { upTo: Infinity, rate: 0.10 },
+  { upTo: 1500000, rate: 0.10 },
+  { upTo: Infinity, rate: 0.12 },
+];
+// Higher rates (additional property) — standalone bands
+const WALES_ADDITIONAL_BANDS: TaxBand[] = [
+  { upTo: 180000, rate: 0.05 },
+  { upTo: 250000, rate: 0.085 },
+  { upTo: 400000, rate: 0.10 },
+  { upTo: 750000, rate: 0.125 },
+  { upTo: 1500000, rate: 0.15 },
+  { upTo: Infinity, rate: 0.17 },
 ];
 
-const SCOTLAND_BANDS: TaxBand[] = [
+// ── Scotland (LBTT) ──────────────────────────────────────────────────────────
+const SCOTLAND_STANDARD_BANDS: TaxBand[] = [
   { upTo: 145000, rate: 0 },
   { upTo: 250000, rate: 0.02 },
   { upTo: 325000, rate: 0.05 },
   { upTo: 750000, rate: 0.10 },
   { upTo: Infinity, rate: 0.12 },
 ];
-
-const SURCHARGE: Record<Country, number> = {
-  ENGLAND: 0.05,
-  WALES: 0.05,
-  SCOTLAND: 0.08,
-};
+// FTB: nil-rate extends to £175k (max saving £600; no upper price cap)
+const SCOTLAND_FTB_BANDS: TaxBand[] = [
+  { upTo: 175000, rate: 0 },
+  { upTo: 250000, rate: 0.02 },
+  { upTo: 325000, rate: 0.05 },
+  { upTo: 750000, rate: 0.10 },
+  { upTo: Infinity, rate: 0.12 },
+];
+// Additional: standard LBTT + flat 8% ADS on full purchase price
 
 export const TAX_LABEL: Record<Country, string> = {
   ENGLAND: 'SDLT',
@@ -119,29 +153,71 @@ export const COUNTRY_LABEL: Record<Country, string> = {
   SCOTLAND: 'Scotland',
 };
 
+export const BUYER_LABEL: Record<BuyerType, string> = {
+  STANDARD: 'Standard Buyer',
+  FTB: 'First-Time Buyer',
+  ADDITIONAL: 'Additional Property / Buy-to-Let',
+  COMPANY: 'Company / SPV',
+  NON_UK_RESIDENT: 'Non-UK Resident',
+};
+
+function applyBands(price: number, bands: TaxBand[]): number {
+  let tax = 0;
+  let lower = 0;
+  for (const band of bands) {
+    if (price <= lower) break;
+    const upper = Math.min(price, band.upTo);
+    tax += (upper - lower) * band.rate;
+    lower = upper;
+    if (price <= band.upTo) break;
+  }
+  return tax;
+}
+
 export function calculatePropertyTax(
   price: number,
   country: Country,
   buyerType: BuyerType,
 ): number {
   if (price <= 0) return 0;
-  const bands =
-    country === 'ENGLAND' ? ENGLAND_BANDS :
-    country === 'WALES' ? WALES_BANDS :
-    SCOTLAND_BANDS;
-  const surcharge = buyerType === 'ADDITIONAL' ? SURCHARGE[country] : 0;
 
-  let tax = 0;
-  let lower = 0;
-  for (const band of bands) {
-    if (price <= lower) break;
-    const upper = Math.min(price, band.upTo);
-    const slice = upper - lower;
-    tax += slice * (band.rate + surcharge);
-    lower = upper;
-    if (price <= band.upTo) break;
+  const isAdditional = buyerType === 'ADDITIONAL' || buyerType === 'COMPANY';
+  const isFTB = buyerType === 'FTB';
+  const isNonUK = buyerType === 'NON_UK_RESIDENT';
+
+  if (country === 'ENGLAND') {
+    let tax: number;
+    if (isAdditional) {
+      tax = applyBands(price, ENGLAND_ADDITIONAL_BANDS);
+    } else if (isFTB) {
+      // Above £500k FTB relief is withdrawn — use standard rates
+      tax = price > 500000
+        ? applyBands(price, ENGLAND_STANDARD_BANDS)
+        : applyBands(price, ENGLAND_FTB_BANDS);
+    } else {
+      // STANDARD or NON_UK_RESIDENT (same base rates)
+      tax = applyBands(price, ENGLAND_STANDARD_BANDS);
+    }
+    // Non-UK resident: additional 2% on full price
+    if (isNonUK) tax += price * 0.02;
+    return tax;
   }
-  return tax;
+
+  if (country === 'WALES') {
+    // Wales has no FTB relief and no non-UK resident surcharge
+    return isAdditional
+      ? applyBands(price, WALES_ADDITIONAL_BANDS)
+      : applyBands(price, WALES_STANDARD_BANDS);
+  }
+
+  // Scotland
+  if (isAdditional) {
+    // ADS = flat 8% on FULL purchase price, added to standard LBTT
+    return applyBands(price, SCOTLAND_STANDARD_BANDS) + price * 0.08;
+  }
+  return isFTB
+    ? applyBands(price, SCOTLAND_FTB_BANDS)
+    : applyBands(price, SCOTLAND_STANDARD_BANDS);
 }
 
 export function calculateSDLT(price: number, isSecondHome: boolean = true): number {

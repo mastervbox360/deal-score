@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
+import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function formatCurrency(value: number) {
@@ -170,7 +170,7 @@ export default function HomePage() {
   const socialResults = calculateSocialHousing({ ...socialInputs, stampDuty: socialTax });
 
   const taxLabel = TAX_LABEL[taxCountry];
-  const buyerLabel = buyerType === 'ADDITIONAL' ? 'Additional Property' : 'Standard Buyer';
+  const buyerLabel = BUYER_LABEL[buyerType];
 
   const currentPurchasePrice =
     dealType === 'BTL' ? btlInputs.purchasePrice :
@@ -1451,6 +1451,20 @@ function TaxSection({
   amount: number;
 }) {
   const label = TAX_LABEL[country];
+
+  const handleCountryChange = (v: Country) => {
+    onCountry(v);
+    if (v === 'WALES' && (buyerType === 'FTB' || buyerType === 'NON_UK_RESIDENT')) {
+      onBuyerType('STANDARD');
+    }
+    if (v === 'SCOTLAND' && buyerType === 'NON_UK_RESIDENT') {
+      onBuyerType('STANDARD');
+    }
+  };
+
+  const showFTB = country !== 'WALES';
+  const showNonUK = country === 'ENGLAND';
+
   return (
     <div className="md:col-span-2 rounded-xl bg-muted/40 border border-border p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -1464,7 +1478,7 @@ function TaxSection({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label className="text-xs">Country</Label>
-          <Select value={country} onValueChange={(v) => onCountry(v as Country)}>
+          <Select value={country} onValueChange={(v) => handleCountryChange(v as Country)}>
             <SelectTrigger data-testid="select-country"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ENGLAND">England / N. Ireland (SDLT)</SelectItem>
@@ -1479,11 +1493,17 @@ function TaxSection({
             <SelectTrigger data-testid="select-buyer-type"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="STANDARD">Standard Buyer</SelectItem>
-              <SelectItem value="ADDITIONAL">Additional Property</SelectItem>
+              {showFTB && <SelectItem value="FTB">First-Time Buyer</SelectItem>}
+              <SelectItem value="ADDITIONAL">Additional Property / Buy-to-Let</SelectItem>
+              <SelectItem value="COMPANY">Company / SPV Purchase</SelectItem>
+              {showNonUK && <SelectItem value="NON_UK_RESIDENT">Non-UK Resident (+2%)</SelectItem>}
             </SelectContent>
           </Select>
         </div>
       </div>
+      {country === 'WALES' && (
+        <p className="text-xs text-muted-foreground italic">Wales has no first-time buyer relief</p>
+      )}
     </div>
   );
 }
