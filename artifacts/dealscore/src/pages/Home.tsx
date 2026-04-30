@@ -196,22 +196,17 @@ export default function HomePage() {
     const SEC_GAP = 2;
 
     // ── Header ──────────────────────────────────────────────────────────────
-    const HEADER_H = 30;
+    const HEADER_H = 37;
     doc.setFillColor(...navy);
     doc.rect(0, 0, pageWidth, HEADER_H, 'F');
     doc.setTextColor(...white);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', MARGIN, 13);
+    doc.text('DealScore', MARGIN, 11);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(185, 205, 230);
-    doc.text('Investor Summary', MARGIN, 22);
-    // thin rule at bottom of navy header block
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(0.5);
-    doc.line(MARGIN, HEADER_H - 2, pageWidth - MARGIN, HEADER_H - 2);
-
+    doc.text('Investor Summary', MARGIN, 20);
     const dealLabel =
       dealType === 'BTL' ? 'Buy-to-Let' :
       dealType === 'HMO' ? 'HMO' :
@@ -220,6 +215,12 @@ export default function HomePage() {
       dealType === 'BRRR' ? 'BRRR' :
       dealType === 'R2R' ? 'Rent to Rent' :
       'Social Housing';
+    doc.setTextColor(220, 230, 245);
+    doc.text(dealLabel, MARGIN, 28);
+    // thin rule at bottom of navy header block
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.line(MARGIN, HEADER_H - 2, pageWidth - MARGIN, HEADER_H - 2);
 
     // ── Sub-header meta ──────────────────────────────────────────────────────
     doc.setTextColor(0, 0, 0);
@@ -254,12 +255,6 @@ export default function HomePage() {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     doc.text(propertyType, MARGIN + typeLabelWidth, cursorY);
-
-    cursorY += ROW_H;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...navy);
-    doc.text(`Deal Type: ${dealLabel}`, MARGIN, cursorY);
 
     let y = cursorY + 6;
 
