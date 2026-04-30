@@ -418,13 +418,13 @@ export default function HomePage() {
       doc.setDrawColor(165, 180, 210);
       doc.setLineWidth(0.25);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 2.5;
+      y += 5;
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       doc.text('Sourcing Fee', MARGIN + 1.5, y);
       doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN - 1.5, y, { align: 'right' });
-      y += ROW_H + SEC_GAP;
+      y += ROW_H + 5;
     };
 
     const tenureRows: PDFRow[] = [
@@ -655,13 +655,13 @@ export default function HomePage() {
       doc.setDrawColor(...navy);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 9;
+      y += 4;
 
       // All subsections: identical grey panel, bold label + normal content
       const noteGrey: [number, number, number] = [245, 247, 250];
       const notePadT = 4;   // padding above label text inside panel
       const notePadB = 4;   // padding below last content line inside panel
-      const noteGap  = 3;   // vertical gap between consecutive panels
+      const noteGap  = 1.5; // vertical gap between consecutive panels
 
       allNotes.forEach(({ label, text }) => {
         const lines = doc.splitTextToSize(text, pageWidth - 32) as string[];
@@ -683,7 +683,7 @@ export default function HomePage() {
     }
 
     // ── Footer strip ─────────────────────────────────────────────────────────
-    const FOOTER_Y = y + 4;
+    const FOOTER_Y = y + 2;
     doc.setFillColor(...navy);
     doc.rect(0, FOOTER_Y, pageWidth, FOOTER_H, 'F');
     const preparedParts = [
