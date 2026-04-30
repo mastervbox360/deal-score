@@ -1,4 +1,4 @@
-export type DealType = 'BTL' | 'HMO' | 'FLIP' | 'SA' | 'BRRR';
+export type DealType = 'BTL' | 'HMO' | 'FLIP' | 'SA' | 'BRRR' | 'R2R' | 'SOCIAL';
 export type MortgageType = 'IO' | 'REPAYMENT';
 
 export interface BaseInputs {
@@ -301,6 +301,102 @@ export function calculateSA(inputs: SAInputs) {
     grossMonthlyRevenue,
     platformFees,
     netMonthlyRevenue,
+    monthlyCashFlow,
+    annualCashFlow,
+    grossYield,
+    netYield,
+    cashOnCashROI,
+    score,
+  };
+}
+
+export interface R2RInputs {
+  monthlyRentPaid: number;
+  rooms: number;
+  rentPerRoom: number;
+  occupancyRate: number;
+  managementFeesPercent: number;
+  monthlyRunningCosts: number;
+  setupCosts: number;
+}
+
+export interface SocialHousingInputs {
+  purchasePrice: number;
+  stampDuty: number;
+  refurbCost: number;
+  otherCosts: number;
+  depositPercent: number;
+  mortgageRate: number;
+  mortgageTerm: number;
+  mortgageType: MortgageType;
+  leaseIncomePerMonth: number;
+  leaseLengthYears: number;
+  managementCostsPerMonth: number;
+}
+
+export function calculateR2R(inputs: R2RInputs) {
+  const grossMonthlyIncome = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
+  const managementFees = grossMonthlyIncome * (inputs.managementFeesPercent / 100);
+  const netMonthlyIncome = grossMonthlyIncome - managementFees;
+  const monthlyProfit = netMonthlyIncome - inputs.monthlyRentPaid - inputs.monthlyRunningCosts;
+  const annualProfit = monthlyProfit * 12;
+  const annualGrossIncome = grossMonthlyIncome * 12;
+  const roi = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+  const grossYield = inputs.setupCosts > 0 ? (annualGrossIncome / inputs.setupCosts) * 100 : 0;
+  const netYield = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+
+  let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
+  if (!inputs.rooms || !inputs.rentPerRoom || !inputs.monthlyRentPaid) {
+    score = 'Incomplete';
+  } else if (monthlyProfit >= 500 && roi >= 50) {
+    score = 'Strong';
+  } else if (monthlyProfit >= 200 && roi >= 25) {
+    score = 'Average';
+  }
+
+  return {
+    grossMonthlyIncome,
+    managementFees,
+    netMonthlyIncome,
+    monthlyProfit,
+    annualProfit,
+    annualGrossIncome,
+    roi,
+    grossYield,
+    netYield,
+    score,
+  };
+}
+
+export function calculateSocialHousing(inputs: SocialHousingInputs) {
+  const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
+  const mortgageAmount = inputs.purchasePrice - deposit;
+  const monthlyMortgage = calculateMonthlyMortgagePayment(
+    mortgageAmount,
+    inputs.mortgageRate,
+    inputs.mortgageTerm,
+    inputs.mortgageType,
+  );
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const monthlyCashFlow = inputs.leaseIncomePerMonth - monthlyMortgage - inputs.managementCostsPerMonth;
+  const annualCashFlow = monthlyCashFlow * 12;
+  const grossYield = inputs.purchasePrice > 0 ? (inputs.leaseIncomePerMonth * 12 / inputs.purchasePrice) * 100 : 0;
+  const netYield = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+
+  let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
+  if (!inputs.purchasePrice || !inputs.leaseIncomePerMonth) {
+    score = 'Incomplete';
+  } else if (cashOnCashROI >= 5 && monthlyCashFlow >= 50) {
+    score = 'Strong';
+  } else if (cashOnCashROI >= 2) {
+    score = 'Average';
+  }
+
+  return {
+    totalCashInvested,
+    mortgageAmount,
+    monthlyMortgage,
     monthlyCashFlow,
     annualCashFlow,
     grossYield,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type Country, type BuyerType } from '@/lib/calculations';
+import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function formatCurrency(value: number) {
@@ -101,6 +101,30 @@ export default function HomePage() {
     monthlyExpenses: 150,
   });
 
+  const [r2rInputs, setR2rInputs] = useState<R2RInputs>({
+    monthlyRentPaid: 800,
+    rooms: 5,
+    rentPerRoom: 500,
+    occupancyRate: 90,
+    managementFeesPercent: 10,
+    monthlyRunningCosts: 200,
+    setupCosts: 8000,
+  });
+
+  const [socialInputs, setSocialInputs] = useState<SocialHousingInputs>({
+    purchasePrice: 150000,
+    stampDuty: 0,
+    refurbCost: 5000,
+    otherCosts: 2000,
+    depositPercent: 25,
+    mortgageRate: 5.5,
+    mortgageTerm: 25,
+    mortgageType: 'IO',
+    leaseIncomePerMonth: 950,
+    leaseLengthYears: 5,
+    managementCostsPerMonth: 50,
+  });
+
   const handleBtlChange = (field: keyof BTLInputs, value: string) => {
     setBtlInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
@@ -121,17 +145,29 @@ export default function HomePage() {
     setBrrrInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
+  const handleR2rChange = (field: keyof R2RInputs, value: string) => {
+    setR2rInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const handleSocialChange = (field: keyof SocialHousingInputs, value: string) => {
+    setSocialInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
+  };
+
   const btlTax = calculatePropertyTax(btlInputs.purchasePrice, taxCountry, buyerType);
   const hmoTax = calculatePropertyTax(hmoInputs.purchasePrice, taxCountry, buyerType);
   const flipTax = calculatePropertyTax(flipInputs.purchasePrice, taxCountry, buyerType);
   const saTax = calculatePropertyTax(saInputs.purchasePrice, taxCountry, buyerType);
   const brrrTax = calculatePropertyTax(brrrInputs.purchasePrice, taxCountry, buyerType);
 
+  const socialTax = calculatePropertyTax(socialInputs.purchasePrice, taxCountry, buyerType);
+
   const btlResults = calculateBTL({ ...btlInputs, stampDuty: btlTax });
   const hmoResults = calculateHMO({ ...hmoInputs, stampDuty: hmoTax });
   const flipResults = calculateFlip({ ...flipInputs, stampDuty: flipTax });
   const saResults = calculateSA({ ...saInputs, stampDuty: saTax });
   const brrrResults = calculateBRRR({ ...brrrInputs, stampDuty: brrrTax });
+  const r2rResults = calculateR2R(r2rInputs);
+  const socialResults = calculateSocialHousing({ ...socialInputs, stampDuty: socialTax });
 
   const taxLabel = TAX_LABEL[taxCountry];
   const buyerLabel = buyerType === 'ADDITIONAL' ? 'Additional Property' : 'Standard Buyer';
@@ -141,6 +177,8 @@ export default function HomePage() {
     dealType === 'HMO' ? hmoInputs.purchasePrice :
     dealType === 'FLIP' ? flipInputs.purchasePrice :
     dealType === 'SA' ? saInputs.purchasePrice :
+    dealType === 'SOCIAL' ? socialInputs.purchasePrice :
+    dealType === 'R2R' ? 0 :
     brrrInputs.purchasePrice;
   const equityDayOne = marketValue - currentPurchasePrice;
   const bmvAmount = equityDayOne;
@@ -166,7 +204,9 @@ export default function HomePage() {
       dealType === 'HMO' ? 'HMO' :
       dealType === 'FLIP' ? 'Flip / Refurb' :
       dealType === 'SA' ? 'Serviced Accommodation' :
-      'BRRR';
+      dealType === 'BRRR' ? 'BRRR' :
+      dealType === 'R2R' ? 'Rent to Rent' :
+      'Social Housing';
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(9);
@@ -348,7 +388,7 @@ export default function HomePage() {
           ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
         ] : []),
       ]);
-    } else {
+    } else if (dealType === 'BRRR') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(brrrInputs.purchasePrice)],
         [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(brrrTax)],
@@ -371,6 +411,56 @@ export default function HomePage() {
         ['Gross Yield', formatPercent(brrrResults.grossYield)],
         ['Net Yield', formatPercent(brrrResults.netYield)],
         ['Cash-on-Cash ROI', brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI)],
+        ...(marketValue > 0 ? [
+          ['Market Value', formatCurrency(marketValue)] as [string, string],
+          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+        ] : []),
+      ]);
+    } else if (dealType === 'R2R') {
+      writeSection('Inputs', [
+        ['Monthly Rent to Landlord', formatCurrency(r2rInputs.monthlyRentPaid)],
+        ['Rooms', `${r2rInputs.rooms}`],
+        ['Rent per Room (monthly)', formatCurrency(r2rInputs.rentPerRoom)],
+        ['Occupancy Rate', `${r2rInputs.occupancyRate}%`],
+        ['Management / Platform Fees', `${r2rInputs.managementFeesPercent}%`],
+        ['Monthly Running Costs', formatCurrency(r2rInputs.monthlyRunningCosts)],
+        ['Setup Costs', formatCurrency(r2rInputs.setupCosts)],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', r2rResults.score],
+        ['Gross Monthly Income', formatCurrency(r2rResults.grossMonthlyIncome)],
+        ['Management Fees/mo', formatCurrency(r2rResults.managementFees)],
+        ['Net Monthly Income', formatCurrency(r2rResults.netMonthlyIncome)],
+        ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit)],
+        ['Annual Profit', formatCurrency(r2rResults.annualProfit)],
+        ['Gross Return on Setup', formatPercent(r2rResults.grossYield)],
+        ['Net ROI on Setup Costs', formatPercent(r2rResults.roi)],
+      ]);
+    } else {
+      writeSection('Inputs', [
+        ['Purchase Price', formatCurrency(socialInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(socialTax)],
+        ['Refurb Cost', formatCurrency(socialInputs.refurbCost)],
+        ['Other Costs', formatCurrency(socialInputs.otherCosts)],
+        ['Deposit', `${socialInputs.depositPercent}%`],
+        ['Mortgage Rate', `${socialInputs.mortgageRate}%`],
+        ['Mortgage Type', socialInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(socialInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${socialInputs.mortgageTerm} years`] as [string, string]] : []),
+        ['Guaranteed Lease Income/mo', formatCurrency(socialInputs.leaseIncomePerMonth)],
+        ['Lease Length', `${socialInputs.leaseLengthYears} years`],
+        ['Management Costs/mo', formatCurrency(socialInputs.managementCostsPerMonth)],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', socialResults.score],
+        ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
+        ['Mortgage Amount', formatCurrency(socialResults.mortgageAmount)],
+        ['Monthly Mortgage', formatCurrency(socialResults.monthlyMortgage)],
+        ['Monthly Cash Flow', formatCurrency(socialResults.monthlyCashFlow)],
+        ['Annual Cash Flow', formatCurrency(socialResults.annualCashFlow)],
+        ['Gross Yield', formatPercent(socialResults.grossYield)],
+        ['Net Yield', formatPercent(socialResults.netYield)],
+        ['Cash-on-Cash ROI', formatPercent(socialResults.cashOnCashROI)],
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as [string, string],
           ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
@@ -468,21 +558,27 @@ export default function HomePage() {
       <main className="container max-w-5xl mx-auto px-4 mt-8">
         <div className="mb-8">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="w-full grid grid-cols-5 h-12 bg-white border border-border rounded-xl p-1 shadow-sm">
-              <TabsTrigger value="BTL" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Home className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">Buy-to-Let</span>
+            <TabsList className="w-full grid grid-cols-7 h-12 bg-white border border-border rounded-xl p-1 shadow-sm">
+              <TabsTrigger value="BTL" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Home className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BTL</span>
               </TabsTrigger>
-              <TabsTrigger value="HMO" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Building2 className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">HMO</span>
+              <TabsTrigger value="HMO" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Building2 className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">HMO</span>
               </TabsTrigger>
-              <TabsTrigger value="FLIP" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Hammer className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">Flip / Refurb</span>
+              <TabsTrigger value="FLIP" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Hammer className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Flip</span>
               </TabsTrigger>
-              <TabsTrigger value="SA" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <BedDouble className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">SA</span>
+              <TabsTrigger value="SA" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <BedDouble className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">SA</span>
               </TabsTrigger>
-              <TabsTrigger value="BRRR" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <RefreshCw className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">BRRR</span>
+              <TabsTrigger value="BRRR" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <RefreshCw className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BRRR</span>
+              </TabsTrigger>
+              <TabsTrigger value="R2R" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Key className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">R2R</span>
+              </TabsTrigger>
+              <TabsTrigger value="SOCIAL" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Shield className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Social</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -775,6 +871,109 @@ export default function HomePage() {
                   </div>
                 )}
 
+                {dealType === 'R2R' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Rent to Landlord (£)</Label>
+                      <Input type="number" value={r2rInputs.monthlyRentPaid} onChange={(e) => handleR2rChange('monthlyRentPaid', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Setup Costs — furniture, light works (£)</Label>
+                      <Input type="number" value={r2rInputs.setupCosts} onChange={(e) => handleR2rChange('setupCosts', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Number of Rooms</Label>
+                      <Input type="number" value={r2rInputs.rooms} onChange={(e) => handleR2rChange('rooms', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Rent per Room / month (£)</Label>
+                      <Input type="number" value={r2rInputs.rentPerRoom} onChange={(e) => handleR2rChange('rentPerRoom', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Occupancy Rate (%)</Label>
+                      <Input type="number" value={r2rInputs.occupancyRate} onChange={(e) => handleR2rChange('occupancyRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Platform / Management Fees (%)</Label>
+                      <Input type="number" step="0.5" value={r2rInputs.managementFeesPercent} onChange={(e) => handleR2rChange('managementFeesPercent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Running Costs (£)</Label>
+                      <Input type="number" value={r2rInputs.monthlyRunningCosts} onChange={(e) => handleR2rChange('monthlyRunningCosts', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'SOCIAL' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Purchase Price (£)</Label>
+                      <Input type="number" value={socialInputs.purchasePrice} onChange={(e) => handleSocialChange('purchasePrice', e.target.value)} />
+                    </div>
+                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={socialTax} />
+                    <div className="space-y-2">
+                      <Label>Refurb Cost (£)</Label>
+                      <Input type="number" value={socialInputs.refurbCost} onChange={(e) => handleSocialChange('refurbCost', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Costs (Legal, Broker) (£)</Label>
+                      <Input type="number" value={socialInputs.otherCosts} onChange={(e) => handleSocialChange('otherCosts', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Deposit (%)</Label>
+                      <Input type="number" value={socialInputs.depositPercent} onChange={(e) => handleSocialChange('depositPercent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Mortgage Rate (%)</Label>
+                      <Input type="number" step="0.1" value={socialInputs.mortgageRate} onChange={(e) => handleSocialChange('mortgageRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Mortgage Type</Label>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => handleSocialChange('mortgageType', 'IO')} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${socialInputs.mortgageType === 'IO' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}>Interest Only</button>
+                        <button type="button" onClick={() => handleSocialChange('mortgageType', 'REPAYMENT')} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${socialInputs.mortgageType === 'REPAYMENT' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}>Repayment</button>
+                      </div>
+                    </div>
+                    {socialInputs.mortgageType === 'REPAYMENT' && (
+                      <div className="space-y-2">
+                        <Label>Mortgage Term (years)</Label>
+                        <Input type="number" value={socialInputs.mortgageTerm} onChange={(e) => handleSocialChange('mortgageTerm', e.target.value)} />
+                      </div>
+                    )}
+                    <div className="col-span-1 md:col-span-2">
+                      <div className="h-px w-full bg-border my-1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Guaranteed Lease Income / month (£)</Label>
+                      <Input type="number" value={socialInputs.leaseIncomePerMonth} onChange={(e) => handleSocialChange('leaseIncomePerMonth', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Lease Length (years)</Label>
+                      <Input type="number" value={socialInputs.leaseLengthYears} onChange={(e) => handleSocialChange('leaseLengthYears', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Management Costs / month (£)</Label>
+                      <Input type="number" value={socialInputs.managementCostsPerMonth} onChange={(e) => handleSocialChange('managementCostsPerMonth', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-6 pt-5 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
@@ -907,12 +1106,16 @@ export default function HomePage() {
                 {dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
                 {dealType === 'SA' && renderScoreBadge(saResults.score)}
                 {dealType === 'BRRR' && renderScoreBadge(brrrResults.score)}
+                {dealType === 'R2R' && renderScoreBadge(r2rResults.score)}
+                {dealType === 'SOCIAL' && renderScoreBadge(socialResults.score)}
 
                 {(dealType === 'BTL' && btlResults.score === 'Incomplete') ||
                  (dealType === 'HMO' && hmoResults.score === 'Incomplete') ||
                  (dealType === 'FLIP' && flipResults.score === 'Incomplete') ||
                  (dealType === 'SA' && saResults.score === 'Incomplete') ||
-                 (dealType === 'BRRR' && brrrResults.score === 'Incomplete') ? (
+                 (dealType === 'BRRR' && brrrResults.score === 'Incomplete') ||
+                 (dealType === 'R2R' && r2rResults.score === 'Incomplete') ||
+                 (dealType === 'SOCIAL' && socialResults.score === 'Incomplete') ? (
                   <p className="text-sm opacity-80 mt-2">Enter properties to see verdict</p>
                 ) : null}
 
@@ -1047,6 +1250,43 @@ export default function HomePage() {
                         value={brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
                         isBold
                       />
+                      {marketValue > 0 && (
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'R2R' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} />
+                      <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} />
+                      <MetricBox label="Monthly Profit" value={formatCurrency(r2rResults.monthlyProfit)} highlight={r2rResults.monthlyProfit < 0} />
+                      <MetricBox label="Annual Profit" value={formatCurrency(r2rResults.annualProfit)} highlight={r2rResults.annualProfit < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} />
+                      <Row label="Gross Return on Setup" value={formatPercent(r2rResults.grossYield)} />
+                      <Row label="Net ROI on Setup Costs" value={formatPercent(r2rResults.roi)} isBold />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'SOCIAL' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} />
+                      <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(socialResults.monthlyCashFlow)} highlight={socialResults.monthlyCashFlow < 0} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(socialResults.annualCashFlow)} highlight={socialResults.annualCashFlow < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Gross Yield" value={formatPercent(socialResults.grossYield)} />
+                      <Row label="Net Yield" value={formatPercent(socialResults.netYield)} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(socialResults.cashOnCashROI)} isBold />
                       {marketValue > 0 && (
                         <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
                       )}
