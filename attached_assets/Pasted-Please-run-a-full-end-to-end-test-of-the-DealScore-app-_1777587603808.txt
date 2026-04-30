@@ -1,0 +1,130 @@
+Please run a full end-to-end test of the DealScore app across all 7 strategies using the test cases below. For each test case: (1) input the exact values given, (2) verify every calculated output matches the expected values shown, (3) generate and download the PDF, (4) confirm the PDF layout matches the finalised design — navy header with DealScore · Investor Summary on one line, deal type and property type in header, address strip, hero metric cards, alternating row inputs and results, sourcing fee hidden if £0, deal notes with grey panels, navy footer with prepared by and disclaimer. Report any discrepancy in either the calculations or the PDF layout.
+
+TEST 1 — BTL — STRONG DEAL
+Address: 14 Maple Street, Manchester, M14 5QR | Property Type: Terraced | Tenure: Freehold | Purchase Price: £180,000 | Country: England | Buyer Type: Additional Property | Refurb: £8,000 | Other Costs: £2,000 | Deposit: 25% | Mortgage Rate: 5.5% IO | Monthly Rent: £1,100 | Monthly Expenses: £150 | Market Value: £210,000 | Sourcing Fee: £3,500 | Why This Strategy: Strong rental demand in M14 postcode with 7%+ yield | Property Description: 3 bed mid-terrace, recently decorated | Vendor Situation: Relocating for work, needs quick sale | Comparables: 16 Maple St sold £205k, 22 Maple St sold £208k | Prepared By: Videet Mardania | Email: videet@me.com | Phone: 07966325150
+Expected outputs:
+
+SDLT (England, Additional): 5%×£125k + 7%×£55k = £6,250 + £3,850 = £10,100
+Deposit: £45,000 | Mortgage: £135,000 | Monthly Mortgage (IO): £618.75
+Cash Invested: £45,000 + £10,100 + £8,000 + £2,000 = £65,100
+Monthly CF: £1,100 − £618.75 − £150 = £331.25
+Annual CF: £3,975
+Gross Yield: (£13,200 ÷ £180,000) × 100 = 7.3%
+Net Yield: (£1,100 − £150) × 12 ÷ £180,000 = 6.3%
+Cash-on-Cash ROI: £3,975 ÷ £65,100 = 6.1%
+BMV: £30,000 (14.3%)
+Deal Score: STRONG (ROI 6.1% ≥ 5% AND CF £331 ≥ £100)
+
+
+TEST 2 — BTL — AVERAGE DEAL
+Address: 8 Park Lane, London, SW1A 1AA | Property Type: Flat/Apartment | Tenure: Leasehold | Lease Length: 150 years | Purchase Price: £350,000 | Country: England | Buyer Type: Additional Property | Refurb: £5,000 | Other Costs: £3,000 | Deposit: 25% | Mortgage Rate: 5.5% IO | Monthly Rent: £1,800 | Monthly Expenses: £400 | Market Value: £375,000 | Sourcing Fee: £0
+Expected outputs:
+
+SDLT: 5%×£125k + 7%×£125k + 10%×£100k = £6,250 + £8,750 + £10,000 = £25,000
+Cash Invested: £87,500 + £25,000 + £5,000 + £3,000 = £120,500
+Mortgage: £262,500 | Monthly Mortgage: £1,203.13
+Monthly CF: £1,800 − £1,203.13 − £400 = £196.87
+Gross Yield: (£21,600 ÷ £350,000) = 6.2%
+Net Yield: (£1,800−£400)×12 ÷ £350,000 = 4.8%
+CoC ROI: (£2,362 ÷ £120,500) = 2.0%
+Deal Score: AVERAGE (positive CF but ROI below 5%)
+PDF: Leasehold and 150 years lease length must appear in Inputs section
+PDF: Sourcing Fee row must be hidden (£0)
+
+
+TEST 3 — HMO — STRONG DEAL
+Address: 42 Victoria Road, Leeds, LS6 1DR | Property Type: HMO | Tenure: Freehold | Purchase Price: £220,000 | Country: England | Buyer Type: Additional Property | Refurb: £45,000 | Other Costs: £3,500 | Deposit: 25% | Mortgage Rate: 6% IO | Rooms: 6 | Rent per Room: £550 | Occupancy: 92% | Monthly Expenses: £900 | Market Value: £280,000 | Sourcing Fee: £4,500
+Expected outputs:
+
+SDLT: 5%×£125k + 7%×£95k = £6,250 + £6,650 = £12,900
+Cash Invested: £55,000 + £12,900 + £45,000 + £3,500 = £116,400
+Gross Monthly Rent: 6 × £550 × 92% = £3,036
+Mortgage: £165,000 | Monthly Mortgage: £825
+Monthly CF: £3,036 − £825 − £900 = £1,311
+Gross Yield: (£36,432 ÷ £220,000) = 16.6%
+Net Yield: (£3,036−£900)×12 ÷ £220,000 = 11.7%
+CoC ROI: (£15,732 ÷ £116,400) = 13.5%
+Deal Score: STRONG (Gross Yield 16.6% ≥ 10% AND positive CF)
+
+
+TEST 4 — FLIP — STRONG DEAL
+Address: 7 Brunswick Close, Birmingham, B12 0HJ | Property Type: Terraced | Tenure: Freehold | Purchase Price: £95,000 | Country: England | Buyer Type: Additional Property | Refurb: £28,000 | Other Costs: £2,000 | Holding Costs: £600/mo | Project Length: 5 months | GDV: £160,000 | Selling Costs: 2% | Market Value: £160,000 | Sourcing Fee: £2,500
+Expected outputs:
+
+SDLT: 5%×£95,000 = £4,750
+Total Holding: £600 × 5 = £3,000
+Total Cost: £95,000 + £4,750 + £28,000 + £2,000 + £3,000 = £132,750
+Selling Costs: £160,000 × 2% = £3,200
+Net Profit: £160,000 − £132,750 − £3,200 = £24,050
+Profit/Month: £24,050 ÷ 5 = £4,810
+Total ROI: £24,050 ÷ £132,750 = 18.1%
+Annualised ROI: 18.1% × 12 ÷ 5 = 43.5%
+Deal Score: STRONG (ROI 18.1% ≥ 12% AND profit £24,050 ≥ £18,000)
+
+
+TEST 5 — SA — AVERAGE DEAL
+Address: 3 Harbour View, Brighton, BN1 1AF | Property Type: Flat/Apartment | Tenure: Leasehold | Lease Length: 99 years | Purchase Price: £280,000 | Country: England | Buyer Type: Additional Property | Refurb: £20,000 | Other Costs: £3,000 | Deposit: 25% | Mortgage Rate: 5.5% IO | Nightly Rate: £110 | Occupancy: 65% | Platform Fees: 15% | Monthly Running Costs: £950 | Market Value: £310,000 | Sourcing Fee: £5,000
+Expected outputs:
+
+SDLT: 5%×£125k + 7%×£125k + 10%×£30k = £6,250 + £8,750 + £3,000 = £18,000
+Cash Invested: £70,000 + £18,000 + £20,000 + £3,000 = £111,000
+Gross Rev/mo: £110 × 65% × (365÷12) = £2,173
+Platform Fees: £2,173 × 15% = £326
+Net Rev/mo: £1,847
+Mortgage: £210,000 | Monthly Mortgage: £962.50
+Monthly CF: £1,847 − £962.50 − £950 = −£65.50
+Gross Yield: (£26,080 ÷ £280,000) = 9.3%
+Net Yield: (£1,847−£950)×12 ÷ £280,000 = 3.8%
+CoC ROI: (−£786 ÷ £111,000) = −0.7%
+Deal Score: WEAK (negative cash flow)
+Note: This tests that a WEAK score displays correctly with red badge
+
+
+TEST 6 — BRRR — STRONG DEAL
+Address: 31 Coronation Street, Salford, M5 3PL | Property Type: Semi-Detached | Tenure: Freehold | Purchase Price: £90,000 | Country: England | Buyer Type: Additional Property | Refurb: £25,000 | Other Costs: £2,000 | Post-Refurb Value: £160,000 | Refinance: 75% | New Mortgage Rate: 5.5% | Monthly Rent: £850 | Monthly Expenses: £120 | Market Value: £160,000 | Sourcing Fee: £3,000
+Expected outputs:
+
+SDLT: 5%×£90,000 = £4,500
+Total Cost In: £90,000 + £4,500 + £25,000 + £2,000 = £121,500
+Refi Loan: £160,000 × 75% = £120,000
+Cash Left In: £121,500 − £120,000 = £1,500
+Monthly Mortgage: £120,000 × 5.5% ÷ 12 = £550
+Monthly CF: £850 − £550 − £120 = £180
+Gross Yield: (£10,200 ÷ £160,000) = 6.4%
+Net Yield: (£850−£120)×12 ÷ £160,000 = 5.5%
+CoC ROI: (£2,160 ÷ £1,500) = 144%
+Deal Score: STRONG (positive CF AND cash left £1,500 ≤ £10,000)
+Note: This tests near-infinite ROI scenario — confirm app handles 144% without breaking
+
+
+TEST 7 — R2R — STRONG DEAL
+Address: 19 Elm Grove, Sheffield, S10 2GN | Property Type: HMO | Rent to Landlord: £900/mo | Rooms: 6 | Rent per Room: £480 | Occupancy: 88% | Management Fees: 10% | Monthly Running Costs: £250 | Setup Costs: £5,000 | Market Value: £0 (no purchase) | Sourcing Fee: £2,000
+Expected outputs:
+
+Gross Monthly Income: 6 × £480 × 88% = £2,534.40
+Management Fees: £2,534.40 × 10% = £253.44
+Net Monthly Income: £2,280.96
+Monthly Profit: £2,280.96 − £900 − £250 = £1,130.96
+Annual Profit: £13,571.52
+Gross Return on Setup: (£30,412.80 ÷ £5,000) × 100 = 608.3%
+Net Return on Setup Costs: (£13,571.52 ÷ £5,000) × 100 = 271.4%
+Deal Score: STRONG (profit £1,131 ≥ £500 AND ROI 271% ≥ 50%)
+PDF: confirm label shows 'Net Return on Setup Costs' not 'Net Yield'
+
+
+TEST 8 — SOCIAL HOUSING — AVERAGE DEAL
+Address: 5 Council Road, Cardiff, CF10 1EP | Property Type: Terraced | Tenure: Freehold | Purchase Price: £140,000 | Country: Wales | Buyer Type: Additional Property | Refurb: £6,000 | Other Costs: £1,500 | Deposit: 25% | Mortgage Rate: 5.5% IO | Lease Income: £750/mo | Lease Length: 3 years | Management Costs: £60/mo | Market Value: £175,000 | Sourcing Fee: £0
+Expected outputs:
+
+LTT (Wales Additional): 5%×£140,000 = £7,000
+Cash Invested: £35,000 + £7,000 + £6,000 + £1,500 = £49,500
+Mortgage: £105,000 | Monthly Mortgage: £481.25
+Monthly CF: £750 − £481.25 − £60 = £208.75
+Gross Yield: (£9,000 ÷ £140,000) = 6.4%
+Net Yield: (£750−£60)×12 ÷ £140,000 = 5.9%
+CoC ROI: (£2,505 ÷ £49,500) = 5.1%
+Deal Score: STRONG (ROI 5.1% ≥ 5% AND CF £208 ≥ £100)
+PDF: Sourcing Fee row hidden (£0)
+
+
+For every test: confirm the Deal Score badge colour matches (green=Strong, amber=Average, red=Weak). Confirm the PDF hero cards show the correct three metrics for that strategy. Confirm all inputs appear correctly in the PDF inputs section. Report each test as PASS or FAIL with specific discrepancy noted if FAIL."

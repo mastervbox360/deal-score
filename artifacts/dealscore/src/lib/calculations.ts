@@ -248,7 +248,7 @@ export function calculateBTL(inputs: BTLInputs) {
     score = 'Incomplete';
   } else if (cashOnCashROI >= 5 && monthlyCashFlow >= 100) {
     score = 'Strong';
-  } else if (cashOnCashROI >= 3) {
+  } else if (cashOnCashROI >= 3 || monthlyCashFlow >= 100) {
     score = 'Average';
   }
 
