@@ -193,12 +193,10 @@ export default function HomePage() {
     const white: [number, number, number] = [255, 255, 255];
     const rowAlt: [number, number, number] = [245, 247, 250];
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
     const MARGIN = 14;
     const ROW_H = 5.0;
     const SEC_GAP = 2;
     const FOOTER_H = 11;
-    const FOOTER_Y = pageHeight - FOOTER_H;
 
     // ── Deal metadata ────────────────────────────────────────────────────────
     const now = new Date();
@@ -299,18 +297,21 @@ export default function HomePage() {
 
     // ── Hero metrics strip ───────────────────────────────────────────────────
     type HeroMetric = { label: string; value: string };
+    const bmvHero: HeroMetric | null = marketValue > 0
+      ? { label: 'BMV', value: `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)` }
+      : null;
     let heroMetrics: HeroMetric[];
     if (dealType === 'BTL') {
       heroMetrics = [
         { label: 'Monthly Cash Flow', value: formatCurrency(btlResults.monthlyCashFlow) },
         { label: 'Gross Yield', value: formatPercent(btlResults.grossYield) },
-        { label: 'BMV', value: marketValue > 0 ? `${bmvPercent.toFixed(1)}%` : '—' },
+        ...(bmvHero ? [bmvHero] : []),
       ];
     } else if (dealType === 'HMO') {
       heroMetrics = [
         { label: 'Monthly Cash Flow', value: formatCurrency(hmoResults.monthlyCashFlow) },
         { label: 'Gross Yield', value: formatPercent(hmoResults.grossYield) },
-        { label: 'BMV', value: marketValue > 0 ? `${bmvPercent.toFixed(1)}%` : '—' },
+        ...(bmvHero ? [bmvHero] : []),
       ];
     } else if (dealType === 'FLIP') {
       heroMetrics = [
@@ -340,12 +341,13 @@ export default function HomePage() {
       heroMetrics = [
         { label: 'Monthly Cash Flow', value: formatCurrency(socialResults.monthlyCashFlow) },
         { label: 'Gross Yield', value: formatPercent(socialResults.grossYield) },
-        { label: 'BMV', value: marketValue > 0 ? `${bmvPercent.toFixed(1)}%` : '—' },
+        ...(bmvHero ? [bmvHero] : []),
       ];
     }
     const heroCardH = 17;
     const heroGap = 3;
-    const heroW = (pageWidth - 2 * MARGIN - 2 * heroGap) / 3;
+    const cardCount = heroMetrics.length;
+    const heroW = (pageWidth - 2 * MARGIN - (cardCount - 1) * heroGap) / cardCount;
     y += 3;
     heroMetrics.forEach(({ label, value }, i) => {
       const hx = MARGIN + i * (heroW + heroGap);
@@ -636,9 +638,12 @@ export default function HomePage() {
       allNotes.forEach(({ label, text, highlight }) => {
         const lines = doc.splitTextToSize(text, pageWidth - 30) as string[];
         if (highlight) {
-          const panelH = ROW_H + lines.length * ROW_H + 4;
+          const paddingTop = 2;
+          const paddingBottom = 4;
+          const panelH = paddingTop + ROW_H + lines.length * ROW_H + paddingBottom;
+          const panelY = y - ROW_H + 0.5 - paddingTop;
           doc.setFillColor(...navyPanel);
-          doc.rect(MARGIN, y - ROW_H + 0.5, pageWidth - 2 * MARGIN, panelH, 'F');
+          doc.rect(MARGIN, panelY, pageWidth - 2 * MARGIN, panelH, 'F');
           doc.setFontSize(9);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(...navy);
@@ -647,7 +652,7 @@ export default function HomePage() {
           doc.setFont('helvetica', 'italic');
           doc.setTextColor(35, 55, 100);
           lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
-          y += 3;
+          y += paddingBottom;
         } else {
           doc.setFontSize(9);
           doc.setFont('helvetica', 'bold');
@@ -662,6 +667,7 @@ export default function HomePage() {
     }
 
     // ── Footer strip ─────────────────────────────────────────────────────────
+    const FOOTER_Y = y + 6;
     doc.setFillColor(...navy);
     doc.rect(0, FOOTER_Y, pageWidth, FOOTER_H, 'F');
     const preparedParts = [
