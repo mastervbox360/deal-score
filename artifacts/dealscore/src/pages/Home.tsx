@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,8 @@ export default function HomePage() {
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
   const [comparableProperties, setComparableProperties] = useState<string>('');
+  const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
+  const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('WALES');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
@@ -615,10 +617,28 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-6 pt-5 border-t border-border space-y-5">
-                  <h3 className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
-                    Recommended Strategy
-                  </h3>
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setStrategyOpen((v) => !v)}
+                    aria-expanded={strategyOpen}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                    data-testid="toggle-strategy"
+                  >
+                    <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                      Recommended Strategy
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform duration-200"
+                      style={{
+                        color: '#1B3A6B',
+                        transform: strategyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      }}
+                    />
+                  </button>
+                </div>
+                {strategyOpen && (
+                <div className="mt-4 space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="strategy-recommendation">Strategy Recommendation</Label>
                     <Select value={strategyRecommendation} onValueChange={setStrategyRecommendation}>
@@ -646,11 +666,30 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
+                )}
 
-                <div className="mt-6 pt-5 border-t border-border space-y-5">
-                  <h3 className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
-                    Deal Notes
-                  </h3>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setDealNotesOpen((v) => !v)}
+                    aria-expanded={dealNotesOpen}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                    data-testid="toggle-deal-notes"
+                  >
+                    <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                      Deal Notes
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform duration-200"
+                      style={{
+                        color: '#1B3A6B',
+                        transform: dealNotesOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      }}
+                    />
+                  </button>
+                </div>
+                {dealNotesOpen && (
+                <div className="mt-4 space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="property-description">Property Description</Label>
                     <Textarea
@@ -685,6 +724,7 @@ export default function HomePage() {
                     />
                   </div>
                 </div>
+                )}
               </CardContent>
             </Card>
           </div>
