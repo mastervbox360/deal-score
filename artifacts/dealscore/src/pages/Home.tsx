@@ -343,7 +343,7 @@ export default function HomePage() {
       heroMetrics = [
         { label: 'Monthly Profit', value: formatCurrency(r2rResults.monthlyProfit) },
         { label: 'Annual Profit', value: formatCurrency(r2rResults.annualProfit) },
-        { label: 'ROI on Setup', value: formatPercent(r2rResults.roi) },
+        { label: 'Net Return on Setup Costs', value: formatPercent(r2rResults.roi) },
       ];
     } else {
       heroMetrics = [
@@ -602,7 +602,7 @@ export default function HomePage() {
         ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit), true],
         ['Annual Profit', formatCurrency(r2rResults.annualProfit)],
         ['Gross Return on Setup', formatPercent(r2rResults.grossYield)],
-        ['Net ROI on Setup Costs', formatPercent(r2rResults.roi), true],
+        ['Net Return on Setup Costs', formatPercent(r2rResults.roi), true],
       ]);
     } else {
       writeSection('Inputs', [
@@ -1463,7 +1463,7 @@ export default function HomePage() {
                     <div className="space-y-3">
                       <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} />
                       <Row label="Gross Return on Setup" value={formatPercent(r2rResults.grossYield)} />
-                      <Row label="Net ROI on Setup Costs" value={formatPercent(r2rResults.roi)} isBold />
+                      <Row label="Net Return on Setup Costs" value={formatPercent(r2rResults.roi)} isBold />
                     </div>
                   </div>
                 )}
