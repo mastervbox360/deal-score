@@ -357,8 +357,9 @@ export function calculateSA(inputs: SAInputs) {
   const annualCashFlow = monthlyCashFlow * 12;
   const annualRevenue = grossMonthlyRevenue * 12;
 
+  const annualNetRevenue = (netMonthlyRevenue - inputs.monthlyRunningCosts) * 12;
   const grossYield = inputs.purchasePrice > 0 ? (annualRevenue / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualCashFlow / inputs.purchasePrice) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualNetRevenue / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -456,8 +457,9 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
   const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
   const monthlyCashFlow = inputs.leaseIncomePerMonth - monthlyMortgage - inputs.managementCostsPerMonth;
   const annualCashFlow = monthlyCashFlow * 12;
+  const annualOperatingIncome = (inputs.leaseIncomePerMonth - inputs.managementCostsPerMonth) * 12;
   const grossYield = inputs.purchasePrice > 0 ? (inputs.leaseIncomePerMonth * 12 / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualCashFlow / inputs.purchasePrice) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (annualOperatingIncome / inputs.purchasePrice) * 100 : 0;
   const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -493,7 +495,7 @@ export function calculateBRRR(inputs: BRRRInputs) {
   const annualRent = inputs.monthlyRent * 12;
 
   const grossYield = inputs.postRefurbValue > 0 ? (annualRent / inputs.postRefurbValue) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualCashFlow / inputs.purchasePrice) * 100 : 0;
+  const netYield = inputs.postRefurbValue > 0 ? (annualCashFlow / inputs.postRefurbValue) * 100 : 0;
   const cashOnCashROI = cashLeftInDeal > 0
     ? (annualCashFlow / cashLeftInDeal) * 100
     : cashLeftInDeal <= 0 && annualCashFlow > 0
