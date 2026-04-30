@@ -1,4 +1,4 @@
-export type DealType = 'BTL' | 'HMO' | 'FLIP';
+export type DealType = 'BTL' | 'HMO' | 'FLIP' | 'SA' | 'BRRR';
 export type MortgageType = 'IO' | 'REPAYMENT';
 
 export interface BaseInputs {
@@ -25,6 +25,21 @@ export interface HMOInputs extends BaseInputs {
   rooms: number;
   rentPerRoom: number;
   occupancyRate: number;
+  monthlyExpenses: number;
+}
+
+export interface SAInputs extends BaseInputs {
+  nightlyRate: number;
+  occupancyPercent: number;
+  platformFeesPercent: number;
+  monthlyRunningCosts: number;
+}
+
+export interface BRRRInputs extends BaseInputs {
+  postRefurbValue: number;
+  refinancePercent: number;
+  newMortgageRate: number;
+  monthlyRent: number;
   monthlyExpenses: number;
 }
 
@@ -240,5 +255,89 @@ export function calculateFlip(inputs: FlipInputs) {
     annualisedROI,
     profitPerMonth,
     score
+  };
+}
+
+export function calculateSA(inputs: SAInputs) {
+  const totalCashInvested = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const nightsPerMonth = 365 / 12;
+  const grossMonthlyRevenue = inputs.nightlyRate * (inputs.occupancyPercent / 100) * nightsPerMonth;
+  const platformFees = grossMonthlyRevenue * (inputs.platformFeesPercent / 100);
+  const netMonthlyRevenue = grossMonthlyRevenue - platformFees;
+  const monthlyCashFlow = netMonthlyRevenue - inputs.monthlyRunningCosts;
+  const annualCashFlow = monthlyCashFlow * 12;
+  const annualRevenue = grossMonthlyRevenue * 12;
+
+  const grossYield = inputs.purchasePrice > 0 ? (annualRevenue / inputs.purchasePrice) * 100 : 0;
+  const netYield = (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts) > 0
+    ? (annualCashFlow / (inputs.purchasePrice + inputs.refurbCost + inputs.otherCosts)) * 100
+    : 0;
+  const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+
+  let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
+  if (!inputs.purchasePrice || !inputs.nightlyRate) {
+    score = 'Incomplete';
+  } else if (cashOnCashROI >= 15 && monthlyCashFlow >= 500) {
+    score = 'Strong';
+  } else if (cashOnCashROI >= 10) {
+    score = 'Average';
+  }
+
+  return {
+    totalCashInvested,
+    grossMonthlyRevenue,
+    platformFees,
+    netMonthlyRevenue,
+    monthlyCashFlow,
+    annualCashFlow,
+    grossYield,
+    netYield,
+    cashOnCashROI,
+    score,
+  };
+}
+
+export function calculateBRRR(inputs: BRRRInputs) {
+  const totalCostIn = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const refinanceLoan = inputs.postRefurbValue * (inputs.refinancePercent / 100);
+  const cashLeftInDeal = totalCostIn - refinanceLoan;
+  const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.refurbCost - inputs.otherCosts;
+  const monthlyMortgage = refinanceLoan * (inputs.newMortgageRate / 100) / 12;
+  const monthlyCashFlow = inputs.monthlyRent - monthlyMortgage - inputs.monthlyExpenses;
+  const annualCashFlow = monthlyCashFlow * 12;
+  const annualRent = inputs.monthlyRent * 12;
+
+  const grossYield = inputs.postRefurbValue > 0 ? (annualRent / inputs.postRefurbValue) * 100 : 0;
+  const netYield = totalCostIn > 0 ? (annualCashFlow / totalCostIn) * 100 : 0;
+  const cashOnCashROI = cashLeftInDeal > 0
+    ? (annualCashFlow / cashLeftInDeal) * 100
+    : cashLeftInDeal <= 0 && annualCashFlow > 0
+    ? Infinity
+    : 0;
+
+  const moneyOut = cashLeftInDeal <= 0;
+
+  let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
+  if (!inputs.purchasePrice || !inputs.postRefurbValue) {
+    score = 'Incomplete';
+  } else if (monthlyCashFlow >= 200 && (moneyOut || cashOnCashROI >= 15)) {
+    score = 'Strong';
+  } else if (monthlyCashFlow >= 0 && cashOnCashROI >= 8) {
+    score = 'Average';
+  }
+
+  return {
+    totalCostIn,
+    refinanceLoan,
+    cashLeftInDeal,
+    equityCreated,
+    monthlyMortgage,
+    monthlyCashFlow,
+    annualCashFlow,
+    grossYield,
+    netYield,
+    cashOnCashROI,
+    moneyOut,
+    score,
   };
 }

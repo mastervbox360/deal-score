@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { calculateBTL, calculateHMO, calculateFlip, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type Country, type BuyerType } from '@/lib/calculations';
+import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 function formatCurrency(value: number) {
@@ -74,6 +74,29 @@ export default function HomePage() {
     sellingCostsPercent: 2.0
   });
 
+  const [saInputs, setSaInputs] = useState<SAInputs>({
+    purchasePrice: 200000,
+    stampDuty: 0,
+    refurbCost: 15000,
+    otherCosts: 2500,
+    nightlyRate: 120,
+    occupancyPercent: 70,
+    platformFeesPercent: 15,
+    monthlyRunningCosts: 800,
+  });
+
+  const [brrrInputs, setBrrrInputs] = useState<BRRRInputs>({
+    purchasePrice: 120000,
+    stampDuty: 0,
+    refurbCost: 30000,
+    otherCosts: 2500,
+    postRefurbValue: 200000,
+    refinancePercent: 75,
+    newMortgageRate: 5.5,
+    monthlyRent: 950,
+    monthlyExpenses: 150,
+  });
+
   const handleBtlChange = (field: keyof BTLInputs, value: string) => {
     setBtlInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
@@ -86,13 +109,25 @@ export default function HomePage() {
     setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
+  const handleSaChange = (field: keyof SAInputs, value: string) => {
+    setSaInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const handleBrrrChange = (field: keyof BRRRInputs, value: string) => {
+    setBrrrInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
   const btlTax = calculatePropertyTax(btlInputs.purchasePrice, taxCountry, buyerType);
   const hmoTax = calculatePropertyTax(hmoInputs.purchasePrice, taxCountry, buyerType);
   const flipTax = calculatePropertyTax(flipInputs.purchasePrice, taxCountry, buyerType);
+  const saTax = calculatePropertyTax(saInputs.purchasePrice, taxCountry, buyerType);
+  const brrrTax = calculatePropertyTax(brrrInputs.purchasePrice, taxCountry, buyerType);
 
   const btlResults = calculateBTL({ ...btlInputs, stampDuty: btlTax });
   const hmoResults = calculateHMO({ ...hmoInputs, stampDuty: hmoTax });
   const flipResults = calculateFlip({ ...flipInputs, stampDuty: flipTax });
+  const saResults = calculateSA({ ...saInputs, stampDuty: saTax });
+  const brrrResults = calculateBRRR({ ...brrrInputs, stampDuty: brrrTax });
 
   const taxLabel = TAX_LABEL[taxCountry];
   const buyerLabel = buyerType === 'ADDITIONAL' ? 'Additional Property' : 'Standard Buyer';
@@ -100,7 +135,9 @@ export default function HomePage() {
   const currentPurchasePrice =
     dealType === 'BTL' ? btlInputs.purchasePrice :
     dealType === 'HMO' ? hmoInputs.purchasePrice :
-    flipInputs.purchasePrice;
+    dealType === 'FLIP' ? flipInputs.purchasePrice :
+    dealType === 'SA' ? saInputs.purchasePrice :
+    brrrInputs.purchasePrice;
   const equityDayOne = marketValue - currentPurchasePrice;
   const bmvAmount = equityDayOne;
   const bmvPercent = marketValue > 0 ? (bmvAmount / marketValue) * 100 : 0;
@@ -157,7 +194,12 @@ export default function HomePage() {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...navy);
-    const dealLabel = dealType === 'BTL' ? 'Buy-to-Let' : dealType === 'HMO' ? 'HMO' : 'Flip / Refurb';
+    const dealLabel =
+      dealType === 'BTL' ? 'Buy-to-Let' :
+      dealType === 'HMO' ? 'HMO' :
+      dealType === 'FLIP' ? 'Flip / Refurb' :
+      dealType === 'SA' ? 'Serviced Accommodation' :
+      'BRRR';
     const dealTypeY = cursorY + 12;
     doc.text(`Deal Type: ${dealLabel}`, 14, dealTypeY);
 
@@ -240,7 +282,7 @@ export default function HomePage() {
           ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
         ] : []),
       ]);
-    } else {
+    } else if (dealType === 'FLIP') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(flipInputs.purchasePrice)],
         [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(flipTax)],
@@ -259,6 +301,63 @@ export default function HomePage() {
         ['Profit per Month', formatCurrency(flipResults.profitPerMonth)],
         ['Total ROI', formatPercent(flipResults.roi)],
         ['Annualised ROI', formatPercent(flipResults.annualisedROI)],
+        ...(marketValue > 0 ? [
+          ['Market Value', formatCurrency(marketValue)] as [string, string],
+          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+        ] : []),
+      ]);
+    } else if (dealType === 'SA') {
+      writeSection('Inputs', [
+        ['Purchase Price', formatCurrency(saInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(saTax)],
+        ['Refurb Cost', formatCurrency(saInputs.refurbCost)],
+        ['Other Costs', formatCurrency(saInputs.otherCosts)],
+        ['Nightly Rate', formatCurrency(saInputs.nightlyRate)],
+        ['Avg Occupancy', `${saInputs.occupancyPercent}%`],
+        ['Platform Fees', `${saInputs.platformFeesPercent}%`],
+        ['Monthly Running Costs', formatCurrency(saInputs.monthlyRunningCosts)],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', saResults.score],
+        ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
+        ['Gross Monthly Revenue', formatCurrency(saResults.grossMonthlyRevenue)],
+        ['Platform Fees/mo', formatCurrency(saResults.platformFees)],
+        ['Net Monthly Revenue', formatCurrency(saResults.netMonthlyRevenue)],
+        ['Monthly Cash Flow', formatCurrency(saResults.monthlyCashFlow)],
+        ['Annual Cash Flow', formatCurrency(saResults.annualCashFlow)],
+        ['Gross Yield', formatPercent(saResults.grossYield)],
+        ['Net Yield', formatPercent(saResults.netYield)],
+        ['Cash-on-Cash ROI', formatPercent(saResults.cashOnCashROI)],
+        ...(marketValue > 0 ? [
+          ['Market Value', formatCurrency(marketValue)] as [string, string],
+          ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
+          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`] as [string, string],
+        ] : []),
+      ]);
+    } else {
+      writeSection('Inputs', [
+        ['Purchase Price', formatCurrency(brrrInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(brrrTax)],
+        ['Refurb Cost', formatCurrency(brrrInputs.refurbCost)],
+        ['Other Costs', formatCurrency(brrrInputs.otherCosts)],
+        ['Post-Refurb Value (GDV)', formatCurrency(brrrInputs.postRefurbValue)],
+        ['Refinance %', `${brrrInputs.refinancePercent}%`],
+        ['New Mortgage Rate', `${brrrInputs.newMortgageRate}%`],
+        ['Monthly Rent', formatCurrency(brrrInputs.monthlyRent)],
+        ['Monthly Expenses', formatCurrency(brrrInputs.monthlyExpenses)],
+      ]);
+      writeSection('Results', [
+        ['Deal Score', brrrResults.score],
+        ['Total Cost In', formatCurrency(brrrResults.totalCostIn)],
+        ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
+        ['Cash Left in Deal', brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
+        ['Equity Created', formatCurrency(brrrResults.equityCreated)],
+        ['Monthly Cash Flow', formatCurrency(brrrResults.monthlyCashFlow)],
+        ['Annual Cash Flow', formatCurrency(brrrResults.annualCashFlow)],
+        ['Gross Yield', formatPercent(brrrResults.grossYield)],
+        ['Net Yield', formatPercent(brrrResults.netYield)],
+        ['Cash-on-Cash ROI', brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI)],
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as [string, string],
           ['Equity on Day One', formatCurrency(equityDayOne)] as [string, string],
@@ -289,7 +388,11 @@ export default function HomePage() {
     doc.text('Strategy', 14, y);
     doc.setFont('helvetica', 'normal');
     const strategyLabel =
-      dealType === 'BTL' ? 'Buy-to-Let' : dealType === 'HMO' ? 'HMO' : 'Flip / Refurb';
+      dealType === 'BTL' ? 'Buy-to-Let' :
+      dealType === 'HMO' ? 'HMO' :
+      dealType === 'FLIP' ? 'Flip / Refurb' :
+      dealType === 'SA' ? 'Serviced Accommodation' :
+      'BRRR';
     doc.text(strategyLabel, pageWidth - 14, y, { align: 'right' });
     y += 6;
     if (notesLines.length) {
@@ -412,15 +515,21 @@ export default function HomePage() {
       <main className="container max-w-5xl mx-auto px-4 mt-8">
         <div className="mb-8">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="w-full grid grid-cols-3 h-14 bg-white border border-border rounded-xl p-1 shadow-sm">
-              <TabsTrigger value="BTL" className="rounded-lg text-base font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Home className="w-4 h-4 mr-2" /> Buy-to-Let
+            <TabsList className="w-full grid grid-cols-5 h-12 bg-white border border-border rounded-xl p-1 shadow-sm">
+              <TabsTrigger value="BTL" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Home className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">Buy-to-Let</span>
               </TabsTrigger>
-              <TabsTrigger value="HMO" className="rounded-lg text-base font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Building2 className="w-4 h-4 mr-2" /> HMO
+              <TabsTrigger value="HMO" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Building2 className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">HMO</span>
               </TabsTrigger>
-              <TabsTrigger value="FLIP" className="rounded-lg text-base font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Hammer className="w-4 h-4 mr-2" /> Flip / Refurb
+              <TabsTrigger value="FLIP" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <Hammer className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">Flip / Refurb</span>
+              </TabsTrigger>
+              <TabsTrigger value="SA" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <BedDouble className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">SA</span>
+              </TabsTrigger>
+              <TabsTrigger value="BRRR" className="rounded-lg text-sm font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+                <RefreshCw className="w-4 h-4 mr-1.5 shrink-0" /><span className="truncate">BRRR</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -593,6 +702,97 @@ export default function HomePage() {
                   </div>
                 )}
 
+                {dealType === 'SA' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Purchase Price (£)</Label>
+                      <Input type="number" value={saInputs.purchasePrice} onChange={(e) => handleSaChange('purchasePrice', e.target.value)} data-testid="input-sa-purchase-price" />
+                    </div>
+                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={saTax} />
+                    <div className="space-y-2">
+                      <Label>Refurb Cost (£)</Label>
+                      <Input type="number" value={saInputs.refurbCost} onChange={(e) => handleSaChange('refurbCost', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Costs (Legal, Broker) (£)</Label>
+                      <Input type="number" value={saInputs.otherCosts} onChange={(e) => handleSaChange('otherCosts', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Nightly Rate (£)</Label>
+                      <Input type="number" value={saInputs.nightlyRate} onChange={(e) => handleSaChange('nightlyRate', e.target.value)} data-testid="input-sa-nightly-rate" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Avg Occupancy (%)</Label>
+                      <Input type="number" value={saInputs.occupancyPercent} onChange={(e) => handleSaChange('occupancyPercent', e.target.value)} data-testid="input-sa-occupancy" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Platform Fees (%)</Label>
+                      <Input type="number" step="0.5" value={saInputs.platformFeesPercent} onChange={(e) => handleSaChange('platformFeesPercent', e.target.value)} data-testid="input-sa-platform-fees" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Running Costs (£)</Label>
+                      <Input type="number" value={saInputs.monthlyRunningCosts} onChange={(e) => handleSaChange('monthlyRunningCosts', e.target.value)} data-testid="input-sa-running-costs" />
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'BRRR' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Address</Label>
+                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Property Type</Label>
+                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Purchase Price (£)</Label>
+                      <Input type="number" value={brrrInputs.purchasePrice} onChange={(e) => handleBrrrChange('purchasePrice', e.target.value)} data-testid="input-brrr-purchase-price" />
+                    </div>
+                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={brrrTax} />
+                    <div className="space-y-2">
+                      <Label>Refurb Cost (£)</Label>
+                      <Input type="number" value={brrrInputs.refurbCost} onChange={(e) => handleBrrrChange('refurbCost', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Costs (£)</Label>
+                      <Input type="number" value={brrrInputs.otherCosts} onChange={(e) => handleBrrrChange('otherCosts', e.target.value)} />
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <div className="h-px w-full bg-border my-1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Post-Refurb Value / GDV (£)</Label>
+                      <Input type="number" value={brrrInputs.postRefurbValue} onChange={(e) => handleBrrrChange('postRefurbValue', e.target.value)} data-testid="input-brrr-gdv" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Refinance % (typically 75%)</Label>
+                      <Input type="number" step="1" value={brrrInputs.refinancePercent} onChange={(e) => handleBrrrChange('refinancePercent', e.target.value)} data-testid="input-brrr-refinance-pct" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>New Mortgage Rate (%)</Label>
+                      <Input type="number" step="0.1" value={brrrInputs.newMortgageRate} onChange={(e) => handleBrrrChange('newMortgageRate', e.target.value)} data-testid="input-brrr-mortgage-rate" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Rent (£)</Label>
+                      <Input type="number" value={brrrInputs.monthlyRent} onChange={(e) => handleBrrrChange('monthlyRent', e.target.value)} data-testid="input-brrr-monthly-rent" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Monthly Expenses (£)</Label>
+                      <Input type="number" value={brrrInputs.monthlyExpenses} onChange={(e) => handleBrrrChange('monthlyExpenses', e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-6 pt-5 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
@@ -723,10 +923,14 @@ export default function HomePage() {
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
                 {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
                 {dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
-                
+                {dealType === 'SA' && renderScoreBadge(saResults.score)}
+                {dealType === 'BRRR' && renderScoreBadge(brrrResults.score)}
+
                 {(dealType === 'BTL' && btlResults.score === 'Incomplete') ||
                  (dealType === 'HMO' && hmoResults.score === 'Incomplete') ||
-                 (dealType === 'FLIP' && flipResults.score === 'Incomplete') ? (
+                 (dealType === 'FLIP' && flipResults.score === 'Incomplete') ||
+                 (dealType === 'SA' && saResults.score === 'Incomplete') ||
+                 (dealType === 'BRRR' && brrrResults.score === 'Incomplete') ? (
                   <p className="text-sm opacity-80 mt-2">Enter properties to see verdict</p>
                 ) : null}
 
@@ -811,6 +1015,56 @@ export default function HomePage() {
                     <div className="space-y-3">
                       <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold />
                       <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} />
+                      {marketValue > 0 && (
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'SA' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} />
+                      <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(saResults.monthlyCashFlow)} highlight={saResults.monthlyCashFlow < 0} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(saResults.annualCashFlow)} highlight={saResults.annualCashFlow < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Gross Yield" value={formatPercent(saResults.grossYield)} />
+                      <Row label="Net Yield" value={formatPercent(saResults.netYield)} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(saResults.cashOnCashROI)} isBold />
+                      <Row label="Cash Invested" value={formatCurrency(saResults.totalCashInvested)} />
+                      {marketValue > 0 && (
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {dealType === 'BRRR' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <MetricBox
+                        label="Cash Left In"
+                        value={brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
+                        highlight={!brrrResults.moneyOut && brrrResults.cashLeftInDeal > 0 && brrrResults.cashLeftInDeal > 30000}
+                      />
+                      <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} highlight={brrrResults.monthlyCashFlow < 0} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(brrrResults.annualCashFlow)} highlight={brrrResults.annualCashFlow < 0} />
+                    </div>
+                    <div className="h-px bg-border" />
+                    <div className="space-y-3">
+                      <Row label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} />
+                      <Row label="Gross Yield (on GDV)" value={formatPercent(brrrResults.grossYield)} />
+                      <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} />
+                      <Row
+                        label="Cash-on-Cash ROI"
+                        value={brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
+                        isBold
+                      />
                       {marketValue > 0 && (
                         <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
                       )}
