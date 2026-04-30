@@ -207,6 +207,8 @@ export default function HomePage() {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(185, 205, 230);
     doc.text('Investor Summary', MARGIN, 20);
+    const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    doc.text(dateStr, pageWidth - MARGIN, 20, { align: 'right' });
     const dealLabel =
       dealType === 'BTL' ? 'Buy-to-Let' :
       dealType === 'HMO' ? 'HMO' :
@@ -227,10 +229,8 @@ export default function HomePage() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     let cursorY = HEADER_H + 5;
-    doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, MARGIN, cursorY);
 
     if (propertyAddress.trim()) {
-      cursorY += ROW_H;
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
       const labelText = 'Address: ';
