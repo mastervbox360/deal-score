@@ -54,7 +54,6 @@ export default function HomePage() {
   const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [marketValue, setMarketValue] = useState<number>(0);
-  const [strategyRecommendation, setStrategyRecommendation] = useState<string>('Buy-to-Let');
   const [strategyNotes, setStrategyNotes] = useState<string>('');
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
@@ -289,11 +288,13 @@ export default function HomePage() {
     doc.setTextColor(0, 0, 0);
     doc.text('Strategy', 14, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(strategyRecommendation, pageWidth - 14, y, { align: 'right' });
+    const strategyLabel =
+      dealType === 'BTL' ? 'Buy-to-Let' : dealType === 'HMO' ? 'HMO' : 'Flip / Refurb';
+    doc.text(strategyLabel, pageWidth - 14, y, { align: 'right' });
     y += 6;
     if (notesLines.length) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Notes', 14, y);
+      doc.text('Why This Strategy?', 14, y);
       y += 5;
       doc.setFont('helvetica', 'normal');
       notesLines.forEach((line: string) => {
@@ -640,22 +641,7 @@ export default function HomePage() {
                 {strategyOpen && (
                 <div className="mt-4 space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="strategy-recommendation">Strategy Recommendation</Label>
-                    <Select value={strategyRecommendation} onValueChange={setStrategyRecommendation}>
-                      <SelectTrigger id="strategy-recommendation" data-testid="select-strategy-recommendation">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Buy-to-Let">Buy-to-Let</SelectItem>
-                        <SelectItem value="HMO">HMO</SelectItem>
-                        <SelectItem value="Flip/Refurb">Flip / Refurb</SelectItem>
-                        <SelectItem value="Serviced Accommodation">Serviced Accommodation</SelectItem>
-                        <SelectItem value="BRRR">BRRR</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="strategy-notes">Strategy Notes</Label>
+                    <Label htmlFor="strategy-notes">Why This Strategy?</Label>
                     <Textarea
                       id="strategy-notes"
                       placeholder="Explain why this strategy fits the deal — e.g. strong rental demand, room to add value, exit options, etc."
