@@ -231,42 +231,45 @@ export default function HomePage() {
     const addrLines = addrText
       ? (doc.splitTextToSize(addrText, pageWidth - MARGIN * 2 - 12) as string[])
       : [];
-    const HEADER_H = 48 + (addrLines.length > 0 ? addrLines.length * 6 : 0);
+    const HEADER_H = 42 + (addrLines.length > 0 ? addrLines.length * 6 : 0);
 
     doc.setFillColor(...navy);
     doc.rect(0, 0, pageWidth, HEADER_H, 'F');
 
-    // DealScore title (left) + Deal Ref (right)
+    // Row 1: DealScore (bold) · Investor Summary (light) inline — date right
     doc.setTextColor(...white);
-    doc.setFontSize(22);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', MARGIN, 12);
-    doc.setFontSize(8);
+    doc.text('DealScore', MARGIN, 13);
+    const dsW = doc.getTextWidth('DealScore');
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(185, 205, 230);
-    doc.text(dealRef, pageWidth - MARGIN, 9, { align: 'right' });
+    doc.text('  ·  Investor Summary', MARGIN + dsW, 13);
+    doc.setFontSize(8);
+    doc.text(dateStr, pageWidth - MARGIN, 13, { align: 'right' });
+    // Deal Ref — smaller, top-right
+    doc.setFontSize(7);
+    doc.setTextColor(165, 185, 215);
+    doc.text(dealRef, pageWidth - MARGIN, 7, { align: 'right' });
 
-    // Investor Summary (left) + date (right)
+    // Row 2: Deal type
     doc.setFontSize(10);
-    doc.setTextColor(185, 205, 230);
-    doc.text('Investor Summary', MARGIN, 21);
-    doc.text(dateStr, pageWidth - MARGIN, 21, { align: 'right' });
-
-    // Deal type
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(220, 230, 245);
-    doc.text(dealLabel, MARGIN, 30);
+    doc.text(dealLabel, MARGIN, 23);
 
-    // Property Type · Tenure
+    // Row 3: Property Type · Tenure
     doc.setFontSize(9);
     doc.setTextColor(165, 185, 215);
-    doc.text(`${propertyType}  ·  ${tenure}`, MARGIN, 38);
+    doc.text(`${propertyType}  ·  ${tenure}`, MARGIN, 32);
 
-    // Property address (in banner, brighter than property type line)
+    // Row 4+: Property address (brighter than property type line)
     if (addrLines.length > 0) {
       doc.setFontSize(9);
       doc.setTextColor(210, 225, 245);
       addrLines.forEach((line: string, i: number) => {
-        doc.text(line, MARGIN, 45 + i * 6);
+        doc.text(line, MARGIN, 40 + i * 6);
       });
     }
 
@@ -408,6 +411,22 @@ export default function HomePage() {
       y += SEC_GAP;
     };
 
+    // Sourcing Fee as last entry of Inputs section — thin divider + bold navy
+    const writeSourcingFeeInline = () => {
+      if (sourcingFee <= 0) return;
+      y -= SEC_GAP; // reattach to bottom of Inputs section
+      doc.setDrawColor(165, 180, 210);
+      doc.setLineWidth(0.25);
+      doc.line(MARGIN, y, pageWidth - MARGIN, y);
+      y += 2.5;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text('Sourcing Fee', MARGIN + 1.5, y);
+      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN - 1.5, y, { align: 'right' });
+      y += ROW_H + SEC_GAP;
+    };
+
     const tenureRows: PDFRow[] = [
       ['Tenure', tenure],
       ...(tenure === 'Leasehold' ? [['Remaining Lease Length', `${leaseLengthYears} years`] as PDFRow] : []),
@@ -427,6 +446,7 @@ export default function HomePage() {
         ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(btlResults.mortgageAmount)],
@@ -457,6 +477,7 @@ export default function HomePage() {
         ['Monthly Expenses', formatCurrency(hmoInputs.monthlyExpenses)],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
         ['Gross Monthly Rent', formatCurrency(hmoResults.grossMonthlyRent)],
@@ -483,6 +504,7 @@ export default function HomePage() {
         ['Selling Costs', `${flipInputs.sellingCostsPercent}%`],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Total Cost', formatCurrency(flipResults.totalCost)],
         ['Selling Costs', formatCurrency(flipResults.sellingCosts)],
@@ -512,6 +534,7 @@ export default function HomePage() {
         ['Monthly Running Costs', formatCurrency(saInputs.monthlyRunningCosts)],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(saResults.mortgageAmount)],
@@ -543,6 +566,7 @@ export default function HomePage() {
         ['Monthly Expenses', formatCurrency(brrrInputs.monthlyExpenses)],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Total Cost In', formatCurrency(brrrResults.totalCostIn)],
         ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
@@ -570,6 +594,7 @@ export default function HomePage() {
         ['Setup Costs', formatCurrency(r2rInputs.setupCosts)],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Gross Monthly Income', formatCurrency(r2rResults.grossMonthlyIncome)],
         ['Management Fees/mo', formatCurrency(r2rResults.managementFees)],
@@ -594,6 +619,7 @@ export default function HomePage() {
         ['Management Costs/mo', formatCurrency(socialInputs.managementCostsPerMonth)],
         ...tenureRows,
       ]);
+      writeSourcingFeeInline();
       writeSection('Results', [
         ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(socialResults.mortgageAmount)],
@@ -611,20 +637,6 @@ export default function HomePage() {
       ]);
     }
 
-    // ── Sourcing Fee — full-width navy highlight row ──────────────────────────
-    if (sourcingFee > 0) {
-      const feeRowH = 9;
-      doc.setFillColor(...navy);
-      doc.rect(0, y + 1, pageWidth, feeRowH, 'F');
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...white);
-      doc.text('Sourcing Fee', MARGIN, y + 1 + 6);
-      doc.setFont('helvetica', 'bold');
-      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN, y + 1 + 6, { align: 'right' });
-      y += feeRowH + 1 + SEC_GAP;
-    }
-
     // ── Deal Notes ───────────────────────────────────────────────────────────
     const allNotes: Array<{ label: string; text: string }> = [
       { label: 'Why This Strategy?', text: strategyNotes.trim() },
@@ -634,6 +646,7 @@ export default function HomePage() {
     ].filter((n) => n.text.length > 0);
 
     if (allNotes.length) {
+      y += 4; // clear separation from Results section above
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
