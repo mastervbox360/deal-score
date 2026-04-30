@@ -189,26 +189,19 @@ export default function HomePage() {
   const downloadPDF = () => {
     const doc = new jsPDF();
     const navy: [number, number, number] = [27, 58, 107];
+    const navyPanel: [number, number, number] = [232, 239, 252];
     const white: [number, number, number] = [255, 255, 255];
+    const rowAlt: [number, number, number] = [245, 247, 250];
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const MARGIN = 14;
-    const ROW_H = 5.2;
+    const ROW_H = 5.0;
     const SEC_GAP = 2;
+    const FOOTER_H = 11;
+    const FOOTER_Y = pageHeight - FOOTER_H;
 
-    // ── Header ──────────────────────────────────────────────────────────────
-    const HEADER_H = 37;
-    doc.setFillColor(...navy);
-    doc.rect(0, 0, pageWidth, HEADER_H, 'F');
-    doc.setTextColor(...white);
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', MARGIN, 11);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(185, 205, 230);
-    doc.text('Investor Summary', MARGIN, 20);
-    const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-    doc.text(dateStr, pageWidth - MARGIN, 20, { align: 'right' });
+    // ── Deal metadata ────────────────────────────────────────────────────────
+    const now = new Date();
     const dealLabel =
       dealType === 'BTL' ? 'Buy-to-Let' :
       dealType === 'HMO' ? 'HMO' :
@@ -217,56 +210,163 @@ export default function HomePage() {
       dealType === 'BRRR' ? 'BRRR' :
       dealType === 'R2R' ? 'Rent to Rent' :
       'Social Housing';
+    const dd = now.getDate().toString().padStart(2, '0');
+    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const yy = now.getFullYear().toString().slice(2);
+    const dealRef = `${dealType}-${dd}${mm}${yy}`;
+    const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const currentScore =
+      dealType === 'BTL' ? btlResults.score :
+      dealType === 'HMO' ? hmoResults.score :
+      dealType === 'FLIP' ? flipResults.score :
+      dealType === 'SA' ? saResults.score :
+      dealType === 'BRRR' ? brrrResults.score :
+      dealType === 'R2R' ? r2rResults.score :
+      socialResults.score;
+
+    // ── Header banner ────────────────────────────────────────────────────────
+    const HEADER_H = 48;
+    doc.setFillColor(...navy);
+    doc.rect(0, 0, pageWidth, HEADER_H, 'F');
+
+    // DealScore title (left) + Deal Ref (right)
+    doc.setTextColor(...white);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DealScore', MARGIN, 12);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(185, 205, 230);
+    doc.text(dealRef, pageWidth - MARGIN, 9, { align: 'right' });
+
+    // Investor Summary (left) + date (right)
+    doc.setFontSize(10);
+    doc.setTextColor(185, 205, 230);
+    doc.text('Investor Summary', MARGIN, 21);
+    doc.text(dateStr, pageWidth - MARGIN, 21, { align: 'right' });
+
+    // Deal type
     doc.setTextColor(220, 230, 245);
-    doc.text(dealLabel, MARGIN, 28);
-    // thin rule at bottom of navy header block
-    doc.setDrawColor(255, 255, 255);
+    doc.text(dealLabel, MARGIN, 30);
+
+    // Property Type · Tenure
+    doc.setFontSize(9);
+    doc.setTextColor(165, 185, 215);
+    doc.text(`${propertyType}  ·  ${tenure}`, MARGIN, 38);
+
+    // Thin white rule at bottom of banner
+    doc.setDrawColor(...white);
     doc.setLineWidth(0.5);
     doc.line(MARGIN, HEADER_H - 2, pageWidth - MARGIN, HEADER_H - 2);
 
-    // ── Sub-header meta ──────────────────────────────────────────────────────
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    let cursorY = HEADER_H + 5;
-
+    // ── Address strip ────────────────────────────────────────────────────────
+    let y = HEADER_H + 5;
     if (propertyAddress.trim()) {
+      const addrLines = doc.splitTextToSize(propertyAddress.trim(), pageWidth - 28) as string[];
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
-      const labelText = 'Address: ';
-      doc.text(labelText, MARGIN, cursorY);
-      const labelWidth = doc.getTextWidth(labelText);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      const addrLines = doc.splitTextToSize(propertyAddress.trim(), pageWidth - 28 - labelWidth);
-      doc.text(addrLines[0], MARGIN + labelWidth, cursorY);
-      for (let i = 1; i < addrLines.length; i++) {
-        cursorY += 4;
-        doc.text(addrLines[i], MARGIN, cursorY);
-      }
+      addrLines.forEach((line: string) => {
+        doc.text(line, MARGIN, y);
+        y += 5;
+      });
+      y += 1;
     }
 
-    cursorY += ROW_H;
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...navy);
-    const typeLabel = 'Property Type: ';
-    doc.text(typeLabel, MARGIN, cursorY);
-    const typeLabelWidth = doc.getTextWidth(typeLabel);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    doc.text(propertyType, MARGIN + typeLabelWidth, cursorY);
-
-    let y = cursorY + 6;
-
-    // ── Section renderer ─────────────────────────────────────────────────────
-    // Row tuple: [label, value, isBold?]
-    // Special label 'Deal Score' renders a coloured pill badge for the value.
-    type PDFRow = [string, string] | [string, string, boolean];
+    // ── Deal Score pill ──────────────────────────────────────────────────────
     const scoreColors: Record<string, [number, number, number]> = {
       Strong: [22, 163, 74],
       Average: [217, 119, 6],
       Weak: [220, 38, 38],
     };
+    if (currentScore !== 'Incomplete') {
+      const bg = scoreColors[currentScore] ?? ([100, 100, 100] as [number, number, number]);
+      const pillText = `${currentScore} Deal`.toUpperCase();
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      const textW = doc.getTextWidth(pillText);
+      const pillW = textW + 9;
+      const pillH = 6;
+      const pillX = pageWidth - MARGIN - pillW;
+      const pillY = y - 4.5;
+      doc.setFillColor(...bg);
+      doc.roundedRect(pillX, pillY, pillW, pillH, 2.5, 2.5, 'F');
+      doc.setTextColor(...white);
+      doc.text(pillText, pillX + pillW / 2, pillY + 4, { align: 'center' });
+      y += 4;
+    }
+
+    // ── Hero metrics strip ───────────────────────────────────────────────────
+    type HeroMetric = { label: string; value: string };
+    let heroMetrics: HeroMetric[];
+    if (dealType === 'BTL') {
+      heroMetrics = [
+        { label: 'Monthly Cash Flow', value: formatCurrency(btlResults.monthlyCashFlow) },
+        { label: 'Gross Yield', value: formatPercent(btlResults.grossYield) },
+        { label: 'BMV', value: marketValue > 0 ? `${bmvPercent.toFixed(1)}%` : '—' },
+      ];
+    } else if (dealType === 'HMO') {
+      heroMetrics = [
+        { label: 'Monthly Cash Flow', value: formatCurrency(hmoResults.monthlyCashFlow) },
+        { label: 'Gross Yield', value: formatPercent(hmoResults.grossYield) },
+        { label: 'BMV', value: marketValue > 0 ? `${bmvPercent.toFixed(1)}%` : '—' },
+      ];
+    } else if (dealType === 'FLIP') {
+      heroMetrics = [
+        { label: 'Net Profit', value: formatCurrency(flipResults.netProfit) },
+        { label: 'Total ROI', value: formatPercent(flipResults.roi) },
+        { label: 'GDV', value: formatCurrency(flipInputs.expectedSalePrice) },
+      ];
+    } else if (dealType === 'SA') {
+      heroMetrics = [
+        { label: 'Monthly Cash Flow', value: formatCurrency(saResults.monthlyCashFlow) },
+        { label: 'Net Yield', value: formatPercent(saResults.netYield) },
+        { label: 'Occupancy Income', value: formatCurrency(saResults.grossMonthlyRevenue) },
+      ];
+    } else if (dealType === 'BRRR') {
+      heroMetrics = [
+        { label: 'Monthly Cash Flow', value: formatCurrency(brrrResults.monthlyCashFlow) },
+        { label: 'Cash Left In', value: brrrResults.moneyOut ? 'Money Out' : formatCurrency(brrrResults.cashLeftInDeal) },
+        { label: 'Cash-on-Cash ROI', value: brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI) },
+      ];
+    } else if (dealType === 'R2R') {
+      heroMetrics = [
+        { label: 'Monthly Profit', value: formatCurrency(r2rResults.monthlyProfit) },
+        { label: 'Annual Profit', value: formatCurrency(r2rResults.annualProfit) },
+        { label: 'ROI on Setup', value: formatPercent(r2rResults.roi) },
+      ];
+    } else {
+      heroMetrics = [
+        { label: 'Monthly Cash Flow', value: formatCurrency(socialResults.monthlyCashFlow) },
+        { label: 'Gross Yield', value: formatPercent(socialResults.grossYield) },
+        { label: 'BMV', value: marketValue > 0 ? `${bmvPercent.toFixed(1)}%` : '—' },
+      ];
+    }
+    const heroCardH = 17;
+    const heroGap = 3;
+    const heroW = (pageWidth - 2 * MARGIN - 2 * heroGap) / 3;
+    y += 3;
+    heroMetrics.forEach(({ label, value }, i) => {
+      const hx = MARGIN + i * (heroW + heroGap);
+      const hy = y;
+      doc.setFillColor(...rowAlt);
+      doc.setDrawColor(210, 218, 232);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(hx, hy, heroW, heroCardH, 2, 2, 'FD');
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text(value, hx + heroW / 2, hy + 10, { align: 'center' });
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(110, 120, 140);
+      doc.text(label, hx + heroW / 2, hy + 15, { align: 'center' });
+    });
+    y += heroCardH + 4;
+
+    // ── Section renderer (with alternating row backgrounds) ──────────────────
+    type PDFRow = [string, string] | [string, string, boolean];
 
     const writeSection = (title: string, rows: PDFRow[]) => {
       doc.setFontSize(11);
@@ -277,43 +377,25 @@ export default function HomePage() {
       doc.setDrawColor(...navy);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 4;
+      y += 3.5;
 
-      rows.forEach((row) => {
+      rows.forEach((row, idx) => {
         const label = row[0];
         const value = row[1];
         const isBold = row.length === 3 ? row[2] : false;
-
         doc.setFontSize(9);
-        doc.setTextColor(0, 0, 0);
 
-        if (label === 'Deal Score') {
-          doc.setFont('helvetica', 'normal');
-          doc.text(label, MARGIN, y);
-          // draw pill badge
-          const bg = scoreColors[value] ?? ([100, 100, 100] as [number, number, number]);
-          const pillText = `${value} Deal`.toUpperCase();
-          doc.setFontSize(7);
-          doc.setFont('helvetica', 'bold');
-          const textW = doc.getTextWidth(pillText);
-          const pillW = textW + 7;
-          const pillH = 5.2;
-          const pillX = pageWidth - MARGIN - pillW;
-          const pillY = y - 3.8;
-          doc.setFillColor(...bg);
-          doc.roundedRect(pillX, pillY, pillW, pillH, 2, 2, 'F');
-          doc.setTextColor(...white);
-          doc.text(pillText, pillX + pillW / 2, pillY + 3.5, { align: 'center' });
-          doc.setFontSize(9);
-          y += ROW_H;
-          return;
+        if (idx % 2 === 0) {
+          doc.setFillColor(...rowAlt);
+          doc.rect(MARGIN, y - ROW_H + 0.8, pageWidth - 2 * MARGIN, ROW_H + 0.4, 'F');
         }
 
+        doc.setTextColor(60, 65, 75);
         doc.setFont('helvetica', 'normal');
-        doc.text(label, MARGIN, y);
+        doc.text(label, MARGIN + 1.5, y);
         doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-        doc.setTextColor(isBold ? navy[0] : 0, isBold ? navy[1] : 0, isBold ? navy[2] : 0);
-        doc.text(value, pageWidth - MARGIN, y, { align: 'right' });
+        doc.setTextColor(isBold ? navy[0] : 60, isBold ? navy[1] : 65, isBold ? navy[2] : 75);
+        doc.text(value, pageWidth - MARGIN - 1.5, y, { align: 'right' });
         y += ROW_H;
       });
       y += SEC_GAP;
@@ -339,7 +421,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', btlResults.score],
         ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(btlResults.mortgageAmount)],
         ['Monthly Cash Flow', formatCurrency(btlResults.monthlyCashFlow), true],
@@ -370,7 +451,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', hmoResults.score],
         ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
         ['Gross Monthly Rent', formatCurrency(hmoResults.grossMonthlyRent)],
         ['Monthly Cash Flow', formatCurrency(hmoResults.monthlyCashFlow), true],
@@ -397,7 +477,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', flipResults.score],
         ['Total Cost', formatCurrency(flipResults.totalCost)],
         ['Selling Costs', formatCurrency(flipResults.sellingCosts)],
         ['Net Profit', formatCurrency(flipResults.netProfit), true],
@@ -427,7 +506,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', saResults.score],
         ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(saResults.mortgageAmount)],
         ['Gross Monthly Revenue', formatCurrency(saResults.grossMonthlyRevenue)],
@@ -459,7 +537,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', brrrResults.score],
         ['Total Cost In', formatCurrency(brrrResults.totalCostIn)],
         ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
         ['Cash Left in Deal', brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
@@ -487,7 +564,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', r2rResults.score],
         ['Gross Monthly Income', formatCurrency(r2rResults.grossMonthlyIncome)],
         ['Management Fees/mo', formatCurrency(r2rResults.managementFees)],
         ['Net Monthly Income', formatCurrency(r2rResults.netMonthlyIncome)],
@@ -512,7 +588,6 @@ export default function HomePage() {
         ...tenureRows,
       ]);
       writeSection('Results', [
-        ['Deal Score', socialResults.score],
         ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
         ['Mortgage Amount', formatCurrency(socialResults.mortgageAmount)],
         ['Monthly Mortgage', formatCurrency(socialResults.monthlyMortgage)],
@@ -529,18 +604,25 @@ export default function HomePage() {
       ]);
     }
 
-    const allNotes: Array<{ label: string; text: string }> = [
-      { label: 'Why This Strategy?', text: strategyNotes.trim() },
-      { label: 'Property Description', text: propertyDescription.trim() },
-      { label: 'Vendor Situation', text: vendorSituation.trim() },
-      { label: 'Comparable Properties', text: comparableProperties.trim() },
+    // ── Sourcing Fee ─────────────────────────────────────────────────────────
+    if (sourcingFee > 0) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navy);
+      doc.text('Sourcing Fee', MARGIN + 1.5, y);
+      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN - 1.5, y, { align: 'right' });
+      y += ROW_H + SEC_GAP;
+    }
+
+    // ── Deal Notes ───────────────────────────────────────────────────────────
+    const allNotes: Array<{ label: string; text: string; highlight: boolean }> = [
+      { label: 'Why This Strategy?', text: strategyNotes.trim(), highlight: true },
+      { label: 'Property Description', text: propertyDescription.trim(), highlight: false },
+      { label: 'Vendor Situation', text: vendorSituation.trim(), highlight: false },
+      { label: 'Comparable Properties', text: comparableProperties.trim(), highlight: false },
     ].filter((n) => n.text.length > 0);
 
     if (allNotes.length) {
-      const wrapped = allNotes.map(({ label, text }) => ({
-        label,
-        lines: doc.splitTextToSize(text, pageWidth - 28) as string[],
-      }));
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...navy);
@@ -549,43 +631,54 @@ export default function HomePage() {
       doc.setDrawColor(...navy);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 4;
-      doc.setFontSize(9);
-      doc.setTextColor(0, 0, 0);
-      wrapped.forEach(({ label, lines }) => {
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${label}:`, MARGIN, y);
-        y += ROW_H;
-        doc.setFont('helvetica', 'normal');
-        lines.forEach((line: string) => {
-          doc.text(line, MARGIN, y);
+      y += 3.5;
+
+      allNotes.forEach(({ label, text, highlight }) => {
+        const lines = doc.splitTextToSize(text, pageWidth - 30) as string[];
+        if (highlight) {
+          const panelH = ROW_H + lines.length * ROW_H + 4;
+          doc.setFillColor(...navyPanel);
+          doc.rect(MARGIN, y - ROW_H + 0.5, pageWidth - 2 * MARGIN, panelH, 'F');
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(...navy);
+          doc.text(`${label}:`, MARGIN + 1.5, y);
           y += ROW_H;
-        });
-        y += 1;
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(35, 55, 100);
+          lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
+          y += 3;
+        } else {
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(60, 65, 75);
+          doc.text(`${label}:`, MARGIN + 1.5, y);
+          y += ROW_H;
+          doc.setFont('helvetica', 'normal');
+          lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
+          y += 1.5;
+        }
       });
-      y += SEC_GAP;
     }
 
-    writeSection('Prepared By', [
-      ['Name', preparedBy.name || '—'],
-      ['Email', preparedBy.email || '—'],
-      ['Phone', preparedBy.phone || '—'],
-    ]);
-
-    if (sourcingFee > 0) {
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text('Sourcing Fee', MARGIN, y);
-      doc.setTextColor(...navy);
-      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN, y, { align: 'right' });
-      y += 6;
+    // ── Footer strip ─────────────────────────────────────────────────────────
+    doc.setFillColor(...navy);
+    doc.rect(0, FOOTER_Y, pageWidth, FOOTER_H, 'F');
+    const preparedParts = [
+      preparedBy.name ? `Prepared by  ${preparedBy.name}` : '',
+      preparedBy.email,
+      preparedBy.phone,
+    ].filter(Boolean).join('  ·  ');
+    if (preparedParts) {
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...white);
+      doc.text(preparedParts, MARGIN, FOOTER_Y + 7);
     }
-
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont('helvetica', 'normal');
-    doc.text('DealScore — for informational purposes only. Not financial advice.', MARGIN, 289);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(185, 205, 230);
+    doc.text('For informational purposes only. Not financial advice.', pageWidth - MARGIN, FOOTER_Y + 7, { align: 'right' });
 
     doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
   };

@@ -1,0 +1,41 @@
+Please make the following PDF design and layout improvements to create a professional investor-ready summary:
+HEADER BANNER:
+	•	Line 1: DealScore (large bold white)
+	•	Line 2: Investor Summary (left) · date right-aligned — same small white text
+	•	Line 3: Deal Type (e.g. Buy-to-Let) — slightly brighter white
+	•	Line 4: Property Type + Tenure side by side (e.g. ‘Terraced · Freehold’) — small light grey-white
+	•	Top right corner: Deal Ref in small text, generated from deal type initials + date (e.g. BTL-300426)
+	•	Thin horizontal rule beneath the banner
+PROPERTY ADDRESS STRIP:
+	•	Full property address displayed just below the header rule, outside the white card
+	•	Bold, left-aligned, navy text, slightly larger than body font
+INSIDE WHITE CARD — structure top to bottom:
+	1.	Deal Score badge — right-aligned, full pill (green/amber/red as already built)
+	2.	HERO METRICS STRIP — 3 large metric cards side by side, strategy-specific:
+	•	BTL / HMO / Social Housing: Monthly Cash Flow · Gross Yield · BMV%
+	•	Flip: Net Profit · ROI · Purchase vs GDV
+	•	SA: Monthly Cash Flow · Net Yield · Occupancy Income
+	•	BRRR: Monthly Cash Flow · Cash Left In · ROI
+	•	R2R: Monthly Profit · Annual Profit · ROI on Setup
+	•	Each card: value large and bold in navy, label small grey beneath, light border or subtle shadow
+	3.	INPUTS SECTION:
+	•	Section header bold navy with thin bottom border (already built — keep)
+	•	Alternating light grey (#F5F7FA) and white row backgrounds for readability
+	•	Two columns: label left, value right
+	•	Sourcing Fee: show in bold navy if populated, hide row entirely if £0
+	4.	RESULTS SECTION:
+	•	Same alternating row backgrounds as Inputs
+	•	Monthly Cash Flow and Cash-on-Cash ROI values in bold
+	•	BMV row: show both the £ amount and % in bold navy — this is a key investor metric
+	5.	DEAL NOTES SECTION:
+	•	‘Why This Strategy?’ shown first in a light navy background panel, italic text — makes it stand out as the sourcer’s recommendation
+	•	Property Description, Vendor Situation, Comparables follow as normal rows
+	•	Hide any subsection that is empty — no blank space
+FOOTER STRIP (full width, navy background, outside white card):
+	•	Left side: Prepared by [Name] · [Email] · [Phone] in small white text
+	•	Right side: ‘For informational purposes only. Not financial advice.’ in small white italic
+	•	This replaces the current Prepared By section inside the white card — remove that entirely
+GENERAL:
+	•	Clean sans-serif font throughout (already in place — keep)
+	•	Reduce internal padding slightly if needed to keep everything on one page
+	•	Deal Ref (BTL-300426 format) in small light text in the top right of the header banner”
