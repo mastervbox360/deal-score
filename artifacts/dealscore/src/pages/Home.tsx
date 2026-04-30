@@ -226,7 +226,13 @@ export default function HomePage() {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     // ── Header banner ────────────────────────────────────────────────────────
-    const HEADER_H = 48;
+    // Compute address lines upfront so header height can accommodate them
+    const addrText = propertyAddress.trim();
+    const addrLines = addrText
+      ? (doc.splitTextToSize(addrText, pageWidth - MARGIN * 2 - 12) as string[])
+      : [];
+    const HEADER_H = 48 + (addrLines.length > 0 ? addrLines.length * 6 : 0);
+
     doc.setFillColor(...navy);
     doc.rect(0, 0, pageWidth, HEADER_H, 'F');
 
@@ -255,24 +261,21 @@ export default function HomePage() {
     doc.setTextColor(165, 185, 215);
     doc.text(`${propertyType}  ·  ${tenure}`, MARGIN, 38);
 
+    // Property address (in banner, brighter than property type line)
+    if (addrLines.length > 0) {
+      doc.setFontSize(9);
+      doc.setTextColor(210, 225, 245);
+      addrLines.forEach((line: string, i: number) => {
+        doc.text(line, MARGIN, 45 + i * 6);
+      });
+    }
+
     // Thin white rule at bottom of banner
     doc.setDrawColor(...white);
     doc.setLineWidth(0.5);
     doc.line(MARGIN, HEADER_H - 2, pageWidth - MARGIN, HEADER_H - 2);
 
-    // ── Address strip ────────────────────────────────────────────────────────
     let y = HEADER_H + 5;
-    if (propertyAddress.trim()) {
-      const addrLines = doc.splitTextToSize(propertyAddress.trim(), pageWidth - 28) as string[];
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      addrLines.forEach((line: string) => {
-        doc.text(line, MARGIN, y);
-        y += 5;
-      });
-      y += 1;
-    }
 
     // ── Deal Score pill ──────────────────────────────────────────────────────
     const scoreColors: Record<string, [number, number, number]> = {
@@ -608,18 +611,18 @@ export default function HomePage() {
       ]);
     }
 
-    // ── Sourcing Fee ─────────────────────────────────────────────────────────
+    // ── Sourcing Fee — full-width navy highlight row ──────────────────────────
     if (sourcingFee > 0) {
-      doc.setDrawColor(...navy);
-      doc.setLineWidth(0.3);
-      doc.line(MARGIN, y - 1, pageWidth - MARGIN, y - 1);
-      y += 2;
+      const feeRowH = 9;
+      doc.setFillColor(...navy);
+      doc.rect(0, y + 1, pageWidth, feeRowH, 'F');
       doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...white);
+      doc.text('Sourcing Fee', MARGIN, y + 1 + 6);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text('Sourcing Fee', MARGIN + 1.5, y);
-      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN - 1.5, y, { align: 'right' });
-      y += ROW_H + SEC_GAP;
+      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN, y + 1 + 6, { align: 'right' });
+      y += feeRowH + 1 + SEC_GAP;
     }
 
     // ── Deal Notes ───────────────────────────────────────────────────────────
@@ -641,31 +644,33 @@ export default function HomePage() {
       doc.line(MARGIN, y, pageWidth - MARGIN, y);
       y += 9;
 
-      // All subsections get the same subtle grey (#F5F7FA) panel
+      // All subsections: identical grey panel, bold label + normal content
       const noteGrey: [number, number, number] = [245, 247, 250];
-      const paddingTop = 2;
-      const paddingBottom = 4;
+      const notePadT = 4;   // padding above label text inside panel
+      const notePadB = 4;   // padding below last content line inside panel
+      const noteGap  = 3;   // vertical gap between consecutive panels
 
       allNotes.forEach(({ label, text }) => {
-        const lines = doc.splitTextToSize(text, pageWidth - 30) as string[];
-        const panelH = paddingTop + ROW_H + lines.length * ROW_H + paddingBottom;
-        const panelY = y - ROW_H + 0.5 - paddingTop;
+        const lines = doc.splitTextToSize(text, pageWidth - 32) as string[];
+        const panelH = notePadT + ROW_H + lines.length * ROW_H + notePadB;
+        // Panel starts exactly at current y; text starts notePadT below that
         doc.setFillColor(...noteGrey);
-        doc.rect(MARGIN, panelY, pageWidth - 2 * MARGIN, panelH, 'F');
+        doc.rect(MARGIN, y, pageWidth - 2 * MARGIN, panelH, 'F');
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...navy);
-        doc.text(`${label}:`, MARGIN + 1.5, y);
-        y += ROW_H;
+        doc.text(`${label}:`, MARGIN + 2, y + notePadT + ROW_H - 1);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(60, 65, 75);
-        lines.forEach((line: string) => { doc.text(line, MARGIN + 1.5, y); y += ROW_H; });
-        y += paddingBottom + 2;
+        lines.forEach((line: string, li: number) => {
+          doc.text(line, MARGIN + 2, y + notePadT + ROW_H + li * ROW_H + ROW_H - 1);
+        });
+        y += panelH + noteGap;
       });
     }
 
     // ── Footer strip ─────────────────────────────────────────────────────────
-    const FOOTER_Y = y + 6;
+    const FOOTER_Y = y + 4;
     doc.setFillColor(...navy);
     doc.rect(0, FOOTER_Y, pageWidth, FOOTER_H, 'F');
     const preparedParts = [
