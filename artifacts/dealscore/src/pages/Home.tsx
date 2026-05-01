@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,38 +23,38 @@ export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
 
   const [btlInputs, setBtlInputs] = useState<BTLInputs>({
-    purchasePrice: 200000,
-    stampDuty: 6000,
-    refurbCost: 10000,
-    otherCosts: 2500,
+    purchasePrice: 0,
+    stampDuty: 0,
+    refurbCost: 0,
+    otherCosts: 0,
     depositPercent: 25,
-    mortgageRate: 5.5,
+    mortgageRate: 0,
     mortgageTerm: 25,
     mortgageType: 'IO',
-    monthlyRent: 1200,
-    monthlyExpenses: 200
+    monthlyRent: 0,
+    monthlyExpenses: 0
   });
 
   const [hmoInputs, setHmoInputs] = useState<HMOInputs>({
-    purchasePrice: 300000,
-    stampDuty: 14000,
-    refurbCost: 40000,
-    otherCosts: 3000,
+    purchasePrice: 0,
+    stampDuty: 0,
+    refurbCost: 0,
+    otherCosts: 0,
     depositPercent: 25,
-    mortgageRate: 6.0,
+    mortgageRate: 0,
     mortgageTerm: 25,
     mortgageType: 'IO',
-    rooms: 5,
-    rentPerRoom: 650,
+    rooms: 0,
+    rentPerRoom: 0,
     occupancyRate: 90,
-    monthlyExpenses: 800
+    monthlyExpenses: 0
   });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [propertyAddress, setPropertyAddress] = useState('');
   const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [tenure, setTenure] = useState<'Freehold' | 'Leasehold'>('Freehold');
-  const [leaseLengthYears, setLeaseLengthYears] = useState<number>(125);
+  const [leaseLengthYears, setLeaseLengthYears] = useState<number>(0);
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [marketValue, setMarketValue] = useState<number>(0);
   const [strategyNotes, setStrategyNotes] = useState<string>('');
@@ -62,69 +63,69 @@ export default function HomePage() {
   const [comparableProperties, setComparableProperties] = useState<string>('');
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
-  const [taxCountry, setTaxCountry] = useState<Country>('WALES');
+  const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
   const [flipInputs, setFlipInputs] = useState<FlipInputs>({
-    purchasePrice: 150000,
-    stampDuty: 4500,
-    refurbCost: 35000,
-    otherCosts: 2500,
-    holdingCostsPerMonth: 800,
-    projectLengthMonths: 6,
-    expectedSalePrice: 240000,
-    sellingCostsPercent: 2.0
+    purchasePrice: 0,
+    stampDuty: 0,
+    refurbCost: 0,
+    otherCosts: 0,
+    holdingCostsPerMonth: 0,
+    projectLengthMonths: 0,
+    expectedSalePrice: 0,
+    sellingCostsPercent: 2,
   });
 
   const [saInputs, setSaInputs] = useState<SAInputs>({
-    purchasePrice: 200000,
+    purchasePrice: 0,
     stampDuty: 0,
-    refurbCost: 15000,
-    otherCosts: 2500,
+    refurbCost: 0,
+    otherCosts: 0,
     depositPercent: 25,
-    mortgageRate: 5.5,
+    mortgageRate: 0,
     mortgageTerm: 25,
     mortgageType: 'IO',
-    nightlyRate: 120,
-    occupancyPercent: 70,
-    platformFeesPercent: 15,
-    monthlyRunningCosts: 800,
+    nightlyRate: 0,
+    occupancyPercent: 90,
+    platformFeesPercent: 0,
+    monthlyRunningCosts: 0,
   });
 
   const [brrrInputs, setBrrrInputs] = useState<BRRRInputs>({
-    purchasePrice: 120000,
+    purchasePrice: 0,
     stampDuty: 0,
-    refurbCost: 30000,
-    otherCosts: 2500,
-    postRefurbValue: 200000,
+    refurbCost: 0,
+    otherCosts: 0,
+    postRefurbValue: 0,
     refinancePercent: 75,
-    newMortgageRate: 5.5,
-    monthlyRent: 950,
-    monthlyExpenses: 150,
+    newMortgageRate: 0,
+    monthlyRent: 0,
+    monthlyExpenses: 0,
   });
 
   const [r2rInputs, setR2rInputs] = useState<R2RInputs>({
-    monthlyRentPaid: 800,
-    rooms: 5,
-    rentPerRoom: 500,
+    monthlyRentPaid: 0,
+    rooms: 0,
+    rentPerRoom: 0,
     occupancyRate: 90,
-    managementFeesPercent: 10,
-    monthlyRunningCosts: 200,
-    setupCosts: 8000,
+    managementFeesPercent: 0,
+    monthlyRunningCosts: 0,
+    setupCosts: 0,
   });
 
   const [socialInputs, setSocialInputs] = useState<SocialHousingInputs>({
-    purchasePrice: 150000,
+    purchasePrice: 0,
     stampDuty: 0,
-    refurbCost: 5000,
-    otherCosts: 2000,
+    refurbCost: 0,
+    otherCosts: 0,
     depositPercent: 25,
-    mortgageRate: 5.5,
+    mortgageRate: 0,
     mortgageTerm: 25,
     mortgageType: 'IO',
-    leaseIncomePerMonth: 950,
-    leaseLengthYears: 5,
-    managementCostsPerMonth: 50,
+    leaseIncomePerMonth: 0,
+    leaseLengthYears: 0,
+    managementCostsPerMonth: 0,
   });
 
   const handleBtlChange = (field: keyof BTLInputs, value: string) => {
@@ -153,6 +154,38 @@ export default function HomePage() {
 
   const handleSocialChange = (field: keyof SocialHousingInputs, value: string) => {
     setSocialInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
+  };
+
+  const handleReset = () => {
+    setPropertyAddress('');
+    setPropertyType('Terraced');
+    setTenure('Freehold');
+    setLeaseLengthYears(0);
+    setSourcingFee(0);
+    setMarketValue(0);
+    setStrategyNotes('');
+    setPropertyDescription('');
+    setVendorSituation('');
+    setComparableProperties('');
+    setTaxCountry('ENGLAND');
+    setBuyerType('ADDITIONAL');
+    setStrategyOpen(false);
+    setDealNotesOpen(false);
+    if (dealType === 'BTL') {
+      setBtlInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', monthlyRent: 0, monthlyExpenses: 0 });
+    } else if (dealType === 'HMO') {
+      setHmoInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
+    } else if (dealType === 'FLIP') {
+      setFlipInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
+    } else if (dealType === 'SA') {
+      setSaInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
+    } else if (dealType === 'BRRR') {
+      setBrrrInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, monthlyExpenses: 0 });
+    } else if (dealType === 'R2R') {
+      setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
+    } else {
+      setSocialInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
+    }
   };
 
   const btlTax = calculatePropertyTax(btlInputs.purchasePrice, taxCountry, buyerType);
@@ -747,25 +780,25 @@ export default function HomePage() {
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
             <TabsList className="w-full grid grid-cols-7 h-12 bg-white border border-border rounded-xl p-1 shadow-sm">
               <TabsTrigger value="BTL" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Home className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BTL</span>
+                <Home className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BTL</span><InfoIcon id="tab-btl" text={TT.tabBtl} />
               </TabsTrigger>
               <TabsTrigger value="HMO" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Building2 className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">HMO</span>
+                <Building2 className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">HMO</span><InfoIcon id="tab-hmo" text={TT.tabHmo} />
               </TabsTrigger>
               <TabsTrigger value="FLIP" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Hammer className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Flip</span>
+                <Hammer className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Flip</span><InfoIcon id="tab-flip" text={TT.tabFlip} />
               </TabsTrigger>
               <TabsTrigger value="SA" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <BedDouble className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">SA</span>
+                <BedDouble className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">SA</span><InfoIcon id="tab-sa" text={TT.tabSa} />
               </TabsTrigger>
               <TabsTrigger value="BRRR" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <RefreshCw className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BRRR</span>
+                <RefreshCw className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BRRR</span><InfoIcon id="tab-brrr" text={TT.tabBrrr} />
               </TabsTrigger>
               <TabsTrigger value="R2R" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Key className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">R2R</span>
+                <Key className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">R2R</span><InfoIcon id="tab-r2r" text={TT.tabR2r} />
               </TabsTrigger>
               <TabsTrigger value="SOCIAL" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
-                <Shield className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Social</span>
+                <Shield className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Social</span><InfoIcon id="tab-social" text={TT.tabSocial} />
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -784,34 +817,34 @@ export default function HomePage() {
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="btl-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="btl-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Purchase Price (£)</Label>
-                      <Input type="number" value={btlInputs.purchasePrice} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="btl-pp" text={TT.purchasePrice} /></div>
+                      <Input type="number" placeholder="Enter purchase price" value={btlInputs.purchasePrice || ''} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
                     </div>
                     <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={btlTax} />
                     <div className="space-y-2">
-                      <Label>Refurb Cost (£)</Label>
-                      <Input type="number" value={btlInputs.refurbCost} onChange={(e) => handleBtlChange('refurbCost', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="btl-refurb" text={TT.refurbCost} /></div>
+                      <Input type="number" placeholder="Enter refurb cost" value={btlInputs.refurbCost || ''} onChange={(e) => handleBtlChange('refurbCost', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Other Costs (Legal, Broker) (£)</Label>
-                      <Input type="number" value={btlInputs.otherCosts} onChange={(e) => handleBtlChange('otherCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="btl-other" text={TT.otherCosts} /></div>
+                      <Input type="number" placeholder="Enter other costs" value={btlInputs.otherCosts || ''} onChange={(e) => handleBtlChange('otherCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Deposit (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="btl-dep" text={TT.deposit} /></div>
                       <Input type="number" value={btlInputs.depositPercent} onChange={(e) => handleBtlChange('depositPercent', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Mortgage Rate (%)</Label>
-                      <Input type="number" step="0.1" value={btlInputs.mortgageRate} onChange={(e) => handleBtlChange('mortgageRate', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="btl-mr" text={TT.mortgageRate} /></div>
+                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={btlInputs.mortgageRate || ''} onChange={(e) => handleBtlChange('mortgageRate', e.target.value)} />
                       <MortgageTypeToggle
                         value={btlInputs.mortgageType}
                         onChange={(v) => setBtlInputs(prev => ({ ...prev, mortgageType: v }))}
@@ -824,12 +857,12 @@ export default function HomePage() {
                       </div>
                     )}
                     <div className="space-y-2">
-                      <Label>Monthly Rent (£)</Label>
-                      <Input type="number" value={btlInputs.monthlyRent} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="btl-rent" text={TT.monthlyRent} /></div>
+                      <Input type="number" placeholder="Enter monthly rent" value={btlInputs.monthlyRent || ''} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Monthly Expenses (£)</Label>
-                      <Input type="number" value={btlInputs.monthlyExpenses} onChange={(e) => handleBtlChange('monthlyExpenses', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="btl-exp" text={TT.monthlyExpenses} /></div>
+                      <Input type="number" placeholder="Enter monthly expenses" value={btlInputs.monthlyExpenses || ''} onChange={(e) => handleBtlChange('monthlyExpenses', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -837,50 +870,50 @@ export default function HomePage() {
                 {dealType === 'HMO' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="hmo-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="hmo-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Purchase Price (£)</Label>
-                      <Input type="number" value={hmoInputs.purchasePrice} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="hmo-pp" text={TT.purchasePrice} /></div>
+                      <Input type="number" placeholder="Enter purchase price" value={hmoInputs.purchasePrice || ''} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
                     </div>
                     <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={hmoTax} />
                     <div className="space-y-2">
-                      <Label>Refurb Cost (£)</Label>
-                      <Input type="number" value={hmoInputs.refurbCost} onChange={(e) => handleHmoChange('refurbCost', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="hmo-refurb" text={TT.refurbCost} /></div>
+                      <Input type="number" placeholder="Enter refurb cost" value={hmoInputs.refurbCost || ''} onChange={(e) => handleHmoChange('refurbCost', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Other Costs (£)</Label>
-                      <Input type="number" value={hmoInputs.otherCosts} onChange={(e) => handleHmoChange('otherCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Other Costs (£)</Label><InfoIcon id="hmo-other" text={TT.otherCosts} /></div>
+                      <Input type="number" placeholder="Enter other costs" value={hmoInputs.otherCosts || ''} onChange={(e) => handleHmoChange('otherCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Number of Rooms</Label>
-                      <Input type="number" value={hmoInputs.rooms} onChange={(e) => handleHmoChange('rooms', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="hmo-rooms" text={TT.numRooms} /></div>
+                      <Input type="number" placeholder="Enter number of rooms" value={hmoInputs.rooms || ''} onChange={(e) => handleHmoChange('rooms', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Rent Per Room (£/mo)</Label>
-                      <Input type="number" value={hmoInputs.rentPerRoom} onChange={(e) => handleHmoChange('rentPerRoom', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Rent Per Room (£/mo)</Label><InfoIcon id="hmo-rpr" text={TT.rentPerRoom} /></div>
+                      <Input type="number" placeholder="Enter rent per room" value={hmoInputs.rentPerRoom || ''} onChange={(e) => handleHmoChange('rentPerRoom', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Occupancy Rate (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="hmo-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={hmoInputs.occupancyRate} onChange={(e) => handleHmoChange('occupancyRate', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Monthly Expenses (£)</Label>
-                      <Input type="number" value={hmoInputs.monthlyExpenses} onChange={(e) => handleHmoChange('monthlyExpenses', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="hmo-exp" text={TT.monthlyExpenses} /></div>
+                      <Input type="number" placeholder="Enter monthly expenses" value={hmoInputs.monthlyExpenses || ''} onChange={(e) => handleHmoChange('monthlyExpenses', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Deposit (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="hmo-dep" text={TT.deposit} /></div>
                       <Input type="number" value={hmoInputs.depositPercent} onChange={(e) => handleHmoChange('depositPercent', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Mortgage Rate (%)</Label>
-                      <Input type="number" step="0.1" value={hmoInputs.mortgageRate} onChange={(e) => handleHmoChange('mortgageRate', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="hmo-mr" text={TT.mortgageRate} /></div>
+                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={hmoInputs.mortgageRate || ''} onChange={(e) => handleHmoChange('mortgageRate', e.target.value)} />
                       <MortgageTypeToggle
                         value={hmoInputs.mortgageType}
                         onChange={(v) => setHmoInputs(prev => ({ ...prev, mortgageType: v }))}
@@ -898,44 +931,44 @@ export default function HomePage() {
                 {dealType === 'FLIP' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="flip-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="flip-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Purchase Price (£)</Label>
-                      <Input type="number" value={flipInputs.purchasePrice} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="flip-pp" text={TT.purchasePrice} /></div>
+                      <Input type="number" placeholder="Enter purchase price" value={flipInputs.purchasePrice || ''} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
                     </div>
                     <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={flipTax} />
                     <div className="space-y-2">
-                      <Label>Refurb Cost (£)</Label>
-                      <Input type="number" value={flipInputs.refurbCost} onChange={(e) => handleFlipChange('refurbCost', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="flip-refurb" text={TT.refurbCost} /></div>
+                      <Input type="number" placeholder="Enter refurb cost" value={flipInputs.refurbCost || ''} onChange={(e) => handleFlipChange('refurbCost', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Other Costs (£)</Label>
-                      <Input type="number" value={flipInputs.otherCosts} onChange={(e) => handleFlipChange('otherCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Other Costs (£)</Label><InfoIcon id="flip-other" text={TT.otherCosts} /></div>
+                      <Input type="number" placeholder="Enter other costs" value={flipInputs.otherCosts || ''} onChange={(e) => handleFlipChange('otherCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Holding Costs/mo (£)</Label>
-                      <Input type="number" value={flipInputs.holdingCostsPerMonth} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Holding Costs/mo (£)</Label><InfoIcon id="flip-hold" text={TT.holdingCosts} /></div>
+                      <Input type="number" placeholder="Enter monthly holding costs" value={flipInputs.holdingCostsPerMonth || ''} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Project Length (months)</Label>
-                      <Input type="number" value={flipInputs.projectLengthMonths} onChange={(e) => handleFlipChange('projectLengthMonths', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Project Length (months)</Label><InfoIcon id="flip-proj" text={TT.projectLength} /></div>
+                      <Input type="number" placeholder="Enter project length in months" value={flipInputs.projectLengthMonths || ''} onChange={(e) => handleFlipChange('projectLengthMonths', e.target.value)} />
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="h-px w-full bg-border my-2" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Expected Sale Price / GDV (£)</Label>
-                      <Input type="number" value={flipInputs.expectedSalePrice} onChange={(e) => handleFlipChange('expectedSalePrice', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Expected Sale Price / GDV (£)</Label><InfoIcon id="flip-sale" text={TT.salePrice} /></div>
+                      <Input type="number" placeholder="Enter expected sale price" value={flipInputs.expectedSalePrice || ''} onChange={(e) => handleFlipChange('expectedSalePrice', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Selling Costs (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Selling Costs (%)</Label><InfoIcon id="flip-sell" text={TT.sellingCosts} /></div>
                       <Input type="number" step="0.1" value={flipInputs.sellingCostsPercent} onChange={(e) => handleFlipChange('sellingCostsPercent', e.target.value)} />
                     </div>
                   </div>
@@ -944,34 +977,34 @@ export default function HomePage() {
                 {dealType === 'SA' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="sa-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="sa-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Purchase Price (£)</Label>
-                      <Input type="number" value={saInputs.purchasePrice} onChange={(e) => handleSaChange('purchasePrice', e.target.value)} data-testid="input-sa-purchase-price" />
+                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="sa-pp" text={TT.purchasePrice} /></div>
+                      <Input type="number" placeholder="Enter purchase price" value={saInputs.purchasePrice || ''} onChange={(e) => handleSaChange('purchasePrice', e.target.value)} data-testid="input-sa-purchase-price" />
                     </div>
                     <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={saTax} />
                     <div className="space-y-2">
-                      <Label>Refurb Cost (£)</Label>
-                      <Input type="number" value={saInputs.refurbCost} onChange={(e) => handleSaChange('refurbCost', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="sa-refurb" text={TT.refurbCost} /></div>
+                      <Input type="number" placeholder="Enter refurb cost" value={saInputs.refurbCost || ''} onChange={(e) => handleSaChange('refurbCost', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Other Costs (Legal, Broker) (£)</Label>
-                      <Input type="number" value={saInputs.otherCosts} onChange={(e) => handleSaChange('otherCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="sa-other" text={TT.otherCosts} /></div>
+                      <Input type="number" placeholder="Enter other costs" value={saInputs.otherCosts || ''} onChange={(e) => handleSaChange('otherCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Deposit (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="sa-dep" text={TT.deposit} /></div>
                       <Input type="number" value={saInputs.depositPercent} onChange={(e) => handleSaChange('depositPercent', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Mortgage Rate (%)</Label>
-                      <Input type="number" step="0.1" value={saInputs.mortgageRate} onChange={(e) => handleSaChange('mortgageRate', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="sa-mr" text={TT.mortgageRate} /></div>
+                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={saInputs.mortgageRate || ''} onChange={(e) => handleSaChange('mortgageRate', e.target.value)} />
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label>Mortgage Type</Label>
@@ -995,20 +1028,20 @@ export default function HomePage() {
                       </div>
                     )}
                     <div className="space-y-2">
-                      <Label>Nightly Rate (£)</Label>
-                      <Input type="number" value={saInputs.nightlyRate} onChange={(e) => handleSaChange('nightlyRate', e.target.value)} data-testid="input-sa-nightly-rate" />
+                      <div className="flex items-center gap-1"><Label>Nightly Rate (£)</Label><InfoIcon id="sa-night" text={TT.nightlyRate} /></div>
+                      <Input type="number" placeholder="Enter nightly rate" value={saInputs.nightlyRate || ''} onChange={(e) => handleSaChange('nightlyRate', e.target.value)} data-testid="input-sa-nightly-rate" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Avg Occupancy (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Avg Occupancy (%)</Label><InfoIcon id="sa-occ" text={TT.avgOccupancy} /></div>
                       <Input type="number" value={saInputs.occupancyPercent} onChange={(e) => handleSaChange('occupancyPercent', e.target.value)} data-testid="input-sa-occupancy" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Platform Fees (%)</Label>
-                      <Input type="number" step="0.5" value={saInputs.platformFeesPercent} onChange={(e) => handleSaChange('platformFeesPercent', e.target.value)} data-testid="input-sa-platform-fees" />
+                      <div className="flex items-center gap-1"><Label>Platform Fees (%)</Label><InfoIcon id="sa-pfees" text={TT.platformFees} /></div>
+                      <Input type="number" step="0.5" placeholder="Enter platform fees %" value={saInputs.platformFeesPercent || ''} onChange={(e) => handleSaChange('platformFeesPercent', e.target.value)} data-testid="input-sa-platform-fees" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Monthly Running Costs (£)</Label>
-                      <Input type="number" value={saInputs.monthlyRunningCosts} onChange={(e) => handleSaChange('monthlyRunningCosts', e.target.value)} data-testid="input-sa-running-costs" />
+                      <div className="flex items-center gap-1"><Label>Monthly Running Costs (£)</Label><InfoIcon id="sa-run" text={TT.runningCosts} /></div>
+                      <Input type="number" placeholder="Enter monthly running costs" value={saInputs.monthlyRunningCosts || ''} onChange={(e) => handleSaChange('monthlyRunningCosts', e.target.value)} data-testid="input-sa-running-costs" />
                     </div>
                   </div>
                 )}
@@ -1016,49 +1049,49 @@ export default function HomePage() {
                 {dealType === 'BRRR' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="brrr-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="brrr-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Purchase Price (£)</Label>
-                      <Input type="number" value={brrrInputs.purchasePrice} onChange={(e) => handleBrrrChange('purchasePrice', e.target.value)} data-testid="input-brrr-purchase-price" />
+                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="brrr-pp" text={TT.purchasePrice} /></div>
+                      <Input type="number" placeholder="Enter purchase price" value={brrrInputs.purchasePrice || ''} onChange={(e) => handleBrrrChange('purchasePrice', e.target.value)} data-testid="input-brrr-purchase-price" />
                     </div>
                     <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={brrrTax} />
                     <div className="space-y-2">
-                      <Label>Refurb Cost (£)</Label>
-                      <Input type="number" value={brrrInputs.refurbCost} onChange={(e) => handleBrrrChange('refurbCost', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="brrr-refurb" text={TT.refurbCost} /></div>
+                      <Input type="number" placeholder="Enter refurb cost" value={brrrInputs.refurbCost || ''} onChange={(e) => handleBrrrChange('refurbCost', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Other Costs (£)</Label>
-                      <Input type="number" value={brrrInputs.otherCosts} onChange={(e) => handleBrrrChange('otherCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Other Costs (£)</Label><InfoIcon id="brrr-other" text={TT.otherCosts} /></div>
+                      <Input type="number" placeholder="Enter other costs" value={brrrInputs.otherCosts || ''} onChange={(e) => handleBrrrChange('otherCosts', e.target.value)} />
                     </div>
                     <div className="col-span-1 md:col-span-2">
                       <div className="h-px w-full bg-border my-1" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Post-Refurb Value / GDV (£)</Label>
-                      <Input type="number" value={brrrInputs.postRefurbValue} onChange={(e) => handleBrrrChange('postRefurbValue', e.target.value)} data-testid="input-brrr-gdv" />
+                      <div className="flex items-center gap-1"><Label>Post-Refurb Value / GDV (£)</Label><InfoIcon id="brrr-gdv" text={TT.postRefurbValue} /></div>
+                      <Input type="number" placeholder="Enter post-refurb value" value={brrrInputs.postRefurbValue || ''} onChange={(e) => handleBrrrChange('postRefurbValue', e.target.value)} data-testid="input-brrr-gdv" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Refinance % (typically 75%)</Label>
+                      <div className="flex items-center gap-1"><Label>Refinance % (typically 75%)</Label><InfoIcon id="brrr-ref" text={TT.refinancePct} /></div>
                       <Input type="number" step="1" value={brrrInputs.refinancePercent} onChange={(e) => handleBrrrChange('refinancePercent', e.target.value)} data-testid="input-brrr-refinance-pct" />
                     </div>
                     <div className="space-y-2">
-                      <Label>New Mortgage Rate (%)</Label>
-                      <Input type="number" step="0.1" value={brrrInputs.newMortgageRate} onChange={(e) => handleBrrrChange('newMortgageRate', e.target.value)} data-testid="input-brrr-mortgage-rate" />
+                      <div className="flex items-center gap-1"><Label>New Mortgage Rate (%)</Label><InfoIcon id="brrr-nmr" text={TT.newMortgageRate} /></div>
+                      <Input type="number" step="0.1" placeholder="Enter new mortgage rate" value={brrrInputs.newMortgageRate || ''} onChange={(e) => handleBrrrChange('newMortgageRate', e.target.value)} data-testid="input-brrr-mortgage-rate" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Monthly Rent (£)</Label>
-                      <Input type="number" value={brrrInputs.monthlyRent} onChange={(e) => handleBrrrChange('monthlyRent', e.target.value)} data-testid="input-brrr-monthly-rent" />
+                      <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="brrr-rent" text={TT.monthlyRent} /></div>
+                      <Input type="number" placeholder="Enter monthly rent" value={brrrInputs.monthlyRent || ''} onChange={(e) => handleBrrrChange('monthlyRent', e.target.value)} data-testid="input-brrr-monthly-rent" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Monthly Expenses (£)</Label>
-                      <Input type="number" value={brrrInputs.monthlyExpenses} onChange={(e) => handleBrrrChange('monthlyExpenses', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="brrr-exp" text={TT.monthlyExpenses} /></div>
+                      <Input type="number" placeholder="Enter monthly expenses" value={brrrInputs.monthlyExpenses || ''} onChange={(e) => handleBrrrChange('monthlyExpenses', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -1066,41 +1099,41 @@ export default function HomePage() {
                 {dealType === 'R2R' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="r2r-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="r2r-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Monthly Rent to Landlord (£)</Label>
-                      <Input type="number" value={r2rInputs.monthlyRentPaid} onChange={(e) => handleR2rChange('monthlyRentPaid', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Monthly Rent to Landlord (£)</Label><InfoIcon id="r2r-rtl" text={TT.rentToLandlord} /></div>
+                      <Input type="number" placeholder="Enter rent paid to landlord" value={r2rInputs.monthlyRentPaid || ''} onChange={(e) => handleR2rChange('monthlyRentPaid', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Setup Costs — furniture, light works (£)</Label>
-                      <Input type="number" value={r2rInputs.setupCosts} onChange={(e) => handleR2rChange('setupCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Setup Costs (£)</Label><InfoIcon id="r2r-setup" text={TT.setupCosts} /></div>
+                      <Input type="number" placeholder="Enter setup costs" value={r2rInputs.setupCosts || ''} onChange={(e) => handleR2rChange('setupCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Number of Rooms</Label>
-                      <Input type="number" value={r2rInputs.rooms} onChange={(e) => handleR2rChange('rooms', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="r2r-rooms" text={TT.numRooms} /></div>
+                      <Input type="number" placeholder="Enter number of rooms" value={r2rInputs.rooms || ''} onChange={(e) => handleR2rChange('rooms', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Rent per Room / month (£)</Label>
-                      <Input type="number" value={r2rInputs.rentPerRoom} onChange={(e) => handleR2rChange('rentPerRoom', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Rent per Room / month (£)</Label><InfoIcon id="r2r-rpr" text={TT.rentPerRoom} /></div>
+                      <Input type="number" placeholder="Enter rent per room" value={r2rInputs.rentPerRoom || ''} onChange={(e) => handleR2rChange('rentPerRoom', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Occupancy Rate (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="r2r-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={r2rInputs.occupancyRate} onChange={(e) => handleR2rChange('occupancyRate', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Platform / Management Fees (%)</Label>
-                      <Input type="number" step="0.5" value={r2rInputs.managementFeesPercent} onChange={(e) => handleR2rChange('managementFeesPercent', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Platform / Management Fees (%)</Label><InfoIcon id="r2r-mgmt" text={TT.mgmtFees} /></div>
+                      <Input type="number" step="0.5" placeholder="Enter management fees %" value={r2rInputs.managementFeesPercent || ''} onChange={(e) => handleR2rChange('managementFeesPercent', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Monthly Running Costs (£)</Label>
-                      <Input type="number" value={r2rInputs.monthlyRunningCosts} onChange={(e) => handleR2rChange('monthlyRunningCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Monthly Running Costs (£)</Label><InfoIcon id="r2r-run" text={TT.runningCosts} /></div>
+                      <Input type="number" placeholder="Enter monthly running costs" value={r2rInputs.monthlyRunningCosts || ''} onChange={(e) => handleR2rChange('monthlyRunningCosts', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -1108,34 +1141,34 @@ export default function HomePage() {
                 {dealType === 'SOCIAL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Address</Label>
-                      <Input type="text" placeholder="e.g. 12 High Street, Cardiff, CF10 1AB" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="soc-addr" text={TT.propAddress} /></div>
+                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Property Type</Label>
+                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="soc-proptype" text={TT.propType} /></div>
                       <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
                     </div>
                     <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
                     <div className="space-y-2">
-                      <Label>Purchase Price (£)</Label>
-                      <Input type="number" value={socialInputs.purchasePrice} onChange={(e) => handleSocialChange('purchasePrice', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="soc-pp" text={TT.purchasePrice} /></div>
+                      <Input type="number" placeholder="Enter purchase price" value={socialInputs.purchasePrice || ''} onChange={(e) => handleSocialChange('purchasePrice', e.target.value)} />
                     </div>
                     <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={socialTax} />
                     <div className="space-y-2">
-                      <Label>Refurb Cost (£)</Label>
-                      <Input type="number" value={socialInputs.refurbCost} onChange={(e) => handleSocialChange('refurbCost', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="soc-refurb" text={TT.refurbCost} /></div>
+                      <Input type="number" placeholder="Enter refurb cost" value={socialInputs.refurbCost || ''} onChange={(e) => handleSocialChange('refurbCost', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Other Costs (Legal, Broker) (£)</Label>
-                      <Input type="number" value={socialInputs.otherCosts} onChange={(e) => handleSocialChange('otherCosts', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="soc-other" text={TT.otherCosts} /></div>
+                      <Input type="number" placeholder="Enter other costs" value={socialInputs.otherCosts || ''} onChange={(e) => handleSocialChange('otherCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Deposit (%)</Label>
+                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="soc-dep" text={TT.deposit} /></div>
                       <Input type="number" value={socialInputs.depositPercent} onChange={(e) => handleSocialChange('depositPercent', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Mortgage Rate (%)</Label>
-                      <Input type="number" step="0.1" value={socialInputs.mortgageRate} onChange={(e) => handleSocialChange('mortgageRate', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="soc-mr" text={TT.mortgageRate} /></div>
+                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={socialInputs.mortgageRate || ''} onChange={(e) => handleSocialChange('mortgageRate', e.target.value)} />
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label>Mortgage Type</Label>
@@ -1154,16 +1187,16 @@ export default function HomePage() {
                       <div className="h-px w-full bg-border my-1" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Guaranteed Lease Income / month (£)</Label>
-                      <Input type="number" value={socialInputs.leaseIncomePerMonth} onChange={(e) => handleSocialChange('leaseIncomePerMonth', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Guaranteed Lease Income / month (£)</Label><InfoIcon id="soc-lease" text={TT.leaseIncome} /></div>
+                      <Input type="number" placeholder="Enter monthly lease income" value={socialInputs.leaseIncomePerMonth || ''} onChange={(e) => handleSocialChange('leaseIncomePerMonth', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Lease Length (years)</Label>
-                      <Input type="number" value={socialInputs.leaseLengthYears} onChange={(e) => handleSocialChange('leaseLengthYears', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Lease Length (years)</Label><InfoIcon id="soc-ll" text={TT.socialLeaseLength} /></div>
+                      <Input type="number" placeholder="Enter lease length in years" value={socialInputs.leaseLengthYears || ''} onChange={(e) => handleSocialChange('leaseLengthYears', e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Management Costs / month (£)</Label>
-                      <Input type="number" value={socialInputs.managementCostsPerMonth} onChange={(e) => handleSocialChange('managementCostsPerMonth', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Management Costs / month (£)</Label><InfoIcon id="soc-mgmt" text={TT.mgmtCosts} /></div>
+                      <Input type="number" placeholder="Enter monthly management costs" value={socialInputs.managementCostsPerMonth || ''} onChange={(e) => handleSocialChange('managementCostsPerMonth', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -1171,21 +1204,23 @@ export default function HomePage() {
                 <div className="mt-6 pt-5 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="market-value">Market Value (£)</Label>
+                      <div className="flex items-center gap-1"><Label htmlFor="market-value">Market Value (£)</Label><InfoIcon id="shared-mv" text={TT.marketValue} /></div>
                       <Input
                         id="market-value"
                         type="number"
-                        value={marketValue}
+                        placeholder="Enter market value"
+                        value={marketValue || ''}
                         onChange={(e) => setMarketValue(Number(e.target.value) || 0)}
                         data-testid="input-market-value"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="sourcing-fee">Sourcing Fee (£)</Label>
+                      <div className="flex items-center gap-1"><Label htmlFor="sourcing-fee">Sourcing Fee (£)</Label><InfoIcon id="shared-sf" text={TT.sourcingFee} /></div>
                       <Input
                         id="sourcing-fee"
                         type="number"
-                        value={sourcingFee}
+                        placeholder="Enter sourcing fee"
+                        value={sourcingFee || ''}
                         onChange={(e) => setSourcingFee(Number(e.target.value) || 0)}
                         data-testid="input-sourcing-fee"
                       />
@@ -1506,7 +1541,7 @@ export default function HomePage() {
               <Input
                 id="prepared-name"
                 type="text"
-                placeholder="Your name"
+                placeholder="Enter your name"
                 value={preparedBy.name}
                 onChange={(e) => setPreparedBy(prev => ({ ...prev, name: e.target.value }))}
                 data-testid="input-prepared-name"
@@ -1517,7 +1552,7 @@ export default function HomePage() {
               <Input
                 id="prepared-email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Enter your email"
                 value={preparedBy.email}
                 onChange={(e) => setPreparedBy(prev => ({ ...prev, email: e.target.value }))}
                 data-testid="input-prepared-email"
@@ -1528,7 +1563,7 @@ export default function HomePage() {
               <Input
                 id="prepared-phone"
                 type="tel"
-                placeholder="07123 456789"
+                placeholder="Enter your phone number"
                 value={preparedBy.phone}
                 onChange={(e) => setPreparedBy(prev => ({ ...prev, phone: e.target.value }))}
                 data-testid="input-prepared-phone"
@@ -1536,15 +1571,27 @@ export default function HomePage() {
             </div>
           </div>
 
-          <button
-            onClick={downloadPDF}
-            className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
-            style={{ backgroundColor: '#1B3A6B' }}
-            data-testid="button-download-pdf"
-          >
-            <Download className="w-4 h-4" />
-            Download Investor Summary PDF
-          </button>
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={downloadPDF}
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
+              style={{ backgroundColor: '#1B3A6B' }}
+              data-testid="button-download-pdf"
+            >
+              <Download className="w-4 h-4" />
+              Download Investor Summary PDF
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
+              style={{ backgroundColor: '#6B7280' }}
+              data-testid="button-reset"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </button>
+          </div>
         </div>
       </main>
     </div>
@@ -1591,7 +1638,7 @@ function TenureSection({
   return (
     <>
       <div className="space-y-2 md:col-span-2">
-        <Label>Tenure</Label>
+        <div className="flex items-center gap-1"><Label>Tenure</Label><InfoIcon id="ten-tenure" text={TT.tenure} /></div>
         <div className="flex gap-2">
           <button
             type="button"
@@ -1612,10 +1659,11 @@ function TenureSection({
       {tenure === 'Leasehold' && (
         <>
           <div className="space-y-2">
-            <Label>Remaining Lease Length (years)</Label>
+            <div className="flex items-center gap-1"><Label>Remaining Lease Length (years)</Label><InfoIcon id="ten-ll" text={TT.leaseLength} /></div>
             <Input
               type="number"
-              value={leaseLength}
+              placeholder="Enter remaining lease length"
+              value={leaseLength || ''}
               onChange={(e) => onLeaseLength(Number(e.target.value) || 0)}
               data-testid="input-lease-length"
             />
@@ -1662,9 +1710,12 @@ function TaxSection({
   return (
     <div className="md:col-span-2 rounded-xl bg-muted/40 border border-border p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>
-          Property Tax ({label})
-        </Label>
+        <div className="flex items-center gap-1">
+          <Label className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>
+            Property Tax ({label})
+          </Label>
+          <InfoIcon id="tax-info" text={TT.propTax} />
+        </div>
         <span className="text-base font-bold" style={{ color: '#1B3A6B' }} data-testid="tax-amount">
           {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(amount)}
         </span>
@@ -1740,5 +1791,142 @@ function Row({ label, value, isBold = false }: { label: string, value: string, i
         {value}
       </span>
     </div>
+  );
+}
+
+const TT = {
+  propAddress: 'The full address of the property being analysed. This appears on the investor PDF.',
+  propType: 'The type of property — affects lender appetite and mortgage options.',
+  tenure: 'Freehold means you own the building and land outright. Leasehold means you own the property for a fixed term. Most lenders require 70+ years remaining on a lease.',
+  leaseLength: 'The number of years remaining on the lease. Properties with under 70 years can be difficult to mortgage.',
+  purchasePrice: 'The price you are paying to buy the property. This is the starting point for all calculations.',
+  propTax: 'Stamp Duty (England), LTT (Wales), or LBTT (Scotland). Automatically calculated based on country, buyer type, and purchase price.',
+  refurbCost: 'The total cost of any renovation or refurbishment work needed before the property can be let or sold.',
+  otherCosts: 'All other purchase costs — legal fees, survey, broker fees, and any other one-off costs.',
+  deposit: 'The percentage of the purchase price you are putting in as a cash deposit. Most BTL lenders require 25%.',
+  mortgageRate: 'The annual interest rate on your mortgage. Check with your broker for current BTL rates.',
+  marketValue: 'The true open market value of the property — used to calculate BMV (Below Market Value) and equity on day one.',
+  sourcingFee: 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.',
+  monthlyRent: 'The monthly rental income you expect to receive from the tenant or tenants.',
+  monthlyExpenses: 'All monthly running costs — insurance, maintenance reserve, letting agent fees, and any other regular costs. Do not include the mortgage payment.',
+  numRooms: 'The total number of lettable rooms in the HMO.',
+  rentPerRoom: 'The monthly rent charged per room. Multiplied by rooms and occupancy to get gross income.',
+  occupancyRate: 'The percentage of time the rooms are occupied. 90% is a typical realistic assumption for a well-managed HMO.',
+  nightlyRate: 'The nightly price you charge guests on Airbnb or Booking.com.',
+  avgOccupancy: 'The percentage of nights per month the property is booked. 70% is a typical starting assumption — higher in cities, lower in seasonal locations.',
+  platformFees: 'The commission charged by Airbnb or Booking.com. Airbnb typically charges 3% host fee; Booking.com charges 15%.',
+  runningCosts: 'All monthly costs of running the SA — cleaning, consumables, utilities, and management fees.',
+  postRefurbValue: 'The estimated market value of the property after the refurbishment is complete. Get this from a local estate agent or RICS surveyor.',
+  refinancePct: 'The loan-to-value percentage your mortgage lender will offer against the post-refurb value. Most BTL lenders offer 75%.',
+  newMortgageRate: 'The interest rate on the refinance mortgage you take out after the refurbishment.',
+  holdingCosts: 'Monthly costs while you own the property during the refurbishment — bridging loan interest, utilities, council tax, and insurance.',
+  projectLength: 'How many months from purchase to sale completion. Be realistic — most flips take longer than expected.',
+  salePrice: 'The price you expect to achieve when selling the refurbished property. Base this on comparable sold prices nearby.',
+  sellingCosts: 'Estate agent fees plus legal costs on the sale. Typically 1.5–2.5% of the sale price.',
+  rentToLandlord: 'The fixed monthly rent you pay to the landlord. This is your biggest fixed cost and continues whether rooms are occupied or not.',
+  setupCosts: 'One-off costs to set up the R2R — furniture, light works, landlord deposit, and any initial costs. This is what your ROI is calculated against.',
+  mgmtFees: 'If you use a lettings agent or management company, their fee as a percentage of gross rent collected.',
+  leaseIncome: 'The fixed monthly payment you receive from the council or housing association. This is guaranteed regardless of occupancy.',
+  socialLeaseLength: 'The length of the guaranteed lease agreement with the council or housing association. Typically 3–5 years.',
+  mgmtCosts: 'Any monthly costs for managing the property under the social housing lease. Often minimal as the council manages the tenants.',
+  tabBtl: 'Buy-to-Let: Buy a property and rent it to a single household. The most straightforward rental strategy.',
+  tabHmo: 'House in Multiple Occupation: Rent individual rooms to separate tenants. Higher income but more management and licensing required.',
+  tabFlip: 'Flip / Refurb: Buy below market value, renovate, and sell for a profit. Active strategy with no ongoing rental income.',
+  tabSa: 'Serviced Accommodation: Short-term letting via Airbnb or Booking.com. Highest income potential but most management intensive.',
+  tabBrrr: 'Buy, Refurb, Refinance, Rent, Repeat: Add value through renovation, refinance to pull your money back out, then hold and rent. Best for scaling a portfolio.',
+  tabR2r: 'Rent to Rent: Rent a property from a landlord and sublet it at a higher rate. No mortgage or purchase required — low entry cost.',
+  tabSocial: 'Social Housing: Lease your property to a council or housing association on a guaranteed fixed-term contract. No voids, lower management, stable income.',
+} as const;
+
+const DS_TOOLTIP_EVENT = 'ds:tt';
+
+function InfoIcon({ id, text }: { id: string; text: string }) {
+  const [show, setShow] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const closeOthers = (e: Event) => {
+      if ((e as CustomEvent).detail?.id !== id) setShow(false);
+    };
+    document.addEventListener(DS_TOOLTIP_EVENT, closeOthers);
+    return () => document.removeEventListener(DS_TOOLTIP_EVENT, closeOthers);
+  }, [id]);
+
+  useEffect(() => {
+    if (!show) return;
+    const handler = () => setShow(false);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [show]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (show) { setShow(false); return; }
+    const rect = btnRef.current!.getBoundingClientRect();
+    const tooltipW = 280;
+    const tooltipH = 90;
+    const above = rect.top > tooltipH + 16;
+    const top = above ? rect.top - tooltipH - 6 : rect.bottom + 6;
+    const left = Math.max(8, Math.min(rect.left - 120, window.innerWidth - tooltipW - 8));
+    setCoords({ top, left });
+    document.dispatchEvent(new CustomEvent(DS_TOOLTIP_EVENT, { detail: { id } }));
+    setShow(true);
+  };
+
+  return (
+    <>
+      <style>{`@keyframes dsTooltipIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <span
+        ref={btnRef}
+        role="button"
+        tabIndex={0}
+        onClick={handleClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e as unknown as React.MouseEvent); } }}
+        className="inline-flex items-center justify-center rounded-full shrink-0"
+        style={{
+          width: 15, height: 15, minWidth: 15,
+          color: '#1B3A6B',
+          border: '1.5px solid #1B3A6B',
+          fontSize: 10,
+          fontWeight: 700,
+          fontFamily: 'Arial, sans-serif',
+          lineHeight: 1,
+          cursor: 'pointer',
+          marginLeft: 2,
+          verticalAlign: 'middle',
+          userSelect: 'none',
+        }}
+        aria-label="More information"
+      >
+        i
+      </span>
+      {show && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: coords.top,
+            left: coords.left,
+            zIndex: 9999,
+            background: '#fff',
+            border: '1.5px solid #1B3A6B',
+            borderRadius: 8,
+            padding: '8px 10px',
+            width: 280,
+            maxWidth: 'calc(100vw - 16px)',
+            fontSize: 12,
+            fontFamily: 'Arial, sans-serif',
+            color: '#1a1a1a',
+            lineHeight: 1.45,
+            boxShadow: '0 4px 12px rgba(27,58,107,0.18)',
+            animation: 'dsTooltipIn 0.15s ease-out both',
+          }}
+        >
+          {text}
+        </div>,
+        document.body
+      )}
+    </>
   );
 }

@@ -1,0 +1,124 @@
+Please make the following two changes together in one update:
+PART 1 — Remove defaults and add instructional placeholders:
+Remove all default/prepopulated values from every input field across all 7 strategy tabs. Replace them with instructional placeholder text as follows:
+
+Purchase Price → 'Enter purchase price'
+Refurb Cost → 'Enter refurb cost'
+Other Costs → 'Enter other costs'
+Mortgage Rate → 'Enter mortgage rate'
+Monthly Rent → 'Enter monthly rent'
+Monthly Expenses → 'Enter monthly expenses'
+Market Value → 'Enter market value'
+Sourcing Fee → 'Enter sourcing fee'
+Number of Rooms → 'Enter number of rooms'
+Rent Per Room → 'Enter rent per room'
+Nightly Rate → 'Enter nightly rate'
+Monthly Running Costs → 'Enter monthly running costs'
+Platform Fees % → 'Enter platform fees %'
+Post-Refurb Value → 'Enter post-refurb value'
+New Mortgage Rate → 'Enter new mortgage rate'
+Holding Costs → 'Enter monthly holding costs'
+Project Length → 'Enter project length in months'
+Expected Sale Price → 'Enter expected sale price'
+Monthly Rent to Landlord → 'Enter rent paid to landlord'
+Rent Per Room (R2R) → 'Enter rent per room'
+Monthly Running Costs (R2R) → 'Enter monthly running costs'
+Setup Costs → 'Enter setup costs'
+Guaranteed Lease Income → 'Enter monthly lease income'
+Management Costs → 'Enter monthly management costs'
+Lease Length → 'Enter lease length in years'
+Property Address → 'Enter full property address'
+Prepared By Name → 'Enter your name'
+Prepared By Email → 'Enter your email'
+Prepared By Phone → 'Enter your phone number'
+
+Keep these five as default values — do not change them to placeholders:
+
+Deposit % → default 25
+Country → default England
+Occupancy Rate → default 90
+Refinance % → default 75
+Selling Costs % → default 2
+
+Add a Reset button positioned next to the Download PDF button, styled in grey with white text. Clicking Reset clears all fields back to empty and restores only the five defaults above. Reset applies to the currently active tab only.
+PART 2 — Add ⓘ info icons with tooltips to every field and tab:
+Add a small circular ⓘ icon next to every field label and every strategy tab. The icon should be navy coloured, small (14–16px), and sit immediately to the right of the label text. On click (not hover — must work on mobile) it shows a tooltip with a plain English explanation of what the field means and why it matters. The tooltip should appear as a small navy-bordered popup near the icon and dismiss when the user taps or clicks anywhere else.
+Use the following tooltip text for each field:
+Property fields:
+
+Property Address → 'The full address of the property being analysed. This appears on the investor PDF.'
+Property Type → 'The type of property — affects lender appetite and mortgage options.'
+Tenure → 'Freehold means you own the building and land outright. Leasehold means you own the property for a fixed term. Most lenders require 70+ years remaining on a lease.'
+Lease Length → 'The number of years remaining on the lease. Properties with under 70 years can be difficult to mortgage.'
+
+Financial fields:
+
+Purchase Price → 'The price you are paying to buy the property. This is the starting point for all calculations.'
+Property Tax → 'Stamp Duty (England), LTT (Wales), or LBTT (Scotland). Automatically calculated based on country, buyer type, and purchase price.'
+Refurb Cost → 'The total cost of any renovation or refurbishment work needed before the property can be let or sold.'
+Other Costs → 'All other purchase costs — legal fees, survey, broker fees, and any other one-off costs.'
+Deposit % → 'The percentage of the purchase price you are putting in as a cash deposit. Most BTL lenders require 25%.'
+Mortgage Rate → 'The annual interest rate on your mortgage. Check with your broker for current BTL rates.'
+Market Value → 'The true open market value of the property — used to calculate BMV (Below Market Value) and equity on day one.'
+Sourcing Fee → 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.'
+
+BTL/HMO specific:
+
+Monthly Rent → 'The monthly rental income you expect to receive from the tenant or tenants.'
+Monthly Expenses → 'All monthly running costs — insurance, maintenance reserve, letting agent fees, and any other regular costs. Do not include the mortgage payment.'
+Number of Rooms → 'The total number of lettable rooms in the HMO.'
+Rent Per Room → 'The monthly rent charged per room. Multiplied by rooms and occupancy to get gross income.'
+Occupancy Rate → 'The percentage of time the rooms are occupied. 90% is a typical realistic assumption for a well-managed HMO.'
+
+SA specific:
+
+Nightly Rate → 'The nightly price you charge guests on Airbnb or Booking.com.'
+Average Occupancy % → 'The percentage of nights per month the property is booked. 70% is a typical starting assumption — higher in cities, lower in seasonal locations.'
+Platform Fees % → 'The commission charged by Airbnb or Booking.com. Airbnb typically charges 3% host fee; Booking.com charges 15%.'
+Monthly Running Costs → 'All monthly costs of running the SA — cleaning, consumables, utilities, and management fees.'
+
+BRRR specific:
+
+Post-Refurb Value → 'The estimated market value of the property after the refurbishment is complete. Get this from a local estate agent or RICS surveyor.'
+Refinance % → 'The loan-to-value percentage your mortgage lender will offer against the post-refurb value. Most BTL lenders offer 75%.'
+New Mortgage Rate → 'The interest rate on the refinance mortgage you take out after the refurbishment.'
+
+Flip specific:
+
+Holding Costs → 'Monthly costs while you own the property during the refurbishment — bridging loan interest, utilities, council tax, and insurance.'
+Project Length → 'How many months from purchase to sale completion. Be realistic — most flips take longer than expected.'
+Expected Sale Price → 'The price you expect to achieve when selling the refurbished property. Base this on comparable sold prices nearby.'
+Selling Costs % → 'Estate agent fees plus legal costs on the sale. Typically 1.5–2.5% of the sale price.'
+
+R2R specific:
+
+Monthly Rent to Landlord → 'The fixed monthly rent you pay to the landlord. This is your biggest fixed cost and continues whether rooms are occupied or not.'
+Setup Costs → 'One-off costs to set up the R2R — furniture, light works, landlord deposit, and any initial costs. This is what your ROI is calculated against.'
+Management Fees % → 'If you use a lettings agent or management company, their fee as a percentage of gross rent collected.'
+
+Social Housing specific:
+
+Guaranteed Lease Income → 'The fixed monthly payment you receive from the council or housing association. This is guaranteed regardless of occupancy.'
+Lease Length → 'The length of the guaranteed lease agreement with the council or housing association. Typically 3–5 years.'
+Management Costs → 'Any monthly costs for managing the property under the social housing lease. Often minimal as the council manages the tenants.'
+
+Strategy tabs:
+
+BTL → 'Buy-to-Let: Buy a property and rent it to a single household. The most straightforward rental strategy.'
+HMO → 'House in Multiple Occupation: Rent individual rooms to separate tenants. Higher income but more management and licensing required.'
+Flip → 'Flip / Refurb: Buy below market value, renovate, and sell for a profit. Active strategy with no ongoing rental income.'
+SA → 'Serviced Accommodation: Short-term letting via Airbnb or Booking.com. Highest income potential but most management intensive.'
+BRRR → 'Buy, Refurb, Refinance, Rent, Repeat: Add value through renovation, refinance to pull your money back out, then hold and rent. Best for scaling a portfolio.'
+R2R → 'Rent to Rent: Rent a property from a landlord and sublet it at a higher rate. No mortgage or purchase required — low entry cost.'
+Social → 'Social Housing: Lease your property to a council or housing association on a guaranteed fixed-term contract. No voids, lower management, stable income.'
+
+Design requirements for tooltips:
+
+Navy border, white background, 12–13px Arial text
+Maximum width 280px so it fits on mobile screens
+Appears above or below the icon depending on screen position — never cut off at screen edge
+Smooth fade-in animation (150ms)
+Single tap/click anywhere outside dismisses it
+Only one tooltip visible at a time — opening a new one closes the previous
+
+Please confirm both parts are complete, show two sample tooltip implementations, and confirm zero TypeScript errors.
