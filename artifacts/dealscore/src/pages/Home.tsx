@@ -1329,7 +1329,10 @@ export default function HomePage() {
           <div className="lg:col-span-5">
             <Card className="bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <div className="p-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
-                <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
+                <div className="flex items-center justify-center gap-1">
+                  <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
+                  <InfoIcon id="deal-score-header" text={TT.dealScore} />
+                </div>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
                 {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
                 {dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
@@ -1358,8 +1361,9 @@ export default function HomePage() {
                     data-testid="bmv-banner"
                   >
                     <div className="text-left">
-                      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-0.5">
                         Below Market Value
+                        <InfoIcon id="bmv-banner" text={TT.bmv} />
                       </div>
                       <div className="text-lg font-bold" style={{ color: bmvAmount >= 0 ? '#047857' : '#b91c1c' }}>
                         {formatCurrency(bmvAmount)}
@@ -1380,18 +1384,18 @@ export default function HomePage() {
                 {dealType === 'BTL' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} />
-                      <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(btlResults.monthlyCashFlow)} highlight={btlResults.monthlyCashFlow < 0} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(btlResults.annualCashFlow)} highlight={btlResults.annualCashFlow < 0} />
+                      <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
+                      <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(btlResults.monthlyCashFlow)} highlight={btlResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(btlResults.annualCashFlow)} highlight={btlResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Gross Yield" value={formatPercent(btlResults.grossYield)} />
-                      <Row label="Net Yield" value={formatPercent(btlResults.netYield)} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(btlResults.cashOnCashROI)} isBold />
+                      <Row label="Gross Yield" value={formatPercent(btlResults.grossYield)} tooltip={TT.grossYield} />
+                      <Row label="Net Yield" value={formatPercent(btlResults.netYield)} tooltip={TT.netYield} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(btlResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
                       {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
                     </div>
                   </div>
@@ -1400,18 +1404,18 @@ export default function HomePage() {
                 {dealType === 'HMO' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} />
-                      <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(hmoResults.monthlyCashFlow)} highlight={hmoResults.monthlyCashFlow < 0} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(hmoResults.annualCashFlow)} highlight={hmoResults.annualCashFlow < 0} />
+                      <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
+                      <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(hmoResults.monthlyCashFlow)} highlight={hmoResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(hmoResults.annualCashFlow)} highlight={hmoResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} />
-                      <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold />
+                      <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} tooltip={TT.grossYield} />
+                      <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} tooltip={TT.netYield} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
                       {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
                     </div>
                   </div>
@@ -1420,17 +1424,17 @@ export default function HomePage() {
                 {dealType === 'FLIP' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} />
-                      <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} />
-                      <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} />
-                      <MetricBox label="Profit / Month" value={formatCurrency(flipResults.profitPerMonth)} highlight={flipResults.profitPerMonth < 0} />
+                      <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
+                      <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} tooltip={TT.flipSellingCosts} />
+                      <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} tooltip={TT.flipNetProfit} />
+                      <MetricBox label="Profit / Month" value={formatCurrency(flipResults.profitPerMonth)} highlight={flipResults.profitPerMonth < 0} tooltip={TT.profitPerMonth} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold />
-                      <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} />
+                      <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold tooltip={TT.flipTotalROI} />
+                      <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} tooltip={TT.annualisedROI} />
                       {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
                     </div>
                   </div>
@@ -1439,19 +1443,19 @@ export default function HomePage() {
                 {dealType === 'SA' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} />
-                      <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(saResults.monthlyCashFlow)} highlight={saResults.monthlyCashFlow < 0} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(saResults.annualCashFlow)} highlight={saResults.annualCashFlow < 0} />
+                      <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
+                      <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} tooltip={TT.saNetRev} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(saResults.monthlyCashFlow)} highlight={saResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(saResults.annualCashFlow)} highlight={saResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Gross Yield" value={formatPercent(saResults.grossYield)} />
-                      <Row label="Net Yield" value={formatPercent(saResults.netYield)} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(saResults.cashOnCashROI)} isBold />
-                      <Row label="Cash Invested" value={formatCurrency(saResults.totalCashInvested)} />
+                      <Row label="Gross Yield" value={formatPercent(saResults.grossYield)} tooltip={TT.grossYield} />
+                      <Row label="Net Yield" value={formatPercent(saResults.netYield)} tooltip={TT.netYield} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(saResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
+                      <Row label="Cash Invested" value={formatCurrency(saResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
                     </div>
                   </div>
@@ -1464,23 +1468,25 @@ export default function HomePage() {
                         label="Cash Left In"
                         value={brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
                         highlight={!brrrResults.moneyOut && brrrResults.cashLeftInDeal > 0 && brrrResults.cashLeftInDeal > 30000}
+                        tooltip={TT.brrrCashLeft}
                       />
-                      <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} highlight={brrrResults.monthlyCashFlow < 0} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(brrrResults.annualCashFlow)} highlight={brrrResults.annualCashFlow < 0} />
+                      <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} tooltip={TT.equityCreated} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} highlight={brrrResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(brrrResults.annualCashFlow)} highlight={brrrResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} />
-                      <Row label="Gross Yield (on GDV)" value={formatPercent(brrrResults.grossYield)} />
-                      <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} />
+                      <Row label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} tooltip={TT.brrrRefinanceLoan} />
+                      <Row label="Gross Yield (on GDV)" value={formatPercent(brrrResults.grossYield)} tooltip={TT.grossYield} />
+                      <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} tooltip={TT.netYield} />
                       <Row
                         label="Cash-on-Cash ROI"
                         value={brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
                         isBold
+                        tooltip={TT.cocRoi}
                       />
                       {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
                     </div>
                   </div>
@@ -1489,16 +1495,16 @@ export default function HomePage() {
                 {dealType === 'R2R' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} />
-                      <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} />
-                      <MetricBox label="Monthly Profit" value={formatCurrency(r2rResults.monthlyProfit)} highlight={r2rResults.monthlyProfit < 0} />
-                      <MetricBox label="Annual Profit" value={formatCurrency(r2rResults.annualProfit)} highlight={r2rResults.annualProfit < 0} />
+                      <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
+                      <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
+                      <MetricBox label="Monthly Profit" value={formatCurrency(r2rResults.monthlyProfit)} highlight={r2rResults.monthlyProfit < 0} tooltip={TT.r2rMonthlyProfit} />
+                      <MetricBox label="Annual Profit" value={formatCurrency(r2rResults.annualProfit)} highlight={r2rResults.annualProfit < 0} tooltip={TT.r2rAnnualProfit} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} />
-                      <Row label="Gross Return on Setup" value={formatPercent(r2rResults.grossYield)} />
-                      <Row label="Net Return on Setup Costs" value={formatPercent(r2rResults.roi)} isBold />
+                      <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} tooltip={TT.r2rMgmtFees} />
+                      <Row label="Gross Return on Setup" value={formatPercent(r2rResults.grossYield)} tooltip={TT.r2rGrossReturn} />
+                      <Row label="Net Return on Setup Costs" value={formatPercent(r2rResults.roi)} isBold tooltip={TT.r2rNetReturn} />
                     </div>
                   </div>
                 )}
@@ -1506,18 +1512,18 @@ export default function HomePage() {
                 {dealType === 'SOCIAL' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} />
-                      <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(socialResults.monthlyCashFlow)} highlight={socialResults.monthlyCashFlow < 0} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(socialResults.annualCashFlow)} highlight={socialResults.annualCashFlow < 0} />
+                      <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
+                      <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
+                      <MetricBox label="Monthly Flow" value={formatCurrency(socialResults.monthlyCashFlow)} highlight={socialResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={formatCurrency(socialResults.annualCashFlow)} highlight={socialResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
-                      <Row label="Gross Yield" value={formatPercent(socialResults.grossYield)} />
-                      <Row label="Net Yield" value={formatPercent(socialResults.netYield)} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(socialResults.cashOnCashROI)} isBold />
+                      <Row label="Gross Yield" value={formatPercent(socialResults.grossYield)} tooltip={TT.socialGrossYield} />
+                      <Row label="Net Yield" value={formatPercent(socialResults.netYield)} tooltip={TT.socialNetYield} />
+                      <Row label="Cash-on-Cash ROI" value={formatPercent(socialResults.cashOnCashROI)} isBold tooltip={TT.socialCocRoi} />
                       {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold />
+                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
                     </div>
                   </div>
@@ -1598,10 +1604,13 @@ export default function HomePage() {
   );
 }
 
-function MetricBox({ label, value, highlight = false }: { label: string, value: string, highlight?: boolean }) {
+function MetricBox({ label, value, highlight = false, tooltip }: { label: string, value: string, highlight?: boolean, tooltip?: string }) {
   return (
     <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center">
-      <span className="text-xs text-muted-foreground mb-1">{label}</span>
+      <span className="text-xs text-muted-foreground mb-1 flex items-center gap-0.5">
+        {label}
+        {tooltip && <InfoIcon id={`mb-${label.replace(/[^a-z0-9]/gi, '')}`} text={tooltip} />}
+      </span>
       <span className={`text-xl font-bold tracking-tight ${highlight ? 'text-destructive' : 'text-foreground'}`}>
         {value}
       </span>
@@ -1783,10 +1792,13 @@ function MortgageTypeToggle({ value, onChange }: { value: 'IO' | 'REPAYMENT', on
   );
 }
 
-function Row({ label, value, isBold = false }: { label: string, value: string, isBold?: boolean }) {
+function Row({ label, value, isBold = false, tooltip }: { label: string, value: string, isBold?: boolean, tooltip?: string }) {
   return (
     <div className="flex justify-between items-center py-1">
-      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm text-muted-foreground flex items-center gap-0.5">
+        {label}
+        {tooltip && <InfoIcon id={`row-${label.replace(/[^a-z0-9]/gi, '')}`} text={tooltip} />}
+      </span>
       <span className={`text-base ${isBold ? 'font-bold text-primary' : 'font-medium text-foreground'}`}>
         {value}
       </span>
@@ -1836,6 +1848,38 @@ const TT = {
   tabBrrr: 'Buy, Refurb, Refinance, Rent, Repeat: Add value through renovation, refinance to pull your money back out, then hold and rent. Best for scaling a portfolio.',
   tabR2r: 'Rent to Rent: Rent a property from a landlord and sublet it at a higher rate. No mortgage or purchase required — low entry cost.',
   tabSocial: 'Social Housing: Lease your property to a council or housing association on a guaranteed fixed-term contract. No voids, lower management, stable income.',
+  dealScore: 'The overall rating of this deal based on UK investor standards. Strong = excellent returns. Average = acceptable but room for improvement. Weak = does not meet investment criteria.',
+  cashInvested: 'The total cash you need to deploy to complete this deal — deposit plus stamp duty/LTT plus refurb costs plus other costs.',
+  mortgageAmount: 'The mortgage loan required — purchase price minus your deposit.',
+  monthlyFlow: 'What you actually receive each month after paying the mortgage and all running costs. This is your net monthly income from the deal.',
+  annualFlow: 'Your total net income from the deal over 12 months after all costs including mortgage.',
+  grossYield: 'Annual rental income as a percentage of the purchase price. A quick benchmark for comparing properties — does not account for any costs.',
+  netYield: 'Annual operating income minus running costs, as a percentage of purchase price. Excludes mortgage — this is the property-level return regardless of how it is financed.',
+  cocRoi: 'Your annual cash flow as a percentage of the total cash you invested. This is the investor-level return — includes the effect of your mortgage.',
+  equityDayOne: 'The difference between market value and purchase price. This is the paper equity you gain immediately by buying below market value.',
+  bmv: 'How much below market value you are buying the property, shown as both a pound amount and a percentage. A key metric for investors — higher BMV means more built-in equity and a stronger deal.',
+  hmoGrossRent: 'Total monthly rent from all rooms at the entered occupancy rate. Rooms × rent per room × occupancy percentage.',
+  flipTotalCost: 'Everything you spend to acquire, refurbish, hold, and prepare the property for sale — purchase price, tax, refurb, other costs, and holding costs.',
+  flipSellingCosts: 'Estate agent fees and legal costs on the sale, calculated as a percentage of the sale price.',
+  flipNetProfit: 'What you actually make from the flip after all costs and selling fees. This is the money in your pocket.',
+  profitPerMonth: 'Net profit divided by project length. Useful for comparing flips of different durations on a level playing field.',
+  flipTotalROI: 'Net profit as a percentage of total money invested in the deal. The headline return on a flip.',
+  annualisedROI: 'Total ROI scaled to a 12-month equivalent. Allows fair comparison between flips of different lengths and other investment strategies.',
+  saGrossRev: 'Total monthly revenue before platform fees — nightly rate multiplied by occupancy percentage multiplied by average days in a month.',
+  saNetRev: 'Monthly revenue after platform fees are deducted. This is your income before mortgage and running costs.',
+  brrrRefinanceLoan: 'The new mortgage raised against the post-refurb value. This is the money pulled back out of the deal.',
+  brrrCashLeft: 'Total cost in minus refinance loan. This is how much of your own money remains tied up in the property. The closer to zero the better.',
+  equityCreated: 'The value added by buying below market value and refurbishing — post-refurb value minus total cost in.',
+  r2rGrossIncome: 'Total monthly income from all rooms at the entered occupancy rate before any fees or costs.',
+  r2rMgmtFees: 'Monthly letting agent or management company fees, calculated as a percentage of gross income.',
+  r2rNetIncome: 'Monthly income after management fees are deducted.',
+  r2rMonthlyProfit: 'What you actually keep each month — net income minus rent paid to landlord minus monthly running costs. This is the key R2R metric.',
+  r2rAnnualProfit: 'Monthly profit multiplied by 12. Your total annual earnings from this R2R deal.',
+  r2rGrossReturn: 'Annual gross income as a percentage of your setup costs. Shows the raw income power of the deal relative to your upfront investment.',
+  r2rNetReturn: 'Annual net profit as a percentage of your setup costs. The true ROI on an R2R deal — this is what you actually earn on your invested capital.',
+  socialGrossYield: 'Annual guaranteed lease income as a percentage of purchase price.',
+  socialNetYield: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.',
+  socialCocRoi: 'Annual cash flow as a percentage of cash invested. Your leveraged return as an investor.',
 } as const;
 
 const DS_TOOLTIP_EVENT = 'ds:tt';
