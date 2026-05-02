@@ -1930,8 +1930,8 @@ function InfoIcon({ id, text }: { id: string; text: string }) {
         className="inline-flex items-center justify-center rounded-full shrink-0"
         style={{
           width: 15, height: 15, minWidth: 15,
-          color: '#1B3A6B',
-          border: '1.5px solid #1B3A6B',
+          color: 'inherit',
+          border: '1.5px solid currentColor',
           fontSize: 10,
           fontWeight: 700,
           fontFamily: 'Arial, sans-serif',
