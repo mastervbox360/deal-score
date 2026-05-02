@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "Kal8XnAjJkiHebAZo_G92"
+uri = "file://dealscore.zip"
+type = "unspecified"
+title = "DealScore — Production Build (dealscore.zip)"
