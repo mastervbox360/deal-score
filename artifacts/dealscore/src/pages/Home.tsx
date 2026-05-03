@@ -1384,11 +1384,25 @@ export default function HomePage() {
                 {dealType === 'BTL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
-                      tenure === 'Leasehold' && leaseLengthYears >= 85 && leaseLengthYears < 125 ? '⚠️ Leasehold under 125 years — check lender requirements before proceeding' : null,
-                      btlInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — this deal costs you money every month' : null,
-                      btlInputs.purchasePrice > 0 && btlResults.grossYield < 5 ? '⚠️ Gross yield below 5% — weak rental return for a BTL' : null,
-                      btlInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3 ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold' : null,
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+                        ? btlResults.score === 'Strong' || btlResults.score === 'Average'
+                          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+                          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+                        : null,
+                      tenure === 'Leasehold' && leaseLengthYears >= 85 && leaseLengthYears < 125
+                        ? '⚠️ Leasehold under 125 years — check lender requirements before proceeding'
+                        : null,
+                      btlInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0
+                        ? '⚠️ Negative cash flow — this deal costs you money every month'
+                        : null,
+                      btlInputs.purchasePrice > 0 && btlResults.grossYield < 5
+                        ? btlResults.score === 'Strong'
+                          ? '⚠️ Gross yield at ' + btlResults.grossYield.toFixed(1) + '% — below the 5% BTL benchmark. Strong ROI is driven by leverage — be prepared to justify the yield to investors.'
+                          : '⚠️ Gross yield at ' + btlResults.grossYield.toFixed(1) + '% — below the 5% BTL benchmark. Most investors expect 5%+ on a BTL.'
+                        : null,
+                      btlInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3
+                        ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
@@ -1411,10 +1425,22 @@ export default function HomePage() {
                 {dealType === 'HMO' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
-                      hmoInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — this deal costs you money every month' : null,
-                      hmoInputs.purchasePrice > 0 && hmoResults.grossYield < 7 ? '⚠️ Gross yield below 7% — below typical HMO threshold' : null,
-                      hmoInputs.occupancyRate < 75 && hmoInputs.purchasePrice > 0 ? '⚠️ Occupancy below 75% — cash flow projections may be optimistic' : null,
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+                        ? hmoResults.score === 'Strong' || hmoResults.score === 'Average'
+                          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+                          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+                        : null,
+                      hmoInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0
+                        ? '⚠️ Negative cash flow — this deal costs you money every month'
+                        : null,
+                      hmoInputs.purchasePrice > 0 && hmoResults.grossYield < 7
+                        ? hmoResults.score === 'Average'
+                          ? '⚠️ Gross yield at ' + hmoResults.grossYield.toFixed(1) + '% — borderline for an HMO. Positive cash flow keeps this in Average territory — watch running costs carefully.'
+                          : '⚠️ Gross yield at ' + hmoResults.grossYield.toFixed(1) + '% — below the 7% HMO threshold. Most investors expect higher yield from an HMO.'
+                        : null,
+                      hmoInputs.purchasePrice > 0 && hmoInputs.occupancyRate < 75
+                        ? '⚠️ Occupancy at ' + hmoInputs.occupancyRate + '% — projections may be optimistic. Most HMOs run at 85-90% in practice.'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
@@ -1437,8 +1463,12 @@ export default function HomePage() {
                 {dealType === 'FLIP' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      flipInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs' : null,
-                      flipInputs.purchasePrice > 0 && flipResults.roi < 8 ? '⚠️ ROI below 8% — does not meet typical flip threshold' : null,
+                      flipInputs.purchasePrice > 0 && flipResults.netProfit < 0
+                        ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs'
+                        : null,
+                      flipInputs.purchasePrice > 0 && flipResults.roi < 8
+                        ? '⚠️ ROI at ' + flipResults.roi.toFixed(1) + '% — below the 8% flip threshold. Most investors expect 12%+ on a flip to justify the risk.'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
@@ -1460,9 +1490,17 @@ export default function HomePage() {
                 {dealType === 'SA' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
-                      saInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions' : null,
-                      saInputs.occupancyPercent < 60 && saInputs.purchasePrice > 0 ? '⚠️ Occupancy below 60% — most SA deals require 70%+ to stack' : null,
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+                        ? saResults.score === 'Strong' || saResults.score === 'Average'
+                          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+                          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+                        : null,
+                      saInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0
+                        ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions'
+                        : null,
+                      saInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60
+                        ? '⚠️ Occupancy at ' + saInputs.occupancyPercent + '% — most SA deals require 70%+ to stack. Consider whether local demand supports this.'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
@@ -1486,9 +1524,19 @@ export default function HomePage() {
                 {dealType === 'BRRR' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
-                      brrrInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow after refinance — deal does not self-fund' : null,
-                      brrrInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? '⚠️ Over £25,000 left in deal — limited capital recycling' : null,
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+                        ? brrrResults.score === 'Strong' || brrrResults.score === 'Average'
+                          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+                          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+                        : null,
+                      brrrInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0
+                        ? '⚠️ Negative cash flow after refinance — deal does not self-fund'
+                        : null,
+                      brrrInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000
+                        ? brrrResults.score === 'Average'
+                          ? '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — capital not fully recycled. Average score reflects positive cash flow but limited BRRR efficiency.'
+                          : '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — over £25,000 tied up limits your ability to repeat the strategy.'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox
@@ -1522,7 +1570,11 @@ export default function HomePage() {
                 {dealType === 'R2R' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200 ? '⚠️ Monthly profit below £200 — thin margin for a R2R deal' : null,
+                      r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
+                        ? r2rResults.score === 'Average'
+                          ? '⚠️ Monthly profit at £' + Math.round(r2rResults.monthlyProfit).toLocaleString() + ' — thin margin for R2R. One void month would significantly impact returns.'
+                          : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold. Review rent paid to landlord or room rates.'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
@@ -1542,8 +1594,14 @@ export default function HomePage() {
                 {dealType === 'SOCIAL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
-                      socialInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs' : null,
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+                        ? socialResults.score === 'Strong' || socialResults.score === 'Average'
+                          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+                          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+                        : null,
+                      socialInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0
+                        ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />

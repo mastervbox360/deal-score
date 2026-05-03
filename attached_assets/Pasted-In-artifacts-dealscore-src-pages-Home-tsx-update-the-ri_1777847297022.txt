@@ -1,0 +1,112 @@
+In artifacts/dealscore/src/pages/Home.tsx, update the risk flag logic and wording to be context-aware based on the current Deal Score verdict. The flags should adjust their wording depending on whether the deal is scoring Strong, Average or Weak — so they never flatly contradict the overall verdict but instead add nuance.
+First, make the Deal Score verdict available to the flag arrays. The current score for each tab is already calculated — use the existing score variables:
+
+BTL: btlResults.score (values: 'Strong' | 'Average' | 'Weak')
+HMO: hmoResults.score
+Flip: flipResults.score
+SA: saResults.score
+BRRR: brrrResults.score
+R2R: r2rResults.score
+Social: socialResults.score
+
+Update the flag arrays as follows — replacing the existing static strings with context-aware versions:
+BTL flags:
+tsxconst btlFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+    ? btlResults.score === 'Strong' || btlResults.score === 'Average'
+      ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+      : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+    : null,
+  tenure === 'Leasehold' && leaseLengthYears >= 85 && leaseLengthYears < 125
+    ? '⚠️ Leasehold under 125 years — check lender requirements before proceeding'
+    : null,
+  btlInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0
+    ? '⚠️ Negative cash flow — this deal costs you money every month'
+    : null,
+  btlInputs.purchasePrice > 0 && btlResults.grossYield < 5
+    ? btlResults.score === 'Strong'
+      ? '⚠️ Gross yield at ' + btlResults.grossYield.toFixed(1) + '% — below the 5% BTL benchmark. Strong ROI is driven by leverage — be prepared to justify the yield to investors.'
+      : '⚠️ Gross yield at ' + btlResults.grossYield.toFixed(1) + '% — below the 5% BTL benchmark. Most investors expect 5%+ on a BTL.'
+    : null,
+  btlInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3
+    ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold'
+    : null,
+].filter(Boolean) as string[];
+HMO flags:
+tsxconst hmoFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+    ? hmoResults.score === 'Strong' || hmoResults.score === 'Average'
+      ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+      : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+    : null,
+  hmoInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0
+    ? '⚠️ Negative cash flow — this deal costs you money every month'
+    : null,
+  hmoInputs.purchasePrice > 0 && hmoResults.grossYield < 7
+    ? hmoResults.score === 'Average'
+      ? '⚠️ Gross yield at ' + hmoResults.grossYield.toFixed(1) + '% — borderline for an HMO. Positive cash flow keeps this in Average territory — watch running costs carefully.'
+      : '⚠️ Gross yield at ' + hmoResults.grossYield.toFixed(1) + '% — below the 7% HMO threshold. Most investors expect higher yield from an HMO.'
+    : null,
+  hmoInputs.purchasePrice > 0 && hmoInputs.occupancyRate < 75
+    ? '⚠️ Occupancy at ' + hmoInputs.occupancyRate + '% — projections may be optimistic. Most HMOs run at 85-90% in practice.'
+    : null,
+].filter(Boolean) as string[];
+Flip flags:
+tsxconst flipFlags = [
+  flipInputs.purchasePrice > 0 && flipResults.netProfit < 0
+    ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs'
+    : null,
+  flipInputs.purchasePrice > 0 && flipResults.roi < 8
+    ? '⚠️ ROI at ' + flipResults.roi.toFixed(1) + '% — below the 8% flip threshold. Most investors expect 12%+ on a flip to justify the risk.'
+    : null,
+].filter(Boolean) as string[];
+SA flags:
+tsxconst saFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+    ? saResults.score === 'Strong' || saResults.score === 'Average'
+      ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+      : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+    : null,
+  saInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0
+    ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions'
+    : null,
+  saInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60
+    ? '⚠️ Occupancy at ' + saInputs.occupancyPercent + '% — most SA deals require 70%+ to stack. Consider whether local demand supports this.'
+    : null,
+].filter(Boolean) as string[];
+BRRR flags:
+tsxconst brrrFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+    ? brrrResults.score === 'Strong' || brrrResults.score === 'Average'
+      ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+      : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+    : null,
+  brrrInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0
+    ? '⚠️ Negative cash flow after refinance — deal does not self-fund'
+    : null,
+  brrrInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000
+    ? brrrResults.score === 'Average'
+      ? '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — capital not fully recycled. Average score reflects positive cash flow but limited BRRR efficiency.'
+      : '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — over £25,000 tied up limits your ability to repeat the strategy.'
+    : null,
+].filter(Boolean) as string[];
+R2R flags:
+tsxconst r2rFlags = [
+  r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
+    ? r2rResults.score === 'Average'
+      ? '⚠️ Monthly profit at £' + Math.round(r2rResults.monthlyProfit).toLocaleString() + ' — thin margin for R2R. One void month would significantly impact returns.'
+      : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold. Review rent paid to landlord or room rates.'
+    : null,
+].filter(Boolean) as string[];
+Social flags:
+tsxconst socialFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
+    ? socialResults.score === 'Strong' || socialResults.score === 'Average'
+      ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+      : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
+    : null,
+  socialInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0
+    ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs'
+    : null,
+].filter(Boolean) as string[];
+Replace the existing flag arrays entirely with these updated versions. Do not change anything else — no calculations, no tooltips, no styling outside the flag text. Confirm when done.
