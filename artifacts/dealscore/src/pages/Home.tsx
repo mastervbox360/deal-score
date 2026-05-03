@@ -1848,7 +1848,7 @@ const TT = {
   tabBrrr: 'Buy, Refurb, Refinance, Rent, Repeat: Add value through renovation, refinance to pull your money back out, then hold and rent. Best for scaling a portfolio.',
   tabR2r: 'Rent to Rent: Rent a property from a landlord and sublet it at a higher rate. No mortgage or purchase required — low entry cost.',
   tabSocial: 'Social Housing: Lease your property to a council or housing association on a guaranteed fixed-term contract. No voids, lower management, stable income.',
-  dealScore: 'The overall rating of this deal based on UK investor standards. Strong = excellent returns. Average = acceptable but room for improvement. Weak = does not meet investment criteria.',
+  dealScore: { text: 'The overall rating of this deal based on UK investor standards.', formula: 'Strong = excellent returns\nAverage = acceptable but room for improvement\nWeak = does not meet investment criteria' },
   cashInvested: { text: 'The total cash you need to deploy to complete this deal — deposit plus stamp duty/LTT plus refurb costs plus other costs.', formula: '(Purchase Price × Deposit%) + Property Tax + Refurb Cost + Other Costs' },
   mortgageAmount: { text: 'The mortgage loan required — purchase price minus your deposit.', formula: 'Purchase Price − Deposit' },
   monthlyFlow: { text: 'What you actually receive each month after paying the mortgage and all running costs. This is your net monthly income from the deal.', formula: 'Monthly Rent − Mortgage Payment − Monthly Expenses' },
@@ -1971,7 +1971,9 @@ function InfoIcon({ id, text }: { id: string; text: string | { text: string; for
             <>
               <span style={{ fontWeight: 400, color: '#1a1a1a' }}>{text.text}</span>
               <div style={{ borderTop: '1px solid #e5e7eb', margin: '6px 0' }} />
-              <span style={{ fontWeight: 700, color: '#1B3A6B' }}>Formula: {text.formula}</span>
+              {text.formula.split('\n').map((line, i) => (
+                <div key={i} style={{ fontWeight: 700, color: '#1B3A6B' }}>{line}</div>
+              ))}
             </>
           )}
         </div>,
