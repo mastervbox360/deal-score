@@ -1604,7 +1604,7 @@ export default function HomePage() {
   );
 }
 
-function MetricBox({ label, value, highlight = false, tooltip }: { label: string, value: string, highlight?: boolean, tooltip?: string }) {
+function MetricBox({ label, value, highlight = false, tooltip }: { label: string, value: string, highlight?: boolean, tooltip?: string | { text: string; formula: string } }) {
   return (
     <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center">
       <span className="text-xs text-muted-foreground mb-1 flex items-center gap-0.5">
@@ -1792,7 +1792,7 @@ function MortgageTypeToggle({ value, onChange }: { value: 'IO' | 'REPAYMENT', on
   );
 }
 
-function Row({ label, value, isBold = false, tooltip }: { label: string, value: string, isBold?: boolean, tooltip?: string }) {
+function Row({ label, value, isBold = false, tooltip }: { label: string, value: string, isBold?: boolean, tooltip?: string | { text: string; formula: string } }) {
   return (
     <div className="flex justify-between items-center py-1">
       <span className="text-sm text-muted-foreground flex items-center gap-0.5">
@@ -1849,42 +1849,42 @@ const TT = {
   tabR2r: 'Rent to Rent: Rent a property from a landlord and sublet it at a higher rate. No mortgage or purchase required — low entry cost.',
   tabSocial: 'Social Housing: Lease your property to a council or housing association on a guaranteed fixed-term contract. No voids, lower management, stable income.',
   dealScore: 'The overall rating of this deal based on UK investor standards. Strong = excellent returns. Average = acceptable but room for improvement. Weak = does not meet investment criteria.',
-  cashInvested: 'The total cash you need to deploy to complete this deal — deposit plus stamp duty/LTT plus refurb costs plus other costs. Formula: (purchase price × deposit %) + property tax + refurb cost + other costs.',
-  mortgageAmount: 'The mortgage loan required — purchase price minus your deposit.',
-  monthlyFlow: 'What you actually receive each month after paying the mortgage and all running costs. This is your net monthly income from the deal.',
-  annualFlow: 'Your total net income from the deal over 12 months after all costs including mortgage.',
-  grossYield: 'Annual rental income as a percentage of the purchase price. A quick benchmark for comparing properties — does not account for any costs. Formula: (monthly rent × 12) ÷ purchase price × 100.',
-  netYield: 'Annual operating income minus running costs, as a percentage of purchase price. Excludes mortgage — this is the property-level return regardless of how it is financed.',
-  cocRoi: 'Your annual cash flow as a percentage of the total cash you invested. This is the investor-level return — includes the effect of your mortgage. Formula: (annual cash flow ÷ total cash invested) × 100.',
-  equityDayOne: 'The difference between market value and purchase price. This is the paper equity you gain immediately by buying below market value.',
-  bmv: 'How much below market value you are buying the property, shown as both a pound amount and a percentage. A key metric for investors — higher BMV means more built-in equity and a stronger deal.',
-  hmoGrossRent: 'Total monthly rent from all rooms at the entered occupancy rate. Rooms × rent per room × occupancy percentage.',
-  flipTotalCost: 'Everything you spend to acquire, refurbish, hold, and prepare the property for sale — purchase price, tax, refurb, other costs, and holding costs.',
-  flipSellingCosts: 'Estate agent fees and legal costs on the sale, calculated as a percentage of the sale price.',
-  flipNetProfit: 'What you actually make from the flip after all costs and selling fees. This is the money in your pocket. Formula: sale price − total cost − selling costs.',
-  profitPerMonth: 'Net profit divided by project length. Useful for comparing flips of different durations on a level playing field.',
-  flipTotalROI: 'Net profit as a percentage of total money invested in the deal. The headline return on a flip.',
-  annualisedROI: 'Total ROI scaled to a 12-month equivalent. Allows fair comparison between flips of different lengths and other investment strategies.',
-  saGrossRev: 'Total monthly revenue before platform fees — nightly rate multiplied by occupancy percentage multiplied by average days in a month.',
-  saNetRev: 'Monthly revenue after platform fees are deducted. This is your income before mortgage and running costs.',
-  brrrRefinanceLoan: 'The new mortgage raised against the post-refurb value. This is the money pulled back out of the deal.',
-  brrrCashLeft: 'Total cost in minus refinance loan. This is how much of your own money remains tied up in the property. The closer to zero the better. Formula: total cost in − refinance loan.',
-  equityCreated: 'The value added by buying below market value and refurbishing — post-refurb value minus total cost in.',
-  r2rGrossIncome: 'Total monthly income from all rooms at the entered occupancy rate before any fees or costs.',
-  r2rMgmtFees: 'Monthly letting agent or management company fees, calculated as a percentage of gross income.',
-  r2rNetIncome: 'Monthly income after management fees are deducted.',
-  r2rMonthlyProfit: 'What you actually keep each month — net income minus rent paid to landlord minus monthly running costs. This is the key R2R metric.',
-  r2rAnnualProfit: 'Monthly profit multiplied by 12. Your total annual earnings from this R2R deal.',
-  r2rGrossReturn: 'Annual gross income as a percentage of your setup costs. Shows the raw income power of the deal relative to your upfront investment.',
-  r2rNetReturn: 'Annual net profit as a percentage of your setup costs. The true ROI on an R2R deal — this is what you actually earn on your invested capital. Formula: (annual net profit ÷ setup costs) × 100.',
-  socialGrossYield: 'Annual guaranteed lease income as a percentage of purchase price.',
-  socialNetYield: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.',
-  socialCocRoi: 'Annual cash flow as a percentage of cash invested. Your leveraged return as an investor.',
-} as const;
+  cashInvested: { text: 'The total cash you need to deploy to complete this deal — deposit plus stamp duty/LTT plus refurb costs plus other costs.', formula: '(Purchase Price × Deposit%) + Property Tax + Refurb Cost + Other Costs' },
+  mortgageAmount: { text: 'The mortgage loan required — purchase price minus your deposit.', formula: 'Purchase Price − Deposit' },
+  monthlyFlow: { text: 'What you actually receive each month after paying the mortgage and all running costs. This is your net monthly income from the deal.', formula: 'Monthly Rent − Mortgage Payment − Monthly Expenses' },
+  annualFlow: { text: 'Your total net income from the deal over 12 months after all costs including mortgage.', formula: 'Monthly Cash Flow × 12' },
+  grossYield: { text: 'Annual rental income as a percentage of the purchase price. A quick benchmark for comparing properties — does not account for any costs.', formula: '(Monthly Rent × 12) ÷ Purchase Price × 100' },
+  netYield: { text: 'Annual operating income minus running costs, as a percentage of purchase price. Excludes mortgage — this is the property-level return regardless of how it is financed.', formula: '((Monthly Rent − Expenses) × 12) ÷ Purchase Price × 100' },
+  cocRoi: { text: 'Your annual cash flow as a percentage of the total cash you invested. This is the investor-level return — includes the effect of your mortgage.', formula: '(Annual Cash Flow ÷ Total Cash Invested) × 100' },
+  equityDayOne: { text: 'The difference between market value and purchase price. This is the paper equity you gain immediately by buying below market value.', formula: 'Market Value − Purchase Price' },
+  bmv: { text: 'How much below market value you are buying the property, shown as both a pound amount and a percentage. A key metric for investors — higher BMV means more built-in equity and a stronger deal.', formula: '(Market Value − Purchase Price) ÷ Market Value × 100' },
+  hmoGrossRent: { text: 'Total monthly rent from all rooms at the entered occupancy rate.', formula: 'Rooms × Rent Per Room × Occupancy %' },
+  flipTotalCost: { text: 'Everything you spend to acquire, refurbish, hold, and prepare the property for sale — purchase price, tax, refurb, other costs, and holding costs.', formula: 'Purchase Price + Tax + Refurb + Other Costs + (Holding Costs × Project Months)' },
+  flipSellingCosts: { text: 'Estate agent fees and legal costs on the sale, calculated as a percentage of the sale price.', formula: 'Sale Price × Selling Costs %' },
+  flipNetProfit: { text: 'What you actually make from the flip after all costs and selling fees. This is the money in your pocket.', formula: 'Sale Price − Total Cost − Selling Costs' },
+  profitPerMonth: { text: 'Net profit divided by project length. Useful for comparing flips of different durations on a level playing field.', formula: 'Net Profit ÷ Project Length (Months)' },
+  flipTotalROI: { text: 'Net profit as a percentage of total money invested in the deal. The headline return on a flip.', formula: '(Net Profit ÷ Total Cost) × 100' },
+  annualisedROI: { text: 'Total ROI scaled to a 12-month equivalent. Allows fair comparison between flips of different lengths and other investment strategies.', formula: 'Total ROI × (12 ÷ Project Length Months)' },
+  saGrossRev: { text: 'Total monthly revenue before platform fees — nightly rate multiplied by occupancy percentage multiplied by average days in a month.', formula: 'Nightly Rate × Occupancy % × (365 ÷ 12)' },
+  saNetRev: { text: 'Monthly revenue after platform fees are deducted. This is your income before mortgage and running costs.', formula: 'Gross Revenue − (Gross Revenue × Platform Fees %)' },
+  brrrRefinanceLoan: { text: 'The new mortgage raised against the post-refurb value. This is the money pulled back out of the deal.', formula: 'Post-Refurb Value × Refinance %' },
+  brrrCashLeft: { text: 'Total cost in minus refinance loan. This is how much of your own money remains tied up in the property. The closer to zero the better.', formula: 'Total Cost In − Refinance Loan' },
+  equityCreated: { text: 'The value added by buying below market value and refurbishing — post-refurb value minus total cost in.', formula: 'Post-Refurb Value − Purchase Price − Refurb Cost − Other Costs' },
+  r2rGrossIncome: { text: 'Total monthly income from all rooms at the entered occupancy rate before any fees or costs.', formula: 'Rooms × Rent Per Room × Occupancy %' },
+  r2rMgmtFees: { text: 'Monthly letting agent or management company fees, calculated as a percentage of gross income.', formula: 'Gross Monthly Income × Management Fees %' },
+  r2rNetIncome: { text: 'Monthly income after management fees are deducted.', formula: 'Gross Monthly Income − Management Fees' },
+  r2rMonthlyProfit: { text: 'What you actually keep each month — net income minus rent paid to landlord minus monthly running costs. This is the key R2R metric.', formula: 'Net Income − Rent to Landlord − Running Costs' },
+  r2rAnnualProfit: { text: 'Monthly profit multiplied by 12. Your total annual earnings from this R2R deal.', formula: 'Monthly Profit × 12' },
+  r2rGrossReturn: { text: 'Annual gross income as a percentage of your setup costs. Shows the raw income power of the deal relative to your upfront investment.', formula: '(Annual Gross Income ÷ Setup Costs) × 100' },
+  r2rNetReturn: { text: 'Annual net profit as a percentage of your setup costs. The true ROI on an R2R deal — this is what you actually earn on your invested capital.', formula: '(Annual Net Profit ÷ Setup Costs) × 100' },
+  socialGrossYield: { text: 'Annual guaranteed lease income as a percentage of purchase price.', formula: '(Monthly Lease Income × 12) ÷ Purchase Price × 100' },
+  socialNetYield: { text: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.', formula: '((Lease Income − Management Costs) × 12) ÷ Purchase Price × 100' },
+  socialCocRoi: { text: 'Annual cash flow as a percentage of cash invested. Your leveraged return as an investor.', formula: '(Annual Cash Flow ÷ Total Cash Invested) × 100' },
+};
 
 const DS_TOOLTIP_EVENT = 'ds:tt';
 
-function InfoIcon({ id, text }: { id: string; text: string }) {
+function InfoIcon({ id, text }: { id: string; text: string | { text: string; formula: string } }) {
   const [show, setShow] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLSpanElement>(null);
@@ -1967,7 +1967,13 @@ function InfoIcon({ id, text }: { id: string; text: string }) {
             animation: 'dsTooltipIn 0.15s ease-out both',
           }}
         >
-          {text}
+          {typeof text === 'string' ? text : (
+            <>
+              <span style={{ fontWeight: 400, color: '#1a1a1a' }}>{text.text}</span>
+              <div style={{ borderTop: '1px solid #e5e7eb', margin: '6px 0' }} />
+              <span style={{ fontWeight: 700, color: '#1B3A6B' }}>Formula: {text.formula}</span>
+            </>
+          )}
         </div>,
         document.body
       )}

@@ -1,0 +1,43 @@
+In artifacts/dealscore/src/pages/Home.tsx, make the following changes. Read artifacts/dealscore/src/lib/calculations.ts first before starting.
+Step 1 — Update the InfoIcon component
+Change InfoIcon so it accepts either a plain string or a { text: string; formula: string } object as its text prop. Update the tooltip render to display:
+
+The explanation text in normal weight, color #1a1a1a, font size 12px
+If a formula exists: a divider line (border-top: 1px solid #e5e7eb, margin 6px 0) followed by the formula label and value in bold, color #1B3A6B, font size 12px
+
+Like this:
+Your annual cash flow as a percentage of the total cash you invested. This is the investor-level return — includes the effect of your mortgage.
+
+──────────────────
+Formula: Annual Cash Flow ÷ Cash Invested × 100
+The InfoIcon component signature should handle both string and object gracefully — if text is a plain string, render as before. If it is { text, formula }, render the two-part layout.
+Step 2 — Change TT from as const plain strings to typed objects
+Change the type of results panel metrics in TT from plain strings to { text: string; formula: string }. Input field tooltips and tab tooltips stay as plain strings — do not change those.
+The results panel keys to convert are:
+cashInvested, mortgageAmount, monthlyFlow, annualFlow, grossYield, netYield, cocRoi, equityDayOne, bmv, hmoGrossRent, flipTotalCost, flipSellingCosts, flipNetProfit, profitPerMonth, flipTotalROI, annualisedROI, saGrossRev, saNetRev, brrrRefinanceLoan, brrrCashLeft, equityCreated, r2rGrossIncome, r2rMgmtFees, r2rNetIncome, r2rMonthlyProfit, r2rAnnualProfit, r2rGrossReturn, r2rNetReturn, socialGrossYield, socialNetYield, socialCocRoi
+Step 3 — Populate text and formula for every key
+For each key, set:
+
+text: the existing plain English explanation (strip any "Formula: ..." sentence that was previously appended to the 6 already-updated keys)
+formula: read calculations.ts for the exact formula used. Write it in plain English using ÷ × − + symbols. Keep it concise — one line.
+
+The 6 keys already updated (strip the appended formula sentence from text, move to formula field):
+
+cashInvested — formula already confirmed: (Purchase Price × Deposit%) + Property Tax + Refurb Cost + Other Costs
+grossYield — formula already confirmed: (Monthly Rent × 12) ÷ Purchase Price × 100
+cocRoi — formula already confirmed: (Annual Cash Flow ÷ Total Cash Invested) × 100
+flipNetProfit — formula already confirmed: Sale Price − Total Cost − Selling Costs
+brrrCashLeft — formula already confirmed: Total Cost In − Refinance Loan
+r2rNetReturn — formula already confirmed: (Annual Net Profit ÷ Setup Costs) × 100
+
+For all remaining 25 keys — read calculations.ts and derive the formula. Do not guess.
+Step 4 — Update all InfoIcon usages in results panels
+Every tooltip={TT.someKey} reference in the results panel already passes the TT value directly to InfoIcon — no changes needed there as long as InfoIcon handles both string and object types correctly.
+Important rules:
+
+Do not change any input field tooltips or tab tooltips — they stay as plain strings
+Do not change any calculations or formulas
+Do not change any styling outside the InfoIcon tooltip render
+Do not change the Reset button, PDF, or any other feature
+Run the app and confirm there are no TypeScript errors before finishing
+Confirm when done by showing 3 example tooltips in the new two-part format
