@@ -672,9 +672,7 @@ export default function HomePage() {
       ]);
     }
 
-    // ── Calculation Workings (optional) ─────────────────────────────────────
-    if (includeWorkingsInPDF) {
-      y += 4;
+    if (false) {
       if (dealType === 'BTL') {
         writeSection('WORKINGS — CASH INVESTED', [
           [`Deposit (${btlInputs.depositPercent}% of ${formatCurrency(btlInputs.purchasePrice)})`, formatCurrency(btlInputs.purchasePrice * btlInputs.depositPercent / 100)],
@@ -895,6 +893,244 @@ export default function HomePage() {
     const finalH = doRender(tmpDoc);
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [210, finalH] });
     doRender(doc);
+
+    // ── Page 2: Calculation Workings ─────────────────────────────────────────
+    if (includeWorkingsInPDF) {
+      doc.addPage([210, 297]);
+      const P2M = 14;
+      const P2W = 210;
+      const p2navy: [number, number, number] = [27, 58, 107];
+
+      // Header banner
+      doc.setFillColor(...p2navy);
+      doc.rect(0, 0, P2W, 20, 'F');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('DEALSCORE', P2M, 10);
+      doc.text('CALCULATION WORKINGS', P2W / 2, 10, { align: 'center' });
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(185, 205, 230);
+      doc.text(`${dealRef}  ·  ${dateStr}`, P2W - P2M, 10, { align: 'right' });
+      doc.setFontSize(8);
+      doc.setTextColor(210, 225, 245);
+      if (propertyAddress.trim()) doc.text(propertyAddress.trim(), P2M, 16);
+      doc.text(dealLabel, P2W - P2M, 16, { align: 'right' });
+
+      let p2y = 28;
+      type P2Row = { label: string; value: string; isTotal?: boolean };
+
+      const writeWorkingsSection = (letter: string, title: string, rows: P2Row[]) => {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...p2navy);
+        doc.text(letter, P2M, p2y);
+        const lw = doc.getTextWidth(letter + '  ');
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 65, 75);
+        doc.text(title, P2M + lw, p2y);
+        p2y += 1.5;
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.line(P2M, p2y, P2W - P2M, p2y);
+        p2y += 4;
+
+        rows.forEach(row => {
+          const isDed = row.label.startsWith('Less:');
+          if (row.isTotal) {
+            doc.setDrawColor(203, 213, 225);
+            doc.setLineWidth(0.3);
+            doc.line(P2M, p2y - 1, P2W - P2M, p2y - 1);
+            const isNegVal = row.value.startsWith('-') || row.value.startsWith('\u2212');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...(isNegVal ? [220, 38, 38] as [number, number, number] : p2navy));
+            doc.text(row.label, P2M, p2y);
+            doc.text(row.value, P2W - P2M, p2y, { align: 'right' });
+            p2y += 5;
+          } else if (isDed) {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 110, 125);
+            doc.text(row.label, P2M, p2y);
+            doc.text(row.value, P2W - P2M, p2y, { align: 'right' });
+            p2y += 4.5;
+          } else {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 110, 125);
+            doc.text(row.label, P2M, p2y);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(30, 35, 45);
+            doc.text(row.value === '' ? '' : row.value, P2W - P2M, p2y, { align: 'right' });
+            p2y += 4.5;
+          }
+        });
+        p2y += 4;
+      };
+
+      const mLbl = (type: string, rate: number) =>
+        `Less: Mortgage (${type}${rate > 0 ? ` @ ${rate}%` : ''})`;
+
+      if (dealType === 'BTL') {
+        writeWorkingsSection('A', 'Cash Invested', [
+          { label: `Deposit (${btlInputs.depositPercent}% of ${formatCurrency(btlInputs.purchasePrice)})`, value: formatCurrency(btlInputs.purchasePrice * btlInputs.depositPercent / 100) },
+          { label: 'Stamp Duty / Tax', value: formatCurrency(btlTax) },
+          { label: 'Refurb Cost', value: formatCurrency(btlInputs.refurbCost) },
+          { label: 'Other Costs', value: formatCurrency(btlInputs.otherCosts) },
+          { label: 'TOTAL CASH INVESTED', value: formatCurrency(btlResults.totalCashInvested), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Monthly Cash Flow', [
+          { label: 'Monthly Rent', value: formatCurrency(btlInputs.monthlyRent) },
+          { label: mLbl(btlInputs.mortgageType, btlInputs.mortgageRate), value: `(${formatCurrency(btlResults.monthlyMortgageInterest)})` },
+          { label: 'Less: Monthly Expenses', value: `(${formatCurrency(btlInputs.monthlyExpenses)})` },
+          { label: 'MONTHLY CASH FLOW', value: formatCurrency(btlResults.monthlyCashFlow), isTotal: true },
+        ]);
+        writeWorkingsSection('C', 'Key Metrics', [
+          { label: `Gross Yield  (${formatCurrency(btlInputs.monthlyRent)} × 12) ÷ ${formatCurrency(btlInputs.purchasePrice)} × 100`, value: formatPercent(btlResults.grossYield) },
+          { label: `Net Yield  (${formatCurrency(btlInputs.monthlyRent - btlInputs.monthlyExpenses)} × 12) ÷ ${formatCurrency(btlInputs.purchasePrice)} × 100`, value: formatPercent(btlResults.netYield) },
+          { label: `CoC ROI  ${formatCurrency(btlResults.annualCashFlow)} ÷ ${formatCurrency(btlResults.totalCashInvested)} × 100`, value: formatPercent(btlResults.cashOnCashROI), isTotal: true },
+        ]);
+      } else if (dealType === 'HMO') {
+        writeWorkingsSection('A', 'Cash Invested', [
+          { label: `Deposit (${hmoInputs.depositPercent}% of ${formatCurrency(hmoInputs.purchasePrice)})`, value: formatCurrency(hmoInputs.purchasePrice * hmoInputs.depositPercent / 100) },
+          { label: 'Stamp Duty / Tax', value: formatCurrency(hmoTax) },
+          { label: 'Refurb / Conversion Cost', value: formatCurrency(hmoInputs.refurbCost) },
+          { label: 'Other Costs', value: formatCurrency(hmoInputs.otherCosts) },
+          { label: 'TOTAL CASH INVESTED', value: formatCurrency(hmoResults.totalCashInvested), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Gross Monthly Rent', [
+          { label: `${hmoInputs.rooms} rooms × ${formatCurrency(hmoInputs.rentPerRoom)} × ${hmoInputs.occupancyRate}% occupancy`, value: '' },
+          { label: 'GROSS MONTHLY RENT', value: formatCurrency(hmoResults.grossMonthlyRent), isTotal: true },
+        ]);
+        writeWorkingsSection('C', 'Monthly Cash Flow', [
+          { label: 'Gross Monthly Rent', value: formatCurrency(hmoResults.grossMonthlyRent) },
+          { label: mLbl(hmoInputs.mortgageType, hmoInputs.mortgageRate), value: `(${formatCurrency(hmoResults.monthlyMortgageInterest)})` },
+          { label: 'Less: Monthly Expenses', value: `(${formatCurrency(hmoInputs.monthlyExpenses)})` },
+          { label: 'MONTHLY CASH FLOW', value: formatCurrency(hmoResults.monthlyCashFlow), isTotal: true },
+        ]);
+        writeWorkingsSection('D', 'Key Metrics', [
+          { label: `Gross Yield  (${formatCurrency(hmoResults.grossMonthlyRent)} × 12) ÷ ${formatCurrency(hmoInputs.purchasePrice)} × 100`, value: formatPercent(hmoResults.grossYield) },
+          { label: `Net Yield  (${formatCurrency(hmoResults.grossMonthlyRent - hmoInputs.monthlyExpenses)} × 12) ÷ ${formatCurrency(hmoInputs.purchasePrice)} × 100`, value: formatPercent(hmoResults.netYield) },
+          { label: `CoC ROI  ${formatCurrency(hmoResults.annualCashFlow)} ÷ ${formatCurrency(hmoResults.totalCashInvested)} × 100`, value: formatPercent(hmoResults.cashOnCashROI), isTotal: true },
+        ]);
+      } else if (dealType === 'FLIP') {
+        writeWorkingsSection('A', 'Total Cost In', [
+          { label: 'Purchase Price', value: formatCurrency(flipInputs.purchasePrice) },
+          { label: 'Stamp Duty / Tax', value: formatCurrency(flipTax) },
+          { label: 'Refurb Cost', value: formatCurrency(flipInputs.refurbCost) },
+          { label: 'Other Costs', value: formatCurrency(flipInputs.otherCosts) },
+          { label: `Holding Costs (${flipInputs.projectLengthMonths} months × ${formatCurrency(flipInputs.holdingCostsPerMonth)})`, value: formatCurrency(flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths) },
+          { label: 'TOTAL COST IN', value: formatCurrency(flipResults.totalCost), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Profit Calculation', [
+          { label: 'Expected Sale Price (GDV)', value: formatCurrency(flipInputs.expectedSalePrice) },
+          { label: 'Less: Total Cost In', value: `(${formatCurrency(flipResults.totalCost)})` },
+          { label: `Less: Selling Costs (${flipInputs.sellingCostsPercent}%)`, value: `(${formatCurrency(flipResults.sellingCosts)})` },
+          { label: 'NET PROFIT', value: formatCurrency(flipResults.netProfit), isTotal: true },
+        ]);
+        writeWorkingsSection('C', 'Key Metrics', [
+          { label: `Profit per Month  ${formatCurrency(flipResults.netProfit)} ÷ ${flipInputs.projectLengthMonths} months`, value: formatCurrency(flipResults.profitPerMonth) },
+          { label: `Total ROI  ${formatCurrency(flipResults.netProfit)} ÷ ${formatCurrency(flipResults.totalCost)} × 100`, value: formatPercent(flipResults.roi), isTotal: true },
+          { label: `Annualised ROI  ${formatPercent(flipResults.roi)} ÷ ${flipInputs.projectLengthMonths} × 12`, value: formatPercent(flipResults.annualisedROI) },
+        ]);
+      } else if (dealType === 'SA') {
+        writeWorkingsSection('A', 'Cash Invested', [
+          { label: `Deposit (${saInputs.depositPercent}% of ${formatCurrency(saInputs.purchasePrice)})`, value: formatCurrency(saInputs.purchasePrice * saInputs.depositPercent / 100) },
+          { label: 'Stamp Duty / Tax', value: formatCurrency(saTax) },
+          { label: 'Refurb Cost', value: formatCurrency(saInputs.refurbCost) },
+          { label: 'Other Costs', value: formatCurrency(saInputs.otherCosts) },
+          { label: 'TOTAL CASH INVESTED', value: formatCurrency(saResults.totalCashInvested), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Monthly Revenue', [
+          { label: `${formatCurrency(saInputs.nightlyRate)} nightly × 30.42 days × ${saInputs.occupancyPercent}% occupancy`, value: '' },
+          { label: 'Gross Monthly Revenue', value: formatCurrency(saResults.grossMonthlyRevenue) },
+          { label: `Less: Platform Fees (${saInputs.platformFeesPercent}%)`, value: `(${formatCurrency(saResults.platformFees)})` },
+          { label: 'NET MONTHLY REVENUE', value: formatCurrency(saResults.netMonthlyRevenue), isTotal: true },
+        ]);
+        writeWorkingsSection('C', 'Monthly Cash Flow', [
+          { label: 'Net Monthly Revenue', value: formatCurrency(saResults.netMonthlyRevenue) },
+          { label: mLbl(saInputs.mortgageType, saInputs.mortgageRate), value: `(${formatCurrency(saResults.monthlyMortgage)})` },
+          { label: 'Less: Running Costs', value: `(${formatCurrency(saInputs.monthlyRunningCosts)})` },
+          { label: 'MONTHLY CASH FLOW', value: formatCurrency(saResults.monthlyCashFlow), isTotal: true },
+        ]);
+        writeWorkingsSection('D', 'Key Metrics', [
+          { label: `Net Yield  (${formatCurrency(saResults.netMonthlyRevenue - saResults.monthlyMortgage - saInputs.monthlyRunningCosts)} × 12) ÷ ${formatCurrency(saInputs.purchasePrice)} × 100`, value: formatPercent(saResults.netYield) },
+          { label: `CoC ROI  ${formatCurrency(saResults.annualCashFlow)} ÷ ${formatCurrency(saResults.totalCashInvested)} × 100`, value: formatPercent(saResults.cashOnCashROI), isTotal: true },
+        ]);
+      } else if (dealType === 'BRRR') {
+        writeWorkingsSection('A', 'Total Cost In', [
+          { label: 'Purchase Price', value: formatCurrency(brrrInputs.purchasePrice) },
+          { label: 'Stamp Duty / Tax', value: formatCurrency(brrrTax) },
+          { label: 'Refurb Cost', value: formatCurrency(brrrInputs.refurbCost) },
+          { label: 'Other Costs', value: formatCurrency(brrrInputs.otherCosts) },
+          { label: 'TOTAL COST IN', value: formatCurrency(brrrResults.totalCostIn), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Refinance', [
+          { label: 'Post-Refurb Value', value: formatCurrency(brrrInputs.postRefurbValue) },
+          { label: `Refinance at ${brrrInputs.refinancePercent}%`, value: '' },
+          { label: 'Refinance Loan', value: formatCurrency(brrrResults.refinanceLoan) },
+          { label: 'CASH LEFT IN DEAL', value: brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal), isTotal: true },
+          { label: 'Equity Created', value: formatCurrency(brrrResults.equityCreated) },
+        ]);
+        writeWorkingsSection('C', 'Monthly Cash Flow', [
+          { label: 'Monthly Rent', value: formatCurrency(brrrInputs.monthlyRent) },
+          { label: `Less: New Mortgage${brrrInputs.newMortgageRate > 0 ? ` (@ ${brrrInputs.newMortgageRate}%)` : ''}`, value: `(${formatCurrency(brrrResults.monthlyMortgage)})` },
+          { label: 'Less: Monthly Expenses', value: `(${formatCurrency(brrrInputs.monthlyExpenses)})` },
+          { label: 'MONTHLY CASH FLOW', value: formatCurrency(brrrResults.monthlyCashFlow), isTotal: true },
+        ]);
+        writeWorkingsSection('D', 'Key Metrics', [
+          { label: `Gross Yield  (${formatCurrency(brrrInputs.monthlyRent)} × 12) ÷ ${formatCurrency(brrrInputs.postRefurbValue)} × 100`, value: formatPercent(brrrResults.grossYield) },
+          { label: 'CoC ROI', value: brrrResults.moneyOut ? '∞ (money out deal)' : formatPercent(brrrResults.cashOnCashROI), isTotal: true },
+        ]);
+      } else if (dealType === 'R2R') {
+        writeWorkingsSection('A', 'Gross Income', [
+          { label: `${r2rInputs.rooms} rooms × ${formatCurrency(r2rInputs.rentPerRoom)} × ${r2rInputs.occupancyRate}% occupancy`, value: '' },
+          { label: 'Gross Monthly Income', value: formatCurrency(r2rResults.grossMonthlyIncome) },
+          { label: `Less: Management Fees (${r2rInputs.managementFeesPercent}%)`, value: `(${formatCurrency(r2rResults.managementFees)})` },
+          { label: 'NET MONTHLY INCOME', value: formatCurrency(r2rResults.netMonthlyIncome), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Monthly Profit', [
+          { label: 'Net Monthly Income', value: formatCurrency(r2rResults.netMonthlyIncome) },
+          { label: 'Less: Rent to Landlord', value: `(${formatCurrency(r2rInputs.monthlyRentPaid)})` },
+          { label: 'Less: Running Costs', value: `(${formatCurrency(r2rInputs.monthlyRunningCosts)})` },
+          { label: 'MONTHLY PROFIT', value: formatCurrency(r2rResults.monthlyProfit), isTotal: true },
+        ]);
+        writeWorkingsSection('C', 'Key Metrics', [
+          { label: `Annual Profit  ${formatCurrency(r2rResults.monthlyProfit)} × 12`, value: formatCurrency(r2rResults.annualProfit) },
+          { label: `Net Return  ${formatCurrency(r2rResults.annualProfit)} ÷ ${formatCurrency(r2rInputs.setupCosts)} × 100`, value: formatPercent(r2rResults.roi), isTotal: true },
+        ]);
+      } else {
+        writeWorkingsSection('A', 'Cash Invested', [
+          { label: `Deposit (${socialInputs.depositPercent}% of ${formatCurrency(socialInputs.purchasePrice)})`, value: formatCurrency(socialInputs.purchasePrice * socialInputs.depositPercent / 100) },
+          { label: 'Stamp Duty / Tax', value: formatCurrency(socialTax) },
+          { label: 'Refurb Cost', value: formatCurrency(socialInputs.refurbCost) },
+          { label: 'Other Costs', value: formatCurrency(socialInputs.otherCosts) },
+          { label: 'TOTAL CASH INVESTED', value: formatCurrency(socialResults.totalCashInvested), isTotal: true },
+        ]);
+        writeWorkingsSection('B', 'Monthly Cash Flow', [
+          { label: 'Guaranteed Lease Income', value: formatCurrency(socialInputs.leaseIncomePerMonth) },
+          { label: mLbl(socialInputs.mortgageType, socialInputs.mortgageRate), value: `(${formatCurrency(socialResults.monthlyMortgage)})` },
+          { label: 'Less: Management Costs', value: `(${formatCurrency(socialInputs.managementCostsPerMonth)})` },
+          { label: 'MONTHLY CASH FLOW', value: formatCurrency(socialResults.monthlyCashFlow), isTotal: true },
+        ]);
+        writeWorkingsSection('C', 'Key Metrics', [
+          { label: `Gross Yield  (${formatCurrency(socialInputs.leaseIncomePerMonth)} × 12) ÷ ${formatCurrency(socialInputs.purchasePrice)} × 100`, value: formatPercent(socialResults.grossYield) },
+          { label: `Net Yield  (${formatCurrency(socialInputs.leaseIncomePerMonth - socialInputs.managementCostsPerMonth)} × 12) ÷ ${formatCurrency(socialInputs.purchasePrice)} × 100`, value: formatPercent(socialResults.netYield) },
+          { label: `CoC ROI  ${formatCurrency(socialResults.annualCashFlow)} ÷ ${formatCurrency(socialResults.totalCashInvested)} × 100`, value: formatPercent(socialResults.cashOnCashROI), isTotal: true },
+        ]);
+      }
+
+      // Page 2 footer
+      doc.setDrawColor(180, 190, 205);
+      doc.setLineWidth(0.3);
+      doc.line(P2M, 285, P2W - P2M, 285);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(150, 160, 175);
+      doc.text('Calculation Workings  ·  All figures derived from inputs entered by the deal preparer  ·  For verification purposes only', P2W / 2, 290, { align: 'center' });
+    }
 
     doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${now.toISOString().slice(0, 10)}.pdf`);
   };
@@ -1572,8 +1808,8 @@ export default function HomePage() {
                         <WRow label="Total Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} isTotal />
                         <WSection title="MONTHLY CASH FLOW" mt={10} />
                         <WRow label="Monthly Rent" value={formatCurrency(btlInputs.monthlyRent)} />
-                        <WRow label={`Less: Mortgage (${btlInputs.mortgageType} @ ${btlInputs.mortgageRate}%)`} value={`(${formatCurrency(btlResults.monthlyMortgageInterest)})`} isNeg />
-                        <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(btlInputs.monthlyExpenses)})`} isNeg />
+                        <WRow label={`Less: Mortgage (${btlInputs.mortgageType}${btlInputs.mortgageRate > 0 ? ` @ ${btlInputs.mortgageRate}%` : ''})`} value={`(${formatCurrency(btlResults.monthlyMortgageInterest)})`} isDeduction />
+                        <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(btlInputs.monthlyExpenses)})`} isDeduction />
                         <WRow label="Monthly Cash Flow" value={formatCurrency(btlResults.monthlyCashFlow)} isTotal isNeg={btlResults.monthlyCashFlow < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label={`Gross Yield  (${formatCurrency(btlInputs.monthlyRent)} × 12) ÷ ${formatCurrency(btlInputs.purchasePrice)} × 100`} value={formatPercent(btlResults.grossYield)} />
@@ -1638,8 +1874,8 @@ export default function HomePage() {
                         <WRow label="Gross Monthly Rent" value={formatCurrency(hmoResults.grossMonthlyRent)} isTotal />
                         <WSection title="MONTHLY CASH FLOW" mt={10} />
                         <WRow label="Gross Monthly Rent" value={formatCurrency(hmoResults.grossMonthlyRent)} />
-                        <WRow label={`Less: Mortgage (${hmoInputs.mortgageType} @ ${hmoInputs.mortgageRate}%)`} value={`(${formatCurrency(hmoResults.monthlyMortgageInterest)})`} isNeg />
-                        <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(hmoInputs.monthlyExpenses)})`} isNeg />
+                        <WRow label={`Less: Mortgage (${hmoInputs.mortgageType}${hmoInputs.mortgageRate > 0 ? ` @ ${hmoInputs.mortgageRate}%` : ''})`} value={`(${formatCurrency(hmoResults.monthlyMortgageInterest)})`} isDeduction />
+                        <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(hmoInputs.monthlyExpenses)})`} isDeduction />
                         <WRow label="Monthly Cash Flow" value={formatCurrency(hmoResults.monthlyCashFlow)} isTotal isNeg={hmoResults.monthlyCashFlow < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label="Gross Yield" value={formatPercent(hmoResults.grossYield)} />
@@ -1692,8 +1928,8 @@ export default function HomePage() {
                         <WRow label="Total Cost In" value={formatCurrency(flipResults.totalCost)} isTotal />
                         <WSection title="PROFIT CALCULATION" mt={10} />
                         <WRow label="Expected Sale Price (GDV)" value={formatCurrency(flipInputs.expectedSalePrice)} />
-                        <WRow label="Less: Total Cost In" value={`(${formatCurrency(flipResults.totalCost)})`} isNeg />
-                        <WRow label={`Less: Selling Costs (${flipInputs.sellingCostsPercent}%)`} value={`(${formatCurrency(flipResults.sellingCosts)})`} isNeg />
+                        <WRow label="Less: Total Cost In" value={`(${formatCurrency(flipResults.totalCost)})`} isDeduction />
+                        <WRow label={`Less: Selling Costs (${flipInputs.sellingCostsPercent}%)`} value={`(${formatCurrency(flipResults.sellingCosts)})`} isDeduction />
                         <WRow label="Net Profit" value={formatCurrency(flipResults.netProfit)} isTotal isNeg={flipResults.netProfit < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label={`Profit per Month  ${formatCurrency(flipResults.netProfit)} ÷ ${flipInputs.projectLengthMonths} months`} value={formatCurrency(flipResults.profitPerMonth)} />
@@ -1750,12 +1986,12 @@ export default function HomePage() {
                         <WSection title="MONTHLY REVENUE" mt={10} />
                         <WRow label={`Nightly Rate × 30.42 days × ${saInputs.occupancyPercent}% occupancy`} value="" />
                         <WRow label="Gross Monthly Revenue" value={formatCurrency(saResults.grossMonthlyRevenue)} />
-                        <WRow label={`Less: Platform Fees (${saInputs.platformFeesPercent}%)`} value={`(${formatCurrency(saResults.platformFees)})`} isNeg />
+                        <WRow label={`Less: Platform Fees (${saInputs.platformFeesPercent}%)`} value={`(${formatCurrency(saResults.platformFees)})`} isDeduction />
                         <WRow label="Net Monthly Revenue" value={formatCurrency(saResults.netMonthlyRevenue)} isTotal />
                         <WSection title="MONTHLY CASH FLOW" mt={10} />
                         <WRow label="Net Monthly Revenue" value={formatCurrency(saResults.netMonthlyRevenue)} />
-                        <WRow label={`Less: Mortgage (${saInputs.mortgageType} @ ${saInputs.mortgageRate}%)`} value={`(${formatCurrency(saResults.monthlyMortgage)})`} isNeg />
-                        <WRow label="Less: Running Costs" value={`(${formatCurrency(saInputs.monthlyRunningCosts)})`} isNeg />
+                        <WRow label={`Less: Mortgage (${saInputs.mortgageType}${saInputs.mortgageRate > 0 ? ` @ ${saInputs.mortgageRate}%` : ''})`} value={`(${formatCurrency(saResults.monthlyMortgage)})`} isDeduction />
+                        <WRow label="Less: Running Costs" value={`(${formatCurrency(saInputs.monthlyRunningCosts)})`} isDeduction />
                         <WRow label="Monthly Cash Flow" value={formatCurrency(saResults.monthlyCashFlow)} isTotal isNeg={saResults.monthlyCashFlow < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label="Net Yield" value={formatPercent(saResults.netYield)} />
@@ -1820,8 +2056,8 @@ export default function HomePage() {
                         <WRow label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} />
                         <WSection title="MONTHLY CASH FLOW" mt={10} />
                         <WRow label="Monthly Rent" value={formatCurrency(brrrInputs.monthlyRent)} />
-                        <WRow label={`Less: New Mortgage (${brrrInputs.newMortgageRate}%)`} value={`(${formatCurrency(brrrResults.monthlyMortgage)})`} isNeg />
-                        <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(brrrInputs.monthlyExpenses)})`} isNeg />
+                        <WRow label={`Less: New Mortgage${brrrInputs.newMortgageRate > 0 ? ` (@ ${brrrInputs.newMortgageRate}%)` : ''}`} value={`(${formatCurrency(brrrResults.monthlyMortgage)})`} isDeduction />
+                        <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(brrrInputs.monthlyExpenses)})`} isDeduction />
                         <WRow label="Monthly Cash Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} isTotal isNeg={brrrResults.monthlyCashFlow < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label="Gross Yield" value={formatPercent(brrrResults.grossYield)} />
@@ -1877,12 +2113,12 @@ export default function HomePage() {
                         <WSection title="GROSS INCOME" />
                         <WRow label={`${r2rInputs.rooms} rooms × ${formatCurrency(r2rInputs.rentPerRoom)} × ${r2rInputs.occupancyRate}% occupancy`} value="" />
                         <WRow label="Gross Monthly Income" value={formatCurrency(r2rResults.grossMonthlyIncome)} />
-                        <WRow label={`Less: Management Fees (${r2rInputs.managementFeesPercent}%)`} value={`(${formatCurrency(r2rResults.managementFees)})`} isNeg />
+                        <WRow label={`Less: Management Fees (${r2rInputs.managementFeesPercent}%)`} value={`(${formatCurrency(r2rResults.managementFees)})`} isDeduction />
                         <WRow label="Net Monthly Income" value={formatCurrency(r2rResults.netMonthlyIncome)} isTotal />
                         <WSection title="MONTHLY PROFIT" mt={10} />
                         <WRow label="Net Monthly Income" value={formatCurrency(r2rResults.netMonthlyIncome)} />
-                        <WRow label="Less: Rent to Landlord" value={`(${formatCurrency(r2rInputs.monthlyRentPaid)})`} isNeg />
-                        <WRow label="Less: Running Costs" value={`(${formatCurrency(r2rInputs.monthlyRunningCosts)})`} isNeg />
+                        <WRow label="Less: Rent to Landlord" value={`(${formatCurrency(r2rInputs.monthlyRentPaid)})`} isDeduction />
+                        <WRow label="Less: Running Costs" value={`(${formatCurrency(r2rInputs.monthlyRunningCosts)})`} isDeduction />
                         <WRow label="Monthly Profit" value={formatCurrency(r2rResults.monthlyProfit)} isTotal isNeg={r2rResults.monthlyProfit < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label={`Annual Profit  ${formatCurrency(r2rResults.monthlyProfit)} × 12`} value={formatCurrency(r2rResults.annualProfit)} />
@@ -1933,8 +2169,8 @@ export default function HomePage() {
                         <WRow label="Total Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} isTotal />
                         <WSection title="MONTHLY CASH FLOW" mt={10} />
                         <WRow label="Lease Income" value={formatCurrency(socialInputs.leaseIncomePerMonth)} />
-                        <WRow label={`Less: Mortgage (${socialInputs.mortgageType} @ ${socialInputs.mortgageRate}%)`} value={`(${formatCurrency(socialResults.monthlyMortgage)})`} isNeg />
-                        <WRow label="Less: Management Costs" value={`(${formatCurrency(socialInputs.managementCostsPerMonth)})`} isNeg />
+                        <WRow label={`Less: Mortgage (${socialInputs.mortgageType}${socialInputs.mortgageRate > 0 ? ` @ ${socialInputs.mortgageRate}%` : ''})`} value={`(${formatCurrency(socialResults.monthlyMortgage)})`} isDeduction />
+                        <WRow label="Less: Management Costs" value={`(${formatCurrency(socialInputs.managementCostsPerMonth)})`} isDeduction />
                         <WRow label="Monthly Cash Flow" value={formatCurrency(socialResults.monthlyCashFlow)} isTotal isNeg={socialResults.monthlyCashFlow < 0} />
                         <WSection title="KEY METRICS" mt={10} />
                         <WRow label="Gross Yield" value={formatPercent(socialResults.grossYield)} />
@@ -2333,11 +2569,11 @@ function WSection({ title, mt }: { title: string; mt?: number }) {
   return <div style={{ fontSize: 10, fontWeight: 700, color: '#1B3A6B', marginBottom: 4, marginTop: mt ?? 0, letterSpacing: '0.05em' }}>{title}</div>;
 }
 
-function WRow({ label, value, isTotal, isNeg }: { label: string; value: string; isTotal?: boolean; isNeg?: boolean }) {
+function WRow({ label, value, isTotal, isNeg, isDeduction }: { label: string; value: string; isTotal?: boolean; isNeg?: boolean; isDeduction?: boolean }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2, ...(isTotal ? { borderTop: '1px solid #CBD5E1', marginTop: 4, paddingTop: 4 } : {}) }}>
       <span style={{ color: isTotal ? '#1B3A6B' : '#64748B', fontWeight: isTotal ? 700 : 400 }}>{label}</span>
-      <span style={{ color: isNeg ? '#DC2626' : isTotal ? '#1B3A6B' : '#1a1a1a', fontWeight: 600 }}>{value}</span>
+      <span style={{ color: (isNeg && isTotal) ? '#DC2626' : isDeduction ? '#64748B' : isTotal ? '#1B3A6B' : '#1a1a1a', fontWeight: 600 }}>{value}</span>
     </div>
   );
 }
