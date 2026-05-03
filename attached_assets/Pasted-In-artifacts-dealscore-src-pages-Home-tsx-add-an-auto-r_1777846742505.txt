@@ -1,0 +1,79 @@
+In artifacts/dealscore/src/pages/Home.tsx, add an auto risk flags component to the results panel.
+Step 1 — Create a RiskFlags component above the InfoIcon function:
+tsxfunction RiskFlags({ flags }: { flags: string[] }) {
+  if (flags.length === 0) return null;
+  return (
+    <div style={{
+      background: '#FFF8E7',
+      border: '1.5px solid #F59E0B',
+      borderRadius: 8,
+      padding: '8px 12px',
+      marginBottom: 12,
+    }}>
+      {flags.map((flag, i) => (
+        <div key={i} style={{
+          fontSize: 12,
+          fontFamily: 'Arial, sans-serif',
+          color: '#92400E',
+          lineHeight: 1.5,
+          paddingTop: i > 0 ? 4 : 0,
+        }}>
+          {flag}
+        </div>
+      ))}
+    </div>
+  );
+}
+Step 2 — Add flag arrays for each strategy inside the results panel JSX, just above the first MetricBox row on each tab.
+BTL flags:
+tsxconst btlFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+  tenure === 'Leasehold' && leaseLengthYears >= 85 && leaseLengthYears < 125 ? '⚠️ Leasehold under 125 years — check lender requirements before proceeding' : null,
+  btlInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — this deal costs you money every month' : null,
+  btlInputs.purchasePrice > 0 && btlResults.grossYield < 5 ? '⚠️ Gross yield below 5% — weak rental return for a BTL' : null,
+  btlInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3 ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold' : null,
+].filter(Boolean) as string[];
+HMO flags:
+tsxconst hmoFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+  hmoInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — this deal costs you money every month' : null,
+  hmoInputs.purchasePrice > 0 && hmoResults.grossYield < 7 ? '⚠️ Gross yield below 7% — below typical HMO threshold' : null,
+  hmoInputs.occupancyRate < 75 && hmoInputs.purchasePrice > 0 ? '⚠️ Occupancy below 75% — cash flow projections may be optimistic' : null,
+].filter(Boolean) as string[];
+Flip flags:
+tsxconst flipFlags = [
+  flipInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs' : null,
+  flipInputs.purchasePrice > 0 && flipResults.roi < 8 ? '⚠️ ROI below 8% — does not meet typical flip threshold' : null,
+].filter(Boolean) as string[];
+SA flags:
+tsxconst saFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+  saInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions' : null,
+  saInputs.occupancyPercent < 60 && saInputs.purchasePrice > 0 ? '⚠️ Occupancy below 60% — most SA deals require 70%+ to stack' : null,
+].filter(Boolean) as string[];
+BRRR flags:
+tsxconst brrrFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+  brrrInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow after refinance — deal does not self-fund' : null,
+  brrrInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? '⚠️ Over £25,000 left in deal — limited capital recycling' : null,
+].filter(Boolean) as string[];
+R2R flags:
+tsxconst r2rFlags = [
+  r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200 ? '⚠️ Monthly profit below £200 — thin margin for a R2R deal' : null,
+].filter(Boolean) as string[];
+Social flags:
+tsxconst socialFlags = [
+  tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+  socialInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs' : null,
+].filter(Boolean) as string[];
+Step 3 — Render the component in each tab's results panel directly above the first MetricBox row:
+
+BTL: <RiskFlags flags={btlFlags} />
+HMO: <RiskFlags flags={hmoFlags} />
+Flip: <RiskFlags flags={flipFlags} />
+SA: <RiskFlags flags={saFlags} />
+BRRR: <RiskFlags flags={brrrFlags} />
+R2R: <RiskFlags flags={r2rFlags} />
+Social: <RiskFlags flags={socialFlags} />
+
+Do not change any calculations, formulas, existing tooltips, or any other part of the file. Run the app and confirm no TypeScript errors before finishing.

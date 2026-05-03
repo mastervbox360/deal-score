@@ -1383,6 +1383,13 @@ export default function HomePage() {
               <div className="bg-card text-card-foreground p-6 rounded-t-3xl">
                 {dealType === 'BTL' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+                      tenure === 'Leasehold' && leaseLengthYears >= 85 && leaseLengthYears < 125 ? '⚠️ Leasehold under 125 years — check lender requirements before proceeding' : null,
+                      btlInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — this deal costs you money every month' : null,
+                      btlInputs.purchasePrice > 0 && btlResults.grossYield < 5 ? '⚠️ Gross yield below 5% — weak rental return for a BTL' : null,
+                      btlInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3 ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
@@ -1403,6 +1410,12 @@ export default function HomePage() {
 
                 {dealType === 'HMO' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+                      hmoInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — this deal costs you money every month' : null,
+                      hmoInputs.purchasePrice > 0 && hmoResults.grossYield < 7 ? '⚠️ Gross yield below 7% — below typical HMO threshold' : null,
+                      hmoInputs.occupancyRate < 75 && hmoInputs.purchasePrice > 0 ? '⚠️ Occupancy below 75% — cash flow projections may be optimistic' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
@@ -1423,6 +1436,10 @@ export default function HomePage() {
 
                 {dealType === 'FLIP' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      flipInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs' : null,
+                      flipInputs.purchasePrice > 0 && flipResults.roi < 8 ? '⚠️ ROI below 8% — does not meet typical flip threshold' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
                       <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} tooltip={TT.flipSellingCosts} />
@@ -1442,6 +1459,11 @@ export default function HomePage() {
 
                 {dealType === 'SA' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+                      saInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions' : null,
+                      saInputs.occupancyPercent < 60 && saInputs.purchasePrice > 0 ? '⚠️ Occupancy below 60% — most SA deals require 70%+ to stack' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
                       <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} tooltip={TT.saNetRev} />
@@ -1463,6 +1485,11 @@ export default function HomePage() {
 
                 {dealType === 'BRRR' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+                      brrrInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow after refinance — deal does not self-fund' : null,
+                      brrrInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? '⚠️ Over £25,000 left in deal — limited capital recycling' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox
                         label="Cash Left In"
@@ -1494,6 +1521,9 @@ export default function HomePage() {
 
                 {dealType === 'R2R' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200 ? '⚠️ Monthly profit below £200 — thin margin for a R2R deal' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
                       <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
@@ -1511,6 +1541,10 @@ export default function HomePage() {
 
                 {dealType === 'SOCIAL' && (
                   <div className="space-y-6">
+                    <RiskFlags flags={[
+                      tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85 ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null,
+                      socialInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs' : null,
+                    ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
@@ -1881,6 +1915,31 @@ const TT = {
   socialNetYield: { text: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.', formula: '((Lease Income − Management Costs) × 12) ÷ Purchase Price × 100' },
   socialCocRoi: { text: 'Annual cash flow as a percentage of cash invested. Your leveraged return as an investor.', formula: '(Annual Cash Flow ÷ Total Cash Invested) × 100' },
 };
+
+function RiskFlags({ flags }: { flags: string[] }) {
+  if (flags.length === 0) return null;
+  return (
+    <div style={{
+      background: '#FFF8E7',
+      border: '1.5px solid #F59E0B',
+      borderRadius: 8,
+      padding: '8px 12px',
+      marginBottom: 12,
+    }}>
+      {flags.map((flag, i) => (
+        <div key={i} style={{
+          fontSize: 12,
+          fontFamily: 'Arial, sans-serif',
+          color: '#92400E',
+          lineHeight: 1.5,
+          paddingTop: i > 0 ? 4 : 0,
+        }}>
+          {flag}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const DS_TOOLTIP_EVENT = 'ds:tt';
 
