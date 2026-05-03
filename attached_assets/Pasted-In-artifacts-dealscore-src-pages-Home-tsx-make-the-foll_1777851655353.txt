@@ -1,0 +1,15 @@
+In artifacts/dealscore/src/pages/Home.tsx, make the following targeted fixes to the PDF Page 2 workings section. Read the current writeWorkingsSection helper and Page 2 rendering code carefully before making changes.
+Fix 1 — Total row rule length
+In the writeWorkingsSection helper, the horizontal rule drawn above total rows currently runs from MARGIN to pageWidth - MARGIN. Change it so it stops 2mm before the right edge of the value — i.e. pageWidth - MARGIN - 2. This prevents the line from overlapping the value text.
+Fix 2 — Net Yield formula across all 7 tabs
+Find every place in the Page 2 workings where Net Yield formula is rendered as a string. The current formula string uses cash flow (monthly rent minus expenses result) as the numerator. Replace with the correct inputs-based formula:
+For BTL: Net Yield  (${formatCurrency(btlInputs.monthlyRent - btlInputs.monthlyExpenses)} × 12) ÷ ${formatCurrency(btlInputs.purchasePrice)} × 100
+For HMO: Net Yield  (${formatCurrency(hmoResults.grossMonthlyRent - hmoInputs.monthlyExpenses)} × 12) ÷ ${formatCurrency(hmoInputs.purchasePrice)} × 100
+For SA: Net Yield uses net monthly revenue minus running costs — Net Yield  (${formatCurrency(saResults.netMonthlyRevenue - saInputs.monthlyRunningCosts)} × 12) ÷ ${formatCurrency(saInputs.purchasePrice)} × 100
+For Social: Net Yield  (${formatCurrency(socialInputs.leaseIncomePerMonth - socialInputs.managementCostsPerMonth)} × 12) ÷ ${formatCurrency(socialInputs.purchasePrice)} × 100
+For BRRR: Net Yield uses post-refurb value as denominator — Net Yield  (${formatCurrency(brrrInputs.monthlyRent - brrrInputs.monthlyExpenses)} × 12) ÷ ${formatCurrency(brrrInputs.postRefurbValue)} × 100
+Fix 3 — Hide mortgage row when mortgage amount is zero
+In the Page 2 workings rendering for all tabs that have a mortgage (BTL, HMO, SA, BRRR, Social) — wrap the "Less: Mortgage" row in a conditional: only render it if the mortgage amount for that strategy is greater than 0. Use the existing mortgageAmount or monthlyMortgage result variable — whichever is already in scope for that tab.
+Fix 4 — Same line fix in app Show Workings panel
+Apply the same Net Yield formula fix to the app-side workings panel. Find wherever Net Yield is displayed in the collapsible Show Workings section and update the formula string to use monthlyRent - monthlyExpenses (or equivalent per strategy) as the numerator rather than the net cash flow figure.
+Do not change any calculations, any Page 1 PDF content, any tooltips, any risk flags, or anything else. Zero TypeScript errors required. Confirm when done.

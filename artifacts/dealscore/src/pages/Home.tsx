@@ -941,7 +941,7 @@ export default function HomePage() {
           if (row.isTotal) {
             doc.setDrawColor(203, 213, 225);
             doc.setLineWidth(0.3);
-            doc.line(P2M, p2y - 1, P2W - P2M, p2y - 1);
+            doc.line(P2M, p2y - 1, P2W - P2M - 2, p2y - 1);
             const isNegVal = row.value.startsWith('-') || row.value.startsWith('\u2212');
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
@@ -983,7 +983,7 @@ export default function HomePage() {
         ]);
         writeWorkingsSection('B', 'Monthly Cash Flow', [
           { label: 'Monthly Rent', value: formatCurrency(btlInputs.monthlyRent) },
-          { label: mLbl(btlInputs.mortgageType, btlInputs.mortgageRate), value: `(${formatCurrency(btlResults.monthlyMortgageInterest)})` },
+          ...(btlResults.monthlyMortgageInterest > 0 ? [{ label: mLbl(btlInputs.mortgageType, btlInputs.mortgageRate), value: `(${formatCurrency(btlResults.monthlyMortgageInterest)})` }] : []),
           { label: 'Less: Monthly Expenses', value: `(${formatCurrency(btlInputs.monthlyExpenses)})` },
           { label: 'MONTHLY CASH FLOW', value: formatCurrency(btlResults.monthlyCashFlow), isTotal: true },
         ]);
@@ -1006,7 +1006,7 @@ export default function HomePage() {
         ]);
         writeWorkingsSection('C', 'Monthly Cash Flow', [
           { label: 'Gross Monthly Rent', value: formatCurrency(hmoResults.grossMonthlyRent) },
-          { label: mLbl(hmoInputs.mortgageType, hmoInputs.mortgageRate), value: `(${formatCurrency(hmoResults.monthlyMortgageInterest)})` },
+          ...(hmoResults.monthlyMortgageInterest > 0 ? [{ label: mLbl(hmoInputs.mortgageType, hmoInputs.mortgageRate), value: `(${formatCurrency(hmoResults.monthlyMortgageInterest)})` }] : []),
           { label: 'Less: Monthly Expenses', value: `(${formatCurrency(hmoInputs.monthlyExpenses)})` },
           { label: 'MONTHLY CASH FLOW', value: formatCurrency(hmoResults.monthlyCashFlow), isTotal: true },
         ]);
@@ -1051,12 +1051,12 @@ export default function HomePage() {
         ]);
         writeWorkingsSection('C', 'Monthly Cash Flow', [
           { label: 'Net Monthly Revenue', value: formatCurrency(saResults.netMonthlyRevenue) },
-          { label: mLbl(saInputs.mortgageType, saInputs.mortgageRate), value: `(${formatCurrency(saResults.monthlyMortgage)})` },
+          ...(saResults.monthlyMortgage > 0 ? [{ label: mLbl(saInputs.mortgageType, saInputs.mortgageRate), value: `(${formatCurrency(saResults.monthlyMortgage)})` }] : []),
           { label: 'Less: Running Costs', value: `(${formatCurrency(saInputs.monthlyRunningCosts)})` },
           { label: 'MONTHLY CASH FLOW', value: formatCurrency(saResults.monthlyCashFlow), isTotal: true },
         ]);
         writeWorkingsSection('D', 'Key Metrics', [
-          { label: `Net Yield  (${formatCurrency(saResults.netMonthlyRevenue - saResults.monthlyMortgage - saInputs.monthlyRunningCosts)} × 12) ÷ ${formatCurrency(saInputs.purchasePrice)} × 100`, value: formatPercent(saResults.netYield) },
+          { label: `Net Yield  (${formatCurrency(saResults.netMonthlyRevenue - saInputs.monthlyRunningCosts)} × 12) ÷ ${formatCurrency(saInputs.purchasePrice)} × 100`, value: formatPercent(saResults.netYield) },
           { label: `CoC ROI  ${formatCurrency(saResults.annualCashFlow)} ÷ ${formatCurrency(saResults.totalCashInvested)} × 100`, value: formatPercent(saResults.cashOnCashROI), isTotal: true },
         ]);
       } else if (dealType === 'BRRR') {
@@ -1076,7 +1076,7 @@ export default function HomePage() {
         ]);
         writeWorkingsSection('C', 'Monthly Cash Flow', [
           { label: 'Monthly Rent', value: formatCurrency(brrrInputs.monthlyRent) },
-          { label: `Less: New Mortgage${brrrInputs.newMortgageRate > 0 ? ` (@ ${brrrInputs.newMortgageRate}%)` : ''}`, value: `(${formatCurrency(brrrResults.monthlyMortgage)})` },
+          ...(brrrResults.monthlyMortgage > 0 ? [{ label: `Less: New Mortgage${brrrInputs.newMortgageRate > 0 ? ` (@ ${brrrInputs.newMortgageRate}%)` : ''}`, value: `(${formatCurrency(brrrResults.monthlyMortgage)})` }] : []),
           { label: 'Less: Monthly Expenses', value: `(${formatCurrency(brrrInputs.monthlyExpenses)})` },
           { label: 'MONTHLY CASH FLOW', value: formatCurrency(brrrResults.monthlyCashFlow), isTotal: true },
         ]);
@@ -1111,7 +1111,7 @@ export default function HomePage() {
         ]);
         writeWorkingsSection('B', 'Monthly Cash Flow', [
           { label: 'Guaranteed Lease Income', value: formatCurrency(socialInputs.leaseIncomePerMonth) },
-          { label: mLbl(socialInputs.mortgageType, socialInputs.mortgageRate), value: `(${formatCurrency(socialResults.monthlyMortgage)})` },
+          ...(socialResults.monthlyMortgage > 0 ? [{ label: mLbl(socialInputs.mortgageType, socialInputs.mortgageRate), value: `(${formatCurrency(socialResults.monthlyMortgage)})` }] : []),
           { label: 'Less: Management Costs', value: `(${formatCurrency(socialInputs.managementCostsPerMonth)})` },
           { label: 'MONTHLY CASH FLOW', value: formatCurrency(socialResults.monthlyCashFlow), isTotal: true },
         ]);
