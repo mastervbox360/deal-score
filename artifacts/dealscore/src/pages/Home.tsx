@@ -939,16 +939,16 @@ export default function HomePage() {
         rows.forEach(row => {
           const isDed = row.label.startsWith('Less:');
           if (row.isTotal) {
-            doc.setDrawColor(203, 213, 225);
-            doc.setLineWidth(0.3);
-            doc.line(P2M, p2y - 1, P2W - P2M - 2, p2y - 1);
             const isNegVal = row.value.startsWith('-') || row.value.startsWith('\u2212');
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(...(isNegVal ? [220, 38, 38] as [number, number, number] : p2navy));
             doc.text(row.label, P2M, p2y);
             doc.text(row.value, P2W - P2M, p2y, { align: 'right' });
-            p2y += 5;
+            doc.setDrawColor(203, 213, 225);
+            doc.setLineWidth(0.3);
+            doc.line(P2M, p2y + 1.5, P2W - P2M - 2, p2y + 1.5);
+            p2y += 8;
           } else if (isDed) {
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
