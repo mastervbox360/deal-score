@@ -12,3 +12,9 @@ id = "FHaJwiwU_JO2-J1yi0OHQ"
 uri = "file://dealscore-stage3.zip"
 type = "unspecified"
 title = "dealscore-stage3.zip"
+
+[[outputs]]
+id = "CarMjed6FStBh0CCiYXIq"
+uri = "file://dealscore-stage4.zip"
+type = "unspecified"
+title = "DealScore Stage 4 — Production Build"
