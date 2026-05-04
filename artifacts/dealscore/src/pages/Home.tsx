@@ -52,6 +52,19 @@ export default function HomePage() {
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
+  const [propertyData, setPropertyData] = useState<{
+    lastSoldPrice: number | null;
+    lastSoldDate: string | null;
+    detectedTenure: 'Freehold' | 'Leasehold' | null;
+    detectedPropertyType: string | null;
+    floorArea: number | null;
+    epcRating: string | null;
+    constructionDate: string | null;
+    floodRisk: string | null;
+  } | null>(null);
+  const [propertyDataLoading, setPropertyDataLoading] = useState(false);
+  const [propertyDataOpen, setPropertyDataOpen] = useState(true);
+
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
@@ -102,6 +115,126 @@ export default function HomePage() {
     setSocialInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
+  const lookupPropertyData = async (address: string) => {
+    if (!address || address.trim().length < 5) return;
+    setPropertyDataLoading(true);
+    setPropertyData(null);
+
+    try {
+      const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
+      const postcode = postcodeMatch ? postcodeMatch[0].replace(/\s+/g, '').toUpperCase() : null;
+
+      if (!postcode) {
+        setPropertyDataLoading(false);
+        return;
+      }
+
+      const landRegPromise = fetch(
+        `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?propertyAddress.postcode=${postcode}&_pageSize=1&_sort=-transactionDate`
+      ).then(r => r.json()).catch(() => null);
+
+      const epcPromise = fetch(
+        `https://epc.opendatacommunities.org/api/v1/domestic/search?postcode=${postcode}&size=1`,
+        { headers: { 'Accept': 'application/json' } }
+      ).then(r => r.json()).catch(() => null);
+
+      const postcodeGeoPromise = fetch(
+        `https://api.postcodes.io/postcodes/${postcode}`
+      ).then(r => r.json()).catch(() => null);
+
+      const [landReg, epc, geoResult] = await Promise.all([landRegPromise, epcPromise, postcodeGeoPromise]);
+
+      let lastSoldPrice: number | null = null;
+      let lastSoldDate: string | null = null;
+      let detectedTenure: 'Freehold' | 'Leasehold' | null = null;
+
+      try {
+        const items = landReg?.result?.items;
+        if (items && items.length > 0) {
+          const item = items[0];
+          lastSoldPrice = item.pricePaid ? Number(item.pricePaid) : null;
+          lastSoldDate = item.transactionDate || null;
+          const estateType = item.estateType?.['_value'] || item.estateType;
+          detectedTenure = estateType === 'freehold' ? 'Freehold' :
+                           estateType === 'leasehold' ? 'Leasehold' : null;
+        }
+      } catch { /* silent */ }
+
+      let detectedPropertyType: string | null = null;
+      let floorArea: number | null = null;
+      let epcRating: string | null = null;
+      let constructionDate: string | null = null;
+
+      try {
+        const rows = epc?.rows;
+        if (rows && rows.length > 0) {
+          const row = rows[0];
+          const rawType = row['property-type'] || '';
+          const typeMap: Record<string, string> = {
+            'Detached House': 'Detached',
+            'Semi-Detached House': 'Semi-Detached',
+            'Terraced House': 'Terraced',
+            'Flat': 'Flat/Apartment',
+            'Maisonette': 'Flat/Apartment',
+            'Bungalow': 'Bungalow',
+            'Park home': 'Terraced',
+          };
+          detectedPropertyType = typeMap[rawType] || rawType || null;
+          floorArea = row['total-floor-area'] ? Number(row['total-floor-area']) : null;
+          epcRating = row['current-energy-rating'] || null;
+          constructionDate = row['construction-age-band'] || null;
+        }
+      } catch { /* silent */ }
+
+      let floodRisk: string | null = null;
+      try {
+        const lat = geoResult?.result?.latitude;
+        const lng = geoResult?.result?.longitude;
+        if (lat && lng) {
+          const floodRes = await fetch(
+            `https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=${lat}&long=${lng}&dist=1`
+          ).then(r => r.json()).catch(() => null);
+          const items = floodRes?.items;
+          if (items && items.length > 0) {
+            floodRisk = `Flood risk area detected nearby — check Environment Agency for full assessment`;
+          } else {
+            floodRisk = 'No flood risk areas detected nearby';
+          }
+        }
+      } catch { /* silent */ }
+
+      if (detectedTenure) setTenure(detectedTenure);
+      if (detectedPropertyType) setPropertyType(detectedPropertyType);
+
+      setPropertyData({
+        lastSoldPrice,
+        lastSoldDate,
+        detectedTenure,
+        detectedPropertyType,
+        floorArea,
+        epcRating,
+        constructionDate,
+        floodRisk,
+      });
+
+    } catch (error) {
+      console.error('Property lookup error:', error);
+    } finally {
+      setPropertyDataLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!propertyAddress.trim()) {
+      setPropertyData(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      lookupPropertyData(propertyAddress);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [propertyAddress]);
+
   const handleReset = () => {
     setPropertyAddress('');
     setPropertyType('Terraced');
@@ -133,6 +266,9 @@ export default function HomePage() {
     } else {
       setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
     }
+    setPropertyData(null);
+    setPropertyDataLoading(false);
+    setPropertyDataOpen(true);
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
@@ -755,6 +891,12 @@ export default function HomePage() {
                     <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="shared-addr" text={TT.propAddress} /></div>
                     <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
                   </div>
+                  <PropertyDataPanel
+                    data={propertyData}
+                    loading={propertyDataLoading}
+                    open={propertyDataOpen}
+                    onToggle={() => setPropertyDataOpen(prev => !prev)}
+                  />
                   <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="shared-proptype" text={TT.propType} /></div>
                     <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
@@ -1158,6 +1300,9 @@ export default function HomePage() {
                       sharedInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3
                         ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold'
                         : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
@@ -1196,6 +1341,9 @@ export default function HomePage() {
                       sharedInputs.purchasePrice > 0 && hmoInputs.occupancyRate < 75
                         ? '⚠️ Occupancy at ' + hmoInputs.occupancyRate + '% — projections may be optimistic. Most HMOs run at 85-90% in practice.'
                         : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
@@ -1223,6 +1371,9 @@ export default function HomePage() {
                         : null,
                       sharedInputs.purchasePrice > 0 && flipResults.roi < 8
                         ? '⚠️ ROI at ' + flipResults.roi.toFixed(1) + '% — below the 8% flip threshold. Most investors expect 12%+ on a flip to justify the risk.'
+                        : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
@@ -1255,6 +1406,9 @@ export default function HomePage() {
                         : null,
                       sharedInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60
                         ? '⚠️ Occupancy at ' + saInputs.occupancyPercent + '% — most SA deals require 70%+ to stack. Consider whether local demand supports this.'
+                        : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
@@ -1291,6 +1445,9 @@ export default function HomePage() {
                         ? brrrResults.score === 'Average'
                           ? '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — capital not fully recycled. Average score reflects positive cash flow but limited BRRR efficiency.'
                           : '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — over £25,000 tied up limits your ability to repeat the strategy.'
+                        : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
@@ -1330,6 +1487,9 @@ export default function HomePage() {
                           ? '⚠️ Monthly profit at £' + Math.round(r2rResults.monthlyProfit).toLocaleString() + ' — thin margin for R2R. One void month would significantly impact returns.'
                           : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold. Review rent paid to landlord or room rates.'
                         : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
+                        : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
@@ -1356,6 +1516,9 @@ export default function HomePage() {
                         : null,
                       sharedInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0
                         ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs'
+                        : null,
+                      propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No')
+                        ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
@@ -1750,6 +1913,140 @@ function RiskFlags({ flags }: { flags: string[] }) {
           {flag}
         </div>
       ))}
+    </div>
+  );
+}
+
+function PropertyDataPanel({
+  data,
+  loading,
+  open,
+  onToggle,
+}: {
+  data: {
+    lastSoldPrice: number | null;
+    lastSoldDate: string | null;
+    detectedTenure: string | null;
+    detectedPropertyType: string | null;
+    floorArea: number | null;
+    epcRating: string | null;
+    constructionDate: string | null;
+    floodRisk: string | null;
+  } | null;
+  loading: boolean;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  if (!loading && !data) return null;
+
+  const epcColors: Record<string, string> = {
+    A: '#008054', B: '#19b459', C: '#8dce46',
+    D: '#ffd500', E: '#fcaa65', F: '#ef8023', G: '#e9153b',
+  };
+
+  return (
+    <div style={{ marginBottom: 16, gridColumn: '1 / -1' }}>
+      <button
+        onClick={onToggle}
+        style={{
+          width: '100%',
+          background: '#EEF2F8',
+          border: '1.5px solid #C5D3E8',
+          borderRadius: open ? '8px 8px 0 0' : 8,
+          padding: '8px 14px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: 13,
+          fontFamily: 'Arial, sans-serif',
+          color: '#1B3A6B',
+          fontWeight: 600,
+        }}
+      >
+        <span>🏠 Property Intelligence {loading ? '— Looking up...' : '— Data from public records'}</span>
+        <span style={{ fontSize: 11 }}>{open ? '▲ Hide' : '▼ Show'}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          background: '#F8FAFC',
+          border: '1.5px solid #C5D3E8',
+          borderTop: 'none',
+          borderRadius: '0 0 8px 8px',
+          padding: '12px 14px',
+        }}>
+          {loading ? (
+            <p style={{ fontSize: 12, color: '#64748B', margin: 0, fontFamily: 'Arial, sans-serif' }}>
+              Checking Land Registry, EPC Register and Environment Agency...
+            </p>
+          ) : data ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', fontSize: 12, fontFamily: 'Arial, sans-serif' }}>
+              {data.lastSoldPrice && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Last sold: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>
+                    {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(data.lastSoldPrice)}
+                    {data.lastSoldDate ? ` — ${new Date(data.lastSoldDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}` : ''}
+                  </span>
+                </div>
+              )}
+              {data.detectedPropertyType && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Type: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.detectedPropertyType} <span style={{ color: '#16a34a', fontSize: 11 }}>✓ auto-filled</span></span>
+                </div>
+              )}
+              {data.detectedTenure && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Tenure: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.detectedTenure} <span style={{ color: '#16a34a', fontSize: 11 }}>✓ auto-filled</span></span>
+                </div>
+              )}
+              {data.floorArea && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Floor area: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.floorArea} m²</span>
+                </div>
+              )}
+              {data.epcRating && (
+                <div>
+                  <span style={{ color: '#64748B' }}>EPC rating: </span>
+                  <span style={{
+                    display: 'inline-block',
+                    background: epcColors[data.epcRating] || '#888',
+                    color: '#fff',
+                    fontWeight: 700,
+                    padding: '1px 7px',
+                    borderRadius: 4,
+                    fontSize: 12,
+                  }}>{data.epcRating}</span>
+                </div>
+              )}
+              {data.constructionDate && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Built: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.constructionDate}</span>
+                </div>
+              )}
+              {data.floodRisk && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <span style={{ color: '#64748B' }}>Flood risk: </span>
+                  <span style={{
+                    color: data.floodRisk.includes('detected') && !data.floodRisk.includes('No') ? '#b45309' : '#16a34a',
+                    fontWeight: 600,
+                  }}>{data.floodRisk}</span>
+                </div>
+              )}
+              <div style={{ gridColumn: '1 / -1', marginTop: 4, paddingTop: 6, borderTop: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#94A3B8', fontSize: 11 }}>
+                  Source: Land Registry, EPC Register, Environment Agency. All fields remain editable.
+                </span>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
