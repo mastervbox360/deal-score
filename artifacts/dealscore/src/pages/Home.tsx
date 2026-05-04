@@ -251,7 +251,7 @@ export default function HomePage() {
     };
     const script = document.createElement('script');
     script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&v=beta&region=GB&language=en&callback=initGoogleMaps`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places,geocoding&v=beta&region=GB&language=en&callback=initGoogleMaps`;
     script.async = true;
     document.head.appendChild(script);
   }, []);
@@ -269,16 +269,9 @@ export default function HomePage() {
       });
       const { suggestions } = result;
       if (suggestions && suggestions.length > 0) {
-        console.log('Raw suggestions:', JSON.stringify(suggestions?.slice(0, 2)));
-        const descriptions = suggestions.map((s: any) => {
-          return s?.placePrediction?.text?.text ||
-                 s?.placePrediction?.mainText?.text ||
-                 s?.placePrediction?.fullText?.text ||
-                 s?.description ||
-                 s?.text?.text ||
-                 (s?.mh && s?.mh[0] && s?.mh[0][1]) ||
-                 null;
-        }).filter(Boolean) as string[];
+        const descriptions = suggestions.map((s: any) =>
+          s?.mh?.[0]?.[2]?.[0] || null
+        ).filter(Boolean) as string[];
         setAddressSuggestions(descriptions);
         setShowSuggestions(true);
       } else {
@@ -976,10 +969,22 @@ export default function HomePage() {
                           {addressSuggestions.map((suggestion, i) => (
                             <div
                               key={i}
-                              onMouseDown={() => {
-                                setPropertyAddress(suggestion);
+                              onMouseDown={async () => {
                                 setShowSuggestions(false);
                                 setAddressSuggestions([]);
+                                try {
+                                  const geocoder = new window.google.maps.Geocoder();
+                                  const result = await geocoder.geocode({ address: suggestion + ', UK' });
+                                  if (result.results && result.results[0]) {
+                                    const fullAddress = result.results[0].formatted_address;
+                                    const cleaned = fullAddress.replace(/, UK$/, '').replace(/, United Kingdom$/, '');
+                                    setPropertyAddress(cleaned);
+                                  } else {
+                                    setPropertyAddress(suggestion);
+                                  }
+                                } catch {
+                                  setPropertyAddress(suggestion);
+                                }
                               }}
                               style={{
                                 padding: '10px 12px',
