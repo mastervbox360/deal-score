@@ -1,0 +1,120 @@
+In artifacts/dealscore/src/pages/Home.tsx, add Google Places autocomplete to the Property Address input field.
+Step 1 — Load Google Maps script
+Add a useEffect that loads the Google Maps JavaScript API script once when the component mounts:
+
+
+typescript
+useEffect(() => {
+  if (document.getElementById('google-maps-script')) return;
+  const script = document.createElement('script');
+  script.id = 'google-maps-script';
+  script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&libraries=places&region=GB&language=en`;
+  script.async = true;
+  document.head.appendChild(script);
+}, []);
+Step 2 — Add autocomplete ref
+Add a ref for the address input:
+
+
+typescript
+const addressInputRef = useRef<HTMLInputElement>(null);
+const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+Step 3 — Initialise autocomplete
+Add a useEffect that initialises Google Places Autocomplete on the address input after the script loads:
+
+
+typescript
+useEffect(() => {
+  const initAutocomplete = () => {
+    if (!addressInputRef.current || !window.google?.maps?.places) return;
+    if (autocompleteRef.current) return;
+
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(
+      addressInputRef.current,
+      {
+        componentRestrictions: { country: 'gb' },
+        types: ['address'],
+        fields: ['formatted_address', 'address_components'],
+      }
+    );
+
+    autocompleteRef.current.addListener('place_changed', () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (!place?.formatted_address) return;
+
+      // Extract postcode from address components
+      const postcodeComponent = place.address_components?.find(
+        c => c.types.includes('postal_code')
+      );
+      const postcode = postcodeComponent?.long_name || '';
+
+      // Build full address including postcode if not already included
+      let fullAddress = place.formatted_address;
+      if (postcode && !fullAddress.includes(postcode)) {
+        fullAddress = `${fullAddress}, ${postcode}`;
+      }
+
+      setPropertyAddress(fullAddress);
+    });
+  };
+
+  // Try immediately in case script already loaded
+  if (window.google?.maps?.places) {
+    initAutocomplete();
+  } else {
+    // Wait for script to load
+    const script = document.getElementById('google-maps-script');
+    if (script) {
+      script.addEventListener('load', initAutocomplete);
+      return () => script.removeEventListener('load', initAutocomplete);
+    }
+  }
+}, []);
+Step 4 — Update the address input JSX
+Find the Property Address Input element (around line 755-756). It currently looks like:
+
+
+tsx
+<Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+Replace it with a plain HTML input that has the ref attached — the existing Input component doesn't support refs in the way Google Places needs:
+
+
+tsx
+<input
+  ref={addressInputRef}
+  type="text"
+  placeholder="Enter full property address"
+  value={propertyAddress}
+  onChange={(e) => setPropertyAddress(e.target.value)}
+  data-testid="input-property-address"
+  style={{
+    width: '100%',
+    height: '40px',
+    padding: '8px 12px',
+    fontSize: '14px',
+    fontFamily: 'inherit',
+    border: '1px solid hsl(var(--input))',
+    borderRadius: 'calc(var(--radius) - 2px)',
+    background: 'transparent',
+    outline: 'none',
+    boxSizing: 'border-box',
+  }}
+  onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px hsl(var(--ring))'}
+  onBlur={(e) => e.target.style.boxShadow = 'none'}
+/>
+Step 5 — Add TypeScript declaration
+Add this before the component function to avoid TypeScript errors with window.google:
+
+
+typescript
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+Critical rules:
+* Do not change any calculations, tooltips, risk flags, shared inputs or any other functionality
+* The existing lookupPropertyData useEffect on propertyAddress must continue to work — when user selects an address, setPropertyAddress is called which triggers the existing debounced lookup automatically
+* Zero TypeScript errors required
+* Test by typing a partial UK address like "10 Down" and confirm Google suggestions appear in a dropdown
+Replace AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU with the actual API key before pasting.

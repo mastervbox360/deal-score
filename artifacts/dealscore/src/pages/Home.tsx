@@ -65,6 +65,9 @@ export default function HomePage() {
   const [propertyDataLoading, setPropertyDataLoading] = useState(false);
   const [propertyDataOpen, setPropertyDataOpen] = useState(true);
 
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
@@ -234,6 +237,57 @@ export default function HomePage() {
     }, 800);
     return () => clearTimeout(timer);
   }, [propertyAddress]);
+
+  useEffect(() => {
+    if (document.getElementById('google-maps-script')) return;
+    const script = document.createElement('script');
+    script.id = 'google-maps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&region=GB&language=en`;
+    script.async = true;
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    const initAutocomplete = () => {
+      if (!addressInputRef.current || !window.google?.maps?.places) return;
+      if (autocompleteRef.current) return;
+
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        addressInputRef.current,
+        {
+          componentRestrictions: { country: 'gb' },
+          types: ['address'],
+          fields: ['formatted_address', 'address_components'],
+        }
+      );
+
+      autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (!place?.formatted_address) return;
+
+        const postcodeComponent = place.address_components?.find(
+          (c: google.maps.GeocoderAddressComponent) => c.types.includes('postal_code')
+        );
+        const postcode = postcodeComponent?.long_name || '';
+
+        let fullAddress = place.formatted_address;
+        if (postcode && !fullAddress.includes(postcode)) {
+          fullAddress = `${fullAddress}, ${postcode}`;
+        }
+
+        setPropertyAddress(fullAddress);
+      });
+    };
+
+    if (window.google?.maps?.places) {
+      initAutocomplete();
+      return;
+    }
+    const script = document.getElementById('google-maps-script');
+    if (!script) return;
+    script.addEventListener('load', initAutocomplete);
+    return () => script.removeEventListener('load', initAutocomplete);
+  }, []);
 
   const handleReset = () => {
     setPropertyAddress('');
@@ -889,7 +943,28 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                   <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="shared-addr" text={TT.propAddress} /></div>
-                    <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                    <input
+                      ref={addressInputRef}
+                      type="text"
+                      placeholder="Enter full property address"
+                      value={propertyAddress}
+                      onChange={(e) => setPropertyAddress(e.target.value)}
+                      data-testid="input-property-address"
+                      style={{
+                        width: '100%',
+                        height: '40px',
+                        padding: '8px 12px',
+                        fontSize: '14px',
+                        fontFamily: 'inherit',
+                        border: '1px solid hsl(var(--input))',
+                        borderRadius: 'calc(var(--radius) - 2px)',
+                        background: 'transparent',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                      onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px hsl(var(--ring))'}
+                      onBlur={(e) => e.target.style.boxShadow = 'none'}
+                    />
                   </div>
                   <PropertyDataPanel
                     data={propertyData}
