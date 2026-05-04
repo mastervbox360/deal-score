@@ -973,10 +973,29 @@ export default function HomePage() {
                           {addressSuggestions.map((suggestion, i) => (
                             <div
                               key={i}
-                              onMouseDown={() => {
-                                setPropertyAddress(suggestion);
+                              onMouseDown={async () => {
                                 setShowSuggestions(false);
                                 setAddressSuggestions([]);
+                                setPropertyAddress(suggestion);
+
+                                try {
+                                  const result = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
+                                    input: suggestion,
+                                    includedRegionCodes: ['gb'],
+                                  });
+                                  const { suggestions: refinedSuggestions } = result;
+                                  if (refinedSuggestions && refinedSuggestions.length > 0) {
+                                    const first = refinedSuggestions[0];
+                                    const fullAddress = first?.Yz || first?.YC ||
+                                      (Array.isArray(first?.mh?.[0]) ? first.mh[0][2]?.[0] : null) ||
+                                      suggestion;
+                                    if (typeof fullAddress === 'string' && fullAddress.length > suggestion.length) {
+                                      setPropertyAddress(fullAddress);
+                                    }
+                                  }
+                                } catch {
+                                  // Keep the original suggestion if refinement fails
+                                }
                               }}
                               style={{
                                 padding: '10px 12px',
