@@ -270,8 +270,11 @@ export default function HomePage() {
       const { suggestions } = result;
       if (suggestions && suggestions.length > 0) {
         const descriptions = suggestions.map((s: any) => {
-          const parsed = JSON.parse(JSON.stringify(s));
-          return parsed?.mh?.[0]?.[2]?.[0] || null;
+          const text = s?.Yz || s?.YC ||
+            (Array.isArray(s?.mh?.[0]) ? s.mh[0][2]?.[0] : null) ||
+            s?.placePrediction?.text?.text ||
+            null;
+          return typeof text === 'string' ? text : null;
         }).filter(Boolean) as string[];
         setAddressSuggestions(descriptions);
         setShowSuggestions(true);
