@@ -1,0 +1,37 @@
+In artifacts/dealscore/src/pages/Home.tsx, add postcode-based tax country auto-detection. This should trigger when a full address with postcode is set — either from the Google Places selection or manual entry.
+Step 1 — Add a postcode detection helper function before the lookupPropertyData function:
+typescriptconst detectTaxCountryFromPostcode = (address: string) => {
+  const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
+  if (!postcodeMatch) return;
+  const postcode = postcodeMatch[0].toUpperCase().replace(/\s/g, '');
+  const prefix = postcode.match(/^[A-Z]{1,2}/)?.[0] || '';
+
+  const walesPostcodes = ['CF', 'SA', 'NP', 'LL', 'SY', 'LD', 'HR', 'CH', 'GL'];
+  const scotlandPostcodes = ['EH', 'G', 'AB', 'DD', 'KY', 'PH', 'FK', 'KA', 'ML', 'PA', 'TD', 'DG', 'KW', 'IV', 'HS', 'ZE'];
+
+  if (walesPostcodes.includes(prefix)) {
+    setTaxCountry('WALES');
+  } else if (scotlandPostcodes.includes(prefix)) {
+    setTaxCountry('SCOTLAND');
+  } else {
+    setTaxCountry('ENGLAND');
+  }
+};
+Step 2 — Call it in two places:
+First, in the onMouseDown Place Details handler, after setPropertyAddress(cleaned):
+typescriptdetectTaxCountryFromPostcode(cleaned);
+Second, in the existing propertyAddress useEffect, add a call to detect tax country whenever the address changes:
+typescriptuseEffect(() => {
+  if (!propertyAddress.trim()) {
+    setPropertyData(null);
+    return;
+  }
+  detectTaxCountryFromPostcode(propertyAddress);
+  const timer = setTimeout(() => {
+    lookupPropertyData(propertyAddress);
+  }, 800);
+  return () => clearTimeout(timer);
+}, [propertyAddress]);
+Step 3 — Verify the country codes match what setTaxCountry expects. Check the existing taxCountry state and Country type in calculations.ts — the values must match exactly (e.g. 'ENGLAND', 'WALES', 'SCOTLAND'). Use whatever values are already in use in the file.
+Do not change any calculation logic, tooltips, risk flags or anything else. Zero TypeScript errors required.
+Test by selecting "65a Horwood Close, Cardiff CF24 2LW" — confirm the Property Tax section automatically switches from "England / N. Ireland (SDLT)" to "Wales (LTT)".

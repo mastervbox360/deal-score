@@ -124,6 +124,24 @@ export default function HomePage() {
     setSocialInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
+  const detectTaxCountryFromPostcode = (address: string) => {
+    const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
+    if (!postcodeMatch) return;
+    const postcode = postcodeMatch[0].toUpperCase().replace(/\s/g, '');
+    const prefix = postcode.match(/^[A-Z]{1,2}/)?.[0] || '';
+
+    const walesPostcodes = ['CF', 'SA', 'NP', 'LL', 'SY', 'LD', 'HR', 'CH', 'GL'];
+    const scotlandPostcodes = ['EH', 'G', 'AB', 'DD', 'KY', 'PH', 'FK', 'KA', 'ML', 'PA', 'TD', 'DG', 'KW', 'IV', 'HS', 'ZE'];
+
+    if (walesPostcodes.includes(prefix)) {
+      setTaxCountry('WALES');
+    } else if (scotlandPostcodes.includes(prefix)) {
+      setTaxCountry('SCOTLAND');
+    } else {
+      setTaxCountry('ENGLAND');
+    }
+  };
+
   const lookupPropertyData = async (address: string) => {
     if (!address || address.trim().length < 5) return;
     setPropertyDataLoading(true);
@@ -238,6 +256,7 @@ export default function HomePage() {
       setPropertyData(null);
       return;
     }
+    detectTaxCountryFromPostcode(propertyAddress);
     const timer = setTimeout(() => {
       lookupPropertyData(propertyAddress);
     }, 800);
@@ -997,6 +1016,7 @@ export default function HomePage() {
                                       cleaned = `${cleaned}, ${postcode}`;
                                     }
                                     setPropertyAddress(cleaned);
+                                    detectTaxCountryFromPostcode(cleaned);
                                   }
                                 } catch {
                                   // Keep suggestion.description if Place Details fails
