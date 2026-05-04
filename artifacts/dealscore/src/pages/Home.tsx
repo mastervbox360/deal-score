@@ -266,7 +266,6 @@ export default function HomePage() {
       const result = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
         input,
         includedRegionCodes: ['gb'],
-        includedPrimaryTypes: ['address'],
       });
       const { suggestions } = result;
       if (suggestions && suggestions.length > 0) {
