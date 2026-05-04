@@ -603,13 +603,13 @@ export default function HomePage() {
       writeSection('Results', [
         ['Total Cost In', formatCurrency(brrrResults.totalCostIn)],
         ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
-        ['Cash Left in Deal', brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
+        ['Cash Left in Deal', brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
         ['Equity Created', formatCurrency(brrrResults.equityCreated)],
         ['Monthly Cash Flow', formatCurrency(brrrResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(brrrResults.annualCashFlow)],
         ['Gross Yield', formatPercent(brrrResults.grossYield)],
         ['Net Yield', formatPercent(brrrResults.netYield)],
-        ['Cash-on-Cash ROI', brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI), true],
+        ['Cash-on-Cash ROI', brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as PDFRow,
           ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
@@ -1541,7 +1541,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox
                         label="Cash Left In"
-                        value={brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
+                        value={brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
                         highlight={!brrrResults.moneyOut && brrrResults.cashLeftInDeal > 0 && brrrResults.cashLeftInDeal > 30000}
                         tooltip={TT.brrrCashLeft}
                       />
@@ -1556,7 +1556,7 @@ export default function HomePage() {
                       <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} tooltip={TT.netYield} />
                       <Row
                         label="Cash-on-Cash ROI"
-                        value={brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
+                        value={brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
                         isBold
                         tooltip={TT.cocRoi}
                       />
