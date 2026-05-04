@@ -22,33 +22,19 @@ function formatPercent(value: number) {
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
 
-  const [btlInputs, setBtlInputs] = useState<BTLInputs>({
+  const [sharedInputs, setSharedInputs] = useState({
     purchasePrice: 0,
-    stampDuty: 0,
     refurbCost: 0,
     otherCosts: 0,
     depositPercent: 25,
     mortgageRate: 0,
     mortgageTerm: 25,
-    mortgageType: 'IO',
-    monthlyRent: 0,
-    monthlyExpenses: 0
+    mortgageType: 'IO' as 'IO' | 'REPAYMENT',
   });
 
-  const [hmoInputs, setHmoInputs] = useState<HMOInputs>({
-    purchasePrice: 0,
-    stampDuty: 0,
-    refurbCost: 0,
-    otherCosts: 0,
-    depositPercent: 25,
-    mortgageRate: 0,
-    mortgageTerm: 25,
-    mortgageType: 'IO',
-    rooms: 0,
-    rentPerRoom: 0,
-    occupancyRate: 90,
-    monthlyExpenses: 0
-  });
+  const [btlInputs, setBtlInputs] = useState({ monthlyRent: 0, monthlyExpenses: 0 });
+
+  const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [propertyAddress, setPropertyAddress] = useState('');
@@ -66,43 +52,11 @@ export default function HomePage() {
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
-  const [flipInputs, setFlipInputs] = useState<FlipInputs>({
-    purchasePrice: 0,
-    stampDuty: 0,
-    refurbCost: 0,
-    otherCosts: 0,
-    holdingCostsPerMonth: 0,
-    projectLengthMonths: 0,
-    expectedSalePrice: 0,
-    sellingCostsPercent: 2,
-  });
+  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
-  const [saInputs, setSaInputs] = useState<SAInputs>({
-    purchasePrice: 0,
-    stampDuty: 0,
-    refurbCost: 0,
-    otherCosts: 0,
-    depositPercent: 25,
-    mortgageRate: 0,
-    mortgageTerm: 25,
-    mortgageType: 'IO',
-    nightlyRate: 0,
-    occupancyPercent: 90,
-    platformFeesPercent: 0,
-    monthlyRunningCosts: 0,
-  });
+  const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
 
-  const [brrrInputs, setBrrrInputs] = useState<BRRRInputs>({
-    purchasePrice: 0,
-    stampDuty: 0,
-    refurbCost: 0,
-    otherCosts: 0,
-    postRefurbValue: 0,
-    refinancePercent: 75,
-    newMortgageRate: 0,
-    monthlyRent: 0,
-    monthlyExpenses: 0,
-  });
+  const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, monthlyExpenses: 0 });
 
   const [r2rInputs, setR2rInputs] = useState<R2RInputs>({
     monthlyRentPaid: 0,
@@ -114,37 +68,29 @@ export default function HomePage() {
     setupCosts: 0,
   });
 
-  const [socialInputs, setSocialInputs] = useState<SocialHousingInputs>({
-    purchasePrice: 0,
-    stampDuty: 0,
-    refurbCost: 0,
-    otherCosts: 0,
-    depositPercent: 25,
-    mortgageRate: 0,
-    mortgageTerm: 25,
-    mortgageType: 'IO',
-    leaseIncomePerMonth: 0,
-    leaseLengthYears: 0,
-    managementCostsPerMonth: 0,
-  });
+  const [socialInputs, setSocialInputs] = useState({ leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
 
-  const handleBtlChange = (field: keyof BTLInputs, value: string) => {
+  const handleSharedChange = (field: keyof typeof sharedInputs, value: string) => {
+    setSharedInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
+  };
+
+  const handleBtlChange = (field: keyof typeof btlInputs, value: string) => {
     setBtlInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const handleHmoChange = (field: keyof HMOInputs, value: string) => {
+  const handleHmoChange = (field: keyof typeof hmoInputs, value: string) => {
     setHmoInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const handleFlipChange = (field: keyof FlipInputs, value: string) => {
+  const handleFlipChange = (field: keyof typeof flipInputs, value: string) => {
     setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const handleSaChange = (field: keyof SAInputs, value: string) => {
-    setSaInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
+  const handleSaChange = (field: keyof typeof saInputs, value: string) => {
+    setSaInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const handleBrrrChange = (field: keyof BRRRInputs, value: string) => {
+  const handleBrrrChange = (field: keyof typeof brrrInputs, value: string) => {
     setBrrrInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
@@ -152,8 +98,8 @@ export default function HomePage() {
     setR2rInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const handleSocialChange = (field: keyof SocialHousingInputs, value: string) => {
-    setSocialInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
+  const handleSocialChange = (field: keyof typeof socialInputs, value: string) => {
+    setSocialInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
   const handleReset = () => {
@@ -171,50 +117,39 @@ export default function HomePage() {
     setBuyerType('ADDITIONAL');
     setStrategyOpen(false);
     setDealNotesOpen(false);
+    setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
-      setBtlInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', monthlyRent: 0, monthlyExpenses: 0 });
+      setBtlInputs({ monthlyRent: 0, monthlyExpenses: 0 });
     } else if (dealType === 'HMO') {
-      setHmoInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
+      setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
     } else if (dealType === 'FLIP') {
-      setFlipInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
+      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
     } else if (dealType === 'SA') {
-      setSaInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
+      setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
     } else if (dealType === 'BRRR') {
-      setBrrrInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, monthlyExpenses: 0 });
+      setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, monthlyExpenses: 0 });
     } else if (dealType === 'R2R') {
       setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
     } else {
-      setSocialInputs({ purchasePrice: 0, stampDuty: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO', leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
+      setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
     }
   };
 
-  const btlTax = calculatePropertyTax(btlInputs.purchasePrice, taxCountry, buyerType);
-  const hmoTax = calculatePropertyTax(hmoInputs.purchasePrice, taxCountry, buyerType);
-  const flipTax = calculatePropertyTax(flipInputs.purchasePrice, taxCountry, buyerType);
-  const saTax = calculatePropertyTax(saInputs.purchasePrice, taxCountry, buyerType);
-  const brrrTax = calculatePropertyTax(brrrInputs.purchasePrice, taxCountry, buyerType);
+  const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
 
-  const socialTax = calculatePropertyTax(socialInputs.purchasePrice, taxCountry, buyerType);
-
-  const btlResults = calculateBTL({ ...btlInputs, stampDuty: btlTax });
-  const hmoResults = calculateHMO({ ...hmoInputs, stampDuty: hmoTax });
-  const flipResults = calculateFlip({ ...flipInputs, stampDuty: flipTax });
-  const saResults = calculateSA({ ...saInputs, stampDuty: saTax });
-  const brrrResults = calculateBRRR({ ...brrrInputs, stampDuty: brrrTax });
+  const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
+  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: sharedTax });
+  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: sharedTax });
+  const flipResults = calculateFlip({ purchasePrice, refurbCost, otherCosts, stampDuty: sharedTax, ...flipInputs });
+  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: sharedTax });
+  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: sharedTax, ...brrrInputs });
   const r2rResults = calculateR2R(r2rInputs);
-  const socialResults = calculateSocialHousing({ ...socialInputs, stampDuty: socialTax });
+  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: sharedTax });
 
   const taxLabel = TAX_LABEL[taxCountry];
   const buyerLabel = BUYER_LABEL[buyerType];
 
-  const currentPurchasePrice =
-    dealType === 'BTL' ? btlInputs.purchasePrice :
-    dealType === 'HMO' ? hmoInputs.purchasePrice :
-    dealType === 'FLIP' ? flipInputs.purchasePrice :
-    dealType === 'SA' ? saInputs.purchasePrice :
-    dealType === 'SOCIAL' ? socialInputs.purchasePrice :
-    dealType === 'R2R' ? 0 :
-    brrrInputs.purchasePrice;
+  const currentPurchasePrice = dealType === 'R2R' ? 0 : sharedInputs.purchasePrice;
   const equityDayOne = marketValue - currentPurchasePrice;
   const bmvAmount = equityDayOne;
   const bmvPercent = marketValue > 0 ? (bmvAmount / marketValue) * 100 : 0;
@@ -467,14 +402,14 @@ export default function HomePage() {
 
     if (dealType === 'BTL') {
       writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(btlInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(btlTax)],
-        ['Refurb Cost', formatCurrency(btlInputs.refurbCost)],
-        ['Other Costs', formatCurrency(btlInputs.otherCosts)],
-        ['Deposit', `${btlInputs.depositPercent}%`],
-        ['Mortgage Rate', `${btlInputs.mortgageRate}%`],
-        ['Mortgage Type', btlInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(btlInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${btlInputs.mortgageTerm} years`] as PDFRow] : []),
+        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
+        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
+        ['Deposit', `${sharedInputs.depositPercent}%`],
+        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
+        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Monthly Rent', formatCurrency(btlInputs.monthlyRent)],
         ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
         ...tenureRows,
@@ -496,14 +431,14 @@ export default function HomePage() {
       ]);
     } else if (dealType === 'HMO') {
       writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(hmoInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(hmoTax)],
-        ['Refurb / Conversion Cost', formatCurrency(hmoInputs.refurbCost)],
-        ['Other Costs', formatCurrency(hmoInputs.otherCosts)],
-        ['Deposit', `${hmoInputs.depositPercent}%`],
-        ['Mortgage Rate', `${hmoInputs.mortgageRate}%`],
-        ['Mortgage Type', hmoInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(hmoInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${hmoInputs.mortgageTerm} years`] as PDFRow] : []),
+        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        ['Refurb / Conversion Cost', formatCurrency(sharedInputs.refurbCost)],
+        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
+        ['Deposit', `${sharedInputs.depositPercent}%`],
+        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
+        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Rooms', `${hmoInputs.rooms}`],
         ['Rent per Room (monthly)', formatCurrency(hmoInputs.rentPerRoom)],
         ['Occupancy Rate', `${hmoInputs.occupancyRate}%`],
@@ -527,10 +462,10 @@ export default function HomePage() {
       ]);
     } else if (dealType === 'FLIP') {
       writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(flipInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(flipTax)],
-        ['Refurb Cost', formatCurrency(flipInputs.refurbCost)],
-        ['Other Costs', formatCurrency(flipInputs.otherCosts)],
+        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
+        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Holding Costs (per month)', formatCurrency(flipInputs.holdingCostsPerMonth)],
         ['Project Length', `${flipInputs.projectLengthMonths} months`],
         ['Expected Sale Price (GDV)', formatCurrency(flipInputs.expectedSalePrice)],
@@ -553,14 +488,14 @@ export default function HomePage() {
       ]);
     } else if (dealType === 'SA') {
       writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(saInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(saTax)],
-        ['Refurb Cost', formatCurrency(saInputs.refurbCost)],
-        ['Other Costs', formatCurrency(saInputs.otherCosts)],
-        ['Deposit', `${saInputs.depositPercent}%`],
-        ['Mortgage Rate', `${saInputs.mortgageRate}%`],
-        ['Mortgage Type', saInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(saInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${saInputs.mortgageTerm} years`] as PDFRow] : []),
+        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
+        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
+        ['Deposit', `${sharedInputs.depositPercent}%`],
+        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
+        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Nightly Rate', formatCurrency(saInputs.nightlyRate)],
         ['Avg Occupancy', `${saInputs.occupancyPercent}%`],
         ['Platform Fees', `${saInputs.platformFeesPercent}%`],
@@ -588,10 +523,10 @@ export default function HomePage() {
       ]);
     } else if (dealType === 'BRRR') {
       writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(brrrInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(brrrTax)],
-        ['Refurb Cost', formatCurrency(brrrInputs.refurbCost)],
-        ['Other Costs', formatCurrency(brrrInputs.otherCosts)],
+        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
+        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Post-Refurb Value (GDV)', formatCurrency(brrrInputs.postRefurbValue)],
         ['Refinance %', `${brrrInputs.refinancePercent}%`],
         ['New Mortgage Rate', `${brrrInputs.newMortgageRate}%`],
@@ -603,13 +538,13 @@ export default function HomePage() {
       writeSection('Results', [
         ['Total Cost In', formatCurrency(brrrResults.totalCostIn)],
         ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
-        ['Cash Left in Deal', brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
+        ['Cash Left in Deal', sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
         ['Equity Created', formatCurrency(brrrResults.equityCreated)],
         ['Monthly Cash Flow', formatCurrency(brrrResults.monthlyCashFlow), true],
         ['Annual Cash Flow', formatCurrency(brrrResults.annualCashFlow)],
         ['Gross Yield', formatPercent(brrrResults.grossYield)],
         ['Net Yield', formatPercent(brrrResults.netYield)],
-        ['Cash-on-Cash ROI', brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI), true],
+        ['Cash-on-Cash ROI', sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI), true],
         ...(marketValue > 0 ? [
           ['Market Value', formatCurrency(marketValue)] as PDFRow,
           ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
@@ -639,14 +574,14 @@ export default function HomePage() {
       ]);
     } else {
       writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(socialInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(socialTax)],
-        ['Refurb Cost', formatCurrency(socialInputs.refurbCost)],
-        ['Other Costs', formatCurrency(socialInputs.otherCosts)],
-        ['Deposit', `${socialInputs.depositPercent}%`],
-        ['Mortgage Rate', `${socialInputs.mortgageRate}%`],
-        ['Mortgage Type', socialInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(socialInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${socialInputs.mortgageTerm} years`] as PDFRow] : []),
+        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
+        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
+        ['Deposit', `${sharedInputs.depositPercent}%`],
+        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
+        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
+        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
         ['Guaranteed Lease Income/mo', formatCurrency(socialInputs.leaseIncomePerMonth)],
         ['Lease Length', `${socialInputs.leaseLengthYears} years`],
         ['Management Costs/mo', formatCurrency(socialInputs.managementCostsPerMonth)],
@@ -814,48 +749,61 @@ export default function HomePage() {
                 </h2>
               </div>
               <CardContent className="p-6">
-                {dealType === 'BTL' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="btl-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="btl-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="btl-pp" text={TT.purchasePrice} /></div>
-                      <Input type="number" placeholder="Enter purchase price" value={btlInputs.purchasePrice || ''} onChange={(e) => handleBtlChange('purchasePrice', e.target.value)} />
-                    </div>
-                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={btlTax} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="btl-refurb" text={TT.refurbCost} /></div>
-                      <Input type="number" placeholder="Enter refurb cost" value={btlInputs.refurbCost || ''} onChange={(e) => handleBtlChange('refurbCost', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="btl-other" text={TT.otherCosts} /></div>
-                      <Input type="number" placeholder="Enter other costs" value={btlInputs.otherCosts || ''} onChange={(e) => handleBtlChange('otherCosts', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="btl-dep" text={TT.deposit} /></div>
-                      <Input type="number" value={btlInputs.depositPercent} onChange={(e) => handleBtlChange('depositPercent', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="btl-mr" text={TT.mortgageRate} /></div>
-                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={btlInputs.mortgageRate || ''} onChange={(e) => handleBtlChange('mortgageRate', e.target.value)} />
-                      <MortgageTypeToggle
-                        value={btlInputs.mortgageType}
-                        onChange={(v) => setBtlInputs(prev => ({ ...prev, mortgageType: v }))}
-                      />
-                    </div>
-                    {btlInputs.mortgageType === 'REPAYMENT' && (
+                {/* Shared: property metadata and universal financial inputs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                  <div className="space-y-2 md:col-span-2">
+                    <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="shared-addr" text={TT.propAddress} /></div>
+                    <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="shared-proptype" text={TT.propType} /></div>
+                    <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                  </div>
+                  <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
+                  {dealType !== 'R2R' && (
+                    <>
                       <div className="space-y-2">
-                        <Label>Mortgage Term (years)</Label>
-                        <Input type="number" value={btlInputs.mortgageTerm} onChange={(e) => handleBtlChange('mortgageTerm', e.target.value)} />
+                        <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="shared-pp" text={TT.purchasePrice} /></div>
+                        <Input type="number" placeholder="Enter purchase price" value={sharedInputs.purchasePrice || ''} onChange={(e) => handleSharedChange('purchasePrice', e.target.value)} data-testid="input-purchase-price" />
                       </div>
-                    )}
+                      <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={sharedTax} />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="shared-refurb" text={TT.refurbCost} /></div>
+                        <Input type="number" placeholder="Enter refurb cost" value={sharedInputs.refurbCost || ''} onChange={(e) => handleSharedChange('refurbCost', e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="shared-other" text={TT.otherCosts} /></div>
+                        <Input type="number" placeholder="Enter other costs" value={sharedInputs.otherCosts || ''} onChange={(e) => handleSharedChange('otherCosts', e.target.value)} />
+                      </div>
+                    </>
+                  )}
+                  {(['BTL', 'HMO', 'SA', 'SOCIAL'] as const).includes(dealType as 'BTL' | 'HMO' | 'SA' | 'SOCIAL') && (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="shared-dep" text={TT.deposit} /></div>
+                        <Input type="number" value={sharedInputs.depositPercent} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="shared-mr" text={TT.mortgageRate} /></div>
+                        <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                        <MortgageTypeToggle
+                          value={sharedInputs.mortgageType}
+                          onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                        />
+                      </div>
+                      {sharedInputs.mortgageType === 'REPAYMENT' && (
+                        <div className="space-y-2">
+                          <Label>Mortgage Term (years)</Label>
+                          <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Tab-specific inputs */}
+                {dealType === 'BTL' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="btl-rent" text={TT.monthlyRent} /></div>
                       <Input type="number" placeholder="Enter monthly rent" value={btlInputs.monthlyRent || ''} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
@@ -868,29 +816,7 @@ export default function HomePage() {
                 )}
 
                 {dealType === 'HMO' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="hmo-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="hmo-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="hmo-pp" text={TT.purchasePrice} /></div>
-                      <Input type="number" placeholder="Enter purchase price" value={hmoInputs.purchasePrice || ''} onChange={(e) => handleHmoChange('purchasePrice', e.target.value)} />
-                    </div>
-                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={hmoTax} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="hmo-refurb" text={TT.refurbCost} /></div>
-                      <Input type="number" placeholder="Enter refurb cost" value={hmoInputs.refurbCost || ''} onChange={(e) => handleHmoChange('refurbCost', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Other Costs (£)</Label><InfoIcon id="hmo-other" text={TT.otherCosts} /></div>
-                      <Input type="number" placeholder="Enter other costs" value={hmoInputs.otherCosts || ''} onChange={(e) => handleHmoChange('otherCosts', e.target.value)} />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="hmo-rooms" text={TT.numRooms} /></div>
                       <Input type="number" placeholder="Enter number of rooms" value={hmoInputs.rooms || ''} onChange={(e) => handleHmoChange('rooms', e.target.value)} />
@@ -907,51 +833,11 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="hmo-exp" text={TT.monthlyExpenses} /></div>
                       <Input type="number" placeholder="Enter monthly expenses" value={hmoInputs.monthlyExpenses || ''} onChange={(e) => handleHmoChange('monthlyExpenses', e.target.value)} />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="hmo-dep" text={TT.deposit} /></div>
-                      <Input type="number" value={hmoInputs.depositPercent} onChange={(e) => handleHmoChange('depositPercent', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="hmo-mr" text={TT.mortgageRate} /></div>
-                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={hmoInputs.mortgageRate || ''} onChange={(e) => handleHmoChange('mortgageRate', e.target.value)} />
-                      <MortgageTypeToggle
-                        value={hmoInputs.mortgageType}
-                        onChange={(v) => setHmoInputs(prev => ({ ...prev, mortgageType: v }))}
-                      />
-                    </div>
-                    {hmoInputs.mortgageType === 'REPAYMENT' && (
-                      <div className="space-y-2">
-                        <Label>Mortgage Term (years)</Label>
-                        <Input type="number" value={hmoInputs.mortgageTerm} onChange={(e) => handleHmoChange('mortgageTerm', e.target.value)} />
-                      </div>
-                    )}
                   </div>
                 )}
 
                 {dealType === 'FLIP' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="flip-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="flip-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="flip-pp" text={TT.purchasePrice} /></div>
-                      <Input type="number" placeholder="Enter purchase price" value={flipInputs.purchasePrice || ''} onChange={(e) => handleFlipChange('purchasePrice', e.target.value)} />
-                    </div>
-                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={flipTax} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="flip-refurb" text={TT.refurbCost} /></div>
-                      <Input type="number" placeholder="Enter refurb cost" value={flipInputs.refurbCost || ''} onChange={(e) => handleFlipChange('refurbCost', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Other Costs (£)</Label><InfoIcon id="flip-other" text={TT.otherCosts} /></div>
-                      <Input type="number" placeholder="Enter other costs" value={flipInputs.otherCosts || ''} onChange={(e) => handleFlipChange('otherCosts', e.target.value)} />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Holding Costs/mo (£)</Label><InfoIcon id="flip-hold" text={TT.holdingCosts} /></div>
                       <Input type="number" placeholder="Enter monthly holding costs" value={flipInputs.holdingCostsPerMonth || ''} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
@@ -960,7 +846,7 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Project Length (months)</Label><InfoIcon id="flip-proj" text={TT.projectLength} /></div>
                       <Input type="number" placeholder="Enter project length in months" value={flipInputs.projectLengthMonths || ''} onChange={(e) => handleFlipChange('projectLengthMonths', e.target.value)} />
                     </div>
-                    <div className="col-span-1 md:col-span-2 space-y-2">
+                    <div className="col-span-1 md:col-span-2">
                       <div className="h-px w-full bg-border my-2" />
                     </div>
                     <div className="space-y-2">
@@ -975,58 +861,7 @@ export default function HomePage() {
                 )}
 
                 {dealType === 'SA' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="sa-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="sa-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="sa-pp" text={TT.purchasePrice} /></div>
-                      <Input type="number" placeholder="Enter purchase price" value={saInputs.purchasePrice || ''} onChange={(e) => handleSaChange('purchasePrice', e.target.value)} data-testid="input-sa-purchase-price" />
-                    </div>
-                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={saTax} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="sa-refurb" text={TT.refurbCost} /></div>
-                      <Input type="number" placeholder="Enter refurb cost" value={saInputs.refurbCost || ''} onChange={(e) => handleSaChange('refurbCost', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="sa-other" text={TT.otherCosts} /></div>
-                      <Input type="number" placeholder="Enter other costs" value={saInputs.otherCosts || ''} onChange={(e) => handleSaChange('otherCosts', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="sa-dep" text={TT.deposit} /></div>
-                      <Input type="number" value={saInputs.depositPercent} onChange={(e) => handleSaChange('depositPercent', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="sa-mr" text={TT.mortgageRate} /></div>
-                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={saInputs.mortgageRate || ''} onChange={(e) => handleSaChange('mortgageRate', e.target.value)} />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Mortgage Type</Label>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleSaChange('mortgageType', 'IO')}
-                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${saInputs.mortgageType === 'IO' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
-                        >Interest Only</button>
-                        <button
-                          type="button"
-                          onClick={() => handleSaChange('mortgageType', 'REPAYMENT')}
-                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${saInputs.mortgageType === 'REPAYMENT' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
-                        >Repayment</button>
-                      </div>
-                    </div>
-                    {saInputs.mortgageType === 'REPAYMENT' && (
-                      <div className="space-y-2">
-                        <Label>Mortgage Term (years)</Label>
-                        <Input type="number" value={saInputs.mortgageTerm} onChange={(e) => handleSaChange('mortgageTerm', e.target.value)} />
-                      </div>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Nightly Rate (£)</Label><InfoIcon id="sa-night" text={TT.nightlyRate} /></div>
                       <Input type="number" placeholder="Enter nightly rate" value={saInputs.nightlyRate || ''} onChange={(e) => handleSaChange('nightlyRate', e.target.value)} data-testid="input-sa-nightly-rate" />
@@ -1047,32 +882,7 @@ export default function HomePage() {
                 )}
 
                 {dealType === 'BRRR' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="brrr-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="brrr-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="brrr-pp" text={TT.purchasePrice} /></div>
-                      <Input type="number" placeholder="Enter purchase price" value={brrrInputs.purchasePrice || ''} onChange={(e) => handleBrrrChange('purchasePrice', e.target.value)} data-testid="input-brrr-purchase-price" />
-                    </div>
-                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={brrrTax} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="brrr-refurb" text={TT.refurbCost} /></div>
-                      <Input type="number" placeholder="Enter refurb cost" value={brrrInputs.refurbCost || ''} onChange={(e) => handleBrrrChange('refurbCost', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Other Costs (£)</Label><InfoIcon id="brrr-other" text={TT.otherCosts} /></div>
-                      <Input type="number" placeholder="Enter other costs" value={brrrInputs.otherCosts || ''} onChange={(e) => handleBrrrChange('otherCosts', e.target.value)} />
-                    </div>
-                    <div className="col-span-1 md:col-span-2">
-                      <div className="h-px w-full bg-border my-1" />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Post-Refurb Value / GDV (£)</Label><InfoIcon id="brrr-gdv" text={TT.postRefurbValue} /></div>
                       <Input type="number" placeholder="Enter post-refurb value" value={brrrInputs.postRefurbValue || ''} onChange={(e) => handleBrrrChange('postRefurbValue', e.target.value)} data-testid="input-brrr-gdv" />
@@ -1097,16 +907,7 @@ export default function HomePage() {
                 )}
 
                 {dealType === 'R2R' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="r2r-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="r2r-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Monthly Rent to Landlord (£)</Label><InfoIcon id="r2r-rtl" text={TT.rentToLandlord} /></div>
                       <Input type="number" placeholder="Enter rent paid to landlord" value={r2rInputs.monthlyRentPaid || ''} onChange={(e) => handleR2rChange('monthlyRentPaid', e.target.value)} />
@@ -1139,53 +940,7 @@ export default function HomePage() {
                 )}
 
                 {dealType === 'SOCIAL' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="soc-addr" text={TT.propAddress} /></div>
-                      <Input type="text" placeholder="Enter full property address" value={propertyAddress} onChange={(e) => setPropertyAddress(e.target.value)} data-testid="input-property-address" />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="soc-proptype" text={TT.propType} /></div>
-                      <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
-                    </div>
-                    <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="soc-pp" text={TT.purchasePrice} /></div>
-                      <Input type="number" placeholder="Enter purchase price" value={socialInputs.purchasePrice || ''} onChange={(e) => handleSocialChange('purchasePrice', e.target.value)} />
-                    </div>
-                    <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={socialTax} />
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="soc-refurb" text={TT.refurbCost} /></div>
-                      <Input type="number" placeholder="Enter refurb cost" value={socialInputs.refurbCost || ''} onChange={(e) => handleSocialChange('refurbCost', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Other Costs (Legal, Broker) (£)</Label><InfoIcon id="soc-other" text={TT.otherCosts} /></div>
-                      <Input type="number" placeholder="Enter other costs" value={socialInputs.otherCosts || ''} onChange={(e) => handleSocialChange('otherCosts', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="soc-dep" text={TT.deposit} /></div>
-                      <Input type="number" value={socialInputs.depositPercent} onChange={(e) => handleSocialChange('depositPercent', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="soc-mr" text={TT.mortgageRate} /></div>
-                      <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={socialInputs.mortgageRate || ''} onChange={(e) => handleSocialChange('mortgageRate', e.target.value)} />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Mortgage Type</Label>
-                      <div className="flex gap-2">
-                        <button type="button" onClick={() => handleSocialChange('mortgageType', 'IO')} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${socialInputs.mortgageType === 'IO' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}>Interest Only</button>
-                        <button type="button" onClick={() => handleSocialChange('mortgageType', 'REPAYMENT')} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${socialInputs.mortgageType === 'REPAYMENT' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}>Repayment</button>
-                      </div>
-                    </div>
-                    {socialInputs.mortgageType === 'REPAYMENT' && (
-                      <div className="space-y-2">
-                        <Label>Mortgage Term (years)</Label>
-                        <Input type="number" value={socialInputs.mortgageTerm} onChange={(e) => handleSocialChange('mortgageTerm', e.target.value)} />
-                      </div>
-                    )}
-                    <div className="col-span-1 md:col-span-2">
-                      <div className="h-px w-full bg-border my-1" />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Guaranteed Lease Income / month (£)</Label><InfoIcon id="soc-lease" text={TT.leaseIncome} /></div>
                       <Input type="number" placeholder="Enter monthly lease income" value={socialInputs.leaseIncomePerMonth || ''} onChange={(e) => handleSocialChange('leaseIncomePerMonth', e.target.value)} />
@@ -1392,15 +1147,15 @@ export default function HomePage() {
                       tenure === 'Leasehold' && leaseLengthYears >= 85 && leaseLengthYears < 125
                         ? '⚠️ Leasehold under 125 years — check lender requirements before proceeding'
                         : null,
-                      btlInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0
+                      sharedInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0
                         ? '⚠️ Negative cash flow — this deal costs you money every month'
                         : null,
-                      btlInputs.purchasePrice > 0 && btlResults.grossYield < 5
+                      sharedInputs.purchasePrice > 0 && btlResults.grossYield < 5
                         ? btlResults.score === 'Strong'
                           ? '⚠️ Gross yield at ' + btlResults.grossYield.toFixed(1) + '% — below the 5% BTL benchmark. Strong ROI is driven by leverage — be prepared to justify the yield to investors.'
                           : '⚠️ Gross yield at ' + btlResults.grossYield.toFixed(1) + '% — below the 5% BTL benchmark. Most investors expect 5%+ on a BTL.'
                         : null,
-                      btlInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3
+                      sharedInputs.purchasePrice > 0 && btlResults.cashOnCashROI < 3
                         ? '⚠️ Cash-on-Cash ROI below 3% — does not meet typical investor threshold'
                         : null,
                     ].filter(Boolean) as string[]} />
@@ -1430,15 +1185,15 @@ export default function HomePage() {
                           ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
                           : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
                         : null,
-                      hmoInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0
+                      sharedInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0
                         ? '⚠️ Negative cash flow — this deal costs you money every month'
                         : null,
-                      hmoInputs.purchasePrice > 0 && hmoResults.grossYield < 7
+                      sharedInputs.purchasePrice > 0 && hmoResults.grossYield < 7
                         ? hmoResults.score === 'Average'
                           ? '⚠️ Gross yield at ' + hmoResults.grossYield.toFixed(1) + '% — borderline for an HMO. Positive cash flow keeps this in Average territory — watch running costs carefully.'
                           : '⚠️ Gross yield at ' + hmoResults.grossYield.toFixed(1) + '% — below the 7% HMO threshold. Most investors expect higher yield from an HMO.'
                         : null,
-                      hmoInputs.purchasePrice > 0 && hmoInputs.occupancyRate < 75
+                      sharedInputs.purchasePrice > 0 && hmoInputs.occupancyRate < 75
                         ? '⚠️ Occupancy at ' + hmoInputs.occupancyRate + '% — projections may be optimistic. Most HMOs run at 85-90% in practice.'
                         : null,
                     ].filter(Boolean) as string[]} />
@@ -1463,10 +1218,10 @@ export default function HomePage() {
                 {dealType === 'FLIP' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
-                      flipInputs.purchasePrice > 0 && flipResults.netProfit < 0
+                      sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0
                         ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs'
                         : null,
-                      flipInputs.purchasePrice > 0 && flipResults.roi < 8
+                      sharedInputs.purchasePrice > 0 && flipResults.roi < 8
                         ? '⚠️ ROI at ' + flipResults.roi.toFixed(1) + '% — below the 8% flip threshold. Most investors expect 12%+ on a flip to justify the risk.'
                         : null,
                     ].filter(Boolean) as string[]} />
@@ -1495,10 +1250,10 @@ export default function HomePage() {
                           ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
                           : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
                         : null,
-                      saInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0
+                      sharedInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0
                         ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions'
                         : null,
-                      saInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60
+                      sharedInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60
                         ? '⚠️ Occupancy at ' + saInputs.occupancyPercent + '% — most SA deals require 70%+ to stack. Consider whether local demand supports this.'
                         : null,
                     ].filter(Boolean) as string[]} />
@@ -1529,10 +1284,10 @@ export default function HomePage() {
                           ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
                           : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
                         : null,
-                      brrrInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0
+                      sharedInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0
                         ? '⚠️ Negative cash flow after refinance — deal does not self-fund'
                         : null,
-                      brrrInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000
+                      sharedInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000
                         ? brrrResults.score === 'Average'
                           ? '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — capital not fully recycled. Average score reflects positive cash flow but limited BRRR efficiency.'
                           : '⚠️ £' + Math.round(brrrResults.cashLeftInDeal).toLocaleString() + ' left in deal — over £25,000 tied up limits your ability to repeat the strategy.'
@@ -1541,7 +1296,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox
                         label="Cash Left In"
-                        value={brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
+                        value={sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
                         highlight={!brrrResults.moneyOut && brrrResults.cashLeftInDeal > 0 && brrrResults.cashLeftInDeal > 30000}
                         tooltip={TT.brrrCashLeft}
                       />
@@ -1556,7 +1311,7 @@ export default function HomePage() {
                       <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} tooltip={TT.netYield} />
                       <Row
                         label="Cash-on-Cash ROI"
-                        value={brrrInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
+                        value={sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
                         isBold
                         tooltip={TT.cocRoi}
                       />
@@ -1599,7 +1354,7 @@ export default function HomePage() {
                           ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
                           : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property'
                         : null,
-                      socialInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0
+                      sharedInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0
                         ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs'
                         : null,
                     ].filter(Boolean) as string[]} />

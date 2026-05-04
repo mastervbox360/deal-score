@@ -1,0 +1,176 @@
+Good — I now have everything I need. I can see the full picture clearly:
+Universal fields currently duplicated across all tabs:
+
+purchasePrice, stampDuty, refurbCost, otherCosts — in BTL, HMO, Flip, SA, BRRR, Social
+depositPercent, mortgageRate, mortgageTerm, mortgageType — in BTL, HMO, SA, BRRR, Social
+propertyAddress, propertyType, tenure, leaseLengthYears, marketValue, taxCountry, buyerType — already shared ✅
+
+Strategy-specific fields (stay per tab):
+
+BTL: monthlyRent, monthlyExpenses
+HMO: rooms, rentPerRoom, occupancyRate, monthlyExpenses
+Flip: holdingCostsPerMonth, projectLengthMonths, expectedSalePrice, sellingCostsPercent
+SA: nightlyRate, occupancyPercent, platformFeesPercent, monthlyRunningCosts
+BRRR: postRefurbValue, refinancePercent, newMortgageRate, monthlyRent, monthlyExpenses
+R2R: monthlyRentPaid, rooms, rentPerRoom, occupancyRate, managementFeesPercent, monthlyRunningCosts, setupCosts
+Social: leaseIncomePerMonth, leaseLengthYears, managementCostsPerMonth
+
+Now here's the Stage 4 prompt:
+
+In artifacts/dealscore/src/pages/Home.tsx, refactor the input architecture to use shared universal inputs. This is a structural refactor — no calculation logic changes, no UI layout changes, no tooltip changes, no risk flag changes.
+Read the entire file carefully before making any changes. Then follow these steps precisely.
+
+STEP 1 — Create a shared inputs state object
+Replace the duplicated purchasePrice, stampDuty, refurbCost, otherCosts, depositPercent, mortgageRate, mortgageTerm, mortgageType fields that currently exist inside btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, and socialInputs with a single shared state:
+typescriptconst [sharedInputs, setSharedInputs] = useState({
+  purchasePrice: 0,
+  refurbCost: 0,
+  otherCosts: 0,
+  depositPercent: 25,
+  mortgageRate: 0,
+  mortgageTerm: 25,
+  mortgageType: 'IO' as 'IO' | 'Repayment',
+});
+
+const handleSharedChange = (field: string, value: string) => {
+  setSharedInputs(prev => ({
+    ...prev,
+    [field]: field === 'mortgageType' ? value : (Number(value) || 0)
+  }));
+};
+Note: stampDuty stays out of shared state — it is always calculated via calculatePropertyTax and never directly entered. propertyAddress, propertyType, tenure, leaseLengthYears, marketValue, taxCountry, buyerType, sourcingFee are already shared state — do not change these.
+
+STEP 2 — Update per-tab state objects
+Remove the universal fields from each tab's state. Keep only strategy-specific fields:
+typescript// BTL — keep only:
+const [btlInputs, setBtlInputs] = useState({
+  monthlyRent: 0,
+  monthlyExpenses: 0,
+});
+
+// HMO — keep only:
+const [hmoInputs, setHmoInputs] = useState({
+  rooms: 0,
+  rentPerRoom: 0,
+  occupancyRate: 90,
+  monthlyExpenses: 0,
+});
+
+// Flip — keep only:
+const [flipInputs, setFlipInputs] = useState({
+  holdingCostsPerMonth: 0,
+  projectLengthMonths: 0,
+  expectedSalePrice: 0,
+  sellingCostsPercent: 2,
+});
+
+// SA — keep only:
+const [saInputs, setSaInputs] = useState({
+  nightlyRate: 0,
+  occupancyPercent: 90,
+  platformFeesPercent: 0,
+  monthlyRunningCosts: 0,
+});
+
+// BRRR — keep only:
+const [brrrInputs, setBrrrInputs] = useState({
+  postRefurbValue: 0,
+  refinancePercent: 75,
+  newMortgageRate: 0,
+  monthlyRent: 0,
+  monthlyExpenses: 0,
+});
+
+// R2R — unchanged (no universal fields):
+const [r2rInputs, setR2rInputs] = useState({
+  monthlyRentPaid: 0,
+  rooms: 0,
+  rentPerRoom: 0,
+  occupancyRate: 90,
+  managementFeesPercent: 0,
+  monthlyRunningCosts: 0,
+  setupCosts: 0,
+});
+
+// Social — keep only:
+const [socialInputs, setSocialInputs] = useState({
+  leaseIncomePerMonth: 0,
+  leaseLengthYears: 0,
+  managementCostsPerMonth: 0,
+});
+
+STEP 3 — Update calculation calls
+Each calculate* call currently spreads its tab inputs and adds stampDuty. Update to spread both sharedInputs and the tab-specific inputs:
+typescriptconst purchasePrice = sharedInputs.purchasePrice;
+const btlTax = calculatePropertyTax(purchasePrice, taxCountry, buyerType);
+const hmoTax = calculatePropertyTax(purchasePrice, taxCountry, buyerType);
+const flipTax = calculatePropertyTax(purchasePrice, taxCountry, buyerType);
+const saTax = calculatePropertyTax(purchasePrice, taxCountry, buyerType);
+const brrrTax = calculatePropertyTax(purchasePrice, taxCountry, buyerType);
+const socialTax = calculatePropertyTax(purchasePrice, taxCountry, buyerType);
+
+const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: btlTax });
+const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: hmoTax });
+const flipResults = calculateFlip({ ...sharedInputs, ...flipInputs, stampDuty: flipTax });
+const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: saTax });
+const brrrResults = calculateBRRR({ ...sharedInputs, ...brrrInputs, stampDuty: brrrTax });
+const r2rResults = calculateR2R(r2rInputs);
+const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: socialTax });
+Note: BRRR has newMortgageRate as a strategy-specific field — the spread of sharedInputs will provide mortgageRate but BRRR uses newMortgageRate for its mortgage calculation. Check calculations.ts to confirm which field BRRR uses and ensure the spread is correct.
+
+STEP 4 — Update handler references in JSX
+In the JSX, all input fields that previously called handleBtlChange('purchasePrice', ...), handleHmoChange('purchasePrice', ...) etc for universal fields must now call handleSharedChange('purchasePrice', ...).
+Universal fields now rendered ONCE above the tab panel (not repeated per tab):
+
+Purchase Price → handleSharedChange('purchasePrice', value)
+Refurb Cost → handleSharedChange('refurbCost', value)
+Other Costs → handleSharedChange('otherCosts', value)
+Deposit % → handleSharedChange('depositPercent', value)
+Mortgage Rate → handleSharedChange('mortgageRate', value)
+Mortgage Term → handleSharedChange('mortgageTerm', value)
+Mortgage Type toggle → handleSharedChange('mortgageType', value)
+
+Strategy-specific fields stay inside their respective tab panels and continue using their tab-specific handlers.
+The universal input fields should appear in a shared section above the tab switcher — between the Property Tax section and the tab panel. This means the user enters universal inputs once and they apply to all strategies simultaneously.
+
+STEP 5 — Update the Reset function
+The reset function currently resets each tab separately. Update it to also reset sharedInputs:
+typescriptsetSharedInputs({
+  purchasePrice: 0,
+  refurbCost: 0,
+  otherCosts: 0,
+  depositPercent: 25,
+  mortgageRate: 0,
+  mortgageTerm: 25,
+  mortgageType: 'IO',
+});
+Keep the tab-specific resets for strategy-specific fields.
+
+STEP 6 — Update currentPurchasePrice
+Currently reads from per-tab inputs. Update to:
+typescriptconst currentPurchasePrice = sharedInputs.purchasePrice;
+
+STEP 7 — Update PDF function
+The downloadPDF function references btlInputs.purchasePrice, btlInputs.refurbCost, btlInputs.depositPercent, btlInputs.mortgageRate etc throughout. Update all these references to sharedInputs.purchasePrice, sharedInputs.refurbCost, sharedInputs.depositPercent, sharedInputs.mortgageRate etc.
+Do the same for hmoInputs, flipInputs, saInputs, brrrInputs, socialInputs — anywhere they reference the universal fields, update to sharedInputs.
+
+STEP 8 — TypeScript and testing
+After all changes:
+
+Run TypeScript check — zero errors required before proceeding
+Run all existing tests — all 50 must pass
+Manually verify in browser: enter a purchase price and confirm it appears correctly in BTL, HMO, SA, BRRR and Social results simultaneously
+Confirm the Reset button clears shared inputs correctly
+Confirm the PDF still generates correctly with the updated variable references
+
+Critical rules:
+
+Do not change any calculation logic in calculations.ts
+Do not change any tooltip text
+Do not change any risk flag logic — note that risk flags reference btlResults, hmoResults etc (result variables) not input variables, so they should be unaffected
+Do not change the visual layout beyond moving universal fields to the shared section
+Zero TypeScript errors required before finishing
+Report any issues found during testing before considering the task complete
+
+
+This is a large refactor — take it step by step, typecheck after each step, and do not proceed to the next step if there are TypeScript errors.
