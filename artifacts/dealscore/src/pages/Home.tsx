@@ -269,9 +269,16 @@ export default function HomePage() {
       });
       const { suggestions } = result;
       if (suggestions && suggestions.length > 0) {
-        const descriptions = suggestions.map((s: any) =>
-          s.placePrediction?.text?.text || s.placePrediction?.mainText?.text || ''
-        ).filter(Boolean);
+        console.log('Raw suggestions:', JSON.stringify(suggestions?.slice(0, 2)));
+        const descriptions = suggestions.map((s: any) => {
+          return s?.placePrediction?.text?.text ||
+                 s?.placePrediction?.mainText?.text ||
+                 s?.placePrediction?.fullText?.text ||
+                 s?.description ||
+                 s?.text?.text ||
+                 (s?.mh && s?.mh[0] && s?.mh[0][1]) ||
+                 null;
+        }).filter(Boolean) as string[];
         setAddressSuggestions(descriptions);
         setShowSuggestions(true);
       } else {
