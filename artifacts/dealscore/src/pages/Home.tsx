@@ -71,7 +71,7 @@ export default function HomePage() {
   const [propertyDataLoading, setPropertyDataLoading] = useState(false);
   const [propertyDataOpen, setPropertyDataOpen] = useState(true);
 
-  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+  const [addressSuggestions, setAddressSuggestions] = useState<{description: string; placeId: string}[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
@@ -270,12 +270,11 @@ export default function HomePage() {
       const { suggestions } = result;
       if (suggestions && suggestions.length > 0) {
         const descriptions = suggestions.map((s: any) => {
-          const text = s?.Yz || s?.YC ||
-            (Array.isArray(s?.mh?.[0]) ? s.mh[0][2]?.[0] : null) ||
-            s?.placePrediction?.text?.text ||
-            null;
-          return typeof text === 'string' ? text : null;
-        }).filter(Boolean) as string[];
+          const parsed = JSON.parse(JSON.stringify(s));
+          const text = s?.Yz || s?.YC || parsed?.mh?.[0]?.[2]?.[0] || s?.placePrediction?.text?.text || null;
+          const placeId = parsed?.mh?.[0]?.[0] || null;
+          return (typeof text === 'string' && placeId) ? { description: text, placeId } : null;
+        }).filter(Boolean) as {description: string; placeId: string}[];
         setAddressSuggestions(descriptions);
         setShowSuggestions(true);
       } else {
@@ -976,25 +975,22 @@ export default function HomePage() {
                               onMouseDown={async () => {
                                 setShowSuggestions(false);
                                 setAddressSuggestions([]);
-                                setPropertyAddress(suggestion);
+                                setPropertyAddress(suggestion.description);
 
                                 try {
-                                  const result = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
-                                    input: suggestion,
-                                    includedRegionCodes: ['gb'],
+                                  const place = new (window.google.maps.places as any).Place({
+                                    id: suggestion.placeId,
+                                    requestedLanguage: 'en',
                                   });
-                                  const { suggestions: refinedSuggestions } = result;
-                                  if (refinedSuggestions && refinedSuggestions.length > 0) {
-                                    const first = refinedSuggestions[0];
-                                    const fullAddress = first?.Yz || first?.YC ||
-                                      (Array.isArray(first?.mh?.[0]) ? first.mh[0][2]?.[0] : null) ||
-                                      suggestion;
-                                    if (typeof fullAddress === 'string' && fullAddress.length > suggestion.length) {
-                                      setPropertyAddress(fullAddress);
-                                    }
+                                  await place.fetchFields({ fields: ['formattedAddress'] });
+                                  if (place.formattedAddress) {
+                                    const cleaned = place.formattedAddress
+                                      .replace(/, UK$/, '')
+                                      .replace(/, United Kingdom$/, '');
+                                    setPropertyAddress(cleaned);
                                   }
                                 } catch {
-                                  // Keep the original suggestion if refinement fails
+                                  // Keep suggestion.description if Place Details fails
                                 }
                               }}
                               style={{
@@ -1007,7 +1003,7 @@ export default function HomePage() {
                               onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
                               onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
                             >
-                              {suggestion}
+                              {suggestion.description}
                             </div>
                           ))}
                         </div>

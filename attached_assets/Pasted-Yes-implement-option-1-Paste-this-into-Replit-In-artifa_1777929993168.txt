@@ -1,0 +1,58 @@
+Yes — implement option 1. Paste this into Replit:
+
+In artifacts/dealscore/src/pages/Home.tsx, update the suggestion click handler to use Place Details to fetch the full address with postcode.
+First, update fetchAddressSuggestions to also store the place IDs alongside the descriptions. Change the state to store objects instead of strings:
+Replace:
+typescriptconst [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+With:
+typescriptconst [addressSuggestions, setAddressSuggestions] = useState<{description: string; placeId: string}[]>([]);
+Update the extraction in fetchAddressSuggestions:
+typescriptconst descriptions = suggestions.map((s: any) => {
+  const text = s?.Yz || s?.YC ||
+    (Array.isArray(s?.mh?.[0]) ? s.mh[0][2]?.[0] : null) ||
+    s?.placePrediction?.text?.text ||
+    null;
+  const placeId = s?.mh?.[0]?.[0] || null;
+  return (typeof text === 'string' && placeId) ? { description: text, placeId } : null;
+}).filter(Boolean) as {description: string; placeId: string}[];
+Update the dropdown JSX to use suggestion.description:
+tsx{addressSuggestions.map((suggestion, i) => (
+  <div
+    key={i}
+    onMouseDown={async () => {
+      setShowSuggestions(false);
+      setAddressSuggestions([]);
+      setPropertyAddress(suggestion.description);
+
+      // Fetch full address with postcode via Place Details
+      try {
+        const place = new (window.google.maps.places as any).Place({
+          id: suggestion.placeId,
+          requestedLanguage: 'en',
+        });
+        await place.fetchFields({ fields: ['formattedAddress'] });
+        if (place.formattedAddress) {
+          const cleaned = place.formattedAddress
+            .replace(/, UK$/, '')
+            .replace(/, United Kingdom$/, '');
+          setPropertyAddress(cleaned);
+        }
+      } catch {
+        // Keep suggestion.description if Place Details fails
+      }
+    }}
+    style={{
+      padding: '10px 12px',
+      fontSize: 13,
+      cursor: 'pointer',
+      borderBottom: i < addressSuggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+      color: '#1a1a1a',
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+    onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
+  >
+    {suggestion.description}
+  </div>
+))}
+Also update showSuggestions && addressSuggestions.length > 0 condition — this still works since the array just contains objects now.
+Zero TypeScript errors required. Test by selecting "65a Horwood Close, Cardiff" and confirming the postcode appears automatically.
