@@ -272,7 +272,7 @@ export default function HomePage() {
         const descriptions = suggestions.map((s: any) => {
           const parsed = JSON.parse(JSON.stringify(s));
           const text = s?.Yz || s?.YC || parsed?.mh?.[0]?.[2]?.[0] || s?.placePrediction?.text?.text || null;
-          const placeId = parsed?.mh?.[0]?.[0] || null;
+          const placeId = parsed?.mh?.[0]?.[1] || null;
           return (typeof text === 'string' && placeId) ? { description: text, placeId } : null;
         }).filter(Boolean) as {description: string; placeId: string}[];
         setAddressSuggestions(descriptions);
@@ -982,11 +982,20 @@ export default function HomePage() {
                                     id: suggestion.placeId,
                                     requestedLanguage: 'en',
                                   });
-                                  await place.fetchFields({ fields: ['formattedAddress'] });
+                                  await place.fetchFields({ fields: ['formattedAddress', 'addressComponents'] });
                                   if (place.formattedAddress) {
-                                    const cleaned = place.formattedAddress
+                                    let cleaned = place.formattedAddress
                                       .replace(/, UK$/, '')
                                       .replace(/, United Kingdom$/, '');
+
+                                    const comps = JSON.parse(JSON.stringify(place.addressComponents || []));
+                                    const postcodeComp = comps.find(
+                                      (c: any) => Array.isArray(c.types) && c.types.includes('postal_code')
+                                    );
+                                    const postcode = postcodeComp?.longText || '';
+                                    if (postcode && !cleaned.includes(postcode)) {
+                                      cleaned = `${cleaned}, ${postcode}`;
+                                    }
                                     setPropertyAddress(cleaned);
                                   }
                                 } catch {
