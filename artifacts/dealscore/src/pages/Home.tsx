@@ -950,20 +950,24 @@ export default function HomePage() {
                       value={propertyAddress}
                       onChange={(e) => setPropertyAddress(e.target.value)}
                       data-testid="input-property-address"
+                      autoComplete="off"
                       style={{
+                        display: 'block',
                         width: '100%',
-                        height: '40px',
-                        padding: '8px 12px',
+                        height: '36px',
+                        padding: '0 12px',
                         fontSize: '14px',
                         fontFamily: 'inherit',
-                        border: '1px solid hsl(var(--input))',
-                        borderRadius: 'calc(var(--radius) - 2px)',
-                        background: 'transparent',
+                        color: 'inherit',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
                         outline: 'none',
                         boxSizing: 'border-box',
+                        lineHeight: '36px',
                       }}
-                      onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px hsl(var(--ring))'}
-                      onBlur={(e) => e.target.style.boxShadow = 'none'}
+                      onFocus={(e) => { e.target.style.borderColor = '#1B3A6B'; e.target.style.boxShadow = '0 0 0 1px #1B3A6B'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
                   <PropertyDataPanel
