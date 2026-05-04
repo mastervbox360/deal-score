@@ -130,7 +130,7 @@ export default function HomePage() {
     const postcode = postcodeMatch[0].toUpperCase().replace(/\s/g, '');
     const prefix = postcode.match(/^[A-Z]{1,2}/)?.[0] || '';
 
-    const walesPostcodes = ['CF', 'SA', 'NP', 'LL', 'SY', 'LD', 'HR', 'CH', 'GL'];
+    const walesPostcodes = ['CF', 'SA', 'NP', 'LL', 'LD', 'SY'];
     const scotlandPostcodes = ['EH', 'G', 'AB', 'DD', 'KY', 'PH', 'FK', 'KA', 'ML', 'PA', 'TD', 'DG', 'KW', 'IV', 'HS', 'ZE'];
 
     if (walesPostcodes.includes(prefix)) {
