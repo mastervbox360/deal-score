@@ -24,3 +24,9 @@ id = "NZPqQFsujK6tjtCTuCreM"
 uri = "file://dealscore-stage5-wip.zip"
 type = "unspecified"
 title = "dealscore-stage5-wip.zip"
+
+[[outputs]]
+id = "iQ1hvDtf_KhmzotEEN1Hr"
+uri = "file://dealscore-stage5-wip2.zip"
+type = "unspecified"
+title = "dealscore-stage5-wip2.zip"
