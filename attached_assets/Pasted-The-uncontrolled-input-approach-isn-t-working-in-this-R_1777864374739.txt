@@ -1,0 +1,110 @@
+The uncontrolled input approach isn't working in this React setup. Let me take a different approach entirely — use a separate autocomplete container rather than attaching to the input directly.
+Paste this into Replit:
+
+In artifacts/dealscore/src/pages/Home.tsx, the Google Places Autocomplete is still conflicting with the address input. Remove the current autocomplete implementation entirely and replace it with a clean approach using a separate autocomplete service (not attached directly to the input).
+Remove all of the following:
+
+The addressInputRef ref
+The autocompleteRef ref
+The useEffect that initialises new window.google.maps.places.Autocomplete(...)
+The useEffect that loads the Google Maps script
+The declare global for window.google
+The @types/google.maps from tsconfig if it causes issues
+
+Replace the address input back to the original working version:
+tsx<Input 
+  type="text" 
+  placeholder="Enter full property address" 
+  value={propertyAddress} 
+  onChange={(e) => setPropertyAddress(e.target.value)} 
+  data-testid="input-property-address" 
+/>
+Then add a completely separate autocomplete implementation using the Google Places Autocomplete Service API (not the widget):
+Add this state:
+typescriptconst [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+const [showSuggestions, setShowSuggestions] = useState(false);
+const autocompleteServiceRef = useRef<any>(null);
+Add this useEffect to load the Google Maps script:
+typescriptuseEffect(() => {
+  if (document.getElementById('google-maps-script')) return;
+  const script = document.createElement('script');
+  script.id = 'google-maps-script';
+  script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&region=GB&language=en&callback=initGoogleMaps`;
+  script.async = true;
+  window.initGoogleMaps = () => {
+    autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+  };
+  document.head.appendChild(script);
+}, []);
+Add this function to fetch suggestions:
+typescriptconst fetchAddressSuggestions = (input: string) => {
+  if (!input || input.length < 3 || !autocompleteServiceRef.current) {
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
+    return;
+  }
+  autocompleteServiceRef.current.getPlacePredictions(
+    {
+      input,
+      componentRestrictions: { country: 'gb' },
+      types: ['address'],
+    },
+    (predictions: any[], status: string) => {
+      if (status === 'OK' && predictions) {
+        setAddressSuggestions(predictions.map((p: any) => p.description));
+        setShowSuggestions(true);
+      } else {
+        setAddressSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }
+  );
+};
+Update the address onChange to also call fetchAddressSuggestions:
+typescriptonChange={(e) => {
+  setPropertyAddress(e.target.value);
+  fetchAddressSuggestions(e.target.value);
+}}
+Add a suggestions dropdown below the address input:
+tsx{showSuggestions && addressSuggestions.length > 0 && (
+  <div style={{
+    position: 'absolute',
+    zIndex: 1000,
+    background: '#fff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '0 0 6px 6px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    width: '100%',
+    maxHeight: 200,
+    overflowY: 'auto',
+  }}>
+    {addressSuggestions.map((suggestion, i) => (
+      <div
+        key={i}
+        onClick={() => {
+          setPropertyAddress(suggestion);
+          setShowSuggestions(false);
+          setAddressSuggestions([]);
+        }}
+        style={{
+          padding: '10px 12px',
+          fontSize: 13,
+          fontFamily: 'Arial, sans-serif',
+          cursor: 'pointer',
+          borderBottom: i < addressSuggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+          color: '#1a1a1a',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
+      >
+        {suggestion}
+      </div>
+    ))}
+  </div>
+)}
+Wrap the address input and suggestions in a position: relative div.
+Also add window.initGoogleMaps to the global declaration.
+Also update handleReset to clear suggestions:
+typescriptsetAddressSuggestions([]);
+setShowSuggestions(false);
+Replace YOUR_API_KEY with the actual API key. Zero TypeScript errors required. Test by typing "10 Down" and confirming suggestions appear without freezing.

@@ -11,6 +11,12 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+declare global {
+  interface Window {
+    initGoogleMaps: () => void;
+  }
+}
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(value);
 }
@@ -65,8 +71,9 @@ export default function HomePage() {
   const [propertyDataLoading, setPropertyDataLoading] = useState(false);
   const [propertyDataOpen, setPropertyDataOpen] = useState(true);
 
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
@@ -239,60 +246,46 @@ export default function HomePage() {
   }, [propertyAddress]);
 
   useEffect(() => {
-    if (document.getElementById('google-maps-script')) return;
+    if (document.getElementById('google-maps-script')) {
+      if (window.google?.maps?.places) {
+        autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+      }
+      return;
+    }
+    window.initGoogleMaps = () => {
+      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+    };
     const script = document.createElement('script');
     script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&region=GB&language=en`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&region=GB&language=en&callback=initGoogleMaps`;
     script.async = true;
     document.head.appendChild(script);
   }, []);
 
-  useEffect(() => {
-    const initAutocomplete = () => {
-      if (!addressInputRef.current || !window.google?.maps?.places) return;
-      if (autocompleteRef.current) return;
-
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        addressInputRef.current,
-        {
-          componentRestrictions: { country: 'gb' },
-          types: ['address'],
-          fields: ['formatted_address', 'address_components'],
-        }
-      );
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-        if (!place?.formatted_address) return;
-
-        const postcodeComponent = place.address_components?.find(
-          (c: google.maps.GeocoderAddressComponent) => c.types.includes('postal_code')
-        );
-        const postcode = postcodeComponent?.long_name || '';
-
-        let fullAddress = place.formatted_address;
-        if (postcode && !fullAddress.includes(postcode)) {
-          fullAddress = `${fullAddress}, ${postcode}`;
-        }
-
-        setPropertyAddress(fullAddress);
-        if (addressInputRef.current) addressInputRef.current.value = fullAddress;
-      });
-    };
-
-    if (window.google?.maps?.places) {
-      initAutocomplete();
+  const fetchAddressSuggestions = (input: string) => {
+    if (!input || input.length < 3 || !autocompleteServiceRef.current) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
-    const script = document.getElementById('google-maps-script');
-    if (!script) return;
-    script.addEventListener('load', initAutocomplete);
-    return () => script.removeEventListener('load', initAutocomplete);
-  }, []);
+    autocompleteServiceRef.current.getPlacePredictions(
+      { input, componentRestrictions: { country: 'gb' }, types: ['address'] },
+      (predictions, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+          setAddressSuggestions(predictions.map(p => p.description));
+          setShowSuggestions(true);
+        } else {
+          setAddressSuggestions([]);
+          setShowSuggestions(false);
+        }
+      }
+    );
+  };
 
   const handleReset = () => {
     setPropertyAddress('');
-    if (addressInputRef.current) addressInputRef.current.value = '';
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
     setPropertyType('Terraced');
     setTenure('Freehold');
     setLeaseLengthYears(0);
@@ -945,32 +938,55 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                   <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center gap-1"><Label>Property Address</Label><InfoIcon id="shared-addr" text={TT.propAddress} /></div>
-                    <input
-                      ref={addressInputRef}
-                      type="text"
-                      placeholder="Enter full property address"
-                      defaultValue={propertyAddress}
-                      onChange={(e) => setPropertyAddress(e.target.value)}
-                      data-testid="input-property-address"
-                      autoComplete="off"
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        height: '36px',
-                        padding: '0 12px',
-                        fontSize: '14px',
-                        fontFamily: 'inherit',
-                        color: 'inherit',
-                        backgroundColor: 'transparent',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '6px',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                        lineHeight: '36px',
-                      }}
-                      onFocus={(e) => { e.target.style.borderColor = '#1B3A6B'; e.target.style.boxShadow = '0 0 0 1px #1B3A6B'; }}
-                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <Input
+                        type="text"
+                        placeholder="Enter full property address"
+                        value={propertyAddress}
+                        onChange={(e) => {
+                          setPropertyAddress(e.target.value);
+                          fetchAddressSuggestions(e.target.value);
+                        }}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                        data-testid="input-property-address"
+                        autoComplete="off"
+                      />
+                      {showSuggestions && addressSuggestions.length > 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          zIndex: 1000,
+                          background: '#fff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '0 0 6px 6px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          width: '100%',
+                          maxHeight: 200,
+                          overflowY: 'auto',
+                        }}>
+                          {addressSuggestions.map((suggestion, i) => (
+                            <div
+                              key={i}
+                              onMouseDown={() => {
+                                setPropertyAddress(suggestion);
+                                setShowSuggestions(false);
+                                setAddressSuggestions([]);
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                fontSize: 13,
+                                cursor: 'pointer',
+                                borderBottom: i < addressSuggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                color: '#1a1a1a',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
+                            >
+                              {suggestion}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <PropertyDataPanel
                     data={propertyData}
