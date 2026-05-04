@@ -263,11 +263,12 @@ export default function HomePage() {
       return;
     }
     try {
-      const { suggestions } = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      const result = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
         input,
         includedRegionCodes: ['gb'],
-        types: ['address'],
+        includedPrimaryTypes: ['address'],
       });
+      const { suggestions } = result;
       if (suggestions && suggestions.length > 0) {
         const descriptions = suggestions.map((s: any) =>
           s.placePrediction?.text?.text || s.placePrediction?.mainText?.text || ''
