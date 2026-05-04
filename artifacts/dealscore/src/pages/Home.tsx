@@ -276,6 +276,7 @@ export default function HomePage() {
         }
 
         setPropertyAddress(fullAddress);
+        if (addressInputRef.current) addressInputRef.current.value = fullAddress;
       });
     };
 
@@ -291,6 +292,7 @@ export default function HomePage() {
 
   const handleReset = () => {
     setPropertyAddress('');
+    if (addressInputRef.current) addressInputRef.current.value = '';
     setPropertyType('Terraced');
     setTenure('Freehold');
     setLeaseLengthYears(0);
@@ -947,7 +949,7 @@ export default function HomePage() {
                       ref={addressInputRef}
                       type="text"
                       placeholder="Enter full property address"
-                      value={propertyAddress}
+                      defaultValue={propertyAddress}
                       onChange={(e) => setPropertyAddress(e.target.value)}
                       data-testid="input-property-address"
                       autoComplete="off"
