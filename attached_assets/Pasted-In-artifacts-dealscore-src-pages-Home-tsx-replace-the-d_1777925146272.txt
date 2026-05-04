@@ -1,0 +1,39 @@
+In artifacts/dealscore/src/pages/Home.tsx, replace the deprecated AutocompleteService implementation with the new google.maps.places.AutocompleteSuggestion API that Google now requires for new customers.
+Find and replace the fetchAddressSuggestions function with this updated version:
+typescriptconst fetchAddressSuggestions = async (input: string) => {
+  if (!input || input.length < 3 || !window.google?.maps?.places) {
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
+    return;
+  }
+  try {
+    const { suggestions } = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input,
+      includedRegionCodes: ['gb'],
+      types: ['address'],
+    });
+    if (suggestions && suggestions.length > 0) {
+      const descriptions = suggestions.map((s: any) =>
+        s.placePrediction?.text?.text || s.placePrediction?.mainText?.text || ''
+      ).filter(Boolean);
+      setAddressSuggestions(descriptions);
+      setShowSuggestions(true);
+    } else {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }
+  } catch (err) {
+    console.error('Autocomplete error:', err);
+    setAddressSuggestions([]);
+    setShowSuggestions(false);
+  }
+};
+Also update the Google Maps script URL to use the new Places API — find the script src in the useEffect and change it to:
+https://maps.googleapis.com/maps/api/js?key=YOUR_EXISTING_KEY&libraries=places&v=beta&region=GB&language=en&callback=initGoogleMaps
+Adding v=beta enables the new Places API features including AutocompleteSuggestion.
+Also update the initGoogleMaps callback — the AutocompleteService ref is no longer needed. Simplify it to just confirm Google Maps is loaded:
+typescriptwindow.initGoogleMaps = () => {
+  console.log('Google Maps loaded successfully');
+};
+Keep everything else exactly the same — the suggestions dropdown rendering, the onClick handler, the reset, the debounce useEffect on propertyAddress. Only the fetchAddressSuggestions function and script URL need changing.
+Zero TypeScript errors required. Test by typing "10 Down" and checking if suggestions appear.

@@ -73,7 +73,6 @@ export default function HomePage() {
 
   const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
@@ -246,40 +245,44 @@ export default function HomePage() {
   }, [propertyAddress]);
 
   useEffect(() => {
-    if (document.getElementById('google-maps-script')) {
-      if (window.google?.maps?.places) {
-        autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
-      }
-      return;
-    }
+    if (document.getElementById('google-maps-script')) return;
     window.initGoogleMaps = () => {
-      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+      console.log('Google Maps loaded successfully');
     };
     const script = document.createElement('script');
     script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&region=GB&language=en&callback=initGoogleMaps`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&v=beta&region=GB&language=en&callback=initGoogleMaps`;
     script.async = true;
     document.head.appendChild(script);
   }, []);
 
-  const fetchAddressSuggestions = (input: string) => {
-    if (!input || input.length < 3 || !autocompleteServiceRef.current) {
+  const fetchAddressSuggestions = async (input: string) => {
+    if (!input || input.length < 3 || !window.google?.maps?.places) {
       setAddressSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    autocompleteServiceRef.current.getPlacePredictions(
-      { input, componentRestrictions: { country: 'gb' }, types: ['address'] },
-      (predictions, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-          setAddressSuggestions(predictions.map(p => p.description));
-          setShowSuggestions(true);
-        } else {
-          setAddressSuggestions([]);
-          setShowSuggestions(false);
-        }
+    try {
+      const { suggestions } = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
+        input,
+        includedRegionCodes: ['gb'],
+        types: ['address'],
+      });
+      if (suggestions && suggestions.length > 0) {
+        const descriptions = suggestions.map((s: any) =>
+          s.placePrediction?.text?.text || s.placePrediction?.mainText?.text || ''
+        ).filter(Boolean);
+        setAddressSuggestions(descriptions);
+        setShowSuggestions(true);
+      } else {
+        setAddressSuggestions([]);
+        setShowSuggestions(false);
       }
-    );
+    } catch (err) {
+      console.error('Autocomplete error:', err);
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }
   };
 
   const handleReset = () => {
