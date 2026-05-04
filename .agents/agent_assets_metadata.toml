@@ -18,3 +18,9 @@ id = "CarMjed6FStBh0CCiYXIq"
 uri = "file://dealscore-stage4.zip"
 type = "unspecified"
 title = "DealScore Stage 4 — Production Build"
+
+[[outputs]]
+id = "NZPqQFsujK6tjtCTuCreM"
+uri = "file://dealscore-stage5-wip.zip"
+type = "unspecified"
+title = "dealscore-stage5-wip.zip"
