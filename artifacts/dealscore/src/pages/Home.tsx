@@ -251,7 +251,7 @@ export default function HomePage() {
     };
     const script = document.createElement('script');
     script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places,geocoding&v=beta&region=GB&language=en&callback=initGoogleMaps`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBaK2D8hDw3dysp4FYfRaKiloaGlSpwRfU&libraries=places&v=beta&region=GB&language=en&callback=initGoogleMaps`;
     script.async = true;
     document.head.appendChild(script);
   }, []);
@@ -969,22 +969,10 @@ export default function HomePage() {
                           {addressSuggestions.map((suggestion, i) => (
                             <div
                               key={i}
-                              onMouseDown={async () => {
+                              onMouseDown={() => {
+                                setPropertyAddress(suggestion);
                                 setShowSuggestions(false);
                                 setAddressSuggestions([]);
-                                try {
-                                  const geocoder = new window.google.maps.Geocoder();
-                                  const result = await geocoder.geocode({ address: suggestion + ', UK' });
-                                  if (result.results && result.results[0]) {
-                                    const fullAddress = result.results[0].formatted_address;
-                                    const cleaned = fullAddress.replace(/, UK$/, '').replace(/, United Kingdom$/, '');
-                                    setPropertyAddress(cleaned);
-                                  } else {
-                                    setPropertyAddress(suggestion);
-                                  }
-                                } catch {
-                                  setPropertyAddress(suggestion);
-                                }
                               }}
                               style={{
                                 padding: '10px 12px',
