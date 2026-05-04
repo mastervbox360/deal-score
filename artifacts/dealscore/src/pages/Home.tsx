@@ -257,6 +257,7 @@ export default function HomePage() {
   }, []);
 
   const fetchAddressSuggestions = async (input: string) => {
+    console.log('fetch called, input:', input, 'google available:', !!window.google?.maps?.places);
     if (!input || input.length < 3 || !window.google?.maps?.places) {
       setAddressSuggestions([]);
       setShowSuggestions(false);
@@ -268,6 +269,7 @@ export default function HomePage() {
         includedRegionCodes: ['gb'],
       });
       const { suggestions } = result;
+      console.log('suggestions count:', suggestions?.length, 'first:', suggestions?.[0]?.mh?.[0]?.[2]?.[0]);
       if (suggestions && suggestions.length > 0) {
         const descriptions = suggestions.map((s: any) =>
           s?.mh?.[0]?.[2]?.[0] || null
