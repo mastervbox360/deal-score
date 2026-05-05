@@ -168,6 +168,9 @@ export default function HomePage() {
 
       const [landReg, epc, geoResult] = await Promise.all([landRegPromise, epcPromise, postcodeGeoPromise]);
 
+      console.log('EPC raw first record:', JSON.stringify((epc?.data ?? epc?.rows)?.[0]));
+      console.log('Land Registry raw first item:', JSON.stringify(landReg?.result?.items?.[0]));
+
       // Extract a plain string from a JSON-LD field that may be a literal {_value},
       // a resource {@id}, or already a plain string/number.
       const getLdValue = (field: unknown): string | null => {
