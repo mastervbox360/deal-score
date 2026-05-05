@@ -1,4 +1,6 @@
 [build]
+  base = "artifacts/dealscore"
+  command = "pnpm run build"
   publish = "dist/public"
   functions = "netlify/functions"
 
