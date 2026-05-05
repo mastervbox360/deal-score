@@ -157,12 +157,11 @@ export default function HomePage() {
       }
 
       const landRegPromise = fetch(
-        `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?propertyAddress.postcode=${postcode}&_pageSize=1&_sort=-transactionDate`
+        `/.netlify/functions/land-registry?postcode=${postcode}`
       ).then(r => r.json()).catch(() => null);
 
       const epcPromise = fetch(
-        `https://epc.opendatacommunities.org/api/v1/domestic/search?postcode=${postcode}&size=1`,
-        { headers: { 'Accept': 'application/json' } }
+        `/.netlify/functions/epc-lookup?postcode=${postcode}`
       ).then(r => r.json()).catch(() => null);
 
       const postcodeGeoPromise = fetch(
