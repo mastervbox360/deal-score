@@ -59,6 +59,9 @@ export default function HomePage() {
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
+  const [taxOverrideActive, setTaxOverrideActive] = useState(false);
+  const [taxOverrideEditing, setTaxOverrideEditing] = useState(false);
+  const [manualTaxValue, setManualTaxValue] = useState<number>(0);
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -340,6 +343,9 @@ export default function HomePage() {
     setComparableProperties('');
     setTaxCountry('ENGLAND');
     setBuyerType('ADDITIONAL');
+    setTaxOverrideActive(false);
+    setTaxOverrideEditing(false);
+    setManualTaxValue(0);
     setStrategyOpen(false);
     setDealNotesOpen(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
@@ -364,15 +370,16 @@ export default function HomePage() {
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
+  const effectiveTax = taxOverrideActive ? manualTaxValue : sharedTax;
 
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
-  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: sharedTax });
-  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: sharedTax });
-  const flipResults = calculateFlip({ purchasePrice, refurbCost, otherCosts, stampDuty: sharedTax, ...flipInputs });
-  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: sharedTax });
-  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: sharedTax, ...brrrInputs });
+  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax });
+  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: effectiveTax });
+  const flipResults = calculateFlip({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...flipInputs });
+  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax });
+  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs });
   const r2rResults = calculateR2R(r2rInputs);
-  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: sharedTax });
+  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax });
 
   const taxLabel = TAX_LABEL[taxCountry];
   const buyerLabel = BUYER_LABEL[buyerType];
@@ -631,7 +638,7 @@ export default function HomePage() {
     if (dealType === 'BTL') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
         ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
         ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Deposit', `${sharedInputs.depositPercent}%`],
@@ -660,7 +667,7 @@ export default function HomePage() {
     } else if (dealType === 'HMO') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
         ['Refurb / Conversion Cost', formatCurrency(sharedInputs.refurbCost)],
         ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Deposit', `${sharedInputs.depositPercent}%`],
@@ -691,7 +698,7 @@ export default function HomePage() {
     } else if (dealType === 'FLIP') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
         ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
         ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Holding Costs (per month)', formatCurrency(flipInputs.holdingCostsPerMonth)],
@@ -717,7 +724,7 @@ export default function HomePage() {
     } else if (dealType === 'SA') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
         ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
         ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Deposit', `${sharedInputs.depositPercent}%`],
@@ -752,7 +759,7 @@ export default function HomePage() {
     } else if (dealType === 'BRRR') {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
         ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
         ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Post-Refurb Value (GDV)', formatCurrency(brrrInputs.postRefurbValue)],
@@ -803,7 +810,7 @@ export default function HomePage() {
     } else {
       writeSection('Inputs', [
         ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(sharedTax)],
+        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
         ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
         ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
         ['Deposit', `${sharedInputs.depositPercent}%`],
@@ -1075,7 +1082,19 @@ export default function HomePage() {
                         <div className="flex items-center gap-1"><Label>Purchase Price (£)</Label><InfoIcon id="shared-pp" text={TT.purchasePrice} /></div>
                         <Input type="number" placeholder="Enter purchase price" value={sharedInputs.purchasePrice || ''} onChange={(e) => handleSharedChange('purchasePrice', e.target.value)} data-testid="input-purchase-price" />
                       </div>
-                      <TaxSection country={taxCountry} buyerType={buyerType} onCountry={setTaxCountry} onBuyerType={setBuyerType} amount={sharedTax} />
+                      <TaxSection
+                        country={taxCountry}
+                        buyerType={buyerType}
+                        onCountry={setTaxCountry}
+                        onBuyerType={setBuyerType}
+                        calculatedAmount={sharedTax}
+                        overrideActive={taxOverrideActive}
+                        overrideEditing={taxOverrideEditing}
+                        manualValue={manualTaxValue}
+                        onStartOverride={() => { setManualTaxValue(sharedTax); setTaxOverrideEditing(true); setTaxOverrideActive(false); }}
+                        onConfirmOverride={(v) => { setManualTaxValue(v); setTaxOverrideActive(true); setTaxOverrideEditing(false); }}
+                        onResetOverride={() => { setTaxOverrideActive(false); setTaxOverrideEditing(false); setManualTaxValue(0); }}
+                      />
                       <div className="space-y-2">
                         <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="shared-refurb" text={TT.refurbCost} /></div>
                         <Input type="number" placeholder="Enter refurb cost" value={sharedInputs.refurbCost || ''} onChange={(e) => handleSharedChange('refurbCost', e.target.value)} />
@@ -1873,15 +1892,28 @@ function TaxSection({
   buyerType,
   onCountry,
   onBuyerType,
-  amount,
+  calculatedAmount,
+  overrideActive,
+  overrideEditing,
+  manualValue,
+  onStartOverride,
+  onConfirmOverride,
+  onResetOverride,
 }: {
   country: Country;
   buyerType: BuyerType;
   onCountry: (v: Country) => void;
   onBuyerType: (v: BuyerType) => void;
-  amount: number;
+  calculatedAmount: number;
+  overrideActive: boolean;
+  overrideEditing: boolean;
+  manualValue: number;
+  onStartOverride: () => void;
+  onConfirmOverride: (v: number) => void;
+  onResetOverride: () => void;
 }) {
   const label = TAX_LABEL[country];
+  const fmt = (n: number) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(n);
 
   const handleCountryChange = (v: Country) => {
     onCountry(v);
@@ -1895,19 +1927,69 @@ function TaxSection({
 
   const showFTB = country !== 'WALES';
   const showNonUK = country === 'ENGLAND';
+  const displayAmount = overrideActive ? manualValue : calculatedAmount;
 
   return (
     <div className="md:col-span-2 rounded-xl bg-muted/40 border border-border p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1 shrink-0">
           <Label className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>
             Property Tax ({label})
           </Label>
           <InfoIcon id="tax-info" text={TT.propTax} />
         </div>
-        <span className="text-base font-bold" style={{ color: '#1B3A6B' }} data-testid="tax-amount">
-          {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(amount)}
-        </span>
+        <div className="flex items-center gap-2 min-w-0">
+          {overrideEditing ? (
+            <>
+              <Input
+                type="number"
+                className="w-32 h-7 text-sm text-right font-semibold"
+                style={{ color: '#1B3A6B' }}
+                value={manualValue || ''}
+                onChange={(e) => onConfirmOverride(Number(e.target.value) || 0)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => onConfirmOverride(manualValue)}
+                className="text-xs font-medium text-green-700 hover:text-green-900 whitespace-nowrap"
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                onClick={onResetOverride}
+                className="text-xs text-slate-400 hover:text-slate-600 whitespace-nowrap"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="text-base font-bold" style={{ color: '#1B3A6B' }} data-testid="tax-amount">
+                {fmt(displayAmount)}
+                {overrideActive && <span className="text-xs font-normal text-slate-400 ml-1">(manual)</span>}
+              </span>
+              {overrideActive ? (
+                <button
+                  type="button"
+                  onClick={onResetOverride}
+                  className="text-xs text-slate-400 hover:text-slate-600 whitespace-nowrap"
+                >
+                  Reset to calculated
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onStartOverride}
+                  className="text-xs text-[#1B3A6B] hover:underline whitespace-nowrap opacity-60 hover:opacity-100"
+                >
+                  Override
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1.5">
