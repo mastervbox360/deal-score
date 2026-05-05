@@ -178,8 +178,9 @@ export default function HomePage() {
         const items = landReg?.result?.items;
         if (items && items.length > 0) {
           const item = items[0];
-          lastSoldPrice = item.pricePaid ? Number(item.pricePaid) : null;
-          lastSoldDate = item.transactionDate || null;
+          const rawPrice = item.pricePaid?.['_value'] ?? item.pricePaid;
+          lastSoldPrice = rawPrice != null ? Number(rawPrice) : null;
+          lastSoldDate = item.transactionDate?.['_value'] || item.transactionDate || null;
           const estateType = item.estateType?.['_value'] || item.estateType;
           detectedTenure = estateType === 'freehold' ? 'Freehold' :
                            estateType === 'leasehold' ? 'Leasehold' : null;
@@ -192,10 +193,10 @@ export default function HomePage() {
       let constructionDate: string | null = null;
 
       try {
-        const rows = epc?.rows;
+        const rows = epc?.data ?? epc?.rows;
         if (rows && rows.length > 0) {
           const row = rows[0];
-          const rawType = row['property-type'] || '';
+          const rawType = row.propertyType || row['property-type'] || '';
           const typeMap: Record<string, string> = {
             'Detached House': 'Detached',
             'Semi-Detached House': 'Semi-Detached',
@@ -206,9 +207,10 @@ export default function HomePage() {
             'Park home': 'Terraced',
           };
           detectedPropertyType = typeMap[rawType] || rawType || null;
-          floorArea = row['total-floor-area'] ? Number(row['total-floor-area']) : null;
-          epcRating = row['current-energy-rating'] || null;
-          constructionDate = row['construction-age-band'] || null;
+          const rawFloor = row.totalFloorArea ?? row['total-floor-area'];
+          floorArea = rawFloor != null ? Number(rawFloor) : null;
+          epcRating = row.currentEnergyEfficiencyBand || row['current-energy-rating'] || null;
+          constructionDate = row.constructionAgeBand || row['construction-age-band'] || null;
         }
       } catch { /* silent */ }
 
