@@ -30,3 +30,9 @@ id = "iQ1hvDtf_KhmzotEEN1Hr"
 uri = "file://dealscore-stage5-wip2.zip"
 type = "unspecified"
 title = "dealscore-stage5-wip2.zip"
+
+[[outputs]]
+id = "884pvVzFHdaNA--3iwjia"
+uri = "file://dealscore-stage5.zip"
+type = "unspecified"
+title = "dealscore-stage5.zip"
