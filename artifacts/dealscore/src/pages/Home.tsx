@@ -176,7 +176,6 @@ export default function HomePage() {
       const epcFetch = fetch(`/.netlify/functions/epc-lookup?postcode=${postcode}`)
         .then(r => r.json())
         .then(epc => {
-          console.log('EPC raw first record:', JSON.stringify((epc?.data ?? epc?.rows)?.[0]));
           try {
             const rows = epc?.data ?? epc?.rows;
             if (rows && rows.length > 0) {
@@ -209,7 +208,6 @@ export default function HomePage() {
       const landRegFetch = fetch(`/.netlify/functions/land-registry?postcode=${postcode}`)
         .then(r => r.json())
         .then(landReg => {
-          console.log('Land Registry raw first item:', JSON.stringify(landReg?.result?.items?.[0]));
           try {
             const items = landReg?.result?.items;
             if (items && items.length > 0) {
@@ -225,8 +223,6 @@ export default function HomePage() {
                 'flat / maisonette': 'Flat/Apartment', 'flat/maisonette': 'Flat/Apartment',
               };
               const detectedPropertyType = landRegTypeMap[propRaw] ?? null;
-              console.log('Setting propertyType to:', detectedPropertyType);
-              console.log('Setting tenure to:', detectedTenure);
               if (detectedTenure) { setTenure(detectedTenure); setAutoFilledTenure(true); }
               if (detectedPropertyType) { setPropertyType(detectedPropertyType); setAutoFilledPropertyType(true); }
               setPropertyData(prev => prev ? {
