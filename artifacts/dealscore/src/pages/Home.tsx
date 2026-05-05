@@ -145,7 +145,8 @@ export default function HomePage() {
   const lookupPropertyData = async (address: string) => {
     if (!address || address.trim().length < 5) return;
     setPropertyDataLoading(true);
-    setPropertyData(null);
+    // Show panel immediately with empty state so it appears at once
+    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, constructionDate: null, floodRisk: null });
 
     try {
       const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
@@ -156,123 +157,108 @@ export default function HomePage() {
         return;
       }
 
-      const landRegPromise = fetch(
-        `/.netlify/functions/land-registry?postcode=${postcode}`
-      ).then(r => r.json()).catch(() => null);
-
-      const epcPromise = fetch(
-        `/.netlify/functions/epc-lookup?postcode=${postcode}`
-      ).then(r => r.json()).catch(() => null);
-
-      const postcodeGeoPromise = fetch(
-        `https://api.postcodes.io/postcodes/${postcode}`
-      ).then(r => r.json()).catch(() => null);
-
-      const [landReg, epc, geoResult] = await Promise.all([landRegPromise, epcPromise, postcodeGeoPromise]);
-
-      console.log('EPC raw first record:', JSON.stringify((epc?.data ?? epc?.rows)?.[0]));
-      console.log('Land Registry raw first item:', JSON.stringify(landReg?.result?.items?.[0]));
-
-      // Extract a plain string from a JSON-LD field that may be a literal {_value},
-      // a resource {@id}, or already a plain string/number.
-      const getLdValue = (field: unknown): string | null => {
+      // Extract a plain string from a JSON-LD field: label[0]._value, _value, @id last segment, or plain value.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const getLdValue = (field: any): string | null => {
         if (!field) return null;
         if (typeof field === 'string') return field;
         if (typeof field === 'number') return String(field);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const f = field as any;
-        if (f?.label?.[0]?.['_value']) return f.label[0]['_value'];
-        if (f?.['_value'] != null) return String(f['_value']);
-        if (typeof f?.['@id'] === 'string') return (f['@id'] as string).split('/').pop() ?? null;
+        if (field?.label?.[0]?.['_value']) return field.label[0]['_value'];
+        if (field?.['_value'] != null) return String(field['_value']);
+        if (typeof field?.['@id'] === 'string') return (field['@id'] as string).split('/').pop() ?? null;
         return null;
       };
 
-      let detectedTenure: 'Freehold' | 'Leasehold' | null = null;
-      let detectedPropertyType: string | null = null;
+      // EPC — typically fast; updates rating, floor area, construction date
+      const epcFetch = fetch(`/.netlify/functions/epc-lookup?postcode=${postcode}`)
+        .then(r => r.json())
+        .then(epc => {
+          console.log('EPC raw first record:', JSON.stringify((epc?.data ?? epc?.rows)?.[0]));
+          try {
+            const rows = epc?.data ?? epc?.rows;
+            if (rows && rows.length > 0) {
+              const row = rows[0];
+              const epcTypeMap: Record<string, string> = {
+                'Detached House': 'Detached', 'Semi-Detached House': 'Semi-Detached',
+                'Terraced House': 'Terraced', 'Flat': 'Flat/Apartment',
+                'Maisonette': 'Flat/Apartment', 'Bungalow': 'Bungalow', 'Park home': 'Terraced',
+              };
+              const rawType = row.propertyType || row['property-type'] || '';
+              const epcPropertyType = epcTypeMap[rawType] || rawType || null;
+              const rawFloor = row.totalFloorArea ?? row['total-floor-area'];
+              const floorArea = rawFloor != null ? Number(rawFloor) : null;
+              const epcRating = row.currentEnergyEfficiencyBand || row['current-energy-rating'] || null;
+              const constructionDate = row.constructionAgeBand || row['construction-age-band'] || null;
+              if (epcPropertyType) { setPropertyType(epcPropertyType); setAutoFilledPropertyType(true); }
+              setPropertyData(prev => prev ? {
+                ...prev,
+                floorArea,
+                epcRating,
+                constructionDate,
+                ...(epcPropertyType ? { detectedPropertyType: epcPropertyType } : {}),
+              } : null);
+            }
+          } catch { /* silent */ }
+        })
+        .catch(() => null);
 
-      try {
-        const items = landReg?.result?.items;
-        if (items && items.length > 0) {
-          const item = items[0];
-          // estateType: label[0]._value returns "Freehold"/"Leasehold" directly
-          const estateRaw = getLdValue(item.estateType)?.toLowerCase() ?? '';
-          detectedTenure = estateRaw.includes('freehold') ? 'Freehold' :
-                           estateRaw.includes('leasehold') ? 'Leasehold' : null;
-          // propertyType: label[0]._value returns "Terraced", "Detached", etc.
-          const propRaw = getLdValue(item.propertyType)?.toLowerCase() ?? '';
-          const landRegTypeMap: Record<string, string> = {
-            'terraced': 'Terraced',
-            'semi-detached': 'Semi-Detached',
-            'detached': 'Detached',
-            'flat-maisonette': 'Flat/Apartment',
-            'semi detached': 'Semi-Detached',
-            'flat / maisonette': 'Flat/Apartment',
-            'flat/maisonette': 'Flat/Apartment',
-          };
-          detectedPropertyType = landRegTypeMap[propRaw] ?? null;
-        }
-      } catch { /* silent */ }
+      // Land Registry — typically slower; updates tenure and property type (authoritative)
+      const landRegFetch = fetch(`/.netlify/functions/land-registry?postcode=${postcode}`)
+        .then(r => r.json())
+        .then(landReg => {
+          console.log('Land Registry raw first item:', JSON.stringify(landReg?.result?.items?.[0]));
+          try {
+            const items = landReg?.result?.items;
+            if (items && items.length > 0) {
+              const item = items[0];
+              const estateRaw = getLdValue(item.estateType)?.toLowerCase() ?? '';
+              const detectedTenure: 'Freehold' | 'Leasehold' | null =
+                estateRaw.includes('freehold') ? 'Freehold' :
+                estateRaw.includes('leasehold') ? 'Leasehold' : null;
+              const propRaw = getLdValue(item.propertyType)?.toLowerCase() ?? '';
+              const landRegTypeMap: Record<string, string> = {
+                'terraced': 'Terraced', 'semi-detached': 'Semi-Detached', 'detached': 'Detached',
+                'flat-maisonette': 'Flat/Apartment', 'semi detached': 'Semi-Detached',
+                'flat / maisonette': 'Flat/Apartment', 'flat/maisonette': 'Flat/Apartment',
+              };
+              const detectedPropertyType = landRegTypeMap[propRaw] ?? null;
+              console.log('Setting propertyType to:', detectedPropertyType);
+              console.log('Setting tenure to:', detectedTenure);
+              if (detectedTenure) { setTenure(detectedTenure); setAutoFilledTenure(true); }
+              if (detectedPropertyType) { setPropertyType(detectedPropertyType); setAutoFilledPropertyType(true); }
+              setPropertyData(prev => prev ? {
+                ...prev,
+                ...(detectedTenure ? { detectedTenure } : {}),
+                ...(detectedPropertyType ? { detectedPropertyType } : {}),
+              } : null);
+            }
+          } catch { /* silent */ }
+        })
+        .catch(() => null);
 
-      let floorArea: number | null = null;
-      let epcRating: string | null = null;
-      let constructionDate: string | null = null;
+      // Geo + Flood — chains geo lookup into flood check; updates flood risk
+      const geoFloodFetch = fetch(`https://api.postcodes.io/postcodes/${postcode}`)
+        .then(r => r.json())
+        .then(async geoResult => {
+          try {
+            const lat = geoResult?.result?.latitude;
+            const lng = geoResult?.result?.longitude;
+            if (lat && lng) {
+              const floodRes = await fetch(
+                `https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=${lat}&long=${lng}&dist=1`
+              ).then(r => r.json()).catch(() => null);
+              const floodItems = floodRes?.items;
+              const floodRisk = floodItems && floodItems.length > 0
+                ? 'Flood risk area detected nearby — check Environment Agency for full assessment'
+                : 'No flood risk areas detected nearby';
+              setPropertyData(prev => prev ? { ...prev, floodRisk } : null);
+            }
+          } catch { /* silent */ }
+        })
+        .catch(() => null);
 
-      try {
-        const rows = epc?.data ?? epc?.rows;
-        if (rows && rows.length > 0) {
-          const row = rows[0];
-          // EPC search API (new) only returns currentEnergyEfficiencyBand reliably.
-          // propertyType fallback: EPC old API used kebab-case values.
-          if (!detectedPropertyType) {
-            const rawType = row.propertyType || row['property-type'] || '';
-            const epcTypeMap: Record<string, string> = {
-              'Detached House': 'Detached',
-              'Semi-Detached House': 'Semi-Detached',
-              'Terraced House': 'Terraced',
-              'Flat': 'Flat/Apartment',
-              'Maisonette': 'Flat/Apartment',
-              'Bungalow': 'Bungalow',
-              'Park home': 'Terraced',
-            };
-            detectedPropertyType = epcTypeMap[rawType] || (rawType || null);
-          }
-          const rawFloor = row.totalFloorArea ?? row['total-floor-area'];
-          floorArea = rawFloor != null ? Number(rawFloor) : null;
-          epcRating = row.currentEnergyEfficiencyBand || row['current-energy-rating'] || null;
-          constructionDate = row.constructionAgeBand || row['construction-age-band'] || null;
-        }
-      } catch { /* silent */ }
-
-      let floodRisk: string | null = null;
-      try {
-        const lat = geoResult?.result?.latitude;
-        const lng = geoResult?.result?.longitude;
-        if (lat && lng) {
-          const floodRes = await fetch(
-            `https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=${lat}&long=${lng}&dist=1`
-          ).then(r => r.json()).catch(() => null);
-          const items = floodRes?.items;
-          if (items && items.length > 0) {
-            floodRisk = `Flood risk area detected nearby — check Environment Agency for full assessment`;
-          } else {
-            floodRisk = 'No flood risk areas detected nearby';
-          }
-        }
-      } catch { /* silent */ }
-
-      console.log('Setting propertyType to:', detectedPropertyType);
-      console.log('Setting tenure to:', detectedTenure);
-      if (detectedTenure) { setTenure(detectedTenure); setAutoFilledTenure(true); }
-      if (detectedPropertyType) { setPropertyType(detectedPropertyType); setAutoFilledPropertyType(true); }
-
-      setPropertyData({
-        detectedTenure,
-        detectedPropertyType,
-        floorArea,
-        epcRating,
-        constructionDate,
-        floodRisk,
-      });
+      // Wait for all before clearing the loading spinner
+      await Promise.all([epcFetch, landRegFetch, geoFloodFetch]);
 
     } catch (error) {
       console.error('Property lookup error:', error);
