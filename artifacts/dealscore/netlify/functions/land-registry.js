@@ -5,7 +5,9 @@ exports.handler = async (event) => {
   }
 
   try {
-    const url = `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?propertyAddress.postcode=${postcode}&_pageSize=1&_sort=-transactionDate`;
+    const raw = postcode.replace(/\s+/g, '').toUpperCase();
+    const formatted = raw.slice(0, -3) + ' ' + raw.slice(-3);
+    const url = `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?propertyAddress.postcode=${encodeURIComponent(formatted)}&_pageSize=1&_sort=-transactionDate`;
     const response = await fetch(url);
     const data = await response.json();
     return {
