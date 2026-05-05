@@ -170,24 +170,47 @@ export default function HomePage() {
 
       const [landReg, epc, geoResult] = await Promise.all([landRegPromise, epcPromise, postcodeGeoPromise]);
 
+      // Extract a plain string from a JSON-LD field that may be a literal {_value},
+      // a resource {@id}, or already a plain string/number.
+      const getLdValue = (field: unknown): string | null => {
+        if (field == null) return null;
+        if (typeof field === 'string') return field;
+        if (typeof field === 'number') return String(field);
+        const f = field as Record<string, unknown>;
+        if (f['_value'] != null) return String(f['_value']);
+        if (typeof f['@id'] === 'string') return (f['@id'] as string).split('/').pop() ?? null;
+        return null;
+      };
+
       let lastSoldPrice: number | null = null;
       let lastSoldDate: string | null = null;
       let detectedTenure: 'Freehold' | 'Leasehold' | null = null;
+      let detectedPropertyType: string | null = null;
 
       try {
         const items = landReg?.result?.items;
         if (items && items.length > 0) {
           const item = items[0];
+          // pricePaid may be a plain integer or {_value: number}
           const rawPrice = item.pricePaid?.['_value'] ?? item.pricePaid;
           lastSoldPrice = rawPrice != null ? Number(rawPrice) : null;
-          lastSoldDate = item.transactionDate?.['_value'] || item.transactionDate || null;
-          const estateType = item.estateType?.['_value'] || item.estateType;
-          detectedTenure = estateType === 'freehold' ? 'Freehold' :
-                           estateType === 'leasehold' ? 'Leasehold' : null;
+          lastSoldDate = getLdValue(item.transactionDate);
+          // estateType comes as {@id: ".../freehold"} or {_value: "freehold"}
+          const estateRaw = getLdValue(item.estateType)?.toLowerCase() ?? '';
+          detectedTenure = estateRaw.includes('freehold') ? 'Freehold' :
+                           estateRaw.includes('leasehold') ? 'Leasehold' : null;
+          // propertyType comes as {@id: ".../terraced"} or {_value: "terraced"}
+          const propRaw = getLdValue(item.propertyType)?.toLowerCase() ?? '';
+          const landRegTypeMap: Record<string, string> = {
+            'terraced': 'Terraced',
+            'semi-detached': 'Semi-Detached',
+            'detached': 'Detached',
+            'flat-maisonette': 'Flat/Apartment',
+          };
+          detectedPropertyType = landRegTypeMap[propRaw] ?? null;
         }
       } catch { /* silent */ }
 
-      let detectedPropertyType: string | null = null;
       let floorArea: number | null = null;
       let epcRating: string | null = null;
       let constructionDate: string | null = null;
@@ -196,17 +219,21 @@ export default function HomePage() {
         const rows = epc?.data ?? epc?.rows;
         if (rows && rows.length > 0) {
           const row = rows[0];
-          const rawType = row.propertyType || row['property-type'] || '';
-          const typeMap: Record<string, string> = {
-            'Detached House': 'Detached',
-            'Semi-Detached House': 'Semi-Detached',
-            'Terraced House': 'Terraced',
-            'Flat': 'Flat/Apartment',
-            'Maisonette': 'Flat/Apartment',
-            'Bungalow': 'Bungalow',
-            'Park home': 'Terraced',
-          };
-          detectedPropertyType = typeMap[rawType] || rawType || null;
+          // EPC search API (new) only returns currentEnergyEfficiencyBand reliably.
+          // propertyType fallback: EPC old API used kebab-case values.
+          if (!detectedPropertyType) {
+            const rawType = row.propertyType || row['property-type'] || '';
+            const epcTypeMap: Record<string, string> = {
+              'Detached House': 'Detached',
+              'Semi-Detached House': 'Semi-Detached',
+              'Terraced House': 'Terraced',
+              'Flat': 'Flat/Apartment',
+              'Maisonette': 'Flat/Apartment',
+              'Bungalow': 'Bungalow',
+              'Park home': 'Terraced',
+            };
+            detectedPropertyType = epcTypeMap[rawType] || (rawType || null);
+          }
           const rawFloor = row.totalFloorArea ?? row['total-floor-area'];
           floorArea = rawFloor != null ? Number(rawFloor) : null;
           epcRating = row.currentEnergyEfficiencyBand || row['current-energy-rating'] || null;
