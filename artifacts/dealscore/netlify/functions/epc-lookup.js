@@ -4,10 +4,18 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'postcode required' }) };
   }
 
+  const token = process.env.EPC_BEARER_TOKEN;
+  if (!token) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'EPC_BEARER_TOKEN not configured' }) };
+  }
+
   try {
-    const url = `https://epc.opendatacommunities.org/api/v1/domestic/search?postcode=${postcode}&size=1`;
+    const url = `https://api.get-energy-performance-data.communities.gov.uk/api/domestic/search?postcode=${encodeURIComponent(postcode)}&page_size=1`;
     const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
     });
     const data = await response.json();
     return {
