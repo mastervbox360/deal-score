@@ -46,6 +46,8 @@ export default function HomePage() {
   const [propertyAddress, setPropertyAddress] = useState('');
   const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [tenure, setTenure] = useState<'Freehold' | 'Leasehold'>('Freehold');
+  const [autoFilledPropertyType, setAutoFilledPropertyType] = useState(false);
+  const [autoFilledTenure, setAutoFilledTenure] = useState(false);
   const [leaseLengthYears, setLeaseLengthYears] = useState<number>(0);
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [marketValue, setMarketValue] = useState<number>(0);
@@ -260,8 +262,8 @@ export default function HomePage() {
 
       console.log('Setting propertyType to:', detectedPropertyType);
       console.log('Setting tenure to:', detectedTenure);
-      if (detectedTenure) setTenure(detectedTenure);
-      if (detectedPropertyType) setPropertyType(detectedPropertyType);
+      if (detectedTenure) { setTenure(detectedTenure); setAutoFilledTenure(true); }
+      if (detectedPropertyType) { setPropertyType(detectedPropertyType); setAutoFilledPropertyType(true); }
 
       setPropertyData({
         detectedTenure,
@@ -341,6 +343,8 @@ export default function HomePage() {
     setShowSuggestions(false);
     setPropertyType('Terraced');
     setTenure('Freehold');
+    setAutoFilledPropertyType(false);
+    setAutoFilledTenure(false);
     setLeaseLengthYears(0);
     setSourcingFee(0);
     setMarketValue(0);
@@ -1075,9 +1079,10 @@ export default function HomePage() {
                   />
                   <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center gap-1"><Label>Property Type</Label><InfoIcon id="shared-proptype" text={TT.propType} /></div>
-                    <PropertyTypeSelect value={propertyType} onChange={setPropertyType} />
+                    <PropertyTypeSelect value={propertyType} onChange={(v) => { setPropertyType(v); setAutoFilledPropertyType(false); }} />
+                    {autoFilledPropertyType && <p className="text-xs text-slate-400 mt-1">Auto-suggested — please verify</p>}
                   </div>
-                  <TenureSection tenure={tenure} onChange={setTenure} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} />
+                  <TenureSection tenure={tenure} onChange={(v) => { setTenure(v); setAutoFilledTenure(false); }} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} hint={autoFilledTenure ? 'Auto-suggested — please verify' : undefined} />
                   {dealType !== 'R2R' && (
                     <>
                       <div className="space-y-2">
@@ -1824,11 +1829,13 @@ function TenureSection({
   onChange,
   leaseLength,
   onLeaseLength,
+  hint,
 }: {
   tenure: 'Freehold' | 'Leasehold';
   onChange: (v: 'Freehold' | 'Leasehold') => void;
   leaseLength: number;
   onLeaseLength: (v: number) => void;
+  hint?: string;
 }) {
   return (
     <>
@@ -1850,6 +1857,7 @@ function TenureSection({
             Leasehold
           </button>
         </div>
+        {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
       </div>
       {tenure === 'Leasehold' && (
         <>
@@ -2156,18 +2164,6 @@ function PropertyDataPanel({
             </p>
           ) : data ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', fontSize: 12, fontFamily: 'Arial, sans-serif' }}>
-              {data.detectedPropertyType && (
-                <div>
-                  <span style={{ color: '#64748B' }}>Type: </span>
-                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.detectedPropertyType} <span style={{ color: '#16a34a', fontSize: 11 }}>✓ auto-filled</span></span>
-                </div>
-              )}
-              {data.detectedTenure && (
-                <div>
-                  <span style={{ color: '#64748B' }}>Tenure: </span>
-                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.detectedTenure} <span style={{ color: '#16a34a', fontSize: 11 }}>✓ auto-filled</span></span>
-                </div>
-              )}
               {data.floorArea && (
                 <div>
                   <span style={{ color: '#64748B' }}>Floor area: </span>
