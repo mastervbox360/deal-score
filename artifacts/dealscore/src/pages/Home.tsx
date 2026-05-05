@@ -250,6 +250,8 @@ export default function HomePage() {
         }
       } catch { /* silent */ }
 
+      console.log('Setting propertyType to:', detectedPropertyType);
+      console.log('Setting tenure to:', detectedTenure);
       if (detectedTenure) setTenure(detectedTenure);
       if (detectedPropertyType) setPropertyType(detectedPropertyType);
 
