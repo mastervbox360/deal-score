@@ -174,12 +174,14 @@ export default function HomePage() {
       // Extract a plain string from a JSON-LD field that may be a literal {_value},
       // a resource {@id}, or already a plain string/number.
       const getLdValue = (field: unknown): string | null => {
-        if (field == null) return null;
+        if (!field) return null;
         if (typeof field === 'string') return field;
         if (typeof field === 'number') return String(field);
-        const f = field as Record<string, unknown>;
-        if (f['_value'] != null) return String(f['_value']);
-        if (typeof f['@id'] === 'string') return (f['@id'] as string).split('/').pop() ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const f = field as any;
+        if (f?.label?.[0]?.['_value']) return f.label[0]['_value'];
+        if (f?.['_value'] != null) return String(f['_value']);
+        if (typeof f?.['@id'] === 'string') return (f['@id'] as string).split('/').pop() ?? null;
         return null;
       };
 
@@ -190,17 +192,20 @@ export default function HomePage() {
         const items = landReg?.result?.items;
         if (items && items.length > 0) {
           const item = items[0];
-          // estateType comes as {@id: ".../freehold"} or {_value: "freehold"}
+          // estateType: label[0]._value returns "Freehold"/"Leasehold" directly
           const estateRaw = getLdValue(item.estateType)?.toLowerCase() ?? '';
           detectedTenure = estateRaw.includes('freehold') ? 'Freehold' :
                            estateRaw.includes('leasehold') ? 'Leasehold' : null;
-          // propertyType comes as {@id: ".../terraced"} or {_value: "terraced"}
+          // propertyType: label[0]._value returns "Terraced", "Detached", etc.
           const propRaw = getLdValue(item.propertyType)?.toLowerCase() ?? '';
           const landRegTypeMap: Record<string, string> = {
             'terraced': 'Terraced',
             'semi-detached': 'Semi-Detached',
             'detached': 'Detached',
             'flat-maisonette': 'Flat/Apartment',
+            'semi detached': 'Semi-Detached',
+            'flat / maisonette': 'Flat/Apartment',
+            'flat/maisonette': 'Flat/Apartment',
           };
           detectedPropertyType = landRegTypeMap[propRaw] ?? null;
         }
