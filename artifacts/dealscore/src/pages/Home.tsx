@@ -59,8 +59,6 @@ export default function HomePage() {
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
 
   const [propertyData, setPropertyData] = useState<{
-    lastSoldPrice: number | null;
-    lastSoldDate: string | null;
     detectedTenure: 'Freehold' | 'Leasehold' | null;
     detectedPropertyType: string | null;
     floorArea: number | null;
@@ -182,21 +180,13 @@ export default function HomePage() {
         return null;
       };
 
-      let lastSoldPrice: number | null = null;
-      let lastSoldDate: string | null = null;
       let detectedTenure: 'Freehold' | 'Leasehold' | null = null;
       let detectedPropertyType: string | null = null;
 
       try {
-        console.log('Land Registry full response:', JSON.stringify(landReg));
-        console.log('Land Registry items:', landReg?.result?.items);
         const items = landReg?.result?.items;
         if (items && items.length > 0) {
           const item = items[0];
-          // pricePaid may be a plain integer or {_value: number}
-          const rawPrice = item.pricePaid?.['_value'] ?? item.pricePaid;
-          lastSoldPrice = rawPrice != null ? Number(rawPrice) : null;
-          lastSoldDate = getLdValue(item.transactionDate);
           // estateType comes as {@id: ".../freehold"} or {_value: "freehold"}
           const estateRaw = getLdValue(item.estateType)?.toLowerCase() ?? '';
           detectedTenure = estateRaw.includes('freehold') ? 'Freehold' :
@@ -264,8 +254,6 @@ export default function HomePage() {
       if (detectedPropertyType) setPropertyType(detectedPropertyType);
 
       setPropertyData({
-        lastSoldPrice,
-        lastSoldDate,
         detectedTenure,
         detectedPropertyType,
         floorArea,
@@ -2102,8 +2090,6 @@ function PropertyDataPanel({
   onToggle,
 }: {
   data: {
-    lastSoldPrice: number | null;
-    lastSoldDate: string | null;
     detectedTenure: string | null;
     detectedPropertyType: string | null;
     floorArea: number | null;
@@ -2160,15 +2146,6 @@ function PropertyDataPanel({
             </p>
           ) : data ? (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', fontSize: 12, fontFamily: 'Arial, sans-serif' }}>
-              {data.lastSoldPrice && (
-                <div>
-                  <span style={{ color: '#64748B' }}>Last sold: </span>
-                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>
-                    {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(data.lastSoldPrice)}
-                    {data.lastSoldDate ? ` — ${new Date(data.lastSoldDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}` : ''}
-                  </span>
-                </div>
-              )}
               {data.detectedPropertyType && (
                 <div>
                   <span style={{ color: '#64748B' }}>Type: </span>
