@@ -188,14 +188,11 @@ export default function HomePage() {
       let detectedPropertyType: string | null = null;
 
       try {
+        console.log('Land Registry full response:', JSON.stringify(landReg));
+        console.log('Land Registry items:', landReg?.result?.items);
         const items = landReg?.result?.items;
         if (items && items.length > 0) {
           const item = items[0];
-          console.log('Land Registry raw item:', JSON.stringify(item));
-          console.log('getLdValue estateType:', getLdValue(item.estateType));
-          console.log('getLdValue propertyType:', getLdValue(item.propertyType));
-          console.log('getLdValue pricePaid:', getLdValue(item.pricePaid));
-          console.log('getLdValue transactionDate:', getLdValue(item.transactionDate));
           // pricePaid may be a plain integer or {_value: number}
           const rawPrice = item.pricePaid?.['_value'] ?? item.pricePaid;
           lastSoldPrice = rawPrice != null ? Number(rawPrice) : null;
