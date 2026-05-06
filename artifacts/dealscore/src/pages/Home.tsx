@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
@@ -25,6 +25,33 @@ function formatCurrency(value: number) {
 function formatPercent(value: number) {
   return `${value.toFixed(1)}%`;
 }
+
+const PdfDownloadButton = React.memo(function PdfDownloadButton({
+  pdfProps,
+  fileName,
+}: {
+  pdfProps: DealScorePDFProps;
+  fileName: string;
+}) {
+  return (
+    <PDFDownloadLink
+      document={<DealScorePDF {...pdfProps} />}
+      fileName={fileName}
+      style={{ flex: 1, textDecoration: 'none' }}
+      data-testid="button-download-pdf"
+    >
+      {({ loading }: { loading: boolean }) => (
+        <div
+          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition w-full cursor-pointer"
+          style={{ backgroundColor: pdfProps.brandColour }}
+        >
+          <Download className="w-4 h-4" />
+          {loading ? 'Generating PDF…' : 'Download Investor Summary PDF'}
+        </div>
+      )}
+    </PDFDownloadLink>
+  );
+});
 
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
@@ -478,57 +505,167 @@ export default function HomePage() {
     return flags.filter(Boolean) as string[];
   })();
 
-  const pdfProps: DealScorePDFProps = {
-    dealType,
-    dateStr,
-    propertyAddress,
-    propertyType,
-    tenure,
-    leaseLengthYears,
-    epcRating: propertyData?.epcRating ?? null,
-    floodRisk: propertyData?.floodRisk ?? null,
-    floorArea: propertyData?.floorArea ?? null,
-    constructionDate: propertyData?.constructionDate ?? null,
-    purchasePrice: sharedInputs.purchasePrice,
-    effectiveTax,
-    taxLabel,
-    taxCountryLabel: COUNTRY_LABEL[taxCountry],
-    buyerLabel,
-    refurbCost: sharedInputs.refurbCost,
-    otherCosts: sharedInputs.otherCosts,
-    depositPercent: sharedInputs.depositPercent,
-    mortgageRate: sharedInputs.mortgageRate,
-    mortgageType: sharedInputs.mortgageType,
-    mortgageTerm: sharedInputs.mortgageTerm,
-    marketValue,
-    sourcingFee,
-    equityDayOne,
-    bmvAmount,
-    bmvPercent,
-    preparedBy,
-    logoBase64,
-    brandColour,
-    btlInputs,
-    hmoInputs,
-    flipInputs,
-    saInputs,
-    brrrInputs,
-    r2rInputs,
-    socialInputs,
-    btlResults,
-    hmoResults,
-    flipResults,
-    saResults,
-    brrrResults,
-    r2rResults,
-    socialResults,
-    currentScore,
-    riskFlags: currentRiskFlags,
-    strategyNotes,
-    propertyDescription,
-    vendorSituation,
-    comparableProperties,
-  };
+  const pdfProps = useMemo<DealScorePDFProps>(() => {
+    const _effectiveTax = taxOverrideActive
+      ? manualTaxValue
+      : calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
+    const _taxLabel = TAX_LABEL[taxCountry];
+    const _buyerLabel = BUYER_LABEL[buyerType];
+
+    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax });
+    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: _effectiveTax });
+    const _flipResults = calculateFlip({
+      purchasePrice: sharedInputs.purchasePrice,
+      refurbCost: sharedInputs.refurbCost,
+      otherCosts: sharedInputs.otherCosts,
+      stampDuty: _effectiveTax,
+      ...flipInputs,
+    });
+    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax });
+    const _brrrResults = calculateBRRR({
+      purchasePrice: sharedInputs.purchasePrice,
+      refurbCost: sharedInputs.refurbCost,
+      otherCosts: sharedInputs.otherCosts,
+      stampDuty: _effectiveTax,
+      ...brrrInputs,
+    });
+    const _r2rResults = calculateR2R(r2rInputs);
+    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax });
+
+    const _currentScore =
+      dealType === 'BTL' ? _btlResults.score :
+      dealType === 'HMO' ? _hmoResults.score :
+      dealType === 'FLIP' ? _flipResults.score :
+      dealType === 'SA' ? _saResults.score :
+      dealType === 'BRRR' ? _brrrResults.score :
+      dealType === 'R2R' ? _r2rResults.score :
+      _socialResults.score;
+
+    const _pp = sharedInputs.purchasePrice;
+    const _equityDayOne = marketValue - (dealType === 'R2R' ? 0 : _pp);
+    const _bmvPercent = marketValue > 0 ? (_equityDayOne / marketValue) * 100 : 0;
+
+    const _floodDetected = !!(
+      propertyData?.floodRisk &&
+      propertyData.floodRisk.includes('detected') &&
+      !propertyData.floodRisk.includes('No')
+    );
+    const _leaseholdWarn = tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85;
+
+    const _riskFlags: string[] = (() => {
+      const f: (string | null)[] = [];
+      if (dealType === 'BTL') {
+        f.push(_leaseholdWarn ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
+        f.push(_pp > 0 && _btlResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review rent or mortgage assumptions' : null);
+        f.push(_pp > 0 && _btlResults.grossYield < 5 && _btlResults.grossYield > 0 ? '⚠️ Gross yield below 5% — may not meet lender stress tests' : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      } else if (dealType === 'HMO') {
+        f.push(_leaseholdWarn ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
+        f.push(_pp > 0 && _hmoResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review room rates or costs' : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      } else if (dealType === 'FLIP') {
+        f.push(_leaseholdWarn ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
+        f.push(_pp > 0 && _flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      } else if (dealType === 'SA') {
+        f.push(_leaseholdWarn
+          ? (_saResults.score === 'Strong' || _saResults.score === 'Average'
+            ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+            : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
+          : null);
+        f.push(_pp > 0 && _saResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions' : null);
+        f.push(_pp > 0 && saInputs.occupancyPercent < 60 ? `⚠️ Occupancy at ${saInputs.occupancyPercent}% — most SA deals require 70%+ to stack.` : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      } else if (dealType === 'BRRR') {
+        f.push(_leaseholdWarn
+          ? (_brrrResults.score === 'Strong' || _brrrResults.score === 'Average'
+            ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+            : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
+          : null);
+        f.push(_pp > 0 && _brrrResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow after refinance — deal does not self-fund' : null);
+        f.push(_pp > 0 && _brrrResults.cashLeftInDeal > 25000
+          ? `⚠️ £${Math.round(_brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits your ability to repeat the strategy.`
+          : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      } else if (dealType === 'R2R') {
+        f.push(r2rInputs.setupCosts > 0 && _r2rResults.monthlyProfit < 200
+          ? (_r2rResults.score === 'Average'
+            ? `⚠️ Monthly profit at £${Math.round(_r2rResults.monthlyProfit).toLocaleString()} — thin margin for R2R.`
+            : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold.')
+          : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      } else {
+        f.push(_leaseholdWarn
+          ? (_socialResults.score === 'Strong' || _socialResults.score === 'Average'
+            ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+            : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
+          : null);
+        f.push(_pp > 0 && _socialResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs' : null);
+        f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      }
+      return f.filter(Boolean) as string[];
+    })();
+
+    return {
+      dealType,
+      dateStr,
+      propertyAddress,
+      propertyType,
+      tenure,
+      leaseLengthYears,
+      epcRating: propertyData?.epcRating ?? null,
+      floodRisk: propertyData?.floodRisk ?? null,
+      floorArea: propertyData?.floorArea ?? null,
+      constructionDate: propertyData?.constructionDate ?? null,
+      purchasePrice: _pp,
+      effectiveTax: _effectiveTax,
+      taxLabel: _taxLabel,
+      taxCountryLabel: COUNTRY_LABEL[taxCountry],
+      buyerLabel: _buyerLabel,
+      refurbCost: sharedInputs.refurbCost,
+      otherCosts: sharedInputs.otherCosts,
+      depositPercent: sharedInputs.depositPercent,
+      mortgageRate: sharedInputs.mortgageRate,
+      mortgageType: sharedInputs.mortgageType,
+      mortgageTerm: sharedInputs.mortgageTerm,
+      marketValue,
+      sourcingFee,
+      equityDayOne: _equityDayOne,
+      bmvAmount: _equityDayOne,
+      bmvPercent: _bmvPercent,
+      preparedBy,
+      logoBase64,
+      brandColour,
+      btlInputs,
+      hmoInputs,
+      flipInputs,
+      saInputs,
+      brrrInputs,
+      r2rInputs,
+      socialInputs,
+      btlResults: _btlResults,
+      hmoResults: _hmoResults,
+      flipResults: _flipResults,
+      saResults: _saResults,
+      brrrResults: _brrrResults,
+      r2rResults: _r2rResults,
+      socialResults: _socialResults,
+      currentScore: _currentScore,
+      riskFlags: _riskFlags,
+      strategyNotes,
+      propertyDescription,
+      vendorSituation,
+      comparableProperties,
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    dealType, dateStr, propertyAddress, propertyType, tenure, leaseLengthYears,
+    propertyData, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs,
+    brrrInputs, r2rInputs, socialInputs,
+    taxCountry, taxOverrideActive, manualTaxValue, buyerType,
+    marketValue, sourcingFee, preparedBy, logoBase64, brandColour,
+    strategyNotes, propertyDescription, vendorSituation, comparableProperties,
+  ]);
 
   const renderScoreBadge = (score: string) => {
     if (score === 'Incomplete') return null;
@@ -1440,22 +1577,10 @@ export default function HomePage() {
           </div>
 
           <div className="mt-6 flex gap-3">
-            <PDFDownloadLink
-              document={<DealScorePDF {...pdfProps} />}
+            <PdfDownloadButton
+              pdfProps={pdfProps}
               fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
-              style={{ flex: 1, textDecoration: 'none' }}
-              data-testid="button-download-pdf"
-            >
-              {({ loading }: { loading: boolean }) => (
-                <div
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition w-full cursor-pointer"
-                  style={{ backgroundColor: '#1B3A6B' }}
-                >
-                  <Download className="w-4 h-4" />
-                  {loading ? 'Generating PDF…' : 'Download Investor Summary PDF'}
-                </div>
-              )}
-            </PDFDownloadLink>
+            />
             <button
               type="button"
               onClick={handleReset}
