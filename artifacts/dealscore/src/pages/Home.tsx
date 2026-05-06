@@ -2084,7 +2084,7 @@ const TT = {
   tenure: 'Freehold means you own the building and land outright. Leasehold means you own the property for a fixed term. Most lenders require 70+ years remaining on a lease.',
   leaseLength: 'The number of years remaining on the lease. Properties with under 70 years can be difficult to mortgage.',
   purchasePrice: 'The price you are paying to buy the property. This is the starting point for all calculations.',
-  propTax: 'Stamp Duty (England), LTT (Wales), or LBTT (Scotland). Automatically calculated based on country, buyer type, and purchase price.',
+  propTax: 'Stamp Duty (England & Northern Ireland), LTT (Wales), or LBTT (Scotland). Automatically calculated based on country, buyer type, and purchase price.',
   refurbCost: 'The total cost of any renovation or refurbishment work needed before the property can be let or sold.',
   otherCosts: 'All other purchase costs — legal fees, survey, broker fees, and any other one-off costs.',
   deposit: 'The percentage of the purchase price you are putting in as a cash deposit. Most BTL lenders require 25%.',
