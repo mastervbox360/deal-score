@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,6 +63,8 @@ export default function HomePage() {
   const [taxOverrideActive, setTaxOverrideActive] = useState(false);
   const [taxOverrideEditing, setTaxOverrideEditing] = useState(false);
   const [manualTaxValue, setManualTaxValue] = useState<number>(0);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [brandColour, setBrandColour] = useState('#1B3A6B');
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -125,6 +128,14 @@ export default function HomePage() {
 
   const handleSocialChange = (field: keyof typeof socialInputs, value: string) => {
     setSocialInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoBase64((ev.target?.result as string) ?? null);
+    reader.readAsDataURL(file);
   };
 
   const detectTaxCountryFromPostcode = (address: string) => {
@@ -385,532 +396,132 @@ export default function HomePage() {
   const bmvAmount = equityDayOne;
   const bmvPercent = marketValue > 0 ? (bmvAmount / marketValue) * 100 : 0;
 
-  const downloadPDF = () => {
-    const MARGIN = 14;
-    const ROW_H = 5.0;
-    const SEC_GAP = 2;
-    const FOOTER_H = 11;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    // ── Deal metadata ────────────────────────────────────────────────────────
-    const now = new Date();
-    const dealLabel =
-      dealType === 'BTL' ? 'Buy-to-Let' :
-      dealType === 'HMO' ? 'HMO' :
-      dealType === 'FLIP' ? 'Flip / Refurb' :
-      dealType === 'SA' ? 'Serviced Accommodation' :
-      dealType === 'BRRR' ? 'BRRR' :
-      dealType === 'R2R' ? 'Rent to Rent' :
-      'Social Housing';
-    const dd = now.getDate().toString().padStart(2, '0');
-    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-    const yy = now.getFullYear().toString().slice(2);
-    const dealRef = `${dealType}-${dd}${mm}${yy}`;
-    const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dealLabel =
+    dealType === 'BTL' ? 'Buy-to-Let' :
+    dealType === 'HMO' ? 'HMO' :
+    dealType === 'FLIP' ? 'Flip / Refurb' :
+    dealType === 'SA' ? 'Serviced Accommodation' :
+    dealType === 'BRRR' ? 'BRRR' :
+    dealType === 'R2R' ? 'Rent to Rent' :
+    'Social Housing';
 
-    const currentScore =
-      dealType === 'BTL' ? btlResults.score :
-      dealType === 'HMO' ? hmoResults.score :
-      dealType === 'FLIP' ? flipResults.score :
-      dealType === 'SA' ? saResults.score :
-      dealType === 'BRRR' ? brrrResults.score :
-      dealType === 'R2R' ? r2rResults.score :
-      socialResults.score;
+  const currentScore =
+    dealType === 'BTL' ? btlResults.score :
+    dealType === 'HMO' ? hmoResults.score :
+    dealType === 'FLIP' ? flipResults.score :
+    dealType === 'SA' ? saResults.score :
+    dealType === 'BRRR' ? brrrResults.score :
+    dealType === 'R2R' ? r2rResults.score :
+    socialResults.score;
 
-    // Render to a jsPDF instance; returns final page height in mm
-    const doRender = (doc: jsPDF): number => {
-    const navy: [number, number, number] = [27, 58, 107];
-    const navyPanel: [number, number, number] = [238, 242, 248];
-    const white: [number, number, number] = [255, 255, 255];
-    const rowAlt: [number, number, number] = [245, 247, 250];
-    const pageWidth = doc.internal.pageSize.getWidth();
+  const floodDetected = !!(propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No'));
+  const leaseholdWarning = tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85;
 
-    // ── Header banner ────────────────────────────────────────────────────────
-    // Compute address lines upfront so header height can accommodate them
-    const addrText = propertyAddress.trim();
-    const addrLines = addrText
-      ? (doc.splitTextToSize(addrText, pageWidth - MARGIN * 2 - 12) as string[])
-      : [];
-    const HEADER_H = 42 + (addrLines.length > 0 ? addrLines.length * 6 : 0);
-
-    doc.setFillColor(...navy);
-    doc.rect(0, 0, pageWidth, HEADER_H, 'F');
-
-    // Row 1: DealScore (bold) · Investor Summary (light) inline — date right
-    doc.setTextColor(...white);
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DealScore', MARGIN, 13);
-    const dsW = doc.getTextWidth('DealScore');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(185, 205, 230);
-    doc.text('  ·  Investor Summary', MARGIN + dsW, 13);
-    doc.setFontSize(8);
-    doc.text(dateStr, pageWidth - MARGIN, 13, { align: 'right' });
-    // Deal Ref — smaller, top-right
-    doc.setFontSize(7);
-    doc.setTextColor(165, 185, 215);
-    doc.text(dealRef, pageWidth - MARGIN, 7, { align: 'right' });
-
-    // Row 2: Deal type
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(220, 230, 245);
-    doc.text(dealLabel, MARGIN, 23);
-
-    // Row 3: Property Type · Tenure
-    doc.setFontSize(9);
-    doc.setTextColor(165, 185, 215);
-    doc.text(`${propertyType}  ·  ${tenure}`, MARGIN, 32);
-
-    // Row 4+: Property address (brighter than property type line)
-    if (addrLines.length > 0) {
-      doc.setFontSize(9);
-      doc.setTextColor(210, 225, 245);
-      addrLines.forEach((line: string, i: number) => {
-        doc.text(line, MARGIN, 40 + i * 6);
-      });
-    }
-
-    // Thin white rule at bottom of banner
-    doc.setDrawColor(...white);
-    doc.setLineWidth(0.5);
-    doc.line(MARGIN, HEADER_H - 2, pageWidth - MARGIN, HEADER_H - 2);
-
-    let y = HEADER_H + 5;
-
-    // ── Deal Score pill ──────────────────────────────────────────────────────
-    const scoreColors: Record<string, [number, number, number]> = {
-      Strong: [22, 163, 74],
-      Average: [217, 119, 6],
-      Weak: [220, 38, 38],
-    };
-    if (currentScore !== 'Incomplete') {
-      const bg = scoreColors[currentScore] ?? ([100, 100, 100] as [number, number, number]);
-      const pillText = `${currentScore} Deal`.toUpperCase();
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      const textW = doc.getTextWidth(pillText);
-      const pillW = textW + 9;
-      const pillH = 6;
-      const pillX = pageWidth - MARGIN - pillW;
-      const pillY = y - 4.5;
-      doc.setFillColor(...bg);
-      doc.roundedRect(pillX, pillY, pillW, pillH, 2.5, 2.5, 'F');
-      doc.setTextColor(...white);
-      doc.text(pillText, pillX + pillW / 2, pillY + 4, { align: 'center' });
-      y += 4;
-    }
-
-    // ── Hero metrics strip ───────────────────────────────────────────────────
-    type HeroMetric = { label: string; value: string };
-    const bmvHero: HeroMetric | null = marketValue > 0
-      ? { label: 'BMV', value: `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)` }
-      : null;
-    let heroMetrics: HeroMetric[];
+  const currentRiskFlags: string[] = (() => {
+    const flags: (string | null)[] = [];
     if (dealType === 'BTL') {
-      heroMetrics = [
-        { label: 'Monthly Cash Flow', value: formatCurrency(btlResults.monthlyCashFlow) },
-        { label: 'Gross Yield', value: formatPercent(btlResults.grossYield) },
-        ...(bmvHero ? [bmvHero] : []),
-      ];
+      flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
+      flags.push(sharedInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review rent or mortgage assumptions' : null);
+      flags.push(sharedInputs.purchasePrice > 0 && btlResults.grossYield < 5 && btlResults.grossYield > 0 ? '⚠️ Gross yield below 5% — may not meet lender stress tests' : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'HMO') {
-      heroMetrics = [
-        { label: 'Monthly Cash Flow', value: formatCurrency(hmoResults.monthlyCashFlow) },
-        { label: 'Gross Yield', value: formatPercent(hmoResults.grossYield) },
-        ...(bmvHero ? [bmvHero] : []),
-      ];
+      flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
+      flags.push(sharedInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review room rates or costs' : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'FLIP') {
-      heroMetrics = [
-        { label: 'Net Profit', value: formatCurrency(flipResults.netProfit) },
-        { label: 'Total ROI', value: formatPercent(flipResults.roi) },
-        { label: 'GDV', value: formatCurrency(flipInputs.expectedSalePrice) },
-      ];
+      flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
+      flags.push(sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'SA') {
-      heroMetrics = [
-        { label: 'Monthly Cash Flow', value: formatCurrency(saResults.monthlyCashFlow) },
-        { label: 'Net Yield', value: formatPercent(saResults.netYield) },
-        { label: 'Occupancy Income', value: formatCurrency(saResults.grossMonthlyRevenue) },
-      ];
+      flags.push(leaseholdWarning
+        ? (saResults.score === 'Strong' || saResults.score === 'Average'
+          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
+        : null);
+      flags.push(sharedInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions' : null);
+      flags.push(sharedInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60 ? `⚠️ Occupancy at ${saInputs.occupancyPercent}% — most SA deals require 70%+ to stack.` : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'BRRR') {
-      heroMetrics = [
-        { label: 'Monthly Cash Flow', value: formatCurrency(brrrResults.monthlyCashFlow) },
-        { label: 'Cash Left In', value: brrrResults.moneyOut ? 'Money Out' : formatCurrency(brrrResults.cashLeftInDeal) },
-        { label: 'Cash-on-Cash ROI', value: brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI) },
-      ];
+      flags.push(leaseholdWarning
+        ? (brrrResults.score === 'Strong' || brrrResults.score === 'Average'
+          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
+        : null);
+      flags.push(sharedInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow after refinance — deal does not self-fund' : null);
+      flags.push(sharedInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? `⚠️ £${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits your ability to repeat the strategy.` : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'R2R') {
-      heroMetrics = [
-        { label: 'Monthly Profit', value: formatCurrency(r2rResults.monthlyProfit) },
-        { label: 'Annual Profit', value: formatCurrency(r2rResults.annualProfit) },
-        { label: 'Net Return on Setup Costs', value: formatPercent(r2rResults.roi) },
-      ];
+      flags.push(r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
+        ? (r2rResults.score === 'Average'
+          ? `⚠️ Monthly profit at £${Math.round(r2rResults.monthlyProfit).toLocaleString()} — thin margin for R2R.`
+          : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold.')
+        : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else {
-      heroMetrics = [
-        { label: 'Monthly Cash Flow', value: formatCurrency(socialResults.monthlyCashFlow) },
-        { label: 'Gross Yield', value: formatPercent(socialResults.grossYield) },
-        ...(bmvHero ? [bmvHero] : []),
-      ];
+      flags.push(leaseholdWarning
+        ? (socialResults.score === 'Strong' || socialResults.score === 'Average'
+          ? '⚠️ Leasehold under 85 years — strong returns but most lenders will not mortgage this property. Verify financing before proceeding.'
+          : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
+        : null);
+      flags.push(sharedInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs' : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     }
-    const heroCardH = 17;
-    const heroGap = 3;
-    const cardCount = heroMetrics.length;
-    const heroW = (pageWidth - 2 * MARGIN - (cardCount - 1) * heroGap) / cardCount;
-    y += 3;
-    heroMetrics.forEach(({ label, value }, i) => {
-      const hx = MARGIN + i * (heroW + heroGap);
-      const hy = y;
-      doc.setFillColor(...rowAlt);
-      doc.setDrawColor(210, 218, 232);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(hx, hy, heroW, heroCardH, 2, 2, 'FD');
-      doc.setFontSize(13);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text(value, hx + heroW / 2, hy + 10, { align: 'center' });
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(110, 120, 140);
-      doc.text(label, hx + heroW / 2, hy + 15, { align: 'center' });
-    });
-    y += heroCardH + 4;
+    return flags.filter(Boolean) as string[];
+  })();
 
-    // ── Section renderer (with alternating row backgrounds) ──────────────────
-    type PDFRow = [string, string] | [string, string, boolean];
-
-    const writeSection = (title: string, rows: PDFRow[]) => {
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text(title, MARGIN, y);
-      y += 1.5;
-      doc.setDrawColor(...navy);
-      doc.setLineWidth(0.4);
-      doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 3.5;
-
-      rows.forEach((row, idx) => {
-        const label = row[0];
-        const value = row[1];
-        const isBold = row.length === 3 ? row[2] : false;
-        doc.setFontSize(9);
-
-        if (idx % 2 === 0) {
-          doc.setFillColor(...rowAlt);
-          doc.rect(MARGIN, y - ROW_H + 0.8, pageWidth - 2 * MARGIN, ROW_H + 0.4, 'F');
-        }
-
-        doc.setTextColor(60, 65, 75);
-        doc.setFont('helvetica', 'normal');
-        doc.text(label, MARGIN + 1.5, y);
-        doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-        doc.setTextColor(isBold ? navy[0] : 60, isBold ? navy[1] : 65, isBold ? navy[2] : 75);
-        doc.text(value, pageWidth - MARGIN - 1.5, y, { align: 'right' });
-        y += ROW_H;
-      });
-      y += SEC_GAP;
-    };
-
-    // Sourcing Fee as last entry of Inputs section — thin divider + bold navy
-    const writeSourcingFeeInline = () => {
-      if (sourcingFee <= 0) return;
-      y -= SEC_GAP; // reattach to bottom of Inputs section
-      doc.setDrawColor(165, 180, 210);
-      doc.setLineWidth(0.25);
-      doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 5;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text('Sourcing Fee', MARGIN + 1.5, y);
-      doc.text(formatCurrency(sourcingFee), pageWidth - MARGIN - 1.5, y, { align: 'right' });
-      y += ROW_H + 5;
-    };
-
-    const tenureRows: PDFRow[] = [
-      ['Tenure', tenure],
-      ...(tenure === 'Leasehold' ? [['Remaining Lease Length', `${leaseLengthYears} years`] as PDFRow] : []),
-    ];
-
-    if (dealType === 'BTL') {
-      writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
-        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
-        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
-        ['Deposit', `${sharedInputs.depositPercent}%`],
-        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
-        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
-        ['Monthly Rent', formatCurrency(btlInputs.monthlyRent)],
-        ['Monthly Expenses', formatCurrency(btlInputs.monthlyExpenses)],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
-        ['Mortgage Amount', formatCurrency(btlResults.mortgageAmount)],
-        ['Monthly Cash Flow', formatCurrency(btlResults.monthlyCashFlow), true],
-        ['Annual Cash Flow', formatCurrency(btlResults.annualCashFlow)],
-        ['Gross Yield', formatPercent(btlResults.grossYield)],
-        ['Net Yield', formatPercent(btlResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(btlResults.cashOnCashROI), true],
-        ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as PDFRow,
-          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
-        ] : []),
-      ]);
-    } else if (dealType === 'HMO') {
-      writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
-        ['Refurb / Conversion Cost', formatCurrency(sharedInputs.refurbCost)],
-        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
-        ['Deposit', `${sharedInputs.depositPercent}%`],
-        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
-        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
-        ['Rooms', `${hmoInputs.rooms}`],
-        ['Rent per Room (monthly)', formatCurrency(hmoInputs.rentPerRoom)],
-        ['Occupancy Rate', `${hmoInputs.occupancyRate}%`],
-        ['Monthly Expenses', formatCurrency(hmoInputs.monthlyExpenses)],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
-        ['Gross Monthly Rent', formatCurrency(hmoResults.grossMonthlyRent)],
-        ['Monthly Cash Flow', formatCurrency(hmoResults.monthlyCashFlow), true],
-        ['Annual Cash Flow', formatCurrency(hmoResults.annualCashFlow)],
-        ['Gross Yield', formatPercent(hmoResults.grossYield)],
-        ['Net Yield', formatPercent(hmoResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(hmoResults.cashOnCashROI), true],
-        ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as PDFRow,
-          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
-        ] : []),
-      ]);
-    } else if (dealType === 'FLIP') {
-      writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
-        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
-        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
-        ['Holding Costs (per month)', formatCurrency(flipInputs.holdingCostsPerMonth)],
-        ['Project Length', `${flipInputs.projectLengthMonths} months`],
-        ['Expected Sale Price (GDV)', formatCurrency(flipInputs.expectedSalePrice)],
-        ['Selling Costs', `${flipInputs.sellingCostsPercent}%`],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Total Cost', formatCurrency(flipResults.totalCost)],
-        ['Selling Costs', formatCurrency(flipResults.sellingCosts)],
-        ['Net Profit', formatCurrency(flipResults.netProfit), true],
-        ['Profit per Month', formatCurrency(flipResults.profitPerMonth)],
-        ['Total ROI', formatPercent(flipResults.roi), true],
-        ['Annualised ROI', formatPercent(flipResults.annualisedROI)],
-        ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as PDFRow,
-          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
-        ] : []),
-      ]);
-    } else if (dealType === 'SA') {
-      writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
-        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
-        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
-        ['Deposit', `${sharedInputs.depositPercent}%`],
-        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
-        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
-        ['Nightly Rate', formatCurrency(saInputs.nightlyRate)],
-        ['Avg Occupancy', `${saInputs.occupancyPercent}%`],
-        ['Platform Fees', `${saInputs.platformFeesPercent}%`],
-        ['Monthly Running Costs', formatCurrency(saInputs.monthlyRunningCosts)],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
-        ['Mortgage Amount', formatCurrency(saResults.mortgageAmount)],
-        ['Gross Monthly Revenue', formatCurrency(saResults.grossMonthlyRevenue)],
-        ['Platform Fees/mo', formatCurrency(saResults.platformFees)],
-        ['Net Monthly Revenue', formatCurrency(saResults.netMonthlyRevenue)],
-        ['Monthly Mortgage', formatCurrency(saResults.monthlyMortgage)],
-        ['Monthly Cash Flow', formatCurrency(saResults.monthlyCashFlow), true],
-        ['Annual Cash Flow', formatCurrency(saResults.annualCashFlow)],
-        ['Gross Yield', formatPercent(saResults.grossYield)],
-        ['Net Yield', formatPercent(saResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(saResults.cashOnCashROI), true],
-        ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as PDFRow,
-          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
-        ] : []),
-      ]);
-    } else if (dealType === 'BRRR') {
-      writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
-        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
-        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
-        ['Post-Refurb Value (GDV)', formatCurrency(brrrInputs.postRefurbValue)],
-        ['Refinance %', `${brrrInputs.refinancePercent}%`],
-        ['New Mortgage Rate', `${brrrInputs.newMortgageRate}%`],
-        ['Monthly Rent', formatCurrency(brrrInputs.monthlyRent)],
-        ['Monthly Expenses', formatCurrency(brrrInputs.monthlyExpenses)],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Total Cost In', formatCurrency(brrrResults.totalCostIn)],
-        ['Refinance Loan', formatCurrency(brrrResults.refinanceLoan)],
-        ['Cash Left in Deal', sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)],
-        ['Equity Created', formatCurrency(brrrResults.equityCreated)],
-        ['Monthly Cash Flow', formatCurrency(brrrResults.monthlyCashFlow), true],
-        ['Annual Cash Flow', formatCurrency(brrrResults.annualCashFlow)],
-        ['Gross Yield', formatPercent(brrrResults.grossYield)],
-        ['Net Yield', formatPercent(brrrResults.netYield)],
-        ['Cash-on-Cash ROI', sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI), true],
-        ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as PDFRow,
-          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
-        ] : []),
-      ]);
-    } else if (dealType === 'R2R') {
-      writeSection('Inputs', [
-        ['Monthly Rent to Landlord', formatCurrency(r2rInputs.monthlyRentPaid)],
-        ['Rooms', `${r2rInputs.rooms}`],
-        ['Rent per Room (monthly)', formatCurrency(r2rInputs.rentPerRoom)],
-        ['Occupancy Rate', `${r2rInputs.occupancyRate}%`],
-        ['Management / Platform Fees', `${r2rInputs.managementFeesPercent}%`],
-        ['Monthly Running Costs', formatCurrency(r2rInputs.monthlyRunningCosts)],
-        ['Setup Costs', formatCurrency(r2rInputs.setupCosts)],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Gross Monthly Income', formatCurrency(r2rResults.grossMonthlyIncome)],
-        ['Management Fees/mo', formatCurrency(r2rResults.managementFees)],
-        ['Net Monthly Income', formatCurrency(r2rResults.netMonthlyIncome)],
-        ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit), true],
-        ['Annual Profit', formatCurrency(r2rResults.annualProfit)],
-        ['Gross Return on Setup', formatPercent(r2rResults.grossYield)],
-        ['Net Return on Setup Costs', formatPercent(r2rResults.roi), true],
-      ]);
-    } else {
-      writeSection('Inputs', [
-        ['Purchase Price', formatCurrency(sharedInputs.purchasePrice)],
-        [`${taxLabel} (${COUNTRY_LABEL[taxCountry]}, ${buyerLabel})`, formatCurrency(effectiveTax)],
-        ['Refurb Cost', formatCurrency(sharedInputs.refurbCost)],
-        ['Other Costs', formatCurrency(sharedInputs.otherCosts)],
-        ['Deposit', `${sharedInputs.depositPercent}%`],
-        ['Mortgage Rate', `${sharedInputs.mortgageRate}%`],
-        ['Mortgage Type', sharedInputs.mortgageType === 'IO' ? 'Interest Only' : 'Repayment'],
-        ...(sharedInputs.mortgageType === 'REPAYMENT' ? [['Mortgage Term', `${sharedInputs.mortgageTerm} years`] as PDFRow] : []),
-        ['Guaranteed Lease Income/mo', formatCurrency(socialInputs.leaseIncomePerMonth)],
-        ['Lease Length', `${socialInputs.leaseLengthYears} years`],
-        ['Management Costs/mo', formatCurrency(socialInputs.managementCostsPerMonth)],
-        ...tenureRows,
-      ]);
-      writeSourcingFeeInline();
-      writeSection('Results', [
-        ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
-        ['Mortgage Amount', formatCurrency(socialResults.mortgageAmount)],
-        ['Monthly Mortgage', formatCurrency(socialResults.monthlyMortgage)],
-        ['Monthly Cash Flow', formatCurrency(socialResults.monthlyCashFlow), true],
-        ['Annual Cash Flow', formatCurrency(socialResults.annualCashFlow)],
-        ['Gross Yield', formatPercent(socialResults.grossYield)],
-        ['Net Yield', formatPercent(socialResults.netYield)],
-        ['Cash-on-Cash ROI', formatPercent(socialResults.cashOnCashROI), true],
-        ...(marketValue > 0 ? [
-          ['Market Value', formatCurrency(marketValue)] as PDFRow,
-          ['Equity on Day One', formatCurrency(equityDayOne)] as PDFRow,
-          ['BMV (Below Market Value)', `${formatCurrency(bmvAmount)}  (${bmvPercent.toFixed(1)}%)`, true] as PDFRow,
-        ] : []),
-      ]);
-    }
-
-    // ── Deal Notes ───────────────────────────────────────────────────────────
-    const allNotes: Array<{ label: string; text: string }> = [
-      { label: 'Why This Strategy?', text: strategyNotes.trim() },
-      { label: 'Property Description', text: propertyDescription.trim() },
-      { label: 'Vendor Situation', text: vendorSituation.trim() },
-      { label: 'Comparable Properties', text: comparableProperties.trim() },
-    ].filter((n) => n.text.length > 0);
-
-    if (allNotes.length) {
-      y += 4; // clear separation from Results section above
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navy);
-      doc.text('Deal Notes', MARGIN, y);
-      y += 1.5;
-      doc.setDrawColor(...navy);
-      doc.setLineWidth(0.4);
-      doc.line(MARGIN, y, pageWidth - MARGIN, y);
-      y += 4;
-
-      // All subsections: identical grey panel, bold label + normal content
-      const noteGrey: [number, number, number] = [245, 247, 250];
-      const notePadT = 4;   // padding above label text inside panel
-      const notePadB = 4;   // padding below last content line inside panel
-      const noteGap  = 1.5; // vertical gap between consecutive panels
-
-      allNotes.forEach(({ label, text }) => {
-        const lines = doc.splitTextToSize(text, pageWidth - 32) as string[];
-        const panelH = notePadT + ROW_H + lines.length * ROW_H + notePadB;
-        // Panel starts exactly at current y; text starts notePadT below that
-        doc.setFillColor(...noteGrey);
-        doc.rect(MARGIN, y, pageWidth - 2 * MARGIN, panelH, 'F');
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...navy);
-        doc.text(`${label}:`, MARGIN + 2, y + notePadT + ROW_H - 1);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(60, 65, 75);
-        lines.forEach((line: string, li: number) => {
-          doc.text(line, MARGIN + 2, y + notePadT + ROW_H + li * ROW_H + ROW_H - 1);
-        });
-        y += panelH + noteGap;
-      });
-    }
-
-    // ── Footer strip ─────────────────────────────────────────────────────────
-    const FOOTER_Y = y + 2;
-    doc.setFillColor(...navy);
-    doc.rect(0, FOOTER_Y, pageWidth, FOOTER_H, 'F');
-    const preparedParts = [
-      preparedBy.name ? `Prepared by  ${preparedBy.name}` : '',
-      preparedBy.email,
-      preparedBy.phone,
-    ].filter(Boolean).join('  ·  ');
-    if (preparedParts) {
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...white);
-      doc.text(preparedParts, MARGIN, FOOTER_Y + 7);
-    }
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(185, 205, 230);
-    doc.text('For informational purposes only. Not financial advice.', pageWidth - MARGIN, FOOTER_Y + 7, { align: 'right' });
-
-    return FOOTER_Y + FOOTER_H;
-    }; // end doRender
-
-    // Two-pass render: measure height with A4, then render at exact size
-    const tmpDoc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    const finalH = doRender(tmpDoc);
-    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: [210, finalH] });
-    doRender(doc);
-
-    doc.save(`DealScore-${dealLabel.replace(/[\s/]+/g, '-')}-${now.toISOString().slice(0, 10)}.pdf`);
+  const pdfProps: DealScorePDFProps = {
+    dealType,
+    dateStr,
+    propertyAddress,
+    propertyType,
+    tenure,
+    leaseLengthYears,
+    epcRating: propertyData?.epcRating ?? null,
+    floodRisk: propertyData?.floodRisk ?? null,
+    floorArea: propertyData?.floorArea ?? null,
+    constructionDate: propertyData?.constructionDate ?? null,
+    purchasePrice: sharedInputs.purchasePrice,
+    effectiveTax,
+    taxLabel,
+    taxCountryLabel: COUNTRY_LABEL[taxCountry],
+    buyerLabel,
+    refurbCost: sharedInputs.refurbCost,
+    otherCosts: sharedInputs.otherCosts,
+    depositPercent: sharedInputs.depositPercent,
+    mortgageRate: sharedInputs.mortgageRate,
+    mortgageType: sharedInputs.mortgageType,
+    mortgageTerm: sharedInputs.mortgageTerm,
+    marketValue,
+    sourcingFee,
+    equityDayOne,
+    bmvAmount,
+    bmvPercent,
+    preparedBy,
+    logoBase64,
+    brandColour,
+    btlInputs,
+    hmoInputs,
+    flipInputs,
+    saInputs,
+    brrrInputs,
+    r2rInputs,
+    socialInputs,
+    btlResults,
+    hmoResults,
+    flipResults,
+    saResults,
+    brrrResults,
+    r2rResults,
+    socialResults,
+    currentScore,
+    riskFlags: currentRiskFlags,
+    strategyNotes,
+    propertyDescription,
+    vendorSituation,
+    comparableProperties,
   };
 
   const renderScoreBadge = (score: string) => {
@@ -1769,16 +1380,76 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Sourcer branding */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <Label className="text-xs">Your Logo <span className="text-slate-400 font-normal">(appears on PDF cover)</span></Label>
+              </div>
+              {logoBase64 ? (
+                <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-muted/30">
+                  <img src={logoBase64} alt="Logo" className="h-10 object-contain max-w-[120px]" />
+                  <button
+                    type="button"
+                    onClick={() => setLogoBase64(null)}
+                    className="text-xs text-slate-400 hover:text-red-500 transition ml-auto"
+                  >
+                    ✕ Remove
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 p-2 border border-dashed border-border rounded-lg cursor-pointer hover:border-[#1B3A6B] transition bg-muted/20">
+                  <span className="text-xs text-slate-500">Click to upload PNG or JPG</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    data-testid="input-logo-upload"
+                  />
+                </label>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Brand Colour <span className="text-slate-400 font-normal">(PDF accents & headers)</span></Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={brandColour}
+                  onChange={(e) => setBrandColour(e.target.value)}
+                  className="h-10 w-14 cursor-pointer rounded-lg border border-border p-0.5 bg-white"
+                  data-testid="input-brand-colour"
+                />
+                <div className="h-8 w-8 rounded-md border border-border shadow-sm" style={{ backgroundColor: brandColour }} />
+                <span className="text-xs text-slate-500 font-mono">{brandColour}</span>
+                <button
+                  type="button"
+                  onClick={() => setBrandColour('#1B3A6B')}
+                  className="text-xs text-slate-400 hover:text-slate-600 transition ml-auto"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-6 flex gap-3">
-            <button
-              onClick={downloadPDF}
-              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
-              style={{ backgroundColor: '#1B3A6B' }}
+            <PDFDownloadLink
+              document={<DealScorePDF {...pdfProps} />}
+              fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
+              style={{ flex: 1, textDecoration: 'none' }}
               data-testid="button-download-pdf"
             >
-              <Download className="w-4 h-4" />
-              Download Investor Summary PDF
-            </button>
+              {({ loading }: { loading: boolean }) => (
+                <div
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition w-full cursor-pointer"
+                  style={{ backgroundColor: '#1B3A6B' }}
+                >
+                  <Download className="w-4 h-4" />
+                  {loading ? 'Generating PDF…' : 'Download Investor Summary PDF'}
+                </div>
+              )}
+            </PDFDownloadLink>
             <button
               type="button"
               onClick={handleReset}

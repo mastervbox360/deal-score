@@ -1,0 +1,77 @@
+Paste this into the Replit Agent now:
+
+REPLIT PROMPT — Stage 6A: PDF Foundation & Branding
+We are on the stage-6 branch. Do not touch main.
+Read the entire codebase before making any changes. The goal of Stage 6A is to migrate the existing PDF from jsPDF to React-PDF and build a gold standard layout with sourcer branding. Do not add new content fields yet — that is Stage 6B. Port what exists, make it look professional.
+Step 1 — Install React-PDF:
+npm install @react-pdf/renderer
+Step 2 — Create a new file src/components/DealScorePDF.tsx containing the entire PDF document built with React-PDF. Do not put PDF code in Home.tsx — keep it clean and separated.
+Step 3 — Build the PDF with these pages:
+Page 1 — Cover Page:
+
+Sourcer logo (if uploaded) — top left, max height 80px
+Property address — large, centred, bold
+Strategy being analysed (e.g. "Buy-to-Let Analysis")
+Date prepared (auto — today's date)
+"Prepared by: [Name] | [Email] | [Phone]" from existing Prepared By fields
+Thin horizontal rule in brand colour
+"Confidential — Prepared for investor review only" at bottom of page
+Brand colour used for all accents (default navy #1B3A6B)
+
+Page 2 — Property & Financial Summary:
+
+Property details: address, type, tenure, purchase price, market value, EPC rating, flood risk
+Financial summary: cash invested, mortgage, monthly cash flow, annual cash flow
+All existing metrics from current PDF — ported correctly, nothing dropped
+
+Page 3 — Strategy Analysis & Deal Score:
+
+All strategy-specific metrics (gross yield, net yield, ROI etc) — ported from current PDF
+Deal Score verdict — Strong / Average / Weak — displayed prominently with colour coding (green/amber/red)
+Risk flags section
+
+Page 4 — Deal Notes:
+
+Why This Strategy, comparables (existing plain text for now), vendor situation, property description, sourcing fee (hidden if £0)
+
+Footer on every page:
+
+Left: sourcer name (from Prepared By field, blank if not entered)
+Centre: DealScore
+Right: Page X of Y | today's date
+
+Step 4 — Sourcer branding inputs — add to universal inputs area in Home.tsx:
+Logo upload:
+
+Label: "Your Logo" with info icon: "Upload your logo to appear on the investor PDF cover page."
+Accept: image/jpeg, image/png
+Show thumbnail with × remove button
+Store as base64 in state
+
+Brand colour:
+
+Label: "Brand Colour" with info icon: "Used for PDF headers and accents. Default is navy if not set."
+type="color" input with navy #1B3A6B as default value
+Show selected colour as a small swatch next to the picker
+
+Step 5 — Wire up PDF export:
+
+Existing Download PDF button triggers the new React-PDF document
+Use PDFDownloadLink from @react-pdf/renderer
+Remove all jsPDF imports and code once React-PDF version is working and verified
+File downloads as "DealScore-[address]-[strategy].pdf"
+
+Design rules for the PDF:
+
+Font: Helvetica (built into React-PDF, no import needed)
+Primary colour: brand colour (default #1B3A6B)
+Body text: 10pt, #333333
+Section headers: 12pt bold, brand colour, with 1pt rule below in brand colour
+Numbers: always formatted with £ and commas (e.g. £145,000 not 145000)
+Percentages: always 1 decimal place (e.g. 7.2% not 7.19823%)
+White space: generous padding between sections — professional documents breathe
+Page margins: 40pt all sides
+
+Zero TypeScript errors. Test by downloading a PDF with real numbers entered — verify all pages generate correctly, cover page looks professional, branding inputs work.
+Push to GitHub on stage-6 branch:
+git add -A && git commit -m "feat: Stage 6A — React-PDF migration, gold standard layout, sourcer branding" && git push origin stage-6

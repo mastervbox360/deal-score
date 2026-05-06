@@ -25,6 +25,9 @@ export default defineConfig({
         ]
       : []),
   ],
+  optimizeDeps: {
+    include: ['@react-pdf/renderer'],
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
