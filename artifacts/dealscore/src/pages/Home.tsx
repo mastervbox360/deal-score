@@ -64,7 +64,13 @@ export default function HomePage() {
   const [taxOverrideEditing, setTaxOverrideEditing] = useState(false);
   const [manualTaxValue, setManualTaxValue] = useState<number>(0);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
+    return () => clearTimeout(timer);
+  }, [brandColourDraft]);
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -1415,16 +1421,16 @@ export default function HomePage() {
               <div className="flex items-center gap-3">
                 <input
                   type="color"
-                  value={brandColour}
-                  onChange={(e) => setBrandColour(e.target.value)}
+                  value={brandColourDraft}
+                  onChange={(e) => setBrandColourDraft(e.target.value)}
                   className="h-10 w-14 cursor-pointer rounded-lg border border-border p-0.5 bg-white"
                   data-testid="input-brand-colour"
                 />
-                <div className="h-8 w-8 rounded-md border border-border shadow-sm" style={{ backgroundColor: brandColour }} />
-                <span className="text-xs text-slate-500 font-mono">{brandColour}</span>
+                <div className="h-8 w-8 rounded-md border border-border shadow-sm" style={{ backgroundColor: brandColourDraft }} />
+                <span className="text-xs text-slate-500 font-mono">{brandColourDraft}</span>
                 <button
                   type="button"
-                  onClick={() => setBrandColour('#1B3A6B')}
+                  onClick={() => { setBrandColourDraft('#1B3A6B'); setBrandColour('#1B3A6B'); }}
                   className="text-xs text-slate-400 hover:text-slate-600 transition ml-auto"
                 >
                   Reset
