@@ -92,6 +92,49 @@ const DEAL_LABELS: Record<DealType, string> = {
   SOCIAL: 'Social Housing Analysis',
 };
 
+// FIX 1 — Expand common UK address abbreviations (word-boundary aware)
+function expandAddress(address: string): string {
+  let s = address;
+  // Cl and St only when preceded by an alphanumeric character (prevents "St Mary's" → "Street Mary's")
+  s = s.replace(/([A-Za-z0-9]) Cl\b/g, '$1 Close');
+  s = s.replace(/([A-Za-z0-9]) St\b/g, '$1 Street');
+  // Remaining abbreviations — whole word, any position
+  const simple: Array<[RegExp, string]> = [
+    [/\bRd\b/g, 'Road'],
+    [/\bAve\b/g, 'Avenue'],
+    [/\bDr\b/g, 'Drive'],
+    [/\bLn\b/g, 'Lane'],
+    [/\bCt\b/g, 'Court'],
+    [/\bPl\b/g, 'Place'],
+    [/\bSq\b/g, 'Square'],
+    [/\bCres\b/g, 'Crescent'],
+    [/\bGdns\b/g, 'Gardens'],
+    [/\bGr\b/g, 'Grove'],
+    [/\bPk\b/g, 'Park'],
+    [/\bTer\b/g, 'Terrace'],
+    [/\bVw\b/g, 'View'],
+    [/\bWk\b/g, 'Walk'],
+    [/\bWy\b/g, 'Way'],
+    [/\bBlvd\b/g, 'Boulevard'],
+  ];
+  for (const [re, full] of simple) {
+    s = s.replace(re, full);
+  }
+  return s;
+}
+
+// FIX 5 — Format comparables text: em dash + price formatting
+function formatComparables(text: string): string {
+  let s = text.trim();
+  // em dash
+  s = s.replace(/ - /g, ' — ');
+  // "24 K" / "24K" → "£24,000"
+  s = s.replace(/\b(\d+)\s*[Kk]\b/g, (_, n) => '£' + (parseInt(n, 10) * 1000).toLocaleString('en-GB'));
+  // bare 5–6 digit numbers → £XX,XXX
+  s = s.replace(/\b(\d{5,6})\b/g, (_, n) => '£' + parseInt(n, 10).toLocaleString('en-GB'));
+  return s;
+}
+
 type RowData = [string, string, boolean?];
 
 const base = StyleSheet.create({
@@ -122,7 +165,8 @@ const base = StyleSheet.create({
     alignItems: 'center',
     border: '0.5pt solid #d4dae8',
   },
-  heroLabel: { fontSize: 7.5, color: '#6b7280', textAlign: 'center', marginTop: 3 },
+  // FIX 4 — More visible hero labels
+  heroLabel: { fontSize: 8, color: '#666666', textAlign: 'center', marginTop: 4 },
   riskFlag: {
     backgroundColor: '#fef3c7',
     border: '0.5pt solid #fbbf24',
@@ -151,6 +195,7 @@ const base = StyleSheet.create({
 
 export default function DealScorePDF(props: DealScorePDFProps) {
   const brand = props.brandColour;
+  const address = expandAddress(props.propertyAddress || 'Property Address Not Entered');
 
   const SH = ({ title }: { title: string }) => (
     <View style={{ marginBottom: 14 }}>
@@ -201,10 +246,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       : []),
   ];
 
+  // FIX 2 — Sourcing Fee removed from Deal Inputs table (moved to Page 4 disclosure)
   const inputRows: RowData[] = (() => {
-    const base: RowData[] = [];
+    const rows: RowData[] = [];
     if (props.dealType === 'BTL') {
-      base.push(
+      rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
         ['Refurb Cost', fc(props.refurbCost)],
@@ -218,7 +264,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     } else if (props.dealType === 'HMO') {
-      base.push(
+      rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
         ['Refurb / Conversion Cost', fc(props.refurbCost)],
@@ -233,7 +279,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     } else if (props.dealType === 'FLIP') {
-      base.push(
+      rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
         ['Refurb Cost', fc(props.refurbCost)],
@@ -245,7 +291,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     } else if (props.dealType === 'SA') {
-      base.push(
+      rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
         ['Refurb Cost', fc(props.refurbCost)],
@@ -260,7 +306,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     } else if (props.dealType === 'BRRR') {
-      base.push(
+      rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
         ['Refurb Cost', fc(props.refurbCost)],
@@ -273,7 +319,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     } else if (props.dealType === 'R2R') {
-      base.push(
+      rows.push(
         ['Monthly Rent to Landlord', fc(props.r2rInputs.monthlyRentPaid)],
         ['Rooms', `${props.r2rInputs.rooms}`],
         ['Rent per Room (monthly)', fc(props.r2rInputs.rentPerRoom)],
@@ -284,7 +330,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     } else {
-      base.push(
+      rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
         ['Refurb Cost', fc(props.refurbCost)],
@@ -298,8 +344,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ...tenureRows,
       );
     }
-    if (props.sourcingFee > 0) base.push(['Sourcing Fee', fc(props.sourcingFee), true]);
-    return base;
+    return rows;
   })();
 
   const heroMetrics: { label: string; value: string }[] = (() => {
@@ -419,11 +464,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ];
   })();
 
+  // FIX 5 — Comparables note uses formatter; others are plain
   const notes = [
-    { label: 'Why This Strategy?', text: props.strategyNotes.trim() },
-    { label: 'Property Description', text: props.propertyDescription.trim() },
-    { label: 'Vendor Situation', text: props.vendorSituation.trim() },
-    { label: 'Comparable Properties', text: props.comparableProperties.trim() },
+    { label: 'Why This Strategy?', text: props.strategyNotes.trim(), isComparables: false },
+    { label: 'Property Description', text: props.propertyDescription.trim(), isComparables: false },
+    { label: 'Vendor Situation', text: props.vendorSituation.trim(), isComparables: false },
+    { label: 'Comparable Properties', text: props.comparableProperties.trim(), isComparables: true },
   ].filter((n) => n.text.length > 0);
 
   const hasNotes = notes.length > 0 || props.sourcingFee > 0;
@@ -452,15 +498,15 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
           )}
 
-          {/* Centre content */}
+          {/* FIX 6 — Centre content: address first (large), deal label subtitle below (title case, no all-caps) */}
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
-            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', letterSpacing: 2, textAlign: 'center', marginBottom: 14 }}>
-              {DEAL_LABELS[props.dealType].toUpperCase()}
+            <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+              {address}
             </Text>
-            <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'center', lineHeight: 1.3, marginBottom: 14 }}>
-              {props.propertyAddress || 'Property Address Not Entered'}
+            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginBottom: 18 }}>
+              {DEAL_LABELS[props.dealType]}
             </Text>
-            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', textAlign: 'center' }}>
+            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
               Date Prepared: {props.dateStr}
             </Text>
           </View>
@@ -485,8 +531,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Footer />
 
         <SH title="Property Details" />
+        {/* FIX 1 — expandAddress applied; FIX 3 — EPC between Property Type and Flood Risk */}
         <Table rows={[
-          ...(props.propertyAddress ? [['Address', props.propertyAddress] as RowData] : []),
+          ...(props.propertyAddress ? [['Address', address] as RowData] : []),
           ['Property Type', props.propertyType],
           ['Tenure', props.tenure],
           ...(props.tenure === 'Leasehold' && props.leaseLengthYears > 0
@@ -569,17 +616,23 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <Footer />
           <SH title="Deal Notes" />
 
-          {notes.map(({ label, text }) => (
+          {notes.map(({ label, text, isComparables }) => (
             <View key={label} style={base.notePanel}>
               <Text style={[base.notePanelLabel, { color: brand }]}>{label}</Text>
-              <Text style={base.notePanelText}>{text}</Text>
+              <Text style={base.notePanelText}>
+                {isComparables ? formatComparables(text) : text}
+              </Text>
             </View>
           ))}
 
+          {/* FIX 2 — Sourcing Fee disclosure section (replaces raw table row) */}
           {props.sourcingFee > 0 && (
             <View style={[base.notePanel, { marginTop: 4 }]}>
               <Text style={[base.notePanelLabel, { color: brand }]}>Sourcing Fee</Text>
-              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: brand }}>{fc(props.sourcingFee)}</Text>
+              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: brand, marginBottom: 4 }}>
+                {fc(props.sourcingFee)}
+              </Text>
+              <Text style={base.notePanelText}>Payable on completion.</Text>
             </View>
           )}
         </Page>

@@ -1,0 +1,70 @@
+Here's the combined fix prompt — paste this into Replit:
+
+REPLIT PROMPT — PDF Polish Fixes (pre-6B)
+Read src/components/DealScorePDF.tsx fully before making any changes. Six fixes to make — all in DealScorePDF.tsx only unless stated otherwise.
+
+FIX 1 — Address abbreviation expansion
+Create a helper function expandAddress(address: string): string at the top of DealScorePDF.tsx. It replaces common UK address abbreviations with full words using word-boundary aware replacement (so "St" at the START of a name like "St Mary's" is NOT expanded, but "Horwood Cl" → "Horwood Close" IS expanded).
+Replacements to apply (case-insensitive, whole word only, not at start of string):
+
+Cl → Close
+St → Street (only when NOT at start of address segment — e.g. "St Mary's" stays as is)
+Rd → Road
+Ave → Avenue
+Dr → Drive
+Ln → Lane
+Ct → Court
+Pl → Place
+Sq → Square
+Cres → Crescent
+Gdns → Gardens
+Gr → Grove
+Pk → Park
+Ter → Terrace
+Vw → View
+Wk → Walk
+Wy → Way
+Blvd → Boulevard
+
+Apply expandAddress() to every place the property address is displayed in the PDF — cover page, page 2 header, footer, filename.
+
+FIX 2 — Sourcing Fee display
+
+Remove Sourcing Fee from the Deal Inputs table on Page 2 entirely
+On Page 4 (Deal Notes), replace the raw sourcing fee line with a properly formatted disclosure section:
+
+If sourcing fee > 0, show:
+Sourcing Fee
+£5,000 — payable on completion
+In a clean labelled row, same style as other notes sections. If sourcing fee is 0 or empty, omit entirely (already working — keep that logic).
+
+FIX 3 — EPC Rating in Property Details
+Add EPC Rating to the Property Details table on Page 2. It should appear between Property Type and Flood Risk:
+EPC Rating    D
+Only show this row if EPC rating data is available (not null/empty). Use the same row style as the other property detail rows.
+
+FIX 4 — Page 2 hero metrics labels
+The three large hero metric numbers on Page 2 (Cash Invested, Monthly Cash Flow, Gross Yield) currently show the numbers without visible labels beneath them. Add a label beneath each number in smaller text (8pt, #666666):
+
+Below £89,950 → "Cash Invested"
+Below £219 → "Monthly Cash Flow"
+Below 5.8% → "Gross Yield"
+
+
+FIX 5 — Comparables formatting
+On Page 4, comparables are displaying as raw free text (e.g. "High Street - 24 K"). Apply basic formatting cleanup to comparables text:
+
+Replace " - " with " — " (proper em dash)
+Apply £ formatting to any number that appears to be a price (5 or 6 digit number) — e.g. "24000" → "£24,000" and "24 K" → "£24,000"
+Display in a clean indented style, not as a raw paragraph dump
+
+
+FIX 6 — Cover page title styling
+The strategy label on the cover page is currently rendering as spaced caps (e.g. "B U Y - T O - L E T A N A L Y S I S"). Change it to clean title case: "Buy-to-Let Analysis", "HMO Analysis", "Flip / Refurb Analysis" etc.
+Display it as a subtitle beneath the property address — smaller than the address, in brand colour, not all-caps spaced.
+
+After all 6 fixes:
+
+Zero TypeScript errors
+Test by downloading PDF with real numbers — verify all 6 fixes are correct
+Do not push — we will test in Replit preview first
