@@ -46,7 +46,7 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
           style={{ backgroundColor: pdfProps.brandColour }}
         >
           <Download className="w-4 h-4" />
-          {loading ? 'Generating PDF…' : 'Download Investor Summary PDF'}
+          {loading ? 'Preparing PDF…' : '⬇ Download Investor Summary PDF'}
         </div>
       )}
     </PDFDownloadLink>
