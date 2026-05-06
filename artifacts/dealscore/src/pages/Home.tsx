@@ -1910,6 +1910,18 @@ function TaxSection({
 }) {
   const label = TAX_LABEL[country];
   const fmt = (n: number) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(n);
+  const [taxDraft, setTaxDraft] = useState('');
+
+  useEffect(() => {
+    if (overrideEditing) {
+      setTaxDraft(manualValue > 0 ? String(manualValue) : '');
+    }
+  }, [overrideEditing]);
+
+  const commitDraft = () => {
+    const parsed = parseFloat(taxDraft);
+    onConfirmOverride(isNaN(parsed) ? 0 : parsed);
+  };
 
   const handleCountryChange = (v: Country) => {
     onCountry(v);
@@ -1938,16 +1950,18 @@ function TaxSection({
           {overrideEditing ? (
             <>
               <Input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 className="w-32 h-7 text-sm text-right font-semibold"
                 style={{ color: '#1B3A6B' }}
-                value={manualValue || ''}
-                onChange={(e) => onConfirmOverride(Number(e.target.value) || 0)}
+                value={taxDraft}
+                onChange={(e) => setTaxDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commitDraft(); } }}
                 autoFocus
               />
               <button
                 type="button"
-                onClick={() => onConfirmOverride(manualValue)}
+                onClick={commitDraft}
                 className="text-xs font-medium text-green-700 hover:text-green-900 whitespace-nowrap"
               >
                 Confirm

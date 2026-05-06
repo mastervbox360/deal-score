@@ -1,0 +1,28 @@
+Fix Tax Override Input (Auto-Save on Keystroke Bug)
+Read the full codebase before making any changes.
+There is a bug in the Property Tax manual override field. When the user clicks Override/Edit and types a number, the value is being saved to state on every keystroke. So typing "1000" saves "1" first, causing the field to commit prematurely. The Cash Invested total also updates on every digit, which is distracting and wrong.
+The fix:
+In the tax override input section of Home.tsx (or wherever the tax override state lives), the override input field must use a separate local draft string state — not the live tax state directly.
+Implement this pattern:
+
+When user clicks Override/Edit, open the input and initialise a local taxDraftValue string state with the current tax value (e.g. "" or the current calculated amount as a string)
+The input field's value is bound to taxDraftValue and onChange only updates taxDraftValue — it does NOT update the real tax state
+The real tax state (manualTax or equivalent) is only updated when:
+
+User presses Enter (onKeyDown: if key === 'Enter', commit)
+User clicks the Confirm button
+
+
+If user clicks Cancel, discard taxDraftValue and revert to calculated tax — no change to real state
+Remove any logic that commits the tax value on blur or onChange
+
+The input should be type="text" not type="number" to prevent the browser's built-in number input behaviour (which causes the arrow key digit-stepping issue the user is seeing). Parse the committed value with parseFloat(taxDraftValue) on confirm/enter. If the parsed value is NaN or empty, treat as 0.
+Also fix: The up/down arrow keys on a type="number" input are incrementing by 1 — this is browser default behaviour for number inputs. Switching to type="text" with numeric validation on commit eliminates this entirely.
+After the fix, test this flow:
+
+Type "1000" into the override field → Cash Invested should NOT change while typing
+Press Enter → Cash Invested updates to reflect £1000 tax ✅
+Click Cancel → reverts to calculated value ✅
+Click Confirm → commits value ✅
+
+Zero TypeScript errors. Do not change any other input fields — only the tax override input.
