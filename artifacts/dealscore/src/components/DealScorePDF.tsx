@@ -1,5 +1,13 @@
 import React from 'react';
-import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet, Font } from '@react-pdf/renderer';
+
+Font.register({
+  family: 'Roboto',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/roboto/v32/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2', fontWeight: 700 },
+  ],
+});
 import {
   calculateBTL,
   calculateHMO,
@@ -251,7 +259,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 40, M: 70, L: 100 };
   const logoHeight = LOGO_H[props.logoSize];
 
-  const address = noBreakHyphens(expandAddress(props.propertyAddress || 'Property Address Not Entered'));
+  // addressPlain uses Helvetica (Page 2 table) — \u2011 unsupported there
+  // address uses Roboto (cover pages) — Roboto supports \u2011 so hyphens never line-break
+  const addressPlain = expandAddress(props.propertyAddress || 'Property Address Not Entered');
+  const address = noBreakHyphens(addressPlain);
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -557,7 +568,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
               <Text
                 hyphenationCallback={() => []}
-                style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}
+                style={{ fontSize: 28, fontFamily: 'Roboto', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}
               >
                 {address}
               </Text>
@@ -595,7 +606,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: 40 }}>
               <Text
                 hyphenationCallback={() => []}
-                style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
+                style={{ fontSize: 26, fontFamily: 'Roboto', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
               >
                 {address}
               </Text>
@@ -644,7 +655,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View style={{ flex: 1, justifyContent: 'center' }}>
                 <Text
                   hyphenationCallback={() => []}
-                  style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
+                  style={{ fontSize: 22, fontFamily: 'Roboto', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
                 >
                   {address}
                 </Text>
@@ -674,7 +685,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <SH title="Property Details" />
         {/* FIX 3: EPC Rating row between Property Type and Flood Risk */}
         <Table rows={[
-          ...(props.propertyAddress ? [['Address', address] as RowData] : []),
+          ...(props.propertyAddress ? [['Address', addressPlain] as RowData] : []),
           ['Property Type', props.propertyType],
           ['Tenure', props.tenure],
           ...(props.tenure === 'Leasehold' && props.leaseLengthYears > 0
