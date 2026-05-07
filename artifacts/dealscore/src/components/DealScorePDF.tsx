@@ -686,7 +686,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <SH title="Financial Summary" />
         <Hero metrics={heroMetrics} />
 
-        {props.marketValue > 0 && (
+        {props.bmvAmount > 0 && (
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
