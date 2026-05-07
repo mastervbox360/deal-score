@@ -1,0 +1,51 @@
+Paste this into Replit:
+
+REPLIT PROMPT — Fix button text contrast + EPC Rating on Page 2
+Read Home.tsx and src/components/DealScorePDF.tsx fully before making any changes. Two fixes only.
+
+FIX 1 — Download button text contrast in Home.tsx
+The Download Investor Summary PDF button uses brandColour as its background. When a light brand colour is selected (e.g. pale yellow), the button text stays white and becomes unreadable.
+Find the PdfDownloadButton component or wherever the download button is styled in Home.tsx.
+Add a contrast helper directly in Home.tsx (or import it if it's already extracted):
+typescriptfunction getLuminance(hex: string): number {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+function getContrastText(bgHex: string): string {
+  return getLuminance(bgHex) > 0.35 ? '#1A1A1A' : '#FFFFFF';
+}
+Apply getContrastText(brandColour) as the text colour of the download button. So:
+
+Light brand colour → dark text on button
+Dark brand colour → white text on button
+
+Also apply the same contrast logic to any other UI elements in Home.tsx that use brandColour as a background.
+
+FIX 2 — EPC Rating on Page 2 in DealScorePDF.tsx
+The EPC rating is still not appearing in the Property Details table on Page 2. This fix must work correctly this time.
+Do the following:
+
+console.log the full props object received by DealScorePDF at render time so we can see exactly what field names are available
+Find the field that contains the EPC rating — it may be called epcRating, epc, energyRating, or similar — check the actual props
+Add an EPC Rating row to the Property Details table between Property Type and Flood Risk:
+
+Label: "EPC Rating"
+Value: the EPC rating value (e.g. "D" or "D (67)")
+Only render if the value is not null/undefined/empty string
+
+
+
+Also check — is the EPC data actually being passed in pdfProps from Home.tsx? If not, find where EPC data is stored in state in Home.tsx and add it to the pdfProps object passed to the PDF component.
+
+After both fixes:
+
+Zero TypeScript errors
+Test with pale yellow brand colour — button text must be dark and readable
+Test with navy brand colour — button text must be white
+EPC rating must appear in Property Details on Page 2
+Do not push — test in Replit preview first

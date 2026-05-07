@@ -228,6 +228,8 @@ const base = StyleSheet.create({
 });
 
 export default function DealScorePDF(props: DealScorePDFProps) {
+  console.log('[DealScorePDF] props:', props);
+
   const brand = props.brandColour;
   // FIX 1/2: derive safe colour variants once
   const readableBrand = getReadableBrandColour(brand);   // brand colour safe for use as TEXT on white

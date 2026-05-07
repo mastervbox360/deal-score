@@ -26,6 +26,19 @@ function formatPercent(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
+function getLuminance(hex: string): number {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+function getContrastText(bgHex: string): string {
+  return getLuminance(bgHex) > 0.35 ? '#1A1A1A' : '#FFFFFF';
+}
+
 const PdfDownloadButton = React.memo(function PdfDownloadButton({
   pdfProps,
   fileName,
@@ -33,6 +46,7 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
   pdfProps: DealScorePDFProps;
   fileName: string;
 }) {
+  const textColour = getContrastText(pdfProps.brandColour);
   return (
     <PDFDownloadLink
       document={<DealScorePDF {...pdfProps} />}
@@ -42,10 +56,10 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
     >
       {({ loading }: { loading: boolean }) => (
         <div
-          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition w-full cursor-pointer"
-          style={{ backgroundColor: pdfProps.brandColour }}
+          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition w-full cursor-pointer"
+          style={{ backgroundColor: pdfProps.brandColour, color: textColour }}
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4" style={{ color: textColour }} />
           {loading ? 'Preparing PDF…' : '⬇ Download Investor Summary PDF'}
         </div>
       )}
