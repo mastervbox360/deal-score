@@ -51,6 +51,8 @@ export interface DealScorePDFProps {
   preparedBy: { name: string; email: string; phone: string };
   logoBase64: string | null;
   brandColour: string;
+  logoSize: 'S' | 'M' | 'L';
+  coverStyle: 'classic' | 'clean' | 'bold';
   btlInputs: { monthlyRent: number; monthlyExpenses: number };
   hmoInputs: { rooms: number; rentPerRoom: number; occupancyRate: number; monthlyExpenses: number };
   flipInputs: { holdingCostsPerMonth: number; projectLengthMonths: number; expectedSalePrice: number; sellingCostsPercent: number };
@@ -127,6 +129,15 @@ function coverMuted(bgHex: string, opacity: number): string {
   return isDark
     ? `rgba(255,255,255,${opacity})`
     : `rgba(26,26,26,${opacity})`;
+}
+
+/** Darkens a hex colour by blending toward black by `amount` (0–1). */
+function darkenColour(hex: string, amount: number = 0.5): string {
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * (1 - amount));
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * (1 - amount));
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * (1 - amount));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
 // ── Address abbreviation expansion ──────────────────────────────────────────
@@ -231,9 +242,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   console.log('[DealScorePDF] props:', props);
 
   const brand = props.brandColour;
-  // FIX 1/2: derive safe colour variants once
-  const readableBrand = getReadableBrandColour(brand);   // brand colour safe for use as TEXT on white
-  const coverText = getContrastText(brand);               // white or dark for text ON the brand background
+  const coverBg = darkenColour(brand, 0.4);           // darkened brand for cover backgrounds
+  const readableBrand = getReadableBrandColour(brand); // brand colour safe as TEXT on white
+  const coverBgText = getContrastText(coverBg);        // text colour on darkened cover bg
+
+  const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 40, M: 70, L: 100 };
+  const logoHeight = LOGO_H[props.logoSize];
 
   const address = expandAddress(props.propertyAddress || 'Property Address Not Entered');
 
@@ -529,44 +543,118 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     <Document>
 
       {/* ── Page 1: Cover ─────────────────────────────────────────────────── */}
-      {/* FIX 1/2: cover page background = brand; all text uses getContrastText */}
-      <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: brand }}>
-        <View style={{ flex: 1, padding: 40, justifyContent: 'space-between' }}>
 
-          {props.logoBase64 && (
-            <View style={{ marginBottom: 16 }}>
-              <Image
-                src={props.logoBase64}
-                style={{ maxHeight: 80, objectFit: 'contain', alignSelf: 'flex-start' }}
-              />
-            </View>
-          )}
-
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
-            <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: coverText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-              {address}
-            </Text>
-            <Text style={{ fontSize: 11, color: coverMuted(brand, 0.75), textAlign: 'center', marginBottom: 18 }}>
-              {DEAL_LABELS[props.dealType]}
-            </Text>
-            <Text style={{ fontSize: 10, color: coverMuted(brand, 0.5), textAlign: 'center' }}>
-              Date Prepared: {props.dateStr}
-            </Text>
-          </View>
-
-          <View>
-            <View style={{ borderBottom: `1pt solid ${coverMuted(brand, 0.2)}`, marginBottom: 20 }} />
-            {preparedLine ? (
-              <Text style={{ fontSize: 9, color: coverMuted(brand, 0.75), textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
-                {preparedLine}
-              </Text>
+      {props.coverStyle === 'classic' && (
+        <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: coverBg }}>
+          <View style={{ flex: 1, padding: 40, justifyContent: 'space-between' }}>
+            {props.logoBase64 ? (
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
+              </View>
             ) : null}
-            <Text style={{ fontSize: 8, color: coverMuted(brand, 0.4), textAlign: 'center' }}>
-              Confidential — Prepared for investor review only
-            </Text>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
+              <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                {address}
+              </Text>
+              <Text style={{ fontSize: 11, color: coverMuted(coverBg, 0.75), textAlign: 'center', marginBottom: 18 }}>
+                {DEAL_LABELS[props.dealType]}
+              </Text>
+              <Text style={{ fontSize: 10, color: coverMuted(coverBg, 0.5), textAlign: 'center' }}>
+                Date Prepared: {props.dateStr}
+              </Text>
+            </View>
+            <View>
+              <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.2)}`, marginBottom: 20 }} />
+              {preparedLine ? (
+                <Text style={{ fontSize: 9, color: coverMuted(coverBg, 0.75), textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
+                  {preparedLine}
+                </Text>
+              ) : null}
+              <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.4), textAlign: 'center' }}>
+                Confidential — Prepared for investor review only
+              </Text>
+            </View>
           </View>
-        </View>
-      </Page>
+        </Page>
+      )}
+
+      {props.coverStyle === 'clean' && (
+        <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: '#ffffff' }}>
+          <View style={{ height: 8, backgroundColor: brand }} />
+          <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeft: `4pt solid ${brand}`, justifyContent: 'space-between' }}>
+            {props.logoBase64 ? (
+              <View>
+                <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
+              </View>
+            ) : null}
+            <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: 40 }}>
+              <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}>
+                {address}
+              </Text>
+              <Text style={{ fontSize: 11, color: readableBrand, marginBottom: 6 }}>
+                {DEAL_LABELS[props.dealType]}
+              </Text>
+              <Text style={{ fontSize: 9, color: '#666666', marginBottom: 4 }}>
+                Date Prepared: {props.dateStr}
+              </Text>
+              {preparedLine ? (
+                <Text style={{ fontSize: 9, color: '#666666', lineHeight: 1.7 }}>
+                  {preparedLine}
+                </Text>
+              ) : null}
+            </View>
+            <View>
+              <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
+              <Text style={{ fontSize: 8, color: '#999999', textAlign: 'center' }}>
+                Confidential — Prepared for investor review only
+              </Text>
+            </View>
+          </View>
+        </Page>
+      )}
+
+      {props.coverStyle === 'bold' && (
+        <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: '#ffffff' }}>
+          <View style={{ flex: 1, flexDirection: 'row' }}>
+            <View style={{ width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between' }}>
+              <View>
+                {props.logoBase64 ? (
+                  <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 160, objectFit: 'contain' }} />
+                ) : null}
+              </View>
+              <View>
+                <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: coverBgText, marginBottom: 6, lineHeight: 1.4 }}>
+                  {DEAL_LABELS[props.dealType]}
+                </Text>
+                <Text style={{ fontSize: 9, color: coverMuted(coverBg, 0.7) }}>
+                  Date Prepared: {props.dateStr}
+                </Text>
+                <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.3)}`, marginTop: 20 }} />
+              </View>
+            </View>
+            <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, justifyContent: 'space-between' }}>
+              <View style={{ flex: 1, justifyContent: 'center' }}>
+                <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}>
+                  {address}
+                </Text>
+                <Text style={{ fontSize: 10, color: readableBrand }}>
+                  {DEAL_LABELS[props.dealType]}
+                </Text>
+              </View>
+              <View>
+                {preparedLine ? (
+                  <Text style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
+                    {preparedLine}
+                  </Text>
+                ) : null}
+                <Text style={{ fontSize: 8, color: '#999999' }}>
+                  Confidential — Prepared for investor review only
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Page>
+      )}
 
       {/* ── Page 2: Property & Financial Summary ──────────────────────────── */}
       <Page size="A4" style={base.page}>

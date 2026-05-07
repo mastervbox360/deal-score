@@ -1,0 +1,94 @@
+Paste this into Replit:
+
+REPLIT PROMPT — Stage 6A Final Polish: Cover Styles, Logo Size, Cover Darkening, Logo Fix
+Read Home.tsx and src/components/DealScorePDF.tsx fully before making any changes.
+
+FIX 1 — Automatic cover page colour darkening
+In DealScorePDF.tsx, add a helper function that darkens any hex colour by blending it 50% toward black. Use this for the cover page background only — NOT for accent elements on white pages:
+typescriptfunction darkenColour(hex: string, amount: number = 0.5): string {
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * (1 - amount));
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * (1 - amount));
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * (1 - amount));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+Apply darkenColour(brandColour, 0.4) to the cover page background fill only. All other brand colour usage stays as-is.
+
+FIX 2 — Logo size control
+In Home.tsx, add a logo size selector in the branding section, directly below the logo upload thumbnail. Only show this if a logo has been uploaded.
+Three options displayed as a small inline toggle (not a dropdown):
+Logo Size:  [S]  [M]  [L]
+
+S = 40px height
+M = 70px height (default)
+L = 100px height
+
+Store as logoSize: 'S' | 'M' | 'L' in state, default 'M'. Pass into pdfProps as logoSize.
+In DealScorePDF.tsx, use logoSize to set the logo image height on the cover page:
+
+S → height: 40
+M → height: 70
+L → height: 100
+
+
+FIX 3 — Logo tagline fix
+On the cover page in DealScorePDF.tsx, the logo image is rendering with a tagline text beneath it from the image metadata. This is not text we're rendering — it must be coming from the image itself being displayed at full size with surrounding whitespace or the image contains text.
+Ensure the logo is rendered ONLY as an <Image> element with explicit width and height constraints. No text elements adjacent to the logo on the cover page except the property address, strategy label, date, prepared by line, and confidential footer. If there is any text element near the logo that could be displaying image metadata or alt text, remove it.
+Max logo width: 200px. Height: controlled by logoSize prop.
+
+FIX 4 — Cover page style selector
+In Home.tsx, add a cover style selector in the branding section below the brand colour picker.
+Label: "Cover Style" with info icon: "Choose how your investor pack cover page looks."
+Display as three visual thumbnail options side by side. Each is a small clickable card (approximately 60px × 80px) showing a miniature preview of the layout:
+Classic — small card with full brand colour background, tiny white rectangle for logo top-left, white text lines in centre
+Clean — small card with white background, thin brand colour bar at top, logo top-left, dark text lines in centre
+Bold — small card split vertically: left half brand colour, right half white, text overlapping centre
+Use simple CSS/Tailwind to draw these as abstract representations — they don't need to be pixel perfect, just clearly different from each other.
+Selected style gets a navy border. Unselected styles get a light grey border.
+Store as coverStyle: 'classic' | 'clean' | 'bold' in state, default 'classic'. Pass into pdfProps as coverStyle.
+In DealScorePDF.tsx, implement all three cover page layouts:
+Classic (existing, improved):
+
+Full darkened brand colour background
+Logo top-centre, constrained by logoSize
+Property address large bold white text, vertically centred
+Strategy label below address in white, 75% opacity
+Date prepared below strategy
+Horizontal rule in white 30% opacity near bottom
+Prepared by line above rule
+"Confidential" below rule
+
+Clean:
+
+White background
+Brand colour bar at very top — full width, height 8px
+Logo top-left, 40px from top, 40px from left, constrained by logoSize
+Thin vertical brand colour accent line on left edge (4px wide, full height)
+Property address large bold #1A1A1A text, positioned in lower third of page
+Strategy label below in brand colour (readable version)
+Date and prepared by in #666666
+"Confidential" at bottom in #999999
+Footer rule in brand colour
+
+Bold:
+
+Left half (45% width): darkened brand colour background
+Right half (55% width): white background
+Logo in left half, top area, white version if dark background (logo as-is — sourcer controls this)
+Property address spans across both halves — large bold text, left portion white, right portion dark
+Strategy label below address
+Thin horizontal brand colour rule at bottom of left panel
+Prepared by and confidential at bottom of right panel in dark text
+
+
+After all fixes:
+
+Zero TypeScript errors
+Test all three cover styles by switching between them and downloading PDF each time
+Test logo size S / M / L — verify logo scales correctly
+Test with pale yellow brand colour — cover page should be deep gold not pale yellow
+Test with navy — stays deep navy
+Do not push — test in Replit preview first and share PDFs here
+
+
+Let it run — this is the last Stage 6A item. Once verified we push to stage-6 and move to 6B.

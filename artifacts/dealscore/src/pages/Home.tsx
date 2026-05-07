@@ -105,6 +105,8 @@ export default function HomePage() {
   const [taxOverrideEditing, setTaxOverrideEditing] = useState(false);
   const [manualTaxValue, setManualTaxValue] = useState<number>(0);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [logoSize, setLogoSize] = useState<'S' | 'M' | 'L'>('M');
+  const [coverStyle, setCoverStyle] = useState<'classic' | 'clean' | 'bold'>('classic');
   const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
 
@@ -650,6 +652,8 @@ export default function HomePage() {
       preparedBy,
       logoBase64,
       brandColour,
+      logoSize,
+      coverStyle,
       btlInputs,
       hmoInputs,
       flipInputs,
@@ -678,6 +682,7 @@ export default function HomePage() {
     brrrInputs, r2rInputs, socialInputs,
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
     marketValue, sourcingFee, preparedBy, logoBase64, brandColour,
+    logoSize, coverStyle,
     strategyNotes, propertyDescription, vendorSituation, comparableProperties,
   ]);
 
@@ -1544,15 +1549,34 @@ export default function HomePage() {
                 <Label className="text-xs">Your Logo <span className="text-slate-400 font-normal">(appears on PDF cover)</span></Label>
               </div>
               {logoBase64 ? (
-                <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-muted/30">
-                  <img src={logoBase64} alt="Logo" className="h-10 object-contain max-w-[120px]" />
-                  <button
-                    type="button"
-                    onClick={() => setLogoBase64(null)}
-                    className="text-xs text-slate-400 hover:text-red-500 transition ml-auto"
-                  >
-                    ✕ Remove
-                  </button>
+                <div>
+                  <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-muted/30">
+                    <img src={logoBase64} alt="Logo" className="h-10 object-contain max-w-[120px]" />
+                    <button
+                      type="button"
+                      onClick={() => setLogoBase64(null)}
+                      className="text-xs text-slate-400 hover:text-red-500 transition ml-auto"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-slate-500">Logo Size:</span>
+                    {(['S', 'M', 'L'] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setLogoSize(s)}
+                        className={`w-8 h-7 rounded text-xs font-semibold border transition ${
+                          logoSize === s
+                            ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]'
+                            : 'bg-white text-slate-600 border-border hover:border-[#1B3A6B]'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <label className="flex items-center gap-2 p-2 border border-dashed border-border rounded-lg cursor-pointer hover:border-[#1B3A6B] transition bg-muted/20">
@@ -1587,6 +1611,79 @@ export default function HomePage() {
                   Reset
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Cover Style selector */}
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your investor pack cover page layout)</span></Label>
+            <div className="flex gap-4">
+              {/* Classic */}
+              <button
+                type="button"
+                onClick={() => setCoverStyle('classic')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'classic' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                <div className="w-[60px] h-[80px] rounded overflow-hidden flex flex-col" style={{ backgroundColor: brandColourDraft }}>
+                  <div className="flex-1 flex flex-col items-center justify-center gap-1 px-2">
+                    <div className="w-6 h-2 bg-white/80 rounded" />
+                    <div className="w-9 h-1.5 bg-white/90 rounded" />
+                    <div className="w-7 h-1 bg-white/60 rounded" />
+                  </div>
+                  <div className="px-2 pb-2">
+                    <div className="border-t border-white/30 pt-1">
+                      <div className="w-8 h-1 bg-white/50 rounded mx-auto" />
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-600 font-medium">Classic</span>
+              </button>
+
+              {/* Clean */}
+              <button
+                type="button"
+                onClick={() => setCoverStyle('clean')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'clean' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                <div className="w-[60px] h-[80px] rounded overflow-hidden bg-white flex flex-col" style={{ borderLeft: `3px solid ${brandColourDraft}` }}>
+                  <div className="h-1.5 w-full" style={{ backgroundColor: brandColourDraft }} />
+                  <div className="flex-1 flex flex-col justify-between p-2">
+                    <div className="w-4 h-1.5 bg-slate-200 rounded" />
+                    <div>
+                      <div className="w-9 h-2 bg-slate-700 rounded mb-1" />
+                      <div className="w-7 h-1 rounded mb-0.5" style={{ backgroundColor: brandColourDraft, opacity: 0.8 }} />
+                      <div className="w-5 h-1 bg-slate-300 rounded" />
+                    </div>
+                    <div className="border-t pt-1" style={{ borderColor: brandColourDraft }}>
+                      <div className="w-7 h-1 bg-slate-200 rounded mx-auto" />
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-600 font-medium">Clean</span>
+              </button>
+
+              {/* Bold */}
+              <button
+                type="button"
+                onClick={() => setCoverStyle('bold')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'bold' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                <div className="w-[60px] h-[80px] rounded overflow-hidden flex">
+                  <div className="w-[45%] h-full flex flex-col justify-between p-1.5" style={{ backgroundColor: brandColourDraft }}>
+                    <div className="w-4 h-1.5 bg-white/70 rounded" />
+                    <div>
+                      <div className="w-3 h-1 bg-white/80 rounded mb-0.5" />
+                      <div className="w-2 h-0.5 bg-white/50 rounded" />
+                    </div>
+                  </div>
+                  <div className="w-[55%] h-full bg-white flex flex-col justify-center p-1.5">
+                    <div className="w-6 h-2 bg-slate-700 rounded mb-1" />
+                    <div className="w-5 h-1 bg-slate-400 rounded mb-1" />
+                    <div className="w-3 h-1 bg-slate-200 rounded" />
+                  </div>
+                </div>
+                <span className="text-[10px] text-slate-600 font-medium">Bold</span>
+              </button>
             </div>
           </div>
 
