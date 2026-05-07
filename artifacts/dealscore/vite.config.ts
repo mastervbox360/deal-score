@@ -8,6 +8,19 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 5173;
 
 const basePath = process.env.BASE_PATH || "/";
 
+const pakoSubpathPlugin = {
+  name: "pako-subpath-resolver",
+  setup(build: { onResolve: (opts: { filter: RegExp }, cb: (args: { path: string }) => { path: string }) => void }) {
+    build.onResolve({ filter: /^pako\/lib\// }, (args) => ({
+      path: path.resolve(
+        import.meta.dirname,
+        "node_modules",
+        args.path,
+      ),
+    }));
+  },
+};
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -26,7 +39,10 @@ export default defineConfig({
       : []),
   ],
   optimizeDeps: {
-    include: ['@react-pdf/renderer'],
+    include: ["@react-pdf/renderer"],
+    esbuildOptions: {
+      plugins: [pakoSubpathPlugin],
+    },
   },
   resolve: {
     alias: {

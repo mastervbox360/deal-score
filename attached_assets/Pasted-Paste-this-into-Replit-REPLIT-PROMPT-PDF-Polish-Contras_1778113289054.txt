@@ -1,0 +1,81 @@
+Paste this into Replit:
+
+REPLIT PROMPT — PDF Polish: Contrast Safety, Controlled Brand Colour, EPC Fix
+Read src/components/DealScorePDF.tsx fully before making any changes. Three fixes only — do not change anything else.
+
+FIX 1 — Automatic contrast detection helper
+Add this helper function at the top of DealScorePDF.tsx, below the imports:
+typescript// Returns relative luminance of a hex colour (0 = black, 1 = white)
+function getLuminance(hex: string): number {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+// Returns white or dark text colour depending on background luminance
+function getContrastText(bgHex: string): string {
+  return getLuminance(bgHex) > 0.35 ? '#1A1A1A' : '#FFFFFF';
+}
+
+// Returns a readable version of the brand colour for use as TEXT on white background
+// If brand colour is too light (luminance > 0.6), darkens it by blending with black
+function getReadableBrandColour(hex: string): string {
+  if (getLuminance(hex) <= 0.6) return hex;
+  // Darken by 40% blend toward black
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * 0.6);
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * 0.6);
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * 0.6);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+FIX 2 — Controlled brand colour usage
+Brand colour (brandColour) must ONLY be used in these specific places:
+
+Cover page background fill
+Cover page divider rule
+Section header text (page 2, 3, 4 section titles)
+Section header rule/underline
+Deal Score badge background
+Footer "DealScore" centre text
+BMV banner background (if present)
+Positive metric highlights (Monthly Cash Flow in green stays green — do not override with brand colour)
+
+For ALL of these, use the helper functions:
+
+When brand colour is a background → text on top must use getContrastText(brandColour)
+When brand colour is used as text on white → use getReadableBrandColour(brandColour) instead of raw brandColour
+
+Remove brand colour from:
+
+All body text
+All table row content
+All metric values (these should be #333333)
+All labels and captions
+Property detail rows
+Deal input rows
+Any element not in the approved list above
+
+Positive cash flow values stay in #16A34A (green). Negative values stay in #DC2626 (red). ROI and key metric highlights use #1B3A6B (navy) as a fixed colour — not brand colour. These are financial indicators and must be consistent regardless of brand colour chosen.
+
+FIX 3 — EPC Rating on Page 2
+The EPC rating is not appearing in the Property Details table on Page 2. Find where Property Details rows are built and add the EPC row. It should:
+
+Appear between Property Type and Flood Risk
+Label: "EPC Rating"
+Value: the EPC rating letter (e.g. "D") — if the EPC data includes the score number show it as "D (67)"
+Only render this row if EPC rating is not null/empty/undefined
+Check what prop name carries the EPC data into the PDF component and use it correctly — read the pdfProps object passed from Home.tsx to confirm the exact field name
+
+
+After all 3 fixes:
+
+Zero TypeScript errors
+Test with a bright/light brand colour (e.g. pale yellow #FFFF99) — verify text on cover page is dark and readable
+Test with a dark brand colour (e.g. navy #1B3A6B) — verify text on cover page is white and readable
+Test with magenta — verify body text is NOT magenta, only accents are
+EPC rating appears in Property Details on Page 2
+Do not push — test in Replit preview first

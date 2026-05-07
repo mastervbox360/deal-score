@@ -92,13 +92,50 @@ const DEAL_LABELS: Record<DealType, string> = {
   SOCIAL: 'Social Housing Analysis',
 };
 
-// FIX 1 — Expand common UK address abbreviations (word-boundary aware)
+// ── FIX 1: Contrast-safety helpers ───────────────────────────────────────────
+
+/** Returns relative luminance of a hex colour (0 = black, 1 = white) */
+function getLuminance(hex: string): number {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+/** Returns white or dark text colour depending on background luminance */
+function getContrastText(bgHex: string): string {
+  return getLuminance(bgHex) > 0.35 ? '#1A1A1A' : '#FFFFFF';
+}
+
+/** Returns a readable version of the brand colour for use as TEXT on white background.
+ *  If brand is too light (luminance > 0.6) it darkens by 40% blend toward black. */
+function getReadableBrandColour(hex: string): string {
+  if (getLuminance(hex) <= 0.6) return hex;
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * 0.6);
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * 0.6);
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * 0.6);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+/** Returns a muted/semi-transparent-equivalent colour for cover page text.
+ *  Uses rgba so it works on the brand-coloured background. */
+function coverMuted(bgHex: string, opacity: number): string {
+  const isDark = getLuminance(bgHex) <= 0.35;
+  return isDark
+    ? `rgba(255,255,255,${opacity})`
+    : `rgba(26,26,26,${opacity})`;
+}
+
+// ── Address abbreviation expansion ──────────────────────────────────────────
+
 function expandAddress(address: string): string {
   let s = address;
   // Cl and St only when preceded by an alphanumeric character (prevents "St Mary's" → "Street Mary's")
   s = s.replace(/([A-Za-z0-9]) Cl\b/g, '$1 Close');
   s = s.replace(/([A-Za-z0-9]) St\b/g, '$1 Street');
-  // Remaining abbreviations — whole word, any position
   const simple: Array<[RegExp, string]> = [
     [/\bRd\b/g, 'Road'],
     [/\bAve\b/g, 'Avenue'],
@@ -117,20 +154,16 @@ function expandAddress(address: string): string {
     [/\bWy\b/g, 'Way'],
     [/\bBlvd\b/g, 'Boulevard'],
   ];
-  for (const [re, full] of simple) {
-    s = s.replace(re, full);
-  }
+  for (const [re, full] of simple) s = s.replace(re, full);
   return s;
 }
 
-// FIX 5 — Format comparables text: em dash + price formatting
+// ── Comparables formatter ────────────────────────────────────────────────────
+
 function formatComparables(text: string): string {
   let s = text.trim();
-  // em dash
   s = s.replace(/ - /g, ' — ');
-  // "24 K" / "24K" → "£24,000"
   s = s.replace(/\b(\d+)\s*[Kk]\b/g, (_, n) => '£' + (parseInt(n, 10) * 1000).toLocaleString('en-GB'));
-  // bare 5–6 digit numbers → £XX,XXX
   s = s.replace(/\b(\d{5,6})\b/g, (_, n) => '£' + parseInt(n, 10).toLocaleString('en-GB'));
   return s;
 }
@@ -155,7 +188,8 @@ const base = StyleSheet.create({
   tableRowAlt: { backgroundColor: '#f5f7fa' },
   tableLabel: { flex: 1, fontSize: 9, color: '#555555', fontFamily: 'Helvetica' },
   tableValue: { fontSize: 9, color: '#333333', fontFamily: 'Helvetica', textAlign: 'right' },
-  tableValueBold: { fontSize: 9, fontFamily: 'Helvetica-Bold', textAlign: 'right' },
+  // FIX 2: bold result highlights use fixed navy, not brand colour
+  tableValueHighlight: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1B3A6B', textAlign: 'right' },
   heroRow: { flexDirection: 'row', gap: 6, marginBottom: 14 },
   heroCard: {
     flex: 1,
@@ -165,7 +199,7 @@ const base = StyleSheet.create({
     alignItems: 'center',
     border: '0.5pt solid #d4dae8',
   },
-  // FIX 4 — More visible hero labels
+  heroValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#333333', textAlign: 'center' },
   heroLabel: { fontSize: 8, color: '#666666', textAlign: 'center', marginTop: 4 },
   riskFlag: {
     backgroundColor: '#fef3c7',
@@ -195,41 +229,51 @@ const base = StyleSheet.create({
 
 export default function DealScorePDF(props: DealScorePDFProps) {
   const brand = props.brandColour;
+  // FIX 1/2: derive safe colour variants once
+  const readableBrand = getReadableBrandColour(brand);   // brand colour safe for use as TEXT on white
+  const coverText = getContrastText(brand);               // white or dark for text ON the brand background
+
   const address = expandAddress(props.propertyAddress || 'Property Address Not Entered');
 
+  // ── Sub-components ──────────────────────────────────────────────────────────
+
+  // Section header: brand used for title text (on white) + underline rule
   const SH = ({ title }: { title: string }) => (
     <View style={{ marginBottom: 14 }}>
-      <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: brand, marginBottom: 4 }}>{title}</Text>
+      <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 4 }}>{title}</Text>
       <View style={{ borderBottom: `1pt solid ${brand}` }} />
     </View>
   );
 
+  // FIX 2: bold rows use fixed #1B3A6B (navy) — never the dynamic brand colour
   const Table = ({ rows }: { rows: RowData[] }) => (
     <View style={{ marginBottom: 14 }}>
       {rows.map(([label, value, bold], i) => (
         <View key={i} style={[base.tableRow, i % 2 === 0 ? base.tableRowAlt : {}]}>
           <Text style={base.tableLabel}>{label}</Text>
-          <Text style={bold ? [base.tableValueBold, { color: brand }] : base.tableValue}>{value}</Text>
+          <Text style={bold ? base.tableValueHighlight : base.tableValue}>{value}</Text>
         </View>
       ))}
     </View>
   );
 
+  // FIX 2: hero metric values use #333333, not brand colour
   const Hero = ({ metrics }: { metrics: { label: string; value: string }[] }) => (
     <View style={base.heroRow}>
       {metrics.map(({ label, value }) => (
         <View key={label} style={base.heroCard}>
-          <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: brand, textAlign: 'center' }}>{value}</Text>
+          <Text style={base.heroValue}>{value}</Text>
           <Text style={base.heroLabel}>{label}</Text>
         </View>
       ))}
     </View>
   );
 
+  // Footer: "DealScore" centre text uses readableBrand (safe on white footer)
   const Footer = () => (
     <View style={base.pageFooter} fixed>
       <Text style={base.footerLeft}>{props.preparedBy.name || ''}</Text>
-      <Text style={[base.footerCentre, { color: brand }]}>DealScore</Text>
+      <Text style={[base.footerCentre, { color: readableBrand }]}>DealScore</Text>
       <Text
         style={base.footerRight}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
@@ -246,7 +290,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       : []),
   ];
 
-  // FIX 2 — Sourcing Fee removed from Deal Inputs table (moved to Page 4 disclosure)
   const inputRows: RowData[] = (() => {
     const rows: RowData[] = [];
     if (props.dealType === 'BTL') {
@@ -464,7 +507,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ];
   })();
 
-  // FIX 5 — Comparables note uses formatter; others are plain
   const notes = [
     { label: 'Why This Strategy?', text: props.strategyNotes.trim(), isComparables: false },
     { label: 'Property Description', text: props.propertyDescription.trim(), isComparables: false },
@@ -485,10 +527,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     <Document>
 
       {/* ── Page 1: Cover ─────────────────────────────────────────────────── */}
+      {/* FIX 1/2: cover page background = brand; all text uses getContrastText */}
       <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: brand }}>
         <View style={{ flex: 1, padding: 40, justifyContent: 'space-between' }}>
 
-          {/* Logo */}
           {props.logoBase64 && (
             <View style={{ marginBottom: 16 }}>
               <Image
@@ -498,28 +540,26 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
           )}
 
-          {/* FIX 6 — Centre content: address first (large), deal label subtitle below (title case, no all-caps) */}
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
-            <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+            <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: coverText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
               {address}
             </Text>
-            <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginBottom: 18 }}>
+            <Text style={{ fontSize: 11, color: coverMuted(brand, 0.75), textAlign: 'center', marginBottom: 18 }}>
               {DEAL_LABELS[props.dealType]}
             </Text>
-            <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
+            <Text style={{ fontSize: 10, color: coverMuted(brand, 0.5), textAlign: 'center' }}>
               Date Prepared: {props.dateStr}
             </Text>
           </View>
 
-          {/* Rule + prepared by + confidential */}
           <View>
-            <View style={{ borderBottom: '1pt solid rgba(255,255,255,0.2)', marginBottom: 20 }} />
+            <View style={{ borderBottom: `1pt solid ${coverMuted(brand, 0.2)}`, marginBottom: 20 }} />
             {preparedLine ? (
-              <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
+              <Text style={{ fontSize: 9, color: coverMuted(brand, 0.75), textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
                 {preparedLine}
               </Text>
             ) : null}
-            <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
+            <Text style={{ fontSize: 8, color: coverMuted(brand, 0.4), textAlign: 'center' }}>
               Confidential — Prepared for investor review only
             </Text>
           </View>
@@ -531,7 +571,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Footer />
 
         <SH title="Property Details" />
-        {/* FIX 1 — expandAddress applied; FIX 3 — EPC between Property Type and Flood Risk */}
+        {/* FIX 3: EPC Rating row between Property Type and Flood Risk */}
         <Table rows={[
           ...(props.propertyAddress ? [['Address', address] as RowData] : []),
           ['Property Type', props.propertyType],
@@ -582,6 +622,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
         {props.currentScore !== 'Incomplete' && (
           <View style={{ marginBottom: 14 }}>
+            {/* FIX 2: Deal Score badge — brand bg, contrast text */}
             <View style={{
               backgroundColor: scoreColor,
               borderRadius: 4,
@@ -618,18 +659,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
           {notes.map(({ label, text, isComparables }) => (
             <View key={label} style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: brand }]}>{label}</Text>
+              {/* FIX 2: note panel label uses readableBrand (safe on white) */}
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>{label}</Text>
               <Text style={base.notePanelText}>
                 {isComparables ? formatComparables(text) : text}
               </Text>
             </View>
           ))}
 
-          {/* FIX 2 — Sourcing Fee disclosure section (replaces raw table row) */}
           {props.sourcingFee > 0 && (
             <View style={[base.notePanel, { marginTop: 4 }]}>
-              <Text style={[base.notePanelLabel, { color: brand }]}>Sourcing Fee</Text>
-              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: brand, marginBottom: 4 }}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Sourcing Fee</Text>
+              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 4 }}>
                 {fc(props.sourcingFee)}
               </Text>
               <Text style={base.notePanelText}>Payable on completion.</Text>
