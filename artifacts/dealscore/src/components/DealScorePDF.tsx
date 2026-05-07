@@ -537,7 +537,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     props.preparedBy.name ? `Prepared by  ${props.preparedBy.name}` : '',
     props.preparedBy.email,
     props.preparedBy.phone,
-  ].filter(Boolean).join('   ·   ');
+  ].filter(Boolean).join(' · ');
 
   return (
     <Document>
@@ -569,7 +569,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <View>
               <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.2)}`, marginBottom: 20 }} />
               {preparedLine ? (
-                <Text style={{ fontSize: 9, color: coverMuted(coverBg, 0.75), textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
+                <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: coverMuted(coverBg, 0.75), textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
                   {preparedLine}
                 </Text>
               ) : null}
@@ -604,7 +604,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 Date Prepared: {props.dateStr}
               </Text>
               {preparedLine ? (
-                <Text style={{ fontSize: 9, color: '#666666', lineHeight: 1.7 }}>
+                <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: '#666666', lineHeight: 1.7 }}>
                   {preparedLine}
                 </Text>
               ) : null}
@@ -652,7 +652,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
               <View>
                 {preparedLine ? (
-                  <Text style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
+                  <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
                     {preparedLine}
                   </Text>
                 ) : null}
