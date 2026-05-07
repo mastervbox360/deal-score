@@ -142,6 +142,8 @@ function darkenColour(hex: string, amount: number = 0.5): string {
 
 // ── Address abbreviation expansion ──────────────────────────────────────────
 
+const noBreakHyphens = (str: string) => str.replace(/-/g, '\u2011');
+
 function expandAddress(address: string): string {
   let s = address;
   // Cl and St only when preceded by an alphanumeric character (prevents "St Mary's" → "Street Mary's")
@@ -249,7 +251,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 40, M: 70, L: 100 };
   const logoHeight = LOGO_H[props.logoSize];
 
-  const address = expandAddress(props.propertyAddress || 'Property Address Not Entered');
+  const address = noBreakHyphens(expandAddress(props.propertyAddress || 'Property Address Not Entered'));
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
