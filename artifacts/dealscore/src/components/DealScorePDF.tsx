@@ -650,29 +650,29 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.3)}`, marginTop: 20 }} />
               </View>
             </View>
-            <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, justifyContent: 'space-between' }}>
-              <View style={{ position: 'absolute', top: 0, left: '45%', right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 }}>
+            <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 8, color: '#999999', alignSelf: 'flex-end' }}>
+                Confidential — Prepared for investor review only
+              </Text>
+              <View style={{ alignItems: 'center', width: '100%' }}>
                 <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+                <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
                   {addressLine1}
                 </Text>
                 {addressLine2 ? (
-                  <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                     {addressLine2}
                   </Text>
                 ) : <View style={{ marginBottom: 12 }} />}
               </View>
-              <View>
+              <View style={{ width: '100%' }}>
                 {preparedLine ? (
-                  <Text style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
                     {preparedLine}
                   </Text>
                 ) : null}
-                <Text style={{ fontSize: 8, color: '#999999' }}>
-                  Confidential — Prepared for investor review only
-                </Text>
               </View>
             </View>
           </View>

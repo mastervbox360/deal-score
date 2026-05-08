@@ -1,0 +1,39 @@
+In src/components/DealScorePDF.tsx, find the Bold cover section (search for {props.coverStyle === 'bold'}).
+Fix 1 — address word-break ("We-ston"):
+Find these two Text elements inside the Bold white panel's absolute-positioned View:
+tsx<Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+  {addressLine1}
+</Text>
+and the conditional addressLine2 Text below it.
+Add hyphenationCallback={(word) => [word]} to both of these Text elements.
+Fix 2 — address centred in white panel, not right-aligned:
+The current absolute-positioned View reads:
+tsx<View style={{ position: 'absolute', top: 0, left: '45%', right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 }}>
+Replace it with this (removes absolute positioning, uses flex layout on the white panel instead):
+The white panel View currently has justifyContent: 'space-between'. Change the white panel's outer View so it has three children: a top spacer, the centred address block, and the bottom prepared-by block. Replace the entire white panel <View style={{ width: '55%', ... }}> with:
+tsx<View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+  <Text style={{ fontSize: 8, color: '#999999', alignSelf: 'flex-end' }}>
+    Confidential — Prepared for investor review only
+  </Text>
+  <View style={{ alignItems: 'center', width: '100%' }}>
+    <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
+      {DEAL_LABELS[props.dealType]}
+    </Text>
+    <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+      {addressLine1}
+    </Text>
+    {addressLine2 ? (
+      <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+        {addressLine2}
+      </Text>
+    ) : <View style={{ marginBottom: 12 }} />}
+  </View>
+  <View style={{ width: '100%' }}>
+    {preparedLine ? (
+      <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
+        {preparedLine}
+      </Text>
+    ) : null}
+  </View>
+</View>
+Do not touch the Classic or Clean cover sections. Do not change any other part of the file.
