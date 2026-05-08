@@ -150,7 +150,7 @@ function darkenColour(hex: string, amount: number = 0.5): string {
 
 // ── Address abbreviation expansion ──────────────────────────────────────────
 
-const noBreakHyphens = (str: string) => str.replace(/-/g, '\u2011');
+const noBreakHyphens = (str: string) => str ? str.replace(/-/g, '\u2011') : str;
 
 function expandAddress(address: string): string {
   let s = address;
@@ -261,7 +261,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   // addressPlain uses Helvetica (Page 2 table) — \u2011 unsupported there
   // address uses Roboto (cover pages) — Roboto supports \u2011 so hyphens never line-break
-  const addressPlain = expandAddress(props.propertyAddress || 'Property Address Not Entered');
+  const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = noBreakHyphens(addressPlain);
 
   // ── Sub-components ──────────────────────────────────────────────────────────
