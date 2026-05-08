@@ -651,15 +651,15 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
             </View>
             <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, justifyContent: 'space-between' }}>
-              <View style={{ position: 'absolute', top: 0, left: '45%', right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+              <View style={{ position: 'absolute', top: 0, left: '45%', right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 }}>
                 <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+                <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
                   {addressLine1}
                 </Text>
                 {addressLine2 ? (
-                  <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                     {addressLine2}
                   </Text>
                 ) : <View style={{ marginBottom: 12 }} />}
