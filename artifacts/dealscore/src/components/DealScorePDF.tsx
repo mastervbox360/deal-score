@@ -560,12 +560,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
             ) : null}
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
-              <Text
-                hyphenationCallback={() => []}
-                style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}
-              >
-                {address}
-              </Text>
+              <View style={{ width: '100%', marginBottom: 12 }}>
+                <Text
+                  hyphenationCallback={() => []}
+                  style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3 }}
+                >
+                  {String(address)}
+                </Text>
+              </View>
               <Text style={{ fontSize: 11, color: coverMuted(coverBg, 0.75), textAlign: 'center', marginBottom: 18 }}>
                 {DEAL_LABELS[props.dealType]}
               </Text>
@@ -598,12 +600,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </View>
               ) : null}
               <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: 40 }}>
-                <Text
-                  hyphenationCallback={() => []}
-                  style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
-                >
-                  {address}
-                </Text>
+                <View style={{ width: '100%', marginBottom: 10 }}>
+                  <Text
+                    hyphenationCallback={() => []}
+                    style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3 }}
+                  >
+                    {String(address)}
+                  </Text>
+                </View>
                 <Text style={{ fontSize: 11, color: readableBrand, marginBottom: 6 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
@@ -647,12 +651,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
             <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, justifyContent: 'space-between' }}>
               <View style={{ flex: 1, justifyContent: 'center' }}>
-                <Text
-                  hyphenationCallback={() => []}
-                  style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
-                >
-                  {address}
-                </Text>
+                <View style={{ width: '100%', marginBottom: 10 }}>
+                  <Text
+                    hyphenationCallback={() => []}
+                    style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3 }}
+                  >
+                    {String(address)}
+                  </Text>
+                </View>
                 <Text style={{ fontSize: 10, color: readableBrand }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
