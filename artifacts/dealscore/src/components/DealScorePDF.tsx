@@ -564,7 +564,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 {DEAL_LABELS[props.dealType]}
               </Text>
               <Text hyphenationCallback={() => []} style={{ fontSize: 32, fontFamily: 'Helvetica', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                {String(address)}
+                {"2 Westwood Close Test"}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
                 Date Prepared: {props.dateStr}
