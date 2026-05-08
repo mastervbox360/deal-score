@@ -559,11 +559,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain', alignSelf: 'center' }} />
               ) : null}
             </View>
-            <View style={{ flexDirection: 'column', alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 16 }}>
+            <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
                 {DEAL_LABELS[props.dealType]}
               </Text>
-              <Text hyphenationCallback={() => []} style={{ fontSize: 32, fontFamily: 'Helvetica', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+              <Text hyphenationCallback={() => []} style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12, maxWidth: 400 }}>
                 {"2 Westwood Close Test"}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
