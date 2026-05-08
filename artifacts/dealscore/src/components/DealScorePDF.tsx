@@ -253,6 +253,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
+  const addressForCover = address.replace(/-/g, '\u2011');
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -564,7 +565,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 {DEAL_LABELS[props.dealType]}
               </Text>
               <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                {String(address)}
+                {addressForCover}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
                 Date Prepared: {props.dateStr}
@@ -594,21 +595,16 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
                 </View>
               ) : <View style={{ height: 20 }} />}
-              <View style={{ alignItems: 'flex-start' }}>
-                <Text hyphenationCallback={() => []} style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}>
-                  {String(address)}
-                </Text>
-                <Text style={{ fontSize: 11, color: readableBrand, marginBottom: 6 }}>
+              <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text style={{ fontSize: 9, color: '#666666', marginBottom: 4 }}>
+                <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  {addressForCover}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#666666', textAlign: 'center' }}>
                   Date Prepared: {props.dateStr}
                 </Text>
-                {preparedLine ? (
-                  <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: '#666666', lineHeight: 1.7 }}>
-                    {preparedLine}
-                  </Text>
-                ) : null}
               </View>
               <View>
                 <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
@@ -640,17 +636,17 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
             </View>
             <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, justifyContent: 'space-between' }}>
-              <View style={{ alignItems: 'flex-start' }}>
-                <Text hyphenationCallback={() => []} style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}>
-                  {String(address)}
-                </Text>
-                <Text style={{ fontSize: 10, color: readableBrand }}>
+              <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
+                </Text>
+                <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  {addressForCover}
                 </Text>
               </View>
               <View>
                 {preparedLine ? (
-                  <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
+                  <Text style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
                     {preparedLine}
                   </Text>
                 ) : null}
