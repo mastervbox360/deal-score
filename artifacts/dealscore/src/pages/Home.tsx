@@ -49,6 +49,7 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
   const textColour = getContrastText(pdfProps.brandColour);
   return (
     <PDFDownloadLink
+      key={pdfProps.propertyAddress + '||' + pdfProps.coverStyle}
       document={<DealScorePDF {...pdfProps} />}
       fileName={fileName}
       style={{ flex: 1, textDecoration: 'none' }}
