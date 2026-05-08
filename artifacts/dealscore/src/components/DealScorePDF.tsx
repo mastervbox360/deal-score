@@ -563,7 +563,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 16 }}>
                 {DEAL_LABELS[props.dealType]}
               </Text>
-              <Text hyphenationCallback={() => []} style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+              <Text hyphenationCallback={() => []} style={{ fontSize: 32, fontFamily: 'Helvetica', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                 {String(address)}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
