@@ -564,7 +564,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 {DEAL_LABELS[props.dealType]}
               </Text>
               <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                {"2 Westwood Close Test"}
+                {String(address)}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
                 Date Prepared: {props.dateStr}
