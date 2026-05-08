@@ -558,29 +558,28 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View style={{ alignItems: 'center', marginBottom: 16 }}>
                 <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
               </View>
-            ) : null}
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 40 }}>
-              <Text
-                hyphenationCallback={() => []}
-                style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12, maxWidth: 460 }}
-              >
+            ) : <View style={{ height: 20 }} />}
+
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                 {String(address)}
               </Text>
-              <Text style={{ fontSize: 11, color: coverMuted(coverBg, 0.75), textAlign: 'center', marginBottom: 18 }}>
+              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 18 }}>
                 {DEAL_LABELS[props.dealType]}
               </Text>
-              <Text style={{ fontSize: 10, color: coverMuted(coverBg, 0.5), textAlign: 'center' }}>
+              <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
                 Date Prepared: {props.dateStr}
               </Text>
             </View>
+
             <View>
-              <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.2)}`, marginBottom: 20 }} />
+              <View style={{ borderBottom: '1pt solid rgba(255,255,255,0.2)', marginBottom: 20 }} />
               {preparedLine ? (
-                <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: coverMuted(coverBg, 0.75), textAlign: 'center', lineHeight: 1.7, marginBottom: 10 }}>
+                <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
                   {preparedLine}
                 </Text>
               ) : null}
-              <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.4), textAlign: 'center' }}>
+              <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
                 Confidential — Prepared for investor review only
               </Text>
             </View>
