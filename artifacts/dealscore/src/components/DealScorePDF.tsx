@@ -560,7 +560,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
             ) : <View style={{ height: 20 }} />}
 
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ width: '100%', alignItems: 'center' }}>
               <Text hyphenationCallback={() => []} style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                 {String(address)}
               </Text>
