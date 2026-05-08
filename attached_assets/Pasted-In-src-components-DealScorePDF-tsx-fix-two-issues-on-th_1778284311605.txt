@@ -1,0 +1,43 @@
+In src/components/DealScorePDF.tsx, fix two issues on the Bold cover white panel:
+Fix 1 — prepared-by line wrapping with stray separator
+Find the preparedLine construction near the top of the DealScorePDF function:
+tsxconst preparedLine = [
+  props.preparedBy.name ? `Prepared by  ${props.preparedBy.name}` : '',
+  props.preparedBy.email,
+  props.preparedBy.phone,
+].filter(Boolean).join(' · ');
+Replace with this — removes double space, and splits into two separate Text elements in the Bold cover so name+email stay on one line and phone sits cleanly below without a stray separator:
+tsxconst preparedByLine1 = [
+  props.preparedBy.name ? `Prepared by ${props.preparedBy.name}` : '',
+  props.preparedBy.email,
+].filter(Boolean).join(' · ');
+
+const preparedByLine2 = props.preparedBy.phone || '';
+Then in the Bold cover white panel bottom View, replace the existing preparedLine Text with:
+tsx{preparedByLine1 ? (
+  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 2 }}>
+    {preparedByLine1}
+  </Text>
+) : null}
+{preparedByLine2 ? (
+  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 8 }}>
+    {preparedByLine2}
+  </Text>
+) : null}
+Also fix the existing preparedLine usage on the Classic cover — change the double space Prepared by  ${props.preparedBy.name} to single space Prepared by ${props.preparedBy.name} there too. The Classic cover can keep the single joined line since it has more width.
+Fix 2 — address not vertically centred in white panel
+The centre address block View currently has no explicit flex behaviour to push it to the vertical middle. The white panel outer View uses justifyContent: 'space-between' with three children: the confidential line (top), the address block (middle), and the prepared-by block (bottom). This should already centre the address — but wrap the address block View in style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }} so it takes up all remaining space and centres its content vertically:
+tsx<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+  <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
+    Investment Opportunity
+  </Text>
+  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+    {addressLine1}
+  </Text>
+  {addressLine2 ? (
+    <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+      {addressLine2}
+    </Text>
+  ) : <View style={{ marginBottom: 12 }} />}
+</View>
+Do not touch the Classic or Clean cover sections beyond the single-space fix noted above.Sonnet 4.6

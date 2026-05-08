@@ -543,10 +543,17 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
 
   const preparedLine = [
-    props.preparedBy.name ? `Prepared by  ${props.preparedBy.name}` : '',
+    props.preparedBy.name ? `Prepared by ${props.preparedBy.name}` : '',
     props.preparedBy.email,
     props.preparedBy.phone,
   ].filter(Boolean).join(' · ');
+
+  const preparedByLine1 = [
+    props.preparedBy.name ? `Prepared by ${props.preparedBy.name}` : '',
+    props.preparedBy.email,
+  ].filter(Boolean).join(' · ');
+
+  const preparedByLine2 = props.preparedBy.phone || '';
 
   return (
     <Document>
@@ -654,7 +661,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, color: '#999999', alignSelf: 'flex-end' }}>
                 Confidential — Prepared for investor review only
               </Text>
-              <View style={{ alignItems: 'center', width: '100%' }}>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
                 <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   Investment Opportunity
                 </Text>
@@ -668,9 +675,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ) : <View style={{ marginBottom: 12 }} />}
               </View>
               <View style={{ width: '100%' }}>
-                {preparedLine ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 8 }}>
-                    {preparedLine}
+                {preparedByLine1 ? (
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 2 }}>
+                    {preparedByLine1}
+                  </Text>
+                ) : null}
+                {preparedByLine2 ? (
+                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 8 }}>
+                    {preparedByLine2}
                   </Text>
                 ) : null}
               </View>
