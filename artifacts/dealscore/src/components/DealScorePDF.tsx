@@ -254,6 +254,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
   const addressForCover = address;
+  const postcodeMatch = addressForCover.match(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b/);
+  const addressLine1 = postcodeMatch
+    ? addressForCover.replace(postcodeMatch[0], '').replace(/,\s*$/, '').trim()
+    : addressForCover;
+  const addressLine2 = postcodeMatch ? postcodeMatch[0] : '';
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -564,9 +569,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
                 {DEAL_LABELS[props.dealType]}
               </Text>
-              <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.4, marginBottom: 12 }}>
-                {addressForCover}
+              <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
+                {addressLine1}
               </Text>
+              {addressLine2 ? (
+                <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  {addressLine2}
+                </Text>
+              ) : <View style={{ marginBottom: 12 }} />}
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
                 Date Prepared: {props.dateStr}
               </Text>
@@ -599,9 +609,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                  {addressForCover}
+                <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+                  {addressLine1}
                 </Text>
+                {addressLine2 ? (
+                  <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                    {addressLine2}
+                  </Text>
+                ) : <View style={{ marginBottom: 12 }} />}
                 <Text style={{ fontSize: 10, color: '#666666', textAlign: 'center' }}>
                   Date Prepared: {props.dateStr}
                 </Text>
@@ -640,9 +655,14 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                  {addressForCover}
+                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+                  {addressLine1}
                 </Text>
+                {addressLine2 ? (
+                  <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                    {addressLine2}
+                  </Text>
+                ) : <View style={{ marginBottom: 12 }} />}
               </View>
               <View>
                 {preparedLine ? (

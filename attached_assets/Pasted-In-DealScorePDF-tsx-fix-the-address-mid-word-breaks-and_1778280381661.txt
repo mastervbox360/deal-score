@@ -1,0 +1,36 @@
+In DealScorePDF.tsx, fix the address mid-word breaks and restore dynamic contrast colours in one pass.
+Step 1 — Add address splitting after the addressForCover line:
+jsconst postcodeMatch = addressForCover.match(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b/);
+const addressLine1 = postcodeMatch
+  ? addressForCover.replace(postcodeMatch[0], '').replace(/,\s*$/, '').trim()
+  : addressForCover;
+const addressLine2 = postcodeMatch ? postcodeMatch[0] : '';
+Step 2 — Replace the address <Text> on ALL 3 cover styles with two <Text> elements using dynamic colours:
+Classic cover (dark background — use coverBgText):
+jsx<Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
+  {addressLine1}
+</Text>
+{addressLine2 ? (
+  <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+    {addressLine2}
+  </Text>
+) : <View style={{ marginBottom: 12 }} />}
+Clean cover (white background — use #1A1A1A):
+jsx<Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+  {addressLine1}
+</Text>
+{addressLine2 ? (
+  <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+    {addressLine2}
+  </Text>
+) : <View style={{ marginBottom: 12 }} />}
+Bold cover right panel (white background — use #1A1A1A):
+jsx<Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+  {addressLine1}
+</Text>
+{addressLine2 ? (
+  <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+    {addressLine2}
+  </Text>
+) : <View style={{ marginBottom: 12 }} />}
+coverBgText is already computed from getContrastText(coverBg) — it automatically returns white or dark text depending on the brand colour. Classic always uses a darkened brand background so coverBgText handles all light/dark brand colour cases correctly.
