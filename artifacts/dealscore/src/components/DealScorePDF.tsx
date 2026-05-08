@@ -253,7 +253,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
-  const addressForCover = address.replace(/-/g, '\u2011');
+  const addressForCover = address.replace(/-/g, '\u2060-\u2060');
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
