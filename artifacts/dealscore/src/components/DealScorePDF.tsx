@@ -546,9 +546,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     <Document>
 
       {/* ── Page 1: Cover ─────────────────────────────────────────────────── */}
-
-      {props.coverStyle === 'classic' && (
-        <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: coverBg }}>
+      {/* Single unconditional Page — React-PDF requires Page as direct Document child */}
+      <Page
+        size="A4"
+        style={{ fontFamily: 'Helvetica', backgroundColor: props.coverStyle === 'classic' ? coverBg : '#ffffff' }}
+      >
+        {/* Classic */}
+        {props.coverStyle === 'classic' && (
           <View style={{ flex: 1, padding: 40, justifyContent: 'space-between' }}>
             {props.logoBase64 ? (
               <View style={{ alignItems: 'center', marginBottom: 16 }}>
@@ -581,49 +585,49 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </Text>
             </View>
           </View>
-        </Page>
-      )}
+        )}
 
-      {props.coverStyle === 'clean' && (
-        <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: '#ffffff' }}>
-          <View style={{ height: 8, backgroundColor: brand }} />
-          <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeft: `4pt solid ${brand}`, justifyContent: 'space-between' }}>
-            {props.logoBase64 ? (
-              <View>
-                <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
-              </View>
-            ) : null}
-            <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: 40 }}>
-              <Text
-                hyphenationCallback={() => []}
-                style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
-              >
-                {address}
-              </Text>
-              <Text style={{ fontSize: 11, color: readableBrand, marginBottom: 6 }}>
-                {DEAL_LABELS[props.dealType]}
-              </Text>
-              <Text style={{ fontSize: 9, color: '#666666', marginBottom: 4 }}>
-                Date Prepared: {props.dateStr}
-              </Text>
-              {preparedLine ? (
-                <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: '#666666', lineHeight: 1.7 }}>
-                  {preparedLine}
-                </Text>
+        {/* Clean */}
+        {props.coverStyle === 'clean' && (
+          <View style={{ flex: 1, flexDirection: 'column' }}>
+            <View style={{ height: 8, backgroundColor: brand }} />
+            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeft: `4pt solid ${brand}`, justifyContent: 'space-between' }}>
+              {props.logoBase64 ? (
+                <View>
+                  <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
+                </View>
               ) : null}
-            </View>
-            <View>
-              <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
-              <Text style={{ fontSize: 8, color: '#999999', textAlign: 'center' }}>
-                Confidential — Prepared for investor review only
-              </Text>
+              <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: 40 }}>
+                <Text
+                  hyphenationCallback={() => []}
+                  style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', lineHeight: 1.3, marginBottom: 10 }}
+                >
+                  {address}
+                </Text>
+                <Text style={{ fontSize: 11, color: readableBrand, marginBottom: 6 }}>
+                  {DEAL_LABELS[props.dealType]}
+                </Text>
+                <Text style={{ fontSize: 9, color: '#666666', marginBottom: 4 }}>
+                  Date Prepared: {props.dateStr}
+                </Text>
+                {preparedLine ? (
+                  <Text hyphenationCallback={() => []} style={{ fontSize: 9, color: '#666666', lineHeight: 1.7 }}>
+                    {preparedLine}
+                  </Text>
+                ) : null}
+              </View>
+              <View>
+                <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
+                <Text style={{ fontSize: 8, color: '#999999', textAlign: 'center' }}>
+                  Confidential — Prepared for investor review only
+                </Text>
+              </View>
             </View>
           </View>
-        </Page>
-      )}
+        )}
 
-      {props.coverStyle === 'bold' && (
-        <Page size="A4" style={{ fontFamily: 'Helvetica', backgroundColor: '#ffffff' }}>
+        {/* Bold */}
+        {props.coverStyle === 'bold' && (
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <View style={{ width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between' }}>
               <View>
@@ -665,8 +669,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
             </View>
           </View>
-        </Page>
-      )}
+        )}
+      </Page>
 
       {/* ── Page 2: Property & Financial Summary ──────────────────────────── */}
       <Page size="A4" style={base.page}>
