@@ -254,6 +254,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
 
+  console.log('[COVER DEBUG] address:', JSON.stringify(address));
+  console.log('[COVER DEBUG] addressPlain:', JSON.stringify(addressPlain));
+  console.log('[COVER DEBUG] props.propertyAddress:', JSON.stringify(props.propertyAddress));
+
   // ── Sub-components ──────────────────────────────────────────────────────────
 
   // Section header: brand used for title text (on white) + underline rule
