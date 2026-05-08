@@ -253,7 +253,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
-  const addressForCover = address.replace(/-/g, '\u2060-\u2060');
+  const addressForCover = address;
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -564,7 +564,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
                 {DEAL_LABELS[props.dealType]}
               </Text>
-              <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+              <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.4, marginBottom: 12 }}>
                 {addressForCover}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
