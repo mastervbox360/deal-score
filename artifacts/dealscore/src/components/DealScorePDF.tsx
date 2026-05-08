@@ -553,25 +553,23 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       >
         {/* Classic */}
         {props.coverStyle === 'classic' && (
-          <View style={{ flex: 1, padding: 40, justifyContent: 'space-between' }}>
-            {props.logoBase64 ? (
-              <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
-              </View>
-            ) : <View style={{ height: 20 }} />}
-
-            <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ flex: 1, padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
+            <View style={{ minHeight: 20 }}>
+              {props.logoBase64 ? (
+                <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain', alignSelf: 'center' }} />
+              ) : null}
+            </View>
+            <View style={{ flexDirection: 'column', alignItems: 'center', paddingVertical: 40 }}>
+              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 16 }}>
+                {DEAL_LABELS[props.dealType]}
+              </Text>
               <Text hyphenationCallback={() => []} style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                 {String(address)}
-              </Text>
-              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 18 }}>
-                {DEAL_LABELS[props.dealType]}
               </Text>
               <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
                 Date Prepared: {props.dateStr}
               </Text>
             </View>
-
             <View>
               <View style={{ borderBottom: '1pt solid rgba(255,255,255,0.2)', marginBottom: 20 }} />
               {preparedLine ? (
