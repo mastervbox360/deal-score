@@ -251,7 +251,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 40, M: 70, L: 100 };
   const logoHeight = LOGO_H[props.logoSize];
 
-  const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
+  const addressPlain = props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
 
   // ── Sub-components ──────────────────────────────────────────────────────────
