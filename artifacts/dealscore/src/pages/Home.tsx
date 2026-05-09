@@ -93,6 +93,10 @@ export default function HomePage() {
   const [autoFilledTenure, setAutoFilledTenure] = useState(false);
   const [leaseLengthYears, setLeaseLengthYears] = useState<number>(0);
   const [sourcingFee, setSourcingFee] = useState<number>(0);
+  const [sourcingFeeDisclaimer, setSourcingFeeDisclaimer] = useState<string | null>(null);
+  const effectiveDisclaimer = sourcingFeeDisclaimer !== null
+    ? sourcingFeeDisclaimer
+    : `The sourcing fee stated is payable to ${preparedBy.name || '[Sourcer Name]'} upon successful completion of the purchase. This fee is charged for the identification, analysis, and packaging of this investment opportunity. This document is prepared for information purposes only and does not constitute financial or investment advice. Independent legal and financial advice should be sought before proceeding. Property values can fall as well as rise and past performance is not indicative of future results.`;
   const [marketValue, setMarketValue] = useState<number>(0);
   const [strategyNotes, setStrategyNotes] = useState<string>('');
   const [propertyDescription, setPropertyDescription] = useState<string>('');
@@ -393,6 +397,7 @@ export default function HomePage() {
     setAutoFilledTenure(false);
     setLeaseLengthYears(0);
     setSourcingFee(0);
+    setSourcingFeeDisclaimer(null);
     setMarketValue(0);
     setStrategyNotes('');
     setPropertyDescription('');
@@ -647,6 +652,7 @@ export default function HomePage() {
       mortgageTerm: sharedInputs.mortgageTerm,
       marketValue,
       sourcingFee,
+      sourcingFeeDisclaimer: effectiveDisclaimer,
       equityDayOne: _equityDayOne,
       bmvAmount: _equityDayOne,
       bmvPercent: _bmvPercent,
@@ -682,7 +688,7 @@ export default function HomePage() {
     propertyData, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs,
     brrrInputs, r2rInputs, socialInputs,
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
-    marketValue, sourcingFee, preparedBy, logoBase64, brandColour,
+    marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, logoBase64, brandColour,
     logoSize, coverStyle,
     strategyNotes, propertyDescription, vendorSituation, comparableProperties,
   ]);
@@ -1079,6 +1085,18 @@ export default function HomePage() {
                       />
                     </div>
                   </div>
+                  {sourcingFee > 0 && (
+                    <div className="space-y-2 mt-5">
+                      <Label htmlFor="sourcing-fee-disclaimer">Sourcing Fee Disclaimer</Label>
+                      <Textarea
+                        id="sourcing-fee-disclaimer"
+                        rows={6}
+                        value={effectiveDisclaimer}
+                        onChange={(e) => setSourcingFeeDisclaimer(e.target.value)}
+                        data-testid="input-sourcing-fee-disclaimer"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-6">

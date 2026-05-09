@@ -45,6 +45,7 @@ export interface DealScorePDFProps {
   mortgageTerm: number;
   marketValue: number;
   sourcingFee: number;
+  sourcingFeeDisclaimer: string;
   equityDayOne: number;
   bmvAmount: number;
   bmvPercent: number;
@@ -842,6 +843,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 {fc(props.sourcingFee)}
               </Text>
               <Text style={base.notePanelText}>Payable on completion.</Text>
+              {props.sourcingFeeDisclaimer.trim().length > 0 && (
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Oblique', color: '#888888', marginTop: 6, lineHeight: 1.5 }}>
+                  {props.sourcingFeeDisclaimer.trim()}
+                </Text>
+              )}
             </View>
           )}
         </Page>
