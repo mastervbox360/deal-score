@@ -369,7 +369,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     } else if (props.dealType === 'FLIP') {
       rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
-        [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel})`, fc(props.effectiveTax)],
+        [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel.replace(' / Buy-to-Let', '')})`, fc(props.effectiveTax)],
         ['Refurb Cost', fc(props.refurbCost)],
         ['Other Costs', fc(props.otherCosts)],
         ['Holding Costs (per month)', fc(props.flipInputs.holdingCostsPerMonth)],
