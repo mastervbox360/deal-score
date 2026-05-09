@@ -666,11 +666,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.3)}`, marginTop: 20 }} />
               </View>
             </View>
-            <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 8, color: '#999999', alignSelf: 'flex-end' }}>
+            <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, position: 'relative' }}>
+              <Text style={{ fontSize: 8, color: '#999999', textAlign: 'right' }}>
                 Confidential — Prepared for investor review only
               </Text>
-              <View style={{ paddingTop: 120, alignItems: 'center', width: '100%' }}>
+              <View style={{ position: 'absolute', top: 280, left: 40, right: 40, alignItems: 'center' }}>
                 <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
                   {addressLine1}
                 </Text>
@@ -680,7 +680,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   </Text>
                 ) : null}
               </View>
-              <View style={{ width: '100%' }}>
+              <View style={{ position: 'absolute', bottom: 40, left: 40, right: 40 }}>
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
                     Prepared by {props.preparedBy.name}

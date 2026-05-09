@@ -1,0 +1,37 @@
+Looking at the screenshot, the address is still sitting just below centre. For a gold standard pack the address should sit at roughly the 40% mark from the top — so with the white panel being approximately 762pt usable height, the address should start at around 300pt from the top of the panel content. With 40pt panel padding already applied, paddingTop needs to be about 260pt... but we already tried that and it was too low.
+The issue is the space-between on the outer View is pushing things around unpredictably. Let me give you a clean prompt that solves this properly with absolute positioning — the only reliable way to pin something to an exact spot in React-PDF:
+
+In src/components/DealScorePDF.tsx, replace the entire Bold cover white panel <View style={{ width: '55%'... }}> with this:
+tsx<View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, position: 'relative' }}>
+  <Text style={{ fontSize: 8, color: '#999999', textAlign: 'right' }}>
+    Confidential — Prepared for investor review only
+  </Text>
+  <View style={{ position: 'absolute', top: 280, left: 40, right: 40, alignItems: 'center' }}>
+    <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+      {addressLine1}
+    </Text>
+    {addressLine2 ? (
+      <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+        {addressLine2}
+      </Text>
+    ) : null}
+  </View>
+  <View style={{ position: 'absolute', bottom: 40, left: 40, right: 40 }}>
+    {props.preparedBy.name ? (
+      <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
+        Prepared by {props.preparedBy.name}
+      </Text>
+    ) : null}
+    {props.preparedBy.email ? (
+      <Text style={{ fontSize: 9, color: '#555555', marginBottom: 2 }}>
+        {props.preparedBy.email}
+      </Text>
+    ) : null}
+    {props.preparedBy.phone ? (
+      <Text style={{ fontSize: 9, color: '#555555' }}>
+        {props.preparedBy.phone}
+      </Text>
+    ) : null}
+  </View>
+</View>
+The address block is absolutely positioned at top: 280 — pinned precisely relative to the white panel. The prepared-by block is absolutely pinned to bottom: 40. If the address needs nudging after testing, adjust top: 280 up or down by 20pt increments. Do not touch Classic or Clean covers.
