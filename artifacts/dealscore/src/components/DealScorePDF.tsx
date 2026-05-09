@@ -265,8 +265,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const readableBrand = getReadableBrandColour(brand); // brand colour safe as TEXT on white
   const coverBgText = getContrastText(coverBg);        // text colour on darkened cover bg
 
-  const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 40, M: 70, L: 100 };
-  const LOGO_MAX_W: Record<'S' | 'M' | 'L', number> = { S: 120, M: 210, L: 300 };
+  const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 35, M: 60, L: 100 };
+  const LOGO_MAX_W: Record<'S' | 'M' | 'L', number> = { S: 100, M: 170, L: 280 };
   const logoHeight = LOGO_H[props.logoSize];
   const logoMaxWidth = LOGO_MAX_W[props.logoSize];
 
