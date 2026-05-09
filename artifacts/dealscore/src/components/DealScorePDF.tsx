@@ -671,9 +671,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {props.coverStyle === 'bold' && (
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <View style={{ width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between' }}>
-              <View>
+              <View style={{ width: '100%', alignItems: 'center' }}>
                 {props.logoBase64 ? (
-                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
+                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'center' }} />
                 ) : null}
               </View>
               <View>
