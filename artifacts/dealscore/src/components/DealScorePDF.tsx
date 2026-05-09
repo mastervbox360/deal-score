@@ -548,12 +548,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     props.preparedBy.phone,
   ].filter(Boolean).join(' · ');
 
-  const preparedByLine1 = [
-    props.preparedBy.name ? `Prepared by ${props.preparedBy.name}` : '',
-    props.preparedBy.email,
-  ].filter(Boolean).join(' · ');
-
-  const preparedByLine2 = props.preparedBy.phone || '';
 
   return (
     <Document>
@@ -675,14 +669,19 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ) : <View style={{ marginBottom: 12 }} />}
               </View>
               <View style={{ width: '100%' }}>
-                {preparedByLine1 ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 9, color: '#555555', lineHeight: 1.7, marginBottom: 2 }}>
-                    {preparedByLine1}
+                {props.preparedBy.name ? (
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
+                    {props.preparedBy.name}
                   </Text>
                 ) : null}
-                {preparedByLine2 ? (
-                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 8 }}>
-                    {preparedByLine2}
+                {props.preparedBy.email ? (
+                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 2 }}>
+                    {props.preparedBy.email}
+                  </Text>
+                ) : null}
+                {props.preparedBy.phone ? (
+                  <Text style={{ fontSize: 9, color: '#555555' }}>
+                    {props.preparedBy.phone}
                   </Text>
                 ) : null}
               </View>
