@@ -171,6 +171,23 @@ function expandAddress(address: string): string {
   return s;
 }
 
+function splitAddressThreeLines(address: string): [string, string, string] {
+  const postcodeRegex = /\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b/;
+  const postcodeMatch = address.match(postcodeRegex);
+  const postcode = postcodeMatch ? postcodeMatch[0] : '';
+  const withoutPostcode = address.replace(postcode, '').replace(/,\s*$/, '').trim();
+  const parts = withoutPostcode.split(',').map(s => s.trim()).filter(Boolean);
+
+  if (parts.length === 0) return [address, '', ''];
+  if (parts.length === 1) return [parts[0], '', postcode];
+
+  const city = parts[parts.length - 1];
+  const streetParts = parts.slice(0, -1);
+  const street = streetParts.join(', ');
+
+  return [street, city, postcode];
+}
+
 // ── Comparables formatter ────────────────────────────────────────────────────
 
 function formatComparables(text: string): string {
@@ -259,6 +276,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ? addressForCover.replace(postcodeMatch[0], '').replace(/,\s*$/, '').trim()
     : addressForCover;
   const addressLine2 = postcodeMatch ? postcodeMatch[0] : '';
+  const [boldLine1, boldLine2, boldLine3] = splitAddressThreeLines(addressForCover);
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -671,12 +689,19 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 Confidential — Prepared for investor review only
               </Text>
               <View style={{ position: 'absolute', top: 280, left: 40, right: 40, alignItems: 'center' }}>
-                <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
-                  {addressLine1}
-                </Text>
-                {addressLine2 ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
-                    {addressLine2}
+                {boldLine1 ? (
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 13, color: '#555555', textAlign: 'center', marginBottom: 6 }}>
+                    {boldLine1}
+                  </Text>
+                ) : null}
+                {boldLine2 ? (
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 6 }}>
+                    {boldLine2}
+                  </Text>
+                ) : null}
+                {boldLine3 ? (
+                  <Text style={{ fontSize: 13, color: '#555555', textAlign: 'center' }}>
+                    {boldLine3}
                   </Text>
                 ) : null}
               </View>
