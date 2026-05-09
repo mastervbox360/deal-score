@@ -1090,7 +1090,7 @@ export default function HomePage() {
                       <Label htmlFor="sourcing-fee-disclaimer">Sourcing Fee Disclaimer</Label>
                       <Textarea
                         id="sourcing-fee-disclaimer"
-                        rows={8}
+                        rows={14}
                         value={effectiveDisclaimer}
                         onChange={(e) => setSourcingFeeDisclaimer(e.target.value)}
                         data-testid="input-sourcing-fee-disclaimer"
