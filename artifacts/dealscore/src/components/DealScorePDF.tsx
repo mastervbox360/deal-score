@@ -670,7 +670,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, color: '#999999', alignSelf: 'flex-end' }}>
                 Confidential — Prepared for investor review only
               </Text>
-              <View style={{ paddingTop: 180, alignItems: 'center', width: '100%' }}>
+              <View style={{ paddingTop: 120, alignItems: 'center', width: '100%' }}>
                 <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
                   {addressLine1}
                 </Text>
