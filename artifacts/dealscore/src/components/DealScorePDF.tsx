@@ -54,6 +54,7 @@ export interface DealScorePDFProps {
   brandColour: string;
   logoSize: 'S' | 'M' | 'L';
   coverStyle: 'classic' | 'clean' | 'bold';
+  tierOverride: 'free' | 'pro' | 'pro_plus';
   btlInputs: { monthlyRent: number; monthlyExpenses: number };
   hmoInputs: { rooms: number; rentPerRoom: number; occupancyRate: number; monthlyExpenses: number };
   flipInputs: { holdingCostsPerMonth: number; projectLengthMonths: number; expectedSalePrice: number; sellingCostsPercent: number };

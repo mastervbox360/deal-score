@@ -112,6 +112,7 @@ export default function HomePage() {
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   const [logoSize, setLogoSize] = useState<'S' | 'M' | 'L'>('M');
   const [coverStyle, setCoverStyle] = useState<'classic' | 'clean' | 'bold'>('classic');
+  const [tierOverride, setTierOverride] = useState<'free' | 'pro' | 'pro_plus'>('pro_plus');
   const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
 
@@ -661,6 +662,7 @@ export default function HomePage() {
       brandColour,
       logoSize,
       coverStyle,
+      tierOverride,
       btlInputs,
       hmoInputs,
       flipInputs,
@@ -689,7 +691,7 @@ export default function HomePage() {
     brrrInputs, r2rInputs, socialInputs,
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, logoBase64, brandColour,
-    logoSize, coverStyle,
+    logoSize, coverStyle, tierOverride,
     strategyNotes, propertyDescription, vendorSituation, comparableProperties,
   ]);
 
@@ -1565,7 +1567,29 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Dev Tier Testing */}
+          <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">🛠 Dev Tier Testing</p>
+            <div className="flex gap-2">
+              {(['free', 'pro', 'pro_plus'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTierOverride(t)}
+                  className={`px-3 py-1 rounded text-xs font-medium border transition ${
+                    tierOverride === t
+                      ? 'bg-slate-600 text-white border-slate-600'
+                      : 'bg-white text-slate-500 border-slate-300 hover:border-slate-500'
+                  }`}
+                >
+                  {t === 'free' ? 'Free' : t === 'pro' ? 'Pro' : 'Pro Plus'}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Sourcer branding */}
+          {tierOverride === 'pro_plus' && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <div className="flex items-center gap-1">
@@ -1636,8 +1660,10 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* Cover Style selector */}
+          {tierOverride === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your investor pack cover page layout)</span></Label>
             <div className="flex gap-4">
@@ -1709,12 +1735,15 @@ export default function HomePage() {
               </button>
             </div>
           </div>
+          )}
 
           <div className="mt-6 flex gap-3">
-            <PdfDownloadButton
-              pdfProps={pdfProps}
-              fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
-            />
+            {tierOverride !== 'free' && (
+              <PdfDownloadButton
+                pdfProps={pdfProps}
+                fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
+              />
+            )}
             <button
               type="button"
               onClick={handleReset}
