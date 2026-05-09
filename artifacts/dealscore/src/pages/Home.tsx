@@ -1204,7 +1204,7 @@ export default function HomePage() {
                   <p className="text-sm opacity-80 mt-2">Enter properties to see verdict</p>
                 ) : null}
 
-                {marketValue > 0 && (
+                {marketValue > 0 && dealType !== 'R2R' && (
                   <div
                     className="w-full mt-2 rounded-xl px-4 py-3 flex items-center justify-between"
                     style={{
@@ -1309,6 +1309,7 @@ export default function HomePage() {
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
+                      <Row label="Mortgage" value={formatCurrency(hmoResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                       <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} tooltip={TT.netYield} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
@@ -1375,6 +1376,7 @@ export default function HomePage() {
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
+                      <Row label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                       <Row label="Gross Yield" value={formatPercent(saResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(saResults.netYield)} tooltip={TT.netYield} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(saResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
@@ -1420,6 +1422,7 @@ export default function HomePage() {
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
                       <Row label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} tooltip={TT.brrrRefinanceLoan} />
+                      <Row label="Monthly Mortgage" value={formatCurrency(brrrResults.monthlyMortgage)} tooltip={TT.mortgageAmount} />
                       <Row label="Gross Yield (on GDV)" value={formatPercent(brrrResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} tooltip={TT.netYield} />
                       <Row
@@ -1456,6 +1459,7 @@ export default function HomePage() {
                     <div className="h-px bg-border" />
                     <div className="space-y-3">
                       <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} tooltip={TT.r2rMgmtFees} />
+                      <Row label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} tooltip={TT.setupCosts} />
                       <Row label="Gross Return on Setup" value={formatPercent(r2rResults.grossYield)} tooltip={TT.r2rGrossReturn} />
                       <Row label="Net Return on Setup Costs" value={formatPercent(r2rResults.roi)} isBold tooltip={TT.r2rNetReturn} />
                     </div>
