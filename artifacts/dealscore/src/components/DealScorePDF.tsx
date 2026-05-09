@@ -491,6 +491,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ];
     if (props.dealType === 'HMO') return [
       ['Cash Invested', fc(props.hmoResults.totalCashInvested)],
+      ['Mortgage Amount', fc(props.hmoResults.mortgageAmount)],
       ['Gross Monthly Rent', fc(props.hmoResults.grossMonthlyRent)],
       ['Monthly Cash Flow', fc(props.hmoResults.monthlyCashFlow), true],
       ['Annual Cash Flow', fc(props.hmoResults.annualCashFlow)],
@@ -510,6 +511,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ];
     if (props.dealType === 'SA') return [
       ['Cash Invested', fc(props.saResults.totalCashInvested)],
+      ['Mortgage Amount', fc(props.saResults.mortgageAmount)],
       ['Gross Monthly Revenue', fc(props.saResults.grossMonthlyRevenue)],
       ['Platform Fees / mo', fc(props.saResults.platformFees)],
       ['Net Monthly Revenue', fc(props.saResults.netMonthlyRevenue)],
@@ -523,6 +525,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     if (props.dealType === 'BRRR') return [
       ['Total Cost In', fc(props.brrrResults.totalCostIn)],
       ['Refinance Loan', fc(props.brrrResults.refinanceLoan)],
+      ['Monthly Mortgage', fc(props.brrrResults.monthlyMortgage)],
       ['Cash Left in Deal', props.brrrResults.moneyOut ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT` : fc(props.brrrResults.cashLeftInDeal)],
       ['Equity Created', fc(props.brrrResults.equityCreated)],
       ['Monthly Cash Flow', fc(props.brrrResults.monthlyCashFlow), true],
@@ -537,6 +540,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Net Monthly Income', fc(props.r2rResults.netMonthlyIncome)],
       ['Monthly Profit', fc(props.r2rResults.monthlyProfit), true],
       ['Annual Profit', fc(props.r2rResults.annualProfit)],
+      ['Setup Costs', fc(props.r2rInputs.setupCosts)],
       ['Gross Return on Setup', fp(props.r2rResults.grossYield)],
       ['Net Return on Setup Costs', fp(props.r2rResults.roi), true],
     ];
@@ -751,7 +755,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <SH title="Financial Summary" />
         <Hero metrics={heroMetrics} />
 
-        {props.bmvAmount > 0 && (
+        {props.bmvAmount > 0 && props.dealType !== 'R2R' && (
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
