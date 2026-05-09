@@ -618,9 +618,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {props.coverStyle === 'clean' && (
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={{ height: 8, backgroundColor: brand }} />
-            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeft: `4pt solid ${brand}`, justifyContent: 'space-between' }}>
+            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeft: `4pt solid ${brand}` }}>
               {props.logoBase64 ? (
-                <View>
+                <View style={{ alignItems: 'center' }}>
                   <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
                 </View>
               ) : <View style={{ height: 20 }} />}
@@ -640,7 +640,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   Date Prepared: {props.dateStr}
                 </Text>
               </View>
-              <View>
+              <View style={{ position: 'absolute', bottom: 0, left: 40, right: 40 }}>
                 <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
