@@ -624,7 +624,22 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </View>
               <View>
                 <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
-                <Text style={{ fontSize: 8, color: '#999999', textAlign: 'center' }}>
+                {props.preparedBy.name ? (
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
+                    Prepared by {props.preparedBy.name}
+                  </Text>
+                ) : null}
+                {props.preparedBy.email ? (
+                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 2 }}>
+                    {props.preparedBy.email}
+                  </Text>
+                ) : null}
+                {props.preparedBy.phone ? (
+                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 10 }}>
+                    {props.preparedBy.phone}
+                  </Text>
+                ) : null}
+                <Text style={{ fontSize: 8, color: '#999999' }}>
                   Confidential — Prepared for investor review only
                 </Text>
               </View>
@@ -655,10 +670,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, color: '#999999', alignSelf: 'flex-end' }}>
                 Confidential — Prepared for investor review only
               </Text>
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-                <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
-                  Investment Opportunity
-                </Text>
+              <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center', width: '100%', paddingBottom: 80 }}>
                 <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
                   {addressLine1}
                 </Text>
