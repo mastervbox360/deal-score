@@ -1,5 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
+import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import {
   calculateBTL,
   calculateHMO,
@@ -582,10 +583,51 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       {/* Single unconditional Page — React-PDF requires Page as direct Document child */}
       <Page
         size="A4"
-        style={{ fontFamily: 'Helvetica', backgroundColor: props.coverStyle === 'classic' ? coverBg : '#ffffff' }}
+        style={{ fontFamily: 'Helvetica', backgroundColor: props.tierOverride === 'pro' ? DEALSCORE_BRAND.primaryColour : (props.coverStyle === 'classic' ? coverBg : '#ffffff') }}
       >
+        {/* Pro — DealScore branded cover */}
+        {props.tierOverride === 'pro' && (
+          <View style={{ flex: 1, padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
+            <View style={{ minHeight: 20, alignItems: 'center' }}>
+              <Text style={{ fontSize: 32, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center' }}>
+                {DEALSCORE_BRAND.name}
+              </Text>
+              <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 4 }}>
+                {DEALSCORE_BRAND.website}
+              </Text>
+            </View>
+            <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
+                {DEAL_LABELS[props.dealType]}
+              </Text>
+              <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3 }}>
+                {addressLine1}
+              </Text>
+              {addressLine2 ? (
+                <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  {addressLine2}
+                </Text>
+              ) : <View style={{ marginBottom: 12 }} />}
+              <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
+                Date Prepared: {props.dateStr}
+              </Text>
+            </View>
+            <View style={{ paddingBottom: 16 }}>
+              <View style={{ borderBottomWidth: 1, borderBottomColor: DEALSCORE_BRAND.accentColour, borderBottomStyle: 'solid', marginBottom: 20 }} />
+              {preparedLine ? (
+                <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
+                  {preparedLine}
+                </Text>
+              ) : null}
+              <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
+                Confidential — Prepared for investor review only
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Classic */}
-        {props.coverStyle === 'classic' && (
+        {props.coverStyle === 'classic' && props.tierOverride !== 'pro' && (
           <View style={{ flex: 1, padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
             <View style={{ minHeight: 20 }}>
               {props.logoBase64 ? (
@@ -623,7 +665,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         )}
 
         {/* Clean */}
-        {props.coverStyle === 'clean' && (
+        {props.coverStyle === 'clean' && props.tierOverride !== 'pro' && (
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={{ height: 8, backgroundColor: brand }} />
             <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeftWidth: 4, borderLeftColor: brand, borderLeftStyle: 'solid' }}>
@@ -674,7 +716,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         )}
 
         {/* Bold */}
-        {props.coverStyle === 'bold' && (
+        {props.coverStyle === 'bold' && props.tierOverride !== 'pro' && (
           <View style={{ flex: 1, flexDirection: 'row' }}>
             <View style={{ width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between' }}>
               <View style={{ width: '100%', alignItems: 'center' }}>
