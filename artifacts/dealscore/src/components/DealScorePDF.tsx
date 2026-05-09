@@ -581,7 +581,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flex: 1, padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
             <View style={{ minHeight: 20 }}>
               {props.logoBase64 ? (
-                <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain', alignSelf: 'center' }} />
+                <Image src={props.logoBase64} style={{ height: logoHeight, width: 'auto', maxWidth: 200, objectFit: 'contain', alignSelf: 'center' }} />
               ) : null}
             </View>
             <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
@@ -618,10 +618,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {props.coverStyle === 'clean' && (
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={{ height: 8, backgroundColor: brand }} />
-            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeft: `4pt solid ${brand}` }}>
+            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeftWidth: 4, borderLeftColor: brand, borderLeftStyle: 'solid' }}>
               {props.logoBase64 ? (
                 <View style={{ alignItems: 'center' }}>
-                  <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 200, objectFit: 'contain' }} />
+                  <Image src={props.logoBase64} style={{ height: logoHeight, width: 'auto', maxWidth: 200, objectFit: 'contain' }} />
                 </View>
               ) : <View style={{ height: 20 }} />}
               <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
@@ -671,7 +671,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <View style={{ width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between' }}>
               <View>
                 {props.logoBase64 ? (
-                  <Image src={props.logoBase64} style={{ height: logoHeight, maxWidth: 160, objectFit: 'contain' }} />
+                  <Image src={props.logoBase64} style={{ height: logoHeight, width: 'auto', maxWidth: 160, objectFit: 'contain' }} />
                 ) : null}
               </View>
               <View>
