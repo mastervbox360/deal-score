@@ -690,17 +690,17 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </Text>
               <View style={{ position: 'absolute', top: 280, left: 40, right: 40, alignItems: 'center' }}>
                 {boldLine1 ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 13, color: '#555555', textAlign: 'center', marginBottom: 6 }}>
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
                     {boldLine1}
                   </Text>
                 ) : null}
                 {boldLine2 ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 6 }}>
+                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
                     {boldLine2}
                   </Text>
                 ) : null}
                 {boldLine3 ? (
-                  <Text style={{ fontSize: 13, color: '#555555', textAlign: 'center' }}>
+                  <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
                     {boldLine3}
                   </Text>
                 ) : null}
