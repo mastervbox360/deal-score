@@ -606,7 +606,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 Date Prepared: {props.dateStr}
               </Text>
             </View>
-            <View>
+            <View style={{ paddingBottom: 16 }}>
               <View style={{ borderBottom: '1pt solid rgba(255,255,255,0.2)', marginBottom: 20 }} />
               {preparedLine ? (
                 <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
@@ -646,7 +646,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   Date Prepared: {props.dateStr}
                 </Text>
               </View>
-              <View style={{ position: 'absolute', bottom: 0, left: 40, right: 40 }}>
+              <View style={{ position: 'absolute', bottom: 28, left: 40, right: 40 }}>
                 <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
