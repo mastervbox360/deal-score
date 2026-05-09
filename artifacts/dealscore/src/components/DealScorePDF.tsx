@@ -671,7 +671,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View style={{ width: '100%' }}>
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
-                    {props.preparedBy.name}
+                    Prepared by {props.preparedBy.name}
                   </Text>
                 ) : null}
                 {props.preparedBy.email ? (
