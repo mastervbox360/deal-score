@@ -674,9 +674,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
         {/* Clean */}
         {props.coverStyle === 'clean' && props.tierOverride !== 'pro' && (
-          <View style={{ flex: 1, flexDirection: 'column' }}>
+          <View style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
+            <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: coverBg }} />
             <View style={{ height: 8, backgroundColor: isProPlus ? accent : brand }} />
-            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeftWidth: 4, borderLeftColor: isProPlus ? accent : brand, borderLeftStyle: 'solid' }}>
+            <View style={{ flex: 1, paddingLeft: 44, paddingRight: 40, paddingTop: 32, paddingBottom: 40 }}>
               {props.logoBase64 ? (
                 <View style={{ alignItems: 'center' }}>
                   <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
