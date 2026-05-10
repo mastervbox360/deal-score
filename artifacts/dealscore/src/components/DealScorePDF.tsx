@@ -699,7 +699,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </Text>
               </View>
               <View style={{ position: 'absolute', bottom: 28, left: 40, right: 40 }}>
-                <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}`, marginBottom: 12 }} />
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
                     Prepared by {props.preparedBy.name}
