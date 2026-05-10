@@ -323,7 +323,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   // Footer: centre text is sourcer brand for pro_plus, DealScore for pro
   const footerCentreText = isProPlus
-    ? (props.companyName.trim() || props.preparedBy.name || 'DealScore')
+    ? props.companyName.trim()
     : 'DealScore';
 
   const Footer = () => (
