@@ -72,6 +72,7 @@ export interface DealScorePDFProps {
   socialResults: SocialResults;
   currentScore: DealScore;
   riskFlags: string[];
+  accentColour: string;
   strategyNotes: string;
   propertyDescription: string;
   vendorSituation: string;
@@ -267,6 +268,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const coverBg = darkenColour(brand, 0.4);           // darkened brand for cover backgrounds
   const readableBrand = getReadableBrandColour(brand); // brand colour safe as TEXT on white
   const coverBgText = getContrastText(coverBg);        // text colour on darkened cover bg
+  const isProPlus = props.tierOverride === 'pro_plus';
+  const accent = props.accentColour;
 
   const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 35, M: 60, L: 100 };
   const LOGO_MAX_W: Record<'S' | 'M' | 'L', number> = { S: 100, M: 170, L: 280 };
@@ -289,7 +292,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const SH = ({ title }: { title: string }) => (
     <View style={{ marginBottom: 14 }}>
       <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 4 }}>{title}</Text>
-      <View style={{ borderBottom: `1pt solid ${brand}` }} />
+      <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}` }} />
     </View>
   );
 
@@ -321,7 +324,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const Footer = () => (
     <View style={base.pageFooter} fixed>
       <Text style={base.footerLeft}>{props.preparedBy.name || ''}</Text>
-      <Text style={[base.footerCentre, { color: readableBrand }]}>DealScore</Text>
+      <Text style={[base.footerCentre, { color: isProPlus ? accent : readableBrand }]}>DealScore</Text>
       <Text
         style={base.footerRight}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
@@ -651,7 +654,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </Text>
             </View>
             <View style={{ paddingBottom: 16 }}>
-              <View style={{ borderBottom: '1pt solid rgba(255,255,255,0.2)', marginBottom: 20 }} />
+              <View style={{ borderBottomWidth: 1, borderBottomColor: isProPlus ? accent : 'rgba(255,255,255,0.2)', borderBottomStyle: 'solid', marginBottom: 20 }} />
               {preparedLine ? (
                 <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
                   {preparedLine}
@@ -667,8 +670,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {/* Clean */}
         {props.coverStyle === 'clean' && props.tierOverride !== 'pro' && (
           <View style={{ flex: 1, flexDirection: 'column' }}>
-            <View style={{ height: 8, backgroundColor: brand }} />
-            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeftWidth: 4, borderLeftColor: brand, borderLeftStyle: 'solid' }}>
+            <View style={{ height: 8, backgroundColor: isProPlus ? accent : brand }} />
+            <View style={{ flex: 1, paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40, borderLeftWidth: 4, borderLeftColor: isProPlus ? accent : brand, borderLeftStyle: 'solid' }}>
               {props.logoBase64 ? (
                 <View style={{ alignItems: 'center' }}>
                   <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
@@ -691,7 +694,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </Text>
               </View>
               <View style={{ position: 'absolute', bottom: 28, left: 40, right: 40 }}>
-                <View style={{ borderBottom: `1pt solid ${brand}`, marginBottom: 12 }} />
+                <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}`, marginBottom: 12 }} />
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
                     Prepared by {props.preparedBy.name}
@@ -739,7 +742,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 Confidential — Prepared for investor review only
               </Text>
               <View style={{ position: 'absolute', top: 260, left: 40, right: 40, alignItems: 'center' }}>
-                <View style={{ width: 40, borderBottom: `2pt solid ${readableBrand}`, marginBottom: 16 }} />
+                <View style={{ width: 40, borderBottom: `2pt solid ${isProPlus ? accent : readableBrand}`, marginBottom: 16 }} />
                 {boldLine1 ? (
                   <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
                     {boldLine1}
@@ -805,18 +808,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             justifyContent: 'space-between',
             alignItems: 'center',
             backgroundColor: props.bmvAmount >= 0 ? '#f0fdf4' : '#fef2f2',
-            border: `0.5pt solid ${props.bmvAmount >= 0 ? '#86efac' : '#fca5a5'}`,
+            border: `0.5pt solid ${props.bmvAmount >= 0 ? (isProPlus ? accent : '#86efac') : '#fca5a5'}`,
             borderRadius: 4,
             padding: 8,
             marginBottom: 14,
           }}>
             <View>
               <Text style={{ fontSize: 7.5, color: '#6b7280', marginBottom: 3 }}>BELOW MARKET VALUE</Text>
-              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? '#047857' : '#b91c1c' }}>
+              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? (isProPlus ? accent : '#047857') : '#b91c1c' }}>
                 {fc(props.bmvAmount)}
               </Text>
             </View>
-            <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? '#047857' : '#b91c1c' }}>
+            <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? (isProPlus ? accent : '#047857') : '#b91c1c' }}>
               {props.bmvPercent.toFixed(1)}%
             </Text>
           </View>
@@ -841,6 +844,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               paddingVertical: 6,
               paddingHorizontal: 16,
               alignSelf: 'flex-start',
+              ...(isProPlus && props.currentScore === 'Strong' ? { border: `1.5pt solid ${accent}` } : {}),
             }}>
               <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#ffffff', letterSpacing: 1 }}>
                 {props.currentScore.toUpperCase()} DEAL
@@ -882,7 +886,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           {props.sourcingFee > 0 && (
             <View style={[base.notePanel, { marginTop: 4 }]}>
               <Text style={[base.notePanelLabel, { color: readableBrand }]}>Sourcing Fee</Text>
-              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 4 }}>
+              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: isProPlus ? accent : readableBrand, marginBottom: 4 }}>
                 {fc(props.sourcingFee)}
               </Text>
               <Text style={base.notePanelText}>Payable on completion.</Text>

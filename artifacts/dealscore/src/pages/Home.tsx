@@ -39,6 +39,38 @@ function getContrastText(bgHex: string): string {
   return getLuminance(bgHex) > 0.35 ? '#1A1A1A' : '#FFFFFF';
 }
 
+function darkenColour(hex: string, amount: number): string {
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * (1 - amount));
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * (1 - amount));
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * (1 - amount));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+function getContrastRatio(hex1: string, hex2: string): number {
+  const l1 = getLuminance(hex1);
+  const l2 = getLuminance(hex2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+const ACCENT_PALETTE = ['#00C896', '#F5A623', '#4A90D9', '#E8445A', '#9B59B6', '#2ECC71', '#E67E22', '#1ABC9C'] as const;
+
+function pickBestAccent(brandHex: string): string {
+  const darkBg = darkenColour(brandHex, 0.4);
+  let bestAccent: string = ACCENT_PALETTE[0];
+  let bestScore = -1;
+  for (const colour of ACCENT_PALETTE) {
+    const score = Math.min(getContrastRatio(colour, darkBg), getContrastRatio(colour, '#FFFFFF'));
+    if (score > bestScore) {
+      bestScore = score;
+      bestAccent = colour;
+    }
+  }
+  return bestAccent;
+}
+
 const PdfDownloadButton = React.memo(function PdfDownloadButton({
   pdfProps,
   fileName,
@@ -115,11 +147,22 @@ export default function HomePage() {
   const [tierOverride, setTierOverride] = useState<'free' | 'pro' | 'pro_plus'>('pro_plus');
   const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
+  const [accentColour, setAccentColour] = useState<string>(() => pickBestAccent('#1B3A6B'));
+  const [accentColourDraft, setAccentColourDraft] = useState<string>(() => pickBestAccent('#1B3A6B'));
+  const [accentIsCustom, setAccentIsCustom] = useState<boolean>(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
     return () => clearTimeout(timer);
   }, [brandColourDraft]);
+
+  useEffect(() => {
+    if (!accentIsCustom) {
+      const best = pickBestAccent(brandColour);
+      setAccentColour(best);
+      setAccentColourDraft(best);
+    }
+  }, [brandColour, accentIsCustom]);
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -660,6 +703,7 @@ export default function HomePage() {
       preparedBy,
       logoBase64,
       brandColour,
+      accentColour,
       logoSize,
       coverStyle,
       tierOverride,
@@ -691,7 +735,7 @@ export default function HomePage() {
     brrrInputs, r2rInputs, socialInputs,
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, logoBase64, brandColour,
-    logoSize, coverStyle, tierOverride,
+    accentColour, logoSize, coverStyle, tierOverride,
     strategyNotes, propertyDescription, vendorSituation, comparableProperties,
   ]);
 
@@ -1658,6 +1702,46 @@ export default function HomePage() {
                   Reset
                 </button>
               </div>
+            </div>
+          </div>
+          )}
+
+          {/* Accent Colour swatches */}
+          {tierOverride === 'pro_plus' && (
+          <div className="mt-3 space-y-1.5">
+            <Label className="text-xs">Accent Colour <span className="text-slate-400 font-normal">(highlights &amp; rules)</span></Label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {ACCENT_PALETTE.map((colour) => (
+                <button
+                  key={colour}
+                  type="button"
+                  onClick={() => { setAccentIsCustom(true); setAccentColour(colour); setAccentColourDraft(colour); }}
+                  className="rounded-full transition-transform hover:scale-110"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    backgroundColor: colour,
+                    outline: accentColour === colour ? `2.5px solid ${colour}` : '2.5px solid transparent',
+                    outlineOffset: 2,
+                    border: '1.5px solid rgba(0,0,0,0.12)',
+                  }}
+                  title={colour}
+                />
+              ))}
+              {accentIsCustom && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccentIsCustom(false);
+                    const best = pickBestAccent(brandColour);
+                    setAccentColour(best);
+                    setAccentColourDraft(best);
+                  }}
+                  className="text-xs text-slate-400 hover:text-slate-600 transition ml-1"
+                >
+                  Reset to auto
+                </button>
+              )}
             </div>
           </div>
           )}

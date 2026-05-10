@@ -1,0 +1,40 @@
+Then let's add them all. Here's the fully rewritten prompt:
+Replit Agent Prompt:
+
+Build the Accent Colour System for Pro Plus tier. Read Home.tsx and DealScorePDF.tsx fully before making any changes to understand the current brand colour picker, contrast logic, and PDF structure.
+State variables to add in Home.tsx:
+
+accentColour — the active accent colour used in the PDF
+accentColourDraft — value shown in picker before committing
+accentIsCustom — boolean, true if sourcer has manually chosen rather than auto-selected
+
+Auto-selection logic:
+When brandColour changes and accentIsCustom === false, automatically select the best accent colour from this curated palette by picking whichever has the best contrast against BOTH the darkened brand colour AND white (#FFFFFF) — it must work on both surfaces:
+['#00C896', '#F5A623', '#4A90D9', '#E8445A', '#9B59B6', '#2ECC71', '#E67E22', '#1ABC9C']
+Use the existing getLuminance and contrast logic. Fire after the existing 500ms brand colour debounce resolves, not on every keystroke.
+Swatch UI in Home.tsx:
+Add an "Accent Colour" section below the brand colour picker, visible only when tierOverride === 'pro_plus'. Show 8 circular swatches (~24px diameter) in the palette colours. The currently active accent swatch has a visible ring/border around it. Clicking a swatch sets accentIsCustom = true and updates accentColour. A small muted "Reset to auto" text link sits to the right of the swatches — clicking it sets accentIsCustom = false and reverts to auto-selected colour.
+Where accent colour is applied in DealScorePDF.tsx:
+Cover pages (Pro Plus only — Pro cover uses DEALSCORE_BRAND.accentColour fixed):
+
+Classic cover — footer rule
+Clean cover — top bar and left border
+Bold cover — address rule
+
+Throughout all pages (Pro Plus):
+
+Deal Score Strong badge border
+BMV banner border and value text — replaces current fixed green to avoid colour clash with sourcer accent
+Section header divider lines on Pages 2, 3, and 4 — the horizontal rule under Property Details, Financial Summary, Deal Inputs, and the strategy analysis heading
+"DealScore" text in the centre footer across all pages — uses accent colour instead of fixed navy
+Sourcing fee amount text on Page 4
+
+Gating:
+
+tierOverride === 'pro_plus' — swatches visible, full accent system applied throughout PDF
+tierOverride === 'pro' — swatches hidden, PDF uses DEALSCORE_BRAND.accentColour (#00C896) fixed on cover only, all other elements remain at their current fixed colours
+tierOverride === 'free' — no PDF, irrelevant
+
+Critical design constraint:
+The auto-selection must pick a colour that works on both dark (darkened brand colour) and light (white) backgrounds simultaneously. Never pick a colour that only works on one surface. If no single colour has sufficient contrast on both, pick the one with the best combined score across both surfaces.
+Make only these changes and nothing else.
