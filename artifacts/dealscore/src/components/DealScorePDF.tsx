@@ -739,7 +739,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 9, color: coverMuted(coverBg, 0.7) }}>
                   Date Prepared: {props.dateStr}
                 </Text>
-                <View style={{ borderBottom: `1pt solid ${coverMuted(coverBg, 0.3)}`, marginTop: 20 }} />
+                <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : coverMuted(coverBg, 0.3)}`, marginTop: 20 }} />
               </View>
             </View>
             <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, position: 'relative' }}>
