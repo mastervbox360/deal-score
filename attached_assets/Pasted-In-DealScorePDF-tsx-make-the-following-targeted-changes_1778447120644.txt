@@ -1,0 +1,36 @@
+In DealScorePDF.tsx, make the following targeted changes to the PDF footer and cover pages. Do not touch any other pages, components, or files.
+CHANGE 1 — Footer (all pages, all tiers):
+Replace the current footer with this exact three-slot layout:
+
+Left: Date (e.g. 10 May 2026)
+Centre: See tier logic below
+Right: Page X of Y
+
+Tier logic for centre slot:
+
+pro → always show DealScore
+pro_plus → show company name if companyName is populated, blank if not
+
+Remove the sourcer name from the footer entirely on both tiers.
+
+CHANGE 2 — Classic Cover (Pro Plus only):
+When tier is pro_plus and companyName is populated, add the company name as a single text line directly below the logo (or below where the logo would be if no logo uploaded). Style: small, light weight, wide letter-spacing, same contrast-safe colour as the rest of the cover text. It should read like a caption beneath the logo — not a headline.
+Do not show company name on the Classic cover for Pro tier.
+
+CHANGE 3 — Clean Cover (Pro Plus only):
+When tier is pro_plus and companyName is populated, add the company name in the bottom-left corner of the cover, same zone as the prepared-by block. Small, light weight, consistent with the Clean cover's restrained aesthetic. It should sit above or as part of the prepared-by block — not floating independently.
+Do not show company name on the Clean cover for Pro tier.
+
+CHANGE 4 — Bold Cover (Pro Plus only):
+When tier is pro_plus and companyName is populated, add the company name on the left panel, directly below the logo (or below where the logo would be). Small caps, lighter weight than the strategy label. It belongs to the brand identity block on the left — not the property/address block on the right.
+Do not show company name on the Bold cover for Pro tier.
+
+Rules for all cover changes:
+
+Company name only appears when companyName is populated AND tier is pro_plus
+If companyName is empty, no empty space or placeholder — the element simply does not render
+Never compete with the property address or logo in size or weight
+Hierarchy: property address → logo → company name → everything else
+
+Do not change cover styles for Pro tier. Do not touch Page 2, 3, or 4 content. Do not touch colour pickers, branding panel, or any other component.
+Confirm exactly what you changed at the end.

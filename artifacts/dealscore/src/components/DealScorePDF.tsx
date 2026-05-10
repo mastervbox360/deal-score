@@ -328,12 +328,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const Footer = () => (
     <View style={base.pageFooter} fixed>
-      <Text style={base.footerLeft}>{props.preparedBy.name || ''}</Text>
+      <Text style={base.footerLeft}>{props.dateStr}</Text>
       <Text style={[base.footerCentre, { color: '#9ca3af' }]}>{footerCentreText}</Text>
       <Text
         style={base.footerRight}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-          `Page ${pageNumber} of ${totalPages}  ·  ${props.dateStr}`
+          `Page ${pageNumber} of ${totalPages}`
         }
       />
     </View>
@@ -641,6 +641,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               {props.logoBase64 ? (
                 <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'center' }} />
               ) : null}
+              {isProPlus && props.companyName.trim() ? (
+                <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)', textAlign: 'center', letterSpacing: 1.8, marginTop: 8 }}>
+                  {props.companyName.trim().toUpperCase()}
+                </Text>
+              ) : null}
             </View>
             <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
               <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
@@ -699,6 +704,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </Text>
               </View>
               <View style={{ position: 'absolute', bottom: 28, left: 40, right: 40 }}>
+                {isProPlus && props.companyName.trim() ? (
+                  <Text style={{ fontSize: 8, color: '#777777', letterSpacing: 1.4, marginBottom: 8 }}>
+                    {props.companyName.trim().toUpperCase()}
+                  </Text>
+                ) : null}
                 <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}`, marginBottom: 12 }} />
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
@@ -730,6 +740,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View style={{ width: '100%', alignItems: 'center' }}>
                 {props.logoBase64 ? (
                   <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'center' }} />
+                ) : null}
+                {isProPlus && props.companyName.trim() ? (
+                  <Text style={{ fontSize: 7.5, color: coverMuted(coverBg, 0.6), textAlign: 'center', letterSpacing: 1.6, marginTop: 8 }}>
+                    {props.companyName.trim().toUpperCase()}
+                  </Text>
                 ) : null}
               </View>
               <View>
