@@ -329,7 +329,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const Footer = () => (
     <View style={base.pageFooter} fixed>
       <Text style={base.footerLeft}>{props.preparedBy.name || ''}</Text>
-      <Text style={[base.footerCentre, { color: isProPlus ? accent : readableBrand }]}>{footerCentreText}</Text>
+      <Text style={[base.footerCentre, { color: '#9ca3af' }]}>{footerCentreText}</Text>
       <Text
         style={base.footerRight}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
