@@ -468,7 +468,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       { label: 'Net Yield', value: fp(props.saResults.netYield) },
     ];
     if (props.dealType === 'BRRR') return [
-      { label: 'Cash Left In', value: props.brrrResults.moneyOut ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal) },
+      { label: 'Cash Left In', value: (props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal) },
       { label: 'Monthly Cash Flow', value: fc(props.brrrResults.monthlyCashFlow) },
       { label: 'Equity Created', value: fc(props.brrrResults.equityCreated) },
     ];
