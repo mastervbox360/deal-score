@@ -1545,6 +1545,7 @@ export default function HomePage() {
           <h3 className="font-semibold text-sm uppercase tracking-widest mb-5" style={{ color: '#1B3A6B' }}>
             Prepared by
           </h3>
+          {tierOverride === 'pro_plus' && (
           <div className="mb-4 space-y-1.5">
             <Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label>
             <Input
@@ -1556,6 +1557,7 @@ export default function HomePage() {
               data-testid="input-prepared-company"
             />
           </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="prepared-name" className="text-xs">Name</Label>
