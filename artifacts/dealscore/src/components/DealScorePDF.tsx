@@ -537,13 +537,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Total Cost In', fc(props.brrrResults.totalCostIn)],
       ['Refinance Loan', fc(props.brrrResults.refinanceLoan)],
       ['Monthly Mortgage', fc(props.brrrResults.monthlyMortgage)],
-      ['Cash Left in Deal', props.brrrResults.moneyOut ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT` : fc(props.brrrResults.cashLeftInDeal)],
+      ['Cash Left in Deal', (props.brrrResults.moneyOut && props.purchasePrice > 0) ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT` : fc(props.brrrResults.cashLeftInDeal)],
       ['Equity Created', fc(props.brrrResults.equityCreated)],
       ['Monthly Cash Flow', fc(props.brrrResults.monthlyCashFlow), true],
       ['Annual Cash Flow', fc(props.brrrResults.annualCashFlow)],
       ['Gross Yield (on GDV)', fp(props.brrrResults.grossYield)],
       ['Net Yield', fp(props.brrrResults.netYield)],
-      ['Cash-on-Cash ROI', props.brrrResults.moneyOut ? '∞ (money out)' : fp(props.brrrResults.cashOnCashROI), true],
+      ['Cash-on-Cash ROI', (props.brrrResults.moneyOut && props.purchasePrice > 0) ? '∞ (money out)' : fp(props.brrrResults.cashOnCashROI), true],
     ];
     if (props.dealType === 'R2R') return [
       ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
