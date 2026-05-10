@@ -118,6 +118,7 @@ export default function HomePage() {
   const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
+  const [companyName, setCompanyName] = useState<string>('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [tenure, setTenure] = useState<'Freehold' | 'Leasehold'>('Freehold');
@@ -701,6 +702,7 @@ export default function HomePage() {
       bmvAmount: _equityDayOne,
       bmvPercent: _bmvPercent,
       preparedBy,
+      companyName,
       logoBase64,
       brandColour,
       accentColour,
@@ -734,7 +736,7 @@ export default function HomePage() {
     propertyData, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs,
     brrrInputs, r2rInputs, socialInputs,
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
-    marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, logoBase64, brandColour,
+    marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
     strategyNotes, propertyDescription, vendorSituation, comparableProperties,
   ]);
@@ -1575,6 +1577,17 @@ export default function HomePage() {
           <h3 className="font-semibold text-sm uppercase tracking-widest mb-5" style={{ color: '#1B3A6B' }}>
             Prepared by
           </h3>
+          <div className="mb-4 space-y-1.5">
+            <Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label>
+            <Input
+              id="prepared-company"
+              type="text"
+              placeholder="Your company or trading name (optional)"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              data-testid="input-prepared-company"
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="prepared-name" className="text-xs">Name</Label>

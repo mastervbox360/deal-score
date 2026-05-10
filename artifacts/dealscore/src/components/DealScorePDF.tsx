@@ -73,6 +73,7 @@ export interface DealScorePDFProps {
   currentScore: DealScore;
   riskFlags: string[];
   accentColour: string;
+  companyName: string;
   strategyNotes: string;
   propertyDescription: string;
   vendorSituation: string;
@@ -320,11 +321,15 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     </View>
   );
 
-  // Footer: "DealScore" centre text uses readableBrand (safe on white footer)
+  // Footer: centre text is sourcer brand for pro_plus, DealScore for pro
+  const footerCentreText = isProPlus
+    ? (props.companyName.trim() || props.preparedBy.name || 'DealScore')
+    : 'DealScore';
+
   const Footer = () => (
     <View style={base.pageFooter} fixed>
       <Text style={base.footerLeft}>{props.preparedBy.name || ''}</Text>
-      <Text style={[base.footerCentre, { color: isProPlus ? accent : readableBrand }]}>DealScore</Text>
+      <Text style={[base.footerCentre, { color: isProPlus ? accent : readableBrand }]}>{footerCentreText}</Text>
       <Text
         style={base.footerRight}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
