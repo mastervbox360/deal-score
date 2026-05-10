@@ -588,7 +588,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {/* Pro — DealScore branded cover */}
         {props.tierOverride === 'pro' && (
           <View style={{ flex: 1, padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
-            <View style={{ minHeight: 20, alignItems: 'center' }}>
+            <View style={{ paddingTop: 60, alignItems: 'center' }}>
               <Text style={{ fontSize: 32, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center' }}>
                 {DEALSCORE_BRAND.name}
               </Text>
