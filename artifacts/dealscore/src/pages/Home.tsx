@@ -98,7 +98,7 @@ export default function HomePage() {
     ? sourcingFeeDisclaimer
     : `The sourcing fee stated is payable to ${preparedBy.name || '[Sourcer Name]'} as agreed between the sourcer and investor. ${preparedBy.name || '[Sourcer Name]'} provides property sourcing services only and is not authorised or regulated by the Financial Conduct Authority. This document is prepared for information purposes only, is confidential, and does not constitute financial, legal, or investment advice. All financial projections are estimates based on information available at the time of preparation and may differ from actual results. Investors should satisfy themselves through their own due diligence prior to proceeding. Independent legal and financial advice should be sought before making any investment decision. ${preparedBy.name || '[Sourcer Name]'} accepts no liability for any loss or damage arising from reliance on this document. ${dealType === 'FLIP' ? 'Property values can fall as well as rise. Refurbishment costs and project timelines may exceed initial estimates and past performance is not indicative of future results.' : dealType === 'R2R' ? 'This opportunity does not involve the acquisition of any ownership interest in the property. Returns are subject to occupancy rates, subletting income, and the terms agreed with the landlord. Past performance is not indicative of future results.' : 'Property values can fall as well as rise, rental income is not guaranteed, and past performance is not indicative of future results.'}`;
   const [marketValue, setMarketValue] = useState<number>(0);
-  const [strategyNotes, setStrategyNotes] = useState<string>('');
+  const [strategyNotes, setStrategyNotes] = useState<Record<string, string>>({});
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
   const [comparableProperties, setComparableProperties] = useState<string>('');
@@ -400,7 +400,7 @@ export default function HomePage() {
     setSourcingFee(0);
     setSourcingFeeDisclaimer(null);
     setMarketValue(0);
-    setStrategyNotes('');
+    setStrategyNotes({});
     setPropertyDescription('');
     setVendorSituation('');
     setComparableProperties('');
@@ -679,7 +679,7 @@ export default function HomePage() {
       socialResults: _socialResults,
       currentScore: _currentScore,
       riskFlags: _riskFlags,
-      strategyNotes,
+      strategyNotes: strategyNotes[dealType] ?? '',
       propertyDescription,
       vendorSituation,
       comparableProperties,
@@ -1128,8 +1128,8 @@ export default function HomePage() {
                     <Textarea
                       id="strategy-notes"
                       placeholder="Explain why this strategy fits the deal — e.g. strong rental demand, room to add value, exit options, etc."
-                      value={strategyNotes}
-                      onChange={(e) => setStrategyNotes(e.target.value)}
+                      value={strategyNotes[dealType] ?? ''}
+                      onChange={(e) => setStrategyNotes(prev => ({ ...prev, [dealType]: e.target.value }))}
                       rows={4}
                       data-testid="input-strategy-notes"
                     />
