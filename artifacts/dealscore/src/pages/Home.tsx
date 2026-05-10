@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,37 +39,6 @@ function getContrastText(bgHex: string): string {
   return getLuminance(bgHex) > 0.35 ? '#1A1A1A' : '#FFFFFF';
 }
 
-function darkenColour(hex: string, amount: number): string {
-  const clean = hex.replace('#', '');
-  const r = Math.round(parseInt(clean.substring(0, 2), 16) * (1 - amount));
-  const g = Math.round(parseInt(clean.substring(2, 4), 16) * (1 - amount));
-  const b = Math.round(parseInt(clean.substring(4, 6), 16) * (1 - amount));
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
-
-function getContrastRatio(hex1: string, hex2: string): number {
-  const l1 = getLuminance(hex1);
-  const l2 = getLuminance(hex2);
-  const lighter = Math.max(l1, l2);
-  const darker = Math.min(l1, l2);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-const ACCENT_PALETTE = ['#00C896', '#F5A623', '#4A90D9', '#E8445A', '#9B59B6', '#2ECC71', '#E67E22', '#1ABC9C'] as const;
-
-function pickBestAccent(brandHex: string): string {
-  const darkBg = darkenColour(brandHex, 0.4);
-  let bestAccent: string = ACCENT_PALETTE[0];
-  let bestScore = -1;
-  for (const colour of ACCENT_PALETTE) {
-    const score = Math.min(getContrastRatio(colour, darkBg), getContrastRatio(colour, '#FFFFFF'));
-    if (score > bestScore) {
-      bestScore = score;
-      bestAccent = colour;
-    }
-  }
-  return bestAccent;
-}
 
 const PdfDownloadButton = React.memo(function PdfDownloadButton({
   pdfProps,
@@ -148,9 +117,9 @@ export default function HomePage() {
   const [tierOverride, setTierOverride] = useState<'free' | 'pro' | 'pro_plus'>('pro_plus');
   const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
-  const [accentColour, setAccentColour] = useState<string>(() => pickBestAccent('#1B3A6B'));
-  const [accentColourDraft, setAccentColourDraft] = useState<string>(() => pickBestAccent('#1B3A6B'));
-  const [accentIsCustom, setAccentIsCustom] = useState<boolean>(false);
+  const [accentColour, setAccentColour] = useState<string>('#00C896');
+  const [accentColourDraft, setAccentColourDraft] = useState<string>('#00C896');
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
@@ -158,12 +127,9 @@ export default function HomePage() {
   }, [brandColourDraft]);
 
   useEffect(() => {
-    if (!accentIsCustom) {
-      const best = pickBestAccent(brandColour);
-      setAccentColour(best);
-      setAccentColourDraft(best);
-    }
-  }, [brandColour, accentIsCustom]);
+    const timer = setTimeout(() => setAccentColour(accentColourDraft), 500);
+    return () => clearTimeout(timer);
+  }, [accentColourDraft]);
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -758,6 +724,7 @@ export default function HomePage() {
   };
 
   return (
+    <>
     <div className="min-h-screen pb-20" style={{ backgroundColor: '#F5F7FA' }}>
       <header className="text-primary-foreground py-6 shadow-md" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
@@ -1645,126 +1612,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Sourcer branding */}
-          {tierOverride === 'pro_plus' && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1">
-                <Label className="text-xs">Your Logo <span className="text-slate-400 font-normal">(appears on PDF cover)</span></Label>
-              </div>
-              {logoBase64 ? (
-                <div>
-                  <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-muted/30">
-                    <img src={logoBase64} alt="Logo" className="h-10 object-contain max-w-[120px]" />
-                    <button
-                      type="button"
-                      onClick={() => setLogoBase64(null)}
-                      className="text-xs text-slate-400 hover:text-red-500 transition ml-auto"
-                    >
-                      ✕ Remove
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-slate-500">Logo Size:</span>
-                    {(['S', 'M', 'L'] as const).map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setLogoSize(s)}
-                        className={`w-8 h-7 rounded text-xs font-semibold border transition ${
-                          logoSize === s
-                            ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]'
-                            : 'bg-white text-slate-600 border-border hover:border-[#1B3A6B]'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <label className="flex items-center gap-2 p-2 border border-dashed border-border rounded-lg cursor-pointer hover:border-[#1B3A6B] transition bg-muted/20">
-                  <span className="text-xs text-slate-500">Click to upload PNG or JPG</span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                    data-testid="input-logo-upload"
-                  />
-                </label>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Brand Colour <span className="text-slate-400 font-normal">(PDF accents & headers)</span></Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={brandColourDraft}
-                  onChange={(e) => setBrandColourDraft(e.target.value)}
-                  className="h-10 w-14 cursor-pointer rounded-lg border border-border p-0.5 bg-white"
-                  data-testid="input-brand-colour"
-                />
-                <div className="h-8 w-8 rounded-md border border-border shadow-sm" style={{ backgroundColor: brandColourDraft }} />
-                <span className="text-xs text-slate-500 font-mono">{brandColourDraft}</span>
-                <button
-                  type="button"
-                  onClick={() => { setBrandColourDraft('#1B3A6B'); setBrandColour('#1B3A6B'); }}
-                  className="text-xs text-slate-400 hover:text-slate-600 transition ml-auto"
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-          </div>
-          )}
-
-          {/* Accent Colour swatches */}
-          {tierOverride === 'pro_plus' && (
-          <div className="mt-3 space-y-1.5">
-            <Label className="text-xs">Accent Colour <span className="text-slate-400 font-normal">(highlights &amp; rules)</span></Label>
-            <div className="flex items-center gap-2 flex-wrap">
-              {ACCENT_PALETTE.map((colour) => (
-                <button
-                  key={colour}
-                  type="button"
-                  onClick={() => { setAccentIsCustom(true); setAccentColour(colour); setAccentColourDraft(colour); }}
-                  className="rounded-full transition-transform hover:scale-110"
-                  style={{
-                    width: 24,
-                    height: 24,
-                    backgroundColor: colour,
-                    outline: accentColour === colour ? `2.5px solid ${colour}` : '2.5px solid transparent',
-                    outlineOffset: 2,
-                    border: '1.5px solid rgba(0,0,0,0.12)',
-                  }}
-                  title={colour}
-                />
-              ))}
-              {accentIsCustom && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAccentIsCustom(false);
-                    const best = pickBestAccent(brandColour);
-                    setAccentColour(best);
-                    setAccentColourDraft(best);
-                  }}
-                  className="text-xs text-slate-400 hover:text-slate-600 transition ml-1"
-                >
-                  Reset to auto
-                </button>
-              )}
-            </div>
-          </div>
-          )}
-
-          {/* Cover Style selector */}
+          {/* Cover Style */}
           {tierOverride === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your investor pack cover page layout)</span></Label>
             <div className="flex gap-4">
-              {/* Classic */}
               <button
                 type="button"
                 onClick={() => setCoverStyle('classic')}
@@ -1784,8 +1636,6 @@ export default function HomePage() {
                 </div>
                 <span className="text-[10px] text-slate-600 font-medium">Classic</span>
               </button>
-
-              {/* Clean */}
               <button
                 type="button"
                 onClick={() => setCoverStyle('clean')}
@@ -1807,8 +1657,6 @@ export default function HomePage() {
                 </div>
                 <span className="text-[10px] text-slate-600 font-medium">Clean</span>
               </button>
-
-              {/* Bold */}
               <button
                 type="button"
                 onClick={() => setCoverStyle('bold')}
@@ -1834,7 +1682,156 @@ export default function HomePage() {
           </div>
           )}
 
-          <div className="mt-6 flex gap-3">
+          {/* Brand Colour */}
+          {tierOverride === 'pro_plus' && (
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs">Brand Colour</Label>
+            <p className="text-xs text-slate-400 -mt-0.5">Used for cover background and section headers</p>
+            <div className="flex items-center gap-3">
+              <div
+                className="relative h-10 w-10 rounded-lg border border-border shadow-sm cursor-pointer overflow-hidden flex-shrink-0"
+                style={{ backgroundColor: brandColourDraft }}
+              >
+                <input
+                  type="color"
+                  value={brandColourDraft}
+                  onChange={(e) => setBrandColourDraft(e.target.value)}
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  data-testid="input-brand-colour"
+                />
+              </div>
+              <input
+                type="text"
+                value={brandColourDraft}
+                onChange={(e) => setBrandColourDraft(e.target.value)}
+                onBlur={(e) => {
+                  if (!/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+                    setBrandColourDraft('#1B3A6B');
+                    setBrandColour('#1B3A6B');
+                  }
+                }}
+                className="font-mono text-xs border border-border rounded-md px-2 py-1.5 w-24 focus:outline-none focus:ring-1 focus:ring-[#1B3A6B]"
+                maxLength={7}
+                placeholder="#1B3A6B"
+              />
+              <button
+                type="button"
+                onClick={() => { setBrandColourDraft('#1B3A6B'); setBrandColour('#1B3A6B'); }}
+                className="text-xs text-slate-400 hover:text-slate-600 transition"
+              >
+                Reset to default
+              </button>
+            </div>
+          </div>
+          )}
+
+          {/* Accent Colour */}
+          {tierOverride === 'pro_plus' && (
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs">Accent Colour</Label>
+            <p className="text-xs text-slate-400 -mt-0.5">Used for decorative rules and highlights</p>
+            <div className="flex items-center gap-3">
+              <div
+                className="relative h-10 w-10 rounded-lg border border-border shadow-sm cursor-pointer overflow-hidden flex-shrink-0"
+                style={{ backgroundColor: accentColourDraft }}
+              >
+                <input
+                  type="color"
+                  value={accentColourDraft}
+                  onChange={(e) => setAccentColourDraft(e.target.value)}
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  data-testid="input-accent-colour"
+                />
+              </div>
+              <input
+                type="text"
+                value={accentColourDraft}
+                onChange={(e) => {
+                  setAccentColourDraft(e.target.value);
+                  if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) setAccentColour(e.target.value);
+                }}
+                onBlur={(e) => {
+                  if (!/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+                    setAccentColourDraft('#00C896');
+                    setAccentColour('#00C896');
+                  }
+                }}
+                className="font-mono text-xs border border-border rounded-md px-2 py-1.5 w-24 focus:outline-none focus:ring-1 focus:ring-[#1B3A6B]"
+                maxLength={7}
+                placeholder="#00C896"
+              />
+              <button
+                type="button"
+                onClick={() => { setAccentColourDraft('#00C896'); setAccentColour('#00C896'); }}
+                className="text-xs text-slate-400 hover:text-slate-600 transition"
+              >
+                Reset to default
+              </button>
+            </div>
+          </div>
+          )}
+
+          {/* Your Logo */}
+          {tierOverride === 'pro_plus' && (
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs">Your Logo <span className="text-slate-400 font-normal">(appears on PDF cover)</span></Label>
+            {logoBase64 ? (
+              <div>
+                <div className="flex items-center gap-3 p-2 border border-border rounded-lg bg-muted/30">
+                  <img src={logoBase64} alt="Logo" className="h-10 object-contain max-w-[120px]" />
+                  <button
+                    type="button"
+                    onClick={() => setLogoBase64(null)}
+                    className="text-xs text-slate-400 hover:text-red-500 transition ml-auto"
+                  >
+                    ✕ Remove
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-slate-500">Logo Size:</span>
+                  {(['S', 'M', 'L'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setLogoSize(s)}
+                      className={`w-8 h-7 rounded text-xs font-semibold border transition ${
+                        logoSize === s
+                          ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]'
+                          : 'bg-white text-slate-600 border-border hover:border-[#1B3A6B]'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <label className="flex items-center gap-2 p-2 border border-dashed border-border rounded-lg cursor-pointer hover:border-[#1B3A6B] transition bg-muted/20">
+                <span className="text-xs text-slate-500">Click to upload PNG or JPG</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                  data-testid="input-logo-upload"
+                />
+              </label>
+            )}
+          </div>
+          )}
+
+          {/* Buttons */}
+          <div className="mt-6 flex flex-col gap-3">
+            {tierOverride !== 'free' && (
+              <button
+                type="button"
+                onClick={() => setPdfPreviewOpen(true)}
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm border-2 border-[#1B3A6B] text-[#1B3A6B] bg-white hover:bg-[#1B3A6B]/5 active:scale-[0.99] transition w-full"
+                data-testid="button-preview-pdf"
+              >
+                Preview PDF
+              </button>
+            )}
             {tierOverride !== 'free' && (
               <PdfDownloadButton
                 pdfProps={pdfProps}
@@ -1855,6 +1852,36 @@ export default function HomePage() {
         </div>
       </main>
     </div>
+
+    {/* PDF Preview Modal */}
+    {pdfPreviewOpen && createPortal(
+      <div className="fixed inset-0 z-50 flex flex-col bg-black/80">
+        <div className="flex items-center justify-between px-6 py-3 bg-[#1B3A6B] flex-shrink-0">
+          <span className="text-white font-semibold text-sm">PDF Preview</span>
+          <div className="flex items-center gap-4">
+            <PdfDownloadButton
+              pdfProps={pdfProps}
+              fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
+            />
+            <button
+              type="button"
+              onClick={() => setPdfPreviewOpen(false)}
+              className="text-white/70 hover:text-white text-2xl font-bold leading-none"
+              aria-label="Close preview"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <PDFViewer width="100%" height="100%" showToolbar={false}>
+            <DealScorePDF {...pdfProps} />
+          </PDFViewer>
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }
 

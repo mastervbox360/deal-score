@@ -1,0 +1,23 @@
+Here's the full prompt to send to Replit Agent:
+
+
+"Make the following changes to the Prepared By / branding panel section in Home.tsx and related components. Complete all changes together.
+Change 1 — Brand Colour input redesign:
+Remove the current brand colour implementation which has two swatches side by side (a preview swatch and a separate input type='color' square). Replace with: one single large colour preview swatch that when clicked opens the native colour picker (input type='color' hidden behind the swatch using opacity: 0, position: absolute, width: 100%, height: 100%, cursor: pointer). Next to the swatch, a hex text input field showing the current hex code (e.g. #1B3A6B). Typing a valid 6-digit hex in the field updates the colour picker and swatch live. Invalid hex turns the input border red and does not update the colour. 'Reset' link resets to #1B3A6B. Keep the existing 500ms debounce pattern for PDF re-render (brandColour / brandColourDraft).
+Change 2 — Accent Colour input redesign:
+Remove the 8-palette swatches entirely. Remove the auto-select algorithm entirely. Remove accentIsCustom state — it is no longer needed. Replace with: identical UI pattern to the redesigned brand colour input above — one large colour preview swatch that opens the native colour picker when clicked, plus a hex text input field next to it. Default accent colour is #00C896. 'Reset to default' link resets to #00C896. Keep the existing 500ms debounce pattern (accentColour / accentColourDraft). The two colour inputs — brand and accent — should look and behave identically.
+Change 3 — PDF Preview modal:
+Add a 'Preview PDF' button to the branding panel, positioned directly above the Download Investor Summary PDF button. Visible on Pro and Pro Plus tier only. Clicking it opens a full-screen modal overlay containing a PDFViewer component from @react-pdf/renderer rendering the live DealScorePDF with all current props. The modal has: a close button (×) top right, and a Download PDF button below the viewer so the user can go straight from preview to download. Modal background is dark overlay rgba(0,0,0,0.8). PDFViewer inside the modal should be 90vw × 90vh. Reuse the same pdfProps useMemo already used for PDFDownloadLink — do not create a second props object.
+Change 4 — Reorganise the branding panel layout:
+Restructure the entire section below Name / Email / Phone into this exact order:
+
+Dev Tier toggle — unchanged, stays as is
+Cover Style — move to here, before colours. Label: 'Cover Style (choose your investor pack cover page layout)'. Three thumbnail cards: Classic / Clean / Bold — unchanged visually.
+Brand Colour — full width row. Label: 'Brand Colour'. Redesigned input from Change 1. Subtitle in muted text: 'Used for cover background and section headers'.
+Accent Colour — full width row, identical layout to Brand Colour. Label: 'Accent Colour'. Redesigned input from Change 2. Subtitle in muted text: 'Used for decorative rules and highlights'.
+Your Logo — full width row. Label: 'Your Logo (appears on PDF cover)'. Logo upload and logo size toggle unchanged.
+Preview PDF button — full width, positioned here. Secondary style (outlined, not filled) to visually distinguish from the primary Download button.
+Download Investor Summary PDF button — full width, primary style, unchanged.
+
+The two colour rows (Brand and Accent) should look identical in structure — same label style, same input layout, same spacing. A sourcer should immediately understand both work the same way.
+Do not change anything outside the Prepared By / branding panel section. Do not change any PDF layout, cover styles, or formula logic. After completing all four changes, confirm what was changed in each area."
