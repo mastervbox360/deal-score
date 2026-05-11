@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet, Link } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import {
   calculateBTL,
@@ -74,10 +74,14 @@ export interface DealScorePDFProps {
   riskFlags: string[];
   accentColour: string;
   companyName: string;
+  executiveSummary: string;
   strategyNotes: string;
   propertyDescription: string;
   vendorSituation: string;
-  comparableProperties: string;
+  comparables: Array<{ address: string; bedsType: string; price: string }>;
+  rightmoveLink: string;
+  zooplaLink: string;
+  photoFiles: string[];
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -568,13 +572,15 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   })();
 
   const notes = [
-    { label: 'Why This Strategy?', text: props.strategyNotes.trim(), isComparables: false },
-    { label: 'Property Description', text: props.propertyDescription.trim(), isComparables: false },
-    { label: 'Vendor Situation', text: props.vendorSituation.trim(), isComparables: false },
-    { label: 'Comparable Properties', text: props.comparableProperties.trim(), isComparables: true },
+    { label: 'Executive Summary', text: props.executiveSummary.trim() },
+    { label: 'Why This Strategy?', text: props.strategyNotes.trim() },
+    { label: 'Property Description', text: props.propertyDescription.trim() },
+    { label: 'Vendor Situation', text: props.vendorSituation.trim() },
   ].filter((n) => n.text.length > 0);
 
-  const hasNotes = notes.length > 0 || props.sourcingFee > 0;
+  const hasComparables = props.comparables.some(r => r.address.trim() || r.bedsType.trim() || r.price.trim());
+  const hasLinks = !!(props.rightmoveLink.trim() || props.zooplaLink.trim());
+  const hasNotes = notes.length > 0 || props.sourcingFee > 0 || hasComparables || hasLinks;
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
 
   const preparedLine = [
@@ -893,15 +899,54 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <Footer />
           <SH title="Deal Notes" />
 
-          {notes.map(({ label, text, isComparables }) => (
+          {notes.map(({ label, text }) => (
             <View key={label} style={base.notePanel}>
-              {/* FIX 2: note panel label uses readableBrand (safe on white) */}
               <Text style={[base.notePanelLabel, { color: readableBrand }]}>{label}</Text>
-              <Text style={base.notePanelText}>
-                {isComparables ? formatComparables(text) : text}
-              </Text>
+              <Text style={base.notePanelText}>{text}</Text>
             </View>
           ))}
+
+          {hasComparables && (
+            <View style={[base.notePanel, { padding: 0, overflow: 'hidden' }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand, padding: 10, paddingBottom: 6 }]}>Comparable Properties</Text>
+              <View style={{ flexDirection: 'row', backgroundColor: '#eef1f7', paddingVertical: 4, paddingHorizontal: 10 }}>
+                <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555' }}>Address</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555' }}>Beds / Type</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555', textAlign: 'right' }}>Price</Text>
+              </View>
+              {props.comparables
+                .filter(r => r.address.trim() || r.bedsType.trim() || r.price.trim())
+                .map((row, i) => (
+                  <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
+                    <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
+                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.bedsType}</Text>
+                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{row.price}</Text>
+                  </View>
+                ))}
+            </View>
+          )}
+
+          {hasLinks && (
+            <View style={[base.notePanel, { marginTop: 4 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 6 }]}>Property Listings</Text>
+              {props.rightmoveLink.trim() ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 8.5, color: '#555555', width: 68 }}>Rightmove:</Text>
+                  <Link src={props.rightmoveLink.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
+                    {props.rightmoveLink.trim().length > 62 ? props.rightmoveLink.trim().substring(0, 59) + '…' : props.rightmoveLink.trim()}
+                  </Link>
+                </View>
+              ) : null}
+              {props.zooplaLink.trim() ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 8.5, color: '#555555', width: 68 }}>Zoopla:</Text>
+                  <Link src={props.zooplaLink.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
+                    {props.zooplaLink.trim().length > 62 ? props.zooplaLink.trim().substring(0, 59) + '…' : props.zooplaLink.trim()}
+                  </Link>
+                </View>
+              ) : null}
+            </View>
+          )}
 
           {props.sourcingFee > 0 && (
             <View style={[base.notePanel, { marginTop: 4 }]}>
@@ -916,6 +961,42 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </Text>
               )}
             </View>
+          )}
+        </Page>
+      )}
+
+      {/* ── Photos Page ────────────────────────────────────────────────── */}
+      {props.photoFiles.length > 0 && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <SH title="Property Photos" />
+          {props.photoFiles.length === 1 && (
+            <Image src={props.photoFiles[0]} style={{ width: '100%', maxHeight: 400, objectFit: 'contain' }} />
+          )}
+          {props.photoFiles.length === 2 && (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Image src={props.photoFiles[0]} style={{ flex: 1, maxHeight: 280, objectFit: 'contain' }} />
+              <Image src={props.photoFiles[1]} style={{ flex: 1, maxHeight: 280, objectFit: 'contain' }} />
+            </View>
+          )}
+          {props.photoFiles.length >= 3 && (
+            (() => {
+              const chunks: string[][] = [];
+              for (let i = 0; i < props.photoFiles.length; i += 3) {
+                chunks.push(props.photoFiles.slice(i, i + 3));
+              }
+              return (
+                <>
+                  {chunks.map((row, rowIdx) => (
+                    <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
+                      {row.map((src, i) => (
+                        <Image key={i} src={src} style={{ flex: 1, maxHeight: 200, objectFit: 'contain' }} />
+                      ))}
+                    </View>
+                  ))}
+                </>
+              );
+            })()
           )}
         </Page>
       )}

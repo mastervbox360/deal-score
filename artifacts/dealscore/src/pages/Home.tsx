@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw, Trash2, Plus, Sparkles } from 'lucide-react';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
 import { Card, CardContent } from '@/components/ui/card';
@@ -104,7 +104,16 @@ export default function HomePage() {
   const [strategyNotes, setStrategyNotes] = useState<Record<string, string>>({});
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
-  const [comparableProperties, setComparableProperties] = useState<string>('');
+  const [comparables, setComparables] = useState<Array<{ address: string; bedsType: string; price: string }>>([
+    { address: '', bedsType: '', price: '' },
+    { address: '', bedsType: '', price: '' },
+    { address: '', bedsType: '', price: '' },
+  ]);
+  const [photoFiles, setPhotoFiles] = useState<string[]>([]);
+  const [executiveSummary, setExecutiveSummary] = useState<string>('');
+  const [aiGenerating, setAiGenerating] = useState<boolean>(false);
+  const [rightmoveLink, setRightmoveLink] = useState<string>('');
+  const [zooplaLink, setZooplaLink] = useState<string>('');
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
@@ -414,7 +423,15 @@ export default function HomePage() {
     setStrategyNotes({});
     setPropertyDescription('');
     setVendorSituation('');
-    setComparableProperties('');
+    setComparables([
+      { address: '', bedsType: '', price: '' },
+      { address: '', bedsType: '', price: '' },
+      { address: '', bedsType: '', price: '' },
+    ]);
+    setPhotoFiles([]);
+    setExecutiveSummary('');
+    setRightmoveLink('');
+    setZooplaLink('');
     setTaxCountry('ENGLAND');
     setBuyerType('ADDITIONAL');
     setTaxOverrideActive(false);
@@ -483,6 +500,41 @@ export default function HomePage() {
     dealType === 'BRRR' ? brrrResults.score :
     dealType === 'R2R' ? r2rResults.score :
     socialResults.score;
+
+  const handleGenerateSummary = async () => {
+    setAiGenerating(true);
+    try {
+      const currentResults =
+        dealType === 'BTL' ? { grossYield: formatPercent(btlResults.grossYield), cashFlow: btlResults.monthlyCashFlow, roi: formatPercent(btlResults.cashOnCashROI) } :
+        dealType === 'HMO' ? { grossYield: formatPercent(hmoResults.grossYield), cashFlow: hmoResults.monthlyCashFlow, roi: formatPercent(hmoResults.cashOnCashROI) } :
+        dealType === 'FLIP' ? { grossYield: formatPercent(flipResults.roi), cashFlow: flipResults.profitPerMonth, roi: formatPercent(flipResults.annualisedROI) } :
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
+        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+        { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
+
+      const res = await fetch('/api/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: propertyAddress,
+          strategy: dealLabel,
+          purchasePrice: sharedInputs.purchasePrice,
+          grossYield: currentResults.grossYield,
+          cashFlow: currentResults.cashFlow,
+          roi: currentResults.roi,
+          dealScore: currentScore,
+          whyThisStrategy: strategyNotes[dealType] ?? '',
+        }),
+      });
+      const data = await res.json() as { summary?: string; error?: string };
+      if (data.summary) setExecutiveSummary(data.summary);
+    } catch {
+      // silent fail
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const floodDetected = !!(propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No'));
   const leaseholdWarning = tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85;
@@ -692,10 +744,14 @@ export default function HomePage() {
       socialResults: _socialResults,
       currentScore: _currentScore,
       riskFlags: _riskFlags,
+      executiveSummary,
       strategyNotes: strategyNotes[dealType] ?? '',
       propertyDescription,
       vendorSituation,
-      comparableProperties,
+      comparables,
+      rightmoveLink,
+      zooplaLink,
+      photoFiles,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -705,7 +761,8 @@ export default function HomePage() {
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
-    strategyNotes, propertyDescription, vendorSituation, comparableProperties,
+    executiveSummary, strategyNotes, propertyDescription, vendorSituation,
+    comparables, rightmoveLink, zooplaLink, photoFiles,
   ]);
 
   const renderScoreBadge = (score: string) => {
@@ -1173,6 +1230,32 @@ export default function HomePage() {
                 </div>
                 {dealNotesOpen && (
                 <div className="mt-4 space-y-5">
+
+                  {/* Executive Summary */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="executive-summary">Executive Summary</Label>
+                      <button
+                        type="button"
+                        onClick={handleGenerateSummary}
+                        disabled={aiGenerating}
+                        className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
+                        style={{ backgroundColor: '#1B3A6B' }}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {aiGenerating ? 'Generating…' : 'Generate with AI'}
+                      </button>
+                    </div>
+                    <Textarea
+                      id="executive-summary"
+                      placeholder="A professional overview of this deal for investors — click 'Generate with AI' to auto-write, or type your own."
+                      value={executiveSummary}
+                      onChange={(e) => setExecutiveSummary(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+
+                  {/* Property Description */}
                   <div className="space-y-2">
                     <Label htmlFor="property-description">Property Description</Label>
                     <Textarea
@@ -1184,6 +1267,8 @@ export default function HomePage() {
                       data-testid="input-property-description"
                     />
                   </div>
+
+                  {/* Vendor Situation */}
                   <div className="space-y-2">
                     <Label htmlFor="vendor-situation">Vendor Situation</Label>
                     <Textarea
@@ -1195,17 +1280,140 @@ export default function HomePage() {
                       data-testid="input-vendor-situation"
                     />
                   </div>
+
+                  {/* Comparable Properties — dynamic table */}
                   <div className="space-y-2">
-                    <Label htmlFor="comparable-properties">Comparable Properties</Label>
-                    <Textarea
-                      id="comparable-properties"
-                      placeholder="e.g. 8 High Street sold £215k (Mar 2026), 14 High Street SSTC £220k, similar 3-bed terraces averaging £210–225k on this street…"
-                      value={comparableProperties}
-                      onChange={(e) => setComparableProperties(e.target.value)}
-                      rows={3}
-                      data-testid="input-comparable-properties"
-                    />
+                    <Label>Comparable Properties</Label>
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+                        <span>Address</span>
+                        <span>Beds / Type</span>
+                        <span>Price</span>
+                        <span />
+                      </div>
+                      {comparables.map((row, i) => (
+                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+                          <Input
+                            type="text"
+                            placeholder="e.g. 8 High Street"
+                            value={row.address}
+                            onChange={(e) => {
+                              const next = [...comparables];
+                              next[i] = { ...next[i], address: e.target.value };
+                              setComparables(next);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            type="text"
+                            placeholder="e.g. 3-bed terrace"
+                            value={row.bedsType}
+                            onChange={(e) => {
+                              const next = [...comparables];
+                              next[i] = { ...next[i], bedsType: e.target.value };
+                              setComparables(next);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            type="text"
+                            placeholder="e.g. £210,000"
+                            value={row.price}
+                            onChange={(e) => {
+                              const next = [...comparables];
+                              next[i] = { ...next[i], price: e.target.value };
+                              setComparables(next);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setComparables(comparables.filter((_, j) => j !== i))}
+                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                            title="Remove row"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-1"
+                      onClick={() => setComparables([...comparables, { address: '', bedsType: '', price: '' }])}
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Row
+                    </Button>
                   </div>
+
+                  {/* Property Listing Links */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rightmove-link">Rightmove Link</Label>
+                      <Input
+                        id="rightmove-link"
+                        type="url"
+                        placeholder="https://www.rightmove.co.uk/..."
+                        value={rightmoveLink}
+                        onChange={(e) => setRightmoveLink(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="zoopla-link">Zoopla Link</Label>
+                      <Input
+                        id="zoopla-link"
+                        type="url"
+                        placeholder="https://www.zoopla.co.uk/..."
+                        value={zooplaLink}
+                        onChange={(e) => setZooplaLink(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Property Photos */}
+                  <div className="space-y-2">
+                    <Label>Property Photos</Label>
+                    <label className="block w-full border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-[#1B3A6B] transition-colors">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files ?? []);
+                          files.forEach((file) => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setPhotoFiles((prev) => [...prev, ev.target?.result as string]);
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                          e.target.value = '';
+                        }}
+                      />
+                      <span className="text-sm text-muted-foreground">Click to upload photos (JPG / PNG, multiple allowed)</span>
+                    </label>
+                    {photoFiles.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2 mt-1">
+                        {photoFiles.map((src, i) => (
+                          <div key={i} className="relative group">
+                            <img src={src} alt={`Photo ${i + 1}`} className="w-full h-20 object-cover rounded-lg" />
+                            <button
+                              type="button"
+                              onClick={() => setPhotoFiles((prev) => prev.filter((_, j) => j !== i))}
+                              className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove photo"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                 </div>
                 )}
               </CardContent>
