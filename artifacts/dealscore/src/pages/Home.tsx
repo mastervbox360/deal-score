@@ -112,6 +112,7 @@ export default function HomePage() {
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [executiveSummary, setExecutiveSummary] = useState<string>('');
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
+  const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
   const [rightmoveLink, setRightmoveLink] = useState<string>('');
   const [zooplaLink, setZooplaLink] = useState<string>('');
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
@@ -513,22 +514,44 @@ export default function HomePage() {
         dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
         { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
 
-      const res = await fetch('/api/generate-summary', {
+      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined;
+
+      const prompt = `You are a professional UK property investment analyst. Write a concise 3–4 sentence executive summary for an investor pack about the following property deal. Be factual, professional, and highlight the key investment merits. Do not use bullet points or headers — just flowing prose.
+
+Property: ${propertyAddress || 'Address not specified'}
+Strategy: ${dealLabel}
+Purchase Price: ${sharedInputs.purchasePrice ? '£' + sharedInputs.purchasePrice.toLocaleString('en-GB') : 'Not entered'}
+Gross Yield: ${currentResults.grossYield}
+Monthly Cash Flow: ${currentResults.cashFlow != null ? '£' + Math.round(Number(currentResults.cashFlow)).toLocaleString('en-GB') : 'N/A'}
+Cash-on-Cash ROI: ${currentResults.roi}
+Deal Score: ${currentScore}
+Why this strategy: ${strategyNotes[dealType] ?? 'Not specified'}
+
+Write the executive summary now:`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'x-api-key': apiKey ?? '',
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
         body: JSON.stringify({
-          address: propertyAddress,
-          strategy: dealLabel,
-          purchasePrice: sharedInputs.purchasePrice,
-          grossYield: currentResults.grossYield,
-          cashFlow: currentResults.cashFlow,
-          roi: currentResults.roi,
-          dealScore: currentScore,
-          whyThisStrategy: strategyNotes[dealType] ?? '',
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 512,
+          messages: [{ role: 'user', content: prompt }],
         }),
       });
-      const data = await res.json() as { summary?: string; error?: string };
-      if (data.summary) setExecutiveSummary(data.summary);
+
+      const data = await response.json() as { content?: Array<{ type: string; text: string }>; error?: { message: string } };
+      const block = data.content?.[0];
+      const summary = block?.type === 'text' ? block.text.trim() : '';
+      if (summary) {
+        setExecutiveSummary(summary);
+        const newCount = aiGenCount + 1;
+        setAiGenCount(newCount);
+        localStorage.setItem('ds_ai_gen_count', String(newCount));
+      }
     } catch {
       // silent fail
     } finally {
@@ -1233,18 +1256,24 @@ export default function HomePage() {
 
                   {/* Executive Summary */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="executive-summary">Executive Summary</Label>
-                      <button
-                        type="button"
-                        onClick={handleGenerateSummary}
-                        disabled={aiGenerating}
-                        className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
-                        style={{ backgroundColor: '#1B3A6B' }}
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {aiGenerating ? 'Generating…' : 'Generate with AI'}
-                      </button>
+                      {tierOverride === 'free' && aiGenCount >= 3 ? (
+                        <p className="text-xs text-amber-600 font-medium text-right">
+                          You've used your 3 free AI generations. Upgrade to Pro for unlimited.
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleGenerateSummary}
+                          disabled={aiGenerating}
+                          className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
+                          style={{ backgroundColor: '#1B3A6B' }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {aiGenerating ? 'Generating…' : 'Generate with AI'}
+                        </button>
+                      )}
                     </div>
                     <Textarea
                       id="executive-summary"
