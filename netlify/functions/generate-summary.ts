@@ -14,6 +14,8 @@ const handler: Handler = async (event) => {
     roi?: string;
     dealScore?: string;
     whyThisStrategy?: string;
+    promptType?: string;
+    bmvPercent?: number;
   };
 
   try {
@@ -22,9 +24,21 @@ const handler: Handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON" }) };
   }
 
-  const { address, strategy, purchasePrice, grossYield, cashFlow, roi, dealScore, whyThisStrategy } = body;
+  const { address, strategy, purchasePrice, grossYield, cashFlow, roi, dealScore, whyThisStrategy, promptType, bmvPercent } = body;
 
-  const prompt = `You are a professional UK property investment analyst. Write a concise 3–4 sentence executive summary for an investor pack about the following property deal. Be factual, professional, and highlight the key investment merits. Do not use bullet points or headers — just flowing prose.
+  const prompt = promptType === 'strategy'
+    ? `You are a professional UK property sourcer writing a brief rationale for an investor pack. Write exactly 2–3 sentences in first person explaining why the ${strategy || "chosen"} strategy was selected for this specific deal. Reference the key metrics where available and mention BMV if applicable. Be specific and professional. Do not use bullet points or headers — just flowing prose.
+
+Property: ${address || "Address not specified"}
+Strategy: ${strategy || "Not specified"}
+Purchase Price: ${purchasePrice ? "£" + purchasePrice.toLocaleString("en-GB") : "Not entered"}
+Gross Yield / ROI: ${grossYield || "N/A"}
+Monthly Cash Flow: ${cashFlow != null ? "£" + Math.round(cashFlow).toLocaleString("en-GB") : "N/A"}
+BMV: ${bmvPercent != null && bmvPercent > 0 ? bmvPercent.toFixed(1) + "% below market value" : "N/A"}
+Deal Score: ${dealScore || "Incomplete"}
+
+Write the strategy rationale now:`
+    : `You are a professional UK property investment analyst. Write a concise 3–4 sentence executive summary for an investor pack about the following property deal. Be factual, professional, and highlight the key investment merits. Do not use bullet points or headers — just flowing prose.
 
 Property: ${address || "Address not specified"}
 Strategy: ${strategy || "Not specified"}

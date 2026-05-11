@@ -113,6 +113,7 @@ export default function HomePage() {
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [executiveSummary, setExecutiveSummary] = useState<string>('');
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
+  const [strategyAiGenerating, setStrategyAiGenerating] = useState<boolean>(false);
   const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
@@ -540,6 +541,49 @@ export default function HomePage() {
       // silent fail
     } finally {
       setAiGenerating(false);
+    }
+  };
+
+  const handleGenerateStrategy = async () => {
+    setStrategyAiGenerating(true);
+    try {
+      const currentResults =
+        dealType === 'BTL' ? { grossYield: formatPercent(btlResults.grossYield), cashFlow: btlResults.monthlyCashFlow, roi: formatPercent(btlResults.cashOnCashROI) } :
+        dealType === 'HMO' ? { grossYield: formatPercent(hmoResults.grossYield), cashFlow: hmoResults.monthlyCashFlow, roi: formatPercent(hmoResults.cashOnCashROI) } :
+        dealType === 'FLIP' ? { grossYield: formatPercent(flipResults.roi), cashFlow: flipResults.profitPerMonth, roi: formatPercent(flipResults.annualisedROI) } :
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
+        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+        { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
+
+      const response = await fetch('/.netlify/functions/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: propertyAddress,
+          strategy: dealLabel,
+          purchasePrice: sharedInputs.purchasePrice,
+          grossYield: currentResults.grossYield,
+          cashFlow: currentResults.cashFlow,
+          roi: currentResults.roi,
+          dealScore: currentScore,
+          bmvPercent,
+          promptType: 'strategy',
+        }),
+      });
+
+      const data = await response.json() as { summary?: string; error?: string };
+      const result = data.summary?.trim() ?? '';
+      if (result) {
+        setStrategyNotes(prev => ({ ...prev, [dealType]: result }));
+        const newCount = aiGenCount + 1;
+        setAiGenCount(newCount);
+        localStorage.setItem('ds_ai_gen_count', String(newCount));
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setStrategyAiGenerating(false);
     }
   };
 
@@ -1209,7 +1253,25 @@ export default function HomePage() {
                 {strategyOpen && (
                 <div className="mt-4 space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="strategy-notes">Why This Strategy?</Label>
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="strategy-notes">Why This Strategy?</Label>
+                      {tierOverride === 'free' && aiGenCount >= 3 ? (
+                        <p className="text-xs text-amber-600 font-medium text-right">
+                          You've used your 3 free AI generations. Upgrade to Pro for unlimited.
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleGenerateStrategy}
+                          disabled={strategyAiGenerating}
+                          className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
+                          style={{ backgroundColor: '#1B3A6B' }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {strategyAiGenerating ? 'Generating…' : 'Generate with AI'}
+                        </button>
+                      )}
+                    </div>
                     <Textarea
                       id="strategy-notes"
                       placeholder="Explain why this strategy fits the deal — e.g. strong rental demand, room to add value, exit options, etc."
