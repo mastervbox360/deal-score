@@ -607,9 +607,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     return trimmed.startsWith('\u00A3') ? trimmed : '\u00A3' + trimmed;
   };
 
+  const validPhotos = props.photoFiles.filter(Boolean);
   const photoChunks: string[][] = [];
-  for (let i = 0; i < props.photoFiles.length; i += 3) {
-    photoChunks.push(props.photoFiles.slice(i, i + 3));
+  for (let i = 0; i < validPhotos.length; i += 3) {
+    photoChunks.push(validPhotos.slice(i, i + 3));
   }
   const PHOTO_ROWS_PER_PAGE = 3;
   const photoPageChunks: string[][][] = [];
@@ -919,11 +920,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
-        {props.riskFlags && props.riskFlags.length > 0 && (
+        {props.riskFlags.length > 0 && (
           <View style={{ marginBottom: 10 }}>
             {props.riskFlags.map((flag, i) => (
-              <View key={i} style={{ marginBottom: 4 }}>
-                <Text style={{ fontSize: 8.5, color: '#92400e', fontFamily: 'Helvetica' }}>
+              <View key={i} style={base.riskFlag}>
+                <Text style={base.riskFlagText}>
                   {'WARNING: ' + flag.replace(/[^\u0020-\u00FF]/g, '').trim()}
                 </Text>
               </View>
@@ -1014,7 +1015,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   src={src}
                   style={{
                     flex: 1,
-                    height: row.length === 1 ? 400 : row.length === 2 ? 280 : 190,
+                    height: pageRows.length === 1 ? 500 : pageRows.length === 2 ? 310 : 210,
                     objectFit: 'cover',
                   }}
                 />
