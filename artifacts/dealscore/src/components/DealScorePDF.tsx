@@ -580,6 +580,20 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const hasComparables = props.comparables.some(r => r.address.trim() || r.bedsType.trim() || r.price.trim());
   const hasLinks = props.listingLinks.some(r => r.url.trim());
   const hasNotes = notes.length > 0 || props.sourcingFee > 0 || hasComparables || hasLinks;
+
+  const formatCompPrice = (price: string): string => {
+    const trimmed = price.trim();
+    if (!trimmed) return '';
+    const cleaned = trimmed.replace(/[£,\s]/g, '');
+    const num = parseFloat(cleaned);
+    if (!isNaN(num)) return '£' + Math.round(num).toLocaleString('en-GB');
+    return trimmed.startsWith('£') ? trimmed : '£' + trimmed;
+  };
+
+  const photoChunks: string[][] = [];
+  for (let i = 0; i < props.photoFiles.length; i += 3) {
+    photoChunks.push(props.photoFiles.slice(i, i + 3));
+  }
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
 
   const preparedLine = [
@@ -919,7 +933,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
                     <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
                     <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.bedsType}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{row.price}</Text>
+                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
                   </View>
                 ))}
             </View>
@@ -931,10 +945,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               {props.listingLinks
                 .filter(r => r.url.trim())
                 .map((row, i, arr) => (
-                  <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: i < arr.length - 1 ? 4 : 0 }}>
-                    <Text style={{ fontSize: 8.5, color: '#555555', width: 80 }}>{row.label.trim() || 'Link'}:</Text>
+                  <View key={i} style={{ marginBottom: i < arr.length - 1 ? 4 : 0 }}>
                     <Link src={row.url.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
-                      {row.url.trim().length > 60 ? row.url.trim().substring(0, 57) + '…' : row.url.trim()}
+                      {row.label.trim() ? `View on ${row.label.trim()} →` : 'View Listing →'}
                     </Link>
                   </View>
                 ))}
@@ -963,34 +976,21 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Page size="A4" style={base.page}>
           <Footer />
           <SH title="Property Photos" />
-          {props.photoFiles.length === 1 && (
-            <Image src={props.photoFiles[0]} style={{ width: '100%', maxHeight: 400, objectFit: 'contain' }} />
-          )}
-          {props.photoFiles.length === 2 && (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Image src={props.photoFiles[0]} style={{ flex: 1, maxHeight: 280, objectFit: 'contain' }} />
-              <Image src={props.photoFiles[1]} style={{ flex: 1, maxHeight: 280, objectFit: 'contain' }} />
+          {photoChunks.map((row, rowIdx) => (
+            <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
+              {row.map((src, i) => (
+                <Image
+                  key={i}
+                  src={src}
+                  style={{
+                    flex: 1,
+                    height: row.length === 1 ? 400 : row.length === 2 ? 280 : 190,
+                    objectFit: 'cover',
+                  }}
+                />
+              ))}
             </View>
-          )}
-          {props.photoFiles.length >= 3 && (
-            (() => {
-              const chunks: string[][] = [];
-              for (let i = 0; i < props.photoFiles.length; i += 3) {
-                chunks.push(props.photoFiles.slice(i, i + 3));
-              }
-              return (
-                <>
-                  {chunks.map((row, rowIdx) => (
-                    <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
-                      {row.map((src, i) => (
-                        <Image key={i} src={src} style={{ flex: 1, maxHeight: 200, objectFit: 'contain' }} />
-                      ))}
-                    </View>
-                  ))}
-                </>
-              );
-            })()
-          )}
+          ))}
         </Page>
       )}
 
