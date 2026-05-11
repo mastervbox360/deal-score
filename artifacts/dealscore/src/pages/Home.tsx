@@ -1306,7 +1306,7 @@ export default function HomePage() {
                         <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
                           <Input
                             type="text"
-                            autoComplete="off"
+                            autoComplete="new-password"
                             placeholder="e.g. 8 High Street"
                             value={row.address}
                             onChange={(e) => {

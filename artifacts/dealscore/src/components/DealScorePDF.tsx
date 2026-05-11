@@ -852,18 +852,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             justifyContent: 'space-between',
             alignItems: 'center',
             backgroundColor: props.bmvAmount >= 0 ? '#f0fdf4' : '#fef2f2',
-            border: `0.5pt solid ${props.bmvAmount >= 0 ? (isProPlus ? accent : '#86efac') : '#fca5a5'}`,
+            border: `0.5pt solid ${props.bmvAmount >= 0 ? '#86efac' : '#fca5a5'}`,
             borderRadius: 4,
             padding: 8,
             marginBottom: 14,
           }}>
             <View>
               <Text style={{ fontSize: 7.5, color: '#6b7280', marginBottom: 3 }}>BELOW MARKET VALUE</Text>
-              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? (isProPlus ? accent : '#047857') : '#b91c1c' }}>
+              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1B2B4B' }}>
                 {fc(props.bmvAmount)}
               </Text>
             </View>
-            <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? (isProPlus ? accent : '#047857') : '#b91c1c' }}>
+            <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: props.bmvAmount >= 0 ? getReadableBrandColour(accent) : '#b91c1c' }}>
               {props.bmvPercent.toFixed(1)}%
             </Text>
           </View>
@@ -880,26 +880,24 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <SH title={DEAL_LABELS[props.dealType]} />
 
         {props.currentScore !== 'Incomplete' && (
-          <View style={{ marginBottom: 10 }}>
+          <View style={{ marginBottom: 12 }}>
             <View style={{
               backgroundColor: scoreColor,
               borderRadius: 4,
-              paddingVertical: 6,
-              paddingHorizontal: 16,
+              paddingVertical: 10,
+              paddingHorizontal: 24,
               alignSelf: 'flex-start',
-              ...(isProPlus && props.currentScore === 'Strong' ? { border: `1.5pt solid ${accent}` } : {}),
+              ...(isProPlus && props.currentScore === 'Strong' ? { border: `2pt solid ${accent}` } : {}),
             }}>
-              <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#ffffff', letterSpacing: 1 }}>
+              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#ffffff', letterSpacing: 1.5 }}>
                 {props.currentScore.toUpperCase()} DEAL
               </Text>
             </View>
           </View>
         )}
 
-        <Table rows={resultsRows} />
-
         {props.riskFlags.length > 0 && (
-          <View style={{ marginTop: 6 }}>
+          <View style={{ marginBottom: 10 }}>
             <SH title="Risk Flags" />
             {props.riskFlags.map((flag, i) => (
               <View key={i} style={base.riskFlag}>
@@ -908,6 +906,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             ))}
           </View>
         )}
+
+        <Table rows={resultsRows} />
       </Page>
 
       {/* ── Page 4: Deal Rationale ─────────────────────────────────────────── */}
@@ -925,6 +925,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
           {propertyDescText ? (
             <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Property Description</Text>
               <Text style={base.notePanelText}>{propertyDescText}</Text>
             </View>
           ) : null}
@@ -940,10 +941,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           {hasComparables && (
             <View style={[base.notePanel, { padding: 0, overflow: 'hidden' }]}>
               <Text style={[base.notePanelLabel, { color: readableBrand, padding: 10, paddingBottom: 6 }]}>Comparable Properties</Text>
-              <View style={{ flexDirection: 'row', backgroundColor: '#eef1f7', paddingVertical: 4, paddingHorizontal: 10 }}>
-                <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555' }}>Address</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555' }}>Beds / Type</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555', textAlign: 'right' }}>Price</Text>
+              <View style={{ flexDirection: 'row', backgroundColor: readableBrand, paddingVertical: 4, paddingHorizontal: 10 }}>
+                <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}>Address</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}>Beds / Type</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'right' }}>Price</Text>
               </View>
               {props.comparables
                 .filter(r => r.address.trim())
@@ -964,7 +965,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 .filter(r => r.url.trim())
                 .map((row, i, arr) => (
                   <View key={i} style={{ marginBottom: i < arr.length - 1 ? 4 : 0 }}>
-                    <Link src={row.url.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
+                    <Link src={row.url.trim()} style={{ fontSize: 8.5, color: getReadableBrandColour(accent), textDecoration: 'underline' }}>
                       {row.label.trim() ? 'View on ' + row.label.trim() + ' >' : 'View Listing >'}
                     </Link>
                   </View>
