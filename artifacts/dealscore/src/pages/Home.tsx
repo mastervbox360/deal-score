@@ -514,38 +514,23 @@ export default function HomePage() {
         dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
         { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
 
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined;
-
-      const prompt = `You are a professional UK property investment analyst. Write a concise 3–4 sentence executive summary for an investor pack about the following property deal. Be factual, professional, and highlight the key investment merits. Do not use bullet points or headers — just flowing prose.
-
-Property: ${propertyAddress || 'Address not specified'}
-Strategy: ${dealLabel}
-Purchase Price: ${sharedInputs.purchasePrice ? '£' + sharedInputs.purchasePrice.toLocaleString('en-GB') : 'Not entered'}
-Gross Yield: ${currentResults.grossYield}
-Monthly Cash Flow: ${currentResults.cashFlow != null ? '£' + Math.round(Number(currentResults.cashFlow)).toLocaleString('en-GB') : 'N/A'}
-Cash-on-Cash ROI: ${currentResults.roi}
-Deal Score: ${currentScore}
-Why this strategy: ${strategyNotes[dealType] ?? 'Not specified'}
-
-Write the executive summary now:`;
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/.netlify/functions/generate-summary', {
         method: 'POST',
-        headers: {
-          'x-api-key': apiKey ?? '',
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 512,
-          messages: [{ role: 'user', content: prompt }],
+          address: propertyAddress,
+          strategy: dealLabel,
+          purchasePrice: sharedInputs.purchasePrice,
+          grossYield: currentResults.grossYield,
+          cashFlow: currentResults.cashFlow,
+          roi: currentResults.roi,
+          dealScore: currentScore,
+          whyThisStrategy: strategyNotes[dealType] ?? '',
         }),
       });
 
-      const data = await response.json() as { content?: Array<{ type: string; text: string }>; error?: { message: string } };
-      const block = data.content?.[0];
-      const summary = block?.type === 'text' ? block.text.trim() : '';
+      const data = await response.json() as { summary?: string; error?: string };
+      const summary = data.summary?.trim() ?? '';
       if (summary) {
         setExecutiveSummary(summary);
         const newCount = aiGenCount + 1;

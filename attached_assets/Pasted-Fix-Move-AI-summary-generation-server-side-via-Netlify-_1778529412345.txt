@@ -1,0 +1,23 @@
+Fix: Move AI summary generation server-side via Netlify Function
+The current implementation calls the Anthropic API directly from the browser using a VITE_ prefixed key. This exposes the API key in the browser. We need to move this server-side.
+Step 1 — Create a new Netlify Function: netlify/functions/generate-summary.ts
+It should accept a POST request with a JSON body containing: address, strategy, purchasePrice, grossYield, netYield, cashFlow, roi, dealScore, whyThisStrategy. It calls the Anthropic API using claude-sonnet-4-20250514 with these values in the prompt and returns a 3–4 sentence executive summary as JSON: { summary: string }. The Anthropic API key should be read from process.env.ANTHROPIC_API_KEY (no VITE_ prefix — this is server-side only).
+Use this fetch pattern to call Anthropic (do not use the SDK — keep it as a plain fetch to avoid dependency issues in Netlify Functions):
+fetch('https://api.anthropic.com/v1/messages', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01'
+  },
+  body: JSON.stringify({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 300,
+    messages: [{ role: 'user', content: yourPromptHere }]
+  })
+})
+Step 2 — Update Home.tsx: Change handleGenerateSummary to POST to /.netlify/functions/generate-summary instead of any Replit API route or direct Anthropic call. Remove any reference to VITE_ANTHROPIC_API_KEY from the frontend entirely.
+Step 3 — Remove the Replit API server route: Delete or disable the generateSummary.ts route in artifacts/api-server/src/routes/ — it is no longer needed.
+Step 4 — Remove VITE_ANTHROPIC_API_KEY from Replit Secrets if it was added. The key should only exist as ANTHROPIC_API_KEY in Netlify environment variables (no VITE_ prefix).
+The free tier 3-use limit (localStorage ds_ai_gen_count) stays exactly as built in Home.tsx — do not touch that logic.
+After changes, run npx tsc --noEmit — zero errors required. Confirm exactly what files were changed. Do not push to GitHub yet.
