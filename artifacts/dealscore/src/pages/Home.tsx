@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw, Trash2, Plus, Sparkles } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw, Trash2, Plus, Sparkles, X } from 'lucide-react';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
 import { Card, CardContent } from '@/components/ui/card';
@@ -104,11 +104,12 @@ export default function HomePage() {
   const [strategyNotes, setStrategyNotes] = useState<Record<string, string>>({});
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
-  const [comparables, setComparables] = useState<Array<{ address: string; bedsType: string; price: string }>>([
-    { address: '', bedsType: '', price: '' },
-    { address: '', bedsType: '', price: '' },
-    { address: '', bedsType: '', price: '' },
+  const [comparables, setComparables] = useState<Array<{ address: string; bedsType: string; dateSold: string; price: string }>>([
+    { address: '', bedsType: '', dateSold: '', price: '' },
+    { address: '', bedsType: '', dateSold: '', price: '' },
+    { address: '', bedsType: '', dateSold: '', price: '' },
   ]);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [executiveSummary, setExecutiveSummary] = useState<string>('');
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
@@ -424,9 +425,9 @@ export default function HomePage() {
     setPropertyDescription('');
     setVendorSituation('');
     setComparables([
-      { address: '', bedsType: '', price: '' },
-      { address: '', bedsType: '', price: '' },
-      { address: '', bedsType: '', price: '' },
+      { address: '', bedsType: '', dateSold: '', price: '' },
+      { address: '', bedsType: '', dateSold: '', price: '' },
+      { address: '', bedsType: '', dateSold: '', price: '' },
     ]);
     setPhotoFiles([]);
     setExecutiveSummary('');
@@ -770,9 +771,15 @@ export default function HomePage() {
     comparables, listingLinks, photoFiles,
   ]);
 
+  const VERDICT_LABELS: Record<string, string> = {
+    Strong: 'Recommended',
+    Average: 'Conditional',
+    Weak: 'Not Recommended',
+  };
+
   const renderScoreBadge = (score: string) => {
     if (score === 'Incomplete') return null;
-    
+
     const colors = {
       Strong: 'bg-emerald-500 text-white',
       Average: 'bg-amber-500 text-white',
@@ -781,7 +788,7 @@ export default function HomePage() {
 
     return (
       <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${colors[score as keyof typeof colors]}`}>
-        {score} DEAL
+        {VERDICT_LABELS[score] ?? score}
       </div>
     );
   };
@@ -1296,14 +1303,15 @@ export default function HomePage() {
                   <div className="space-y-2">
                     <Label>Comparable Properties</Label>
                     <div className="border border-border rounded-lg overflow-hidden">
-                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
                         <span>Address</span>
                         <span>Beds / Type</span>
+                        <span>Date Sold</span>
                         <span>Price</span>
                         <span />
                       </div>
                       {comparables.map((row, i) => (
-                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
                           <Input
                             type="text"
                             autoComplete="new-password"
@@ -1324,6 +1332,18 @@ export default function HomePage() {
                             onChange={(e) => {
                               const next = [...comparables];
                               next[i] = { ...next[i], bedsType: e.target.value };
+                              setComparables(next);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            type="text"
+                            autoComplete="off"
+                            placeholder="e.g. Jan 2025"
+                            value={row.dateSold}
+                            onChange={(e) => {
+                              const next = [...comparables];
+                              next[i] = { ...next[i], dateSold: e.target.value };
                               setComparables(next);
                             }}
                             className="h-8 text-xs"
@@ -1356,7 +1376,7 @@ export default function HomePage() {
                       variant="outline"
                       size="sm"
                       className="w-full mt-1"
-                      onClick={() => setComparables([...comparables, { address: '', bedsType: '', price: '' }])}
+                      onClick={() => setComparables([...comparables, { address: '', bedsType: '', dateSold: '', price: '' }])}
                     >
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Row
                     </Button>
@@ -1464,7 +1484,7 @@ export default function HomePage() {
                       <div className="grid grid-cols-3 gap-2 mt-1">
                         {photoFiles.map((src, i) => (
                           <div key={i} className="relative group">
-                            <img src={src} alt={`Photo ${i + 1}`} className="w-full h-20 object-cover rounded-lg" />
+                            <img src={src} alt={`Photo ${i + 1}`} className="w-full h-20 object-cover rounded-lg cursor-pointer" onClick={() => setLightboxPhoto(src)} />
                             <button
                               type="button"
                               onClick={() => setPhotoFiles((prev) => prev.filter((_, j) => j !== i))}
@@ -2157,6 +2177,29 @@ export default function HomePage() {
       </div>,
       document.body
     )}
+
+    {lightboxPhoto && createPortal(
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+        onClick={() => setLightboxPhoto(null)}
+      >
+        <div className="relative max-w-4xl max-h-[90vh] mx-4" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => setLightboxPhoto(null)}
+            className="absolute -top-9 right-0 text-white hover:text-gray-300 transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-7 h-7" />
+          </button>
+          <img
+            src={lightboxPhoto}
+            alt="Property photo"
+            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+          />
+        </div>
+      </div>,
+      document.body
+    )}
     </>
   );
 }
@@ -2485,7 +2528,7 @@ const TT = {
   tabBrrr: 'Buy, Refurb, Refinance, Rent, Repeat: Add value through renovation, refinance to pull your money back out, then hold and rent. Best for scaling a portfolio.',
   tabR2r: 'Rent to Rent: Rent a property from a landlord and sublet it at a higher rate. No mortgage or purchase required — low entry cost.',
   tabSocial: 'Social Housing: Lease your property to a council or housing association on a guaranteed fixed-term contract. No voids, lower management, stable income.',
-  dealScore: { text: 'The overall rating of this deal based on UK investor standards.', formula: 'Strong = excellent returns\nAverage = acceptable but room for improvement\nWeak = does not meet investment criteria' },
+  dealScore: { text: 'The overall rating of this deal based on UK investor standards.', formula: 'Recommended = excellent returns\nConditional = acceptable but room for improvement\nNot Recommended = does not meet investment criteria' },
   cashInvested: { text: 'The total cash you need to deploy to complete this deal — deposit plus stamp duty/LTT plus refurb costs plus other costs.', formula: '(Purchase Price × Deposit%) + Property Tax + Refurb Cost + Other Costs' },
   mortgageAmount: { text: 'The mortgage loan required — purchase price minus your deposit.', formula: 'Purchase Price − Deposit' },
   monthlyFlow: { text: 'What you actually receive each month after paying the mortgage and all running costs. This is your net monthly income from the deal.', formula: 'Monthly Rent − Mortgage Payment − Monthly Expenses' },

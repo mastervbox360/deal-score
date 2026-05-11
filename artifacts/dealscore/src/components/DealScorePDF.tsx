@@ -78,7 +78,7 @@ export interface DealScorePDFProps {
   strategyNotes: string;
   propertyDescription: string;
   vendorSituation: string;
-  comparables: Array<{ address: string; bedsType: string; price: string }>;
+  comparables: Array<{ address: string; bedsType: string; dateSold: string; price: string }>;
   listingLinks: Array<{ label: string; url: string }>;
   photoFiles: string[];
 }
@@ -90,6 +90,18 @@ const SCORE_COLOR: Record<string, string> = {
   Strong: '#16a34a',
   Average: '#d97706',
   Weak: '#dc2626',
+};
+
+const SCORE_TINT: Record<string, string> = {
+  Strong: 'rgba(22, 163, 74, 0.09)',
+  Average: 'rgba(217, 119, 6, 0.09)',
+  Weak: 'rgba(220, 38, 38, 0.09)',
+};
+
+const VERDICT_LABELS: Record<string, string> = {
+  Strong: 'Recommended',
+  Average: 'Conditional',
+  Weak: 'Not Recommended',
 };
 
 const DEAL_LABELS: Record<DealType, string> = {
@@ -194,6 +206,12 @@ function splitAddressThreeLines(address: string): [string, string, string] {
   const street = streetParts.join(', ');
 
   return [street, city, postcode];
+}
+
+// ── PDF text sanitiser (strips non-WinAnsi chars such as emoji) ──────────────
+
+function sanitizePdfText(s: string): string {
+  return s.replace(/[^\u0020-\u00FF]/g, '').trim();
 }
 
 // ── Comparables formatter ────────────────────────────────────────────────────
@@ -593,7 +611,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   for (let i = 0; i < props.photoFiles.length; i += 3) {
     photoChunks.push(props.photoFiles.slice(i, i + 3));
   }
+  const PHOTO_ROWS_PER_PAGE = 3;
+  const photoPageChunks: string[][][] = [];
+  for (let i = 0; i < photoChunks.length; i += PHOTO_ROWS_PER_PAGE) {
+    photoPageChunks.push(photoChunks.slice(i, i + PHOTO_ROWS_PER_PAGE));
+  }
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
+  console.log('[DealScorePDF] riskFlags:', props.riskFlags);
 
   const preparedLine = [
     props.preparedBy.name ? `Prepared by ${props.preparedBy.name}` : '',
@@ -880,19 +904,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <SH title={DEAL_LABELS[props.dealType]} />
 
         {props.currentScore !== 'Incomplete' && (
-          <View style={{ marginBottom: 12 }}>
-            <View style={{
-              backgroundColor: scoreColor,
-              borderRadius: 4,
-              paddingVertical: 10,
-              paddingHorizontal: 24,
-              alignSelf: 'flex-start',
-              ...(isProPlus && props.currentScore === 'Strong' ? { border: `2pt solid ${accent}` } : {}),
-            }}>
-              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#ffffff', letterSpacing: 1.5 }}>
-                {props.currentScore.toUpperCase()} DEAL
-              </Text>
-            </View>
+          <View style={{
+            marginBottom: 12,
+            borderLeftWidth: 4,
+            borderLeftColor: scoreColor,
+            borderLeftStyle: 'solid',
+            backgroundColor: SCORE_TINT[props.currentScore] ?? 'rgba(107,114,128,0.09)',
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+          }}>
+            <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1B2B4B' }}>
+              {VERDICT_LABELS[props.currentScore] ?? props.currentScore}
+            </Text>
           </View>
         )}
 
@@ -901,7 +924,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <SH title="Risk Flags" />
             {props.riskFlags.map((flag, i) => (
               <View key={i} style={base.riskFlag}>
-                <Text style={base.riskFlagText}>{flag}</Text>
+                <Text style={base.riskFlagText}>{sanitizePdfText(flag)}</Text>
               </View>
             ))}
           </View>
@@ -944,6 +967,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', backgroundColor: readableBrand, paddingVertical: 4, paddingHorizontal: 10 }}>
                 <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}>Address</Text>
                 <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}>Beds / Type</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}>Date Sold</Text>
                 <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'right' }}>Price</Text>
               </View>
               {props.comparables
@@ -952,6 +976,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
                     <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
                     <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.bedsType}</Text>
+                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.dateSold}</Text>
                     <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
                   </View>
                 ))}
@@ -960,7 +985,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
           {hasLinks && (
             <View style={[base.notePanel, { marginTop: hasComparables ? 8 : 0 }]}>
-              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 6 }]}>Property Listings</Text>
+              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 6 }]}>{props.listingLinks.filter(r => r.url.trim()).length === 1 ? 'Property Listing' : 'Property Listings'}</Text>
               {props.listingLinks
                 .filter(r => r.url.trim())
                 .map((row, i, arr) => (
@@ -975,12 +1000,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         </Page>
       )}
 
-      {/* ── Page 6: Property Photos ────────────────────────────────────────── */}
-      {props.photoFiles.length > 0 && (
-        <Page size="A4" style={base.page}>
+      {/* ── Page 6+: Property Photos (one Page per 3 rows, no blank pages) ── */}
+      {photoPageChunks.map((pageRows, pageIdx) => (
+        <Page key={`photos-${pageIdx}`} size="A4" style={base.page}>
           <Footer />
-          <SH title="Property Photos" />
-          {photoChunks.map((row, rowIdx) => (
+          {pageIdx === 0 && <SH title="Property Photos" />}
+          {pageRows.map((row, rowIdx) => (
             <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
               {row.map((src, i) => (
                 <Image
@@ -996,7 +1021,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
           ))}
         </Page>
-      )}
+      ))}
 
       {/* ── Page 7: Legal & Disclosure ─────────────────────────────────────── */}
       {hasLegal && (
