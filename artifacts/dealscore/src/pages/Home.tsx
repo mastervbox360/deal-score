@@ -1306,6 +1306,7 @@ export default function HomePage() {
                         <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
                           <Input
                             type="text"
+                            autoComplete="off"
                             placeholder="e.g. 8 High Street"
                             value={row.address}
                             onChange={(e) => {
@@ -1317,6 +1318,7 @@ export default function HomePage() {
                           />
                           <Input
                             type="text"
+                            autoComplete="off"
                             placeholder="e.g. 3-bed terrace"
                             value={row.bedsType}
                             onChange={(e) => {
@@ -1328,6 +1330,7 @@ export default function HomePage() {
                           />
                           <Input
                             type="text"
+                            autoComplete="off"
                             placeholder="e.g. £210,000"
                             value={row.price}
                             onChange={(e) => {

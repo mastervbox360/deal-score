@@ -878,10 +878,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Footer />
 
         <SH title={DEAL_LABELS[props.dealType]} />
-        <Table rows={resultsRows} />
 
         {props.currentScore !== 'Incomplete' && (
-          <View style={{ marginBottom: 14, marginTop: 6 }}>
+          <View style={{ marginBottom: 10 }}>
             <View style={{
               backgroundColor: scoreColor,
               borderRadius: 4,
@@ -897,8 +896,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
+        <Table rows={resultsRows} />
+
         {props.riskFlags.length > 0 && (
-          <View style={{ marginTop: 4 }}>
+          <View style={{ marginTop: 6 }}>
             <SH title="Risk Flags" />
             {props.riskFlags.map((flag, i) => (
               <View key={i} style={base.riskFlag}>
@@ -924,7 +925,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
           {propertyDescText ? (
             <View style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Property Description</Text>
               <Text style={base.notePanelText}>{propertyDescText}</Text>
             </View>
           ) : null}
