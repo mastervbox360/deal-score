@@ -1,0 +1,41 @@
+Stage 6B — PDF restructure to gold standard layout + bug fixes
+Restructure DealScorePDF.tsx so pages follow this exact order. Do not change any existing content — only reorganise which page each section appears on.
+Page 1 — Cover (unchanged)
+Page 2 — Executive Summary + Property Overview
+
+Executive Summary block at top (only if executiveSummary is populated)
+Property Details (address, type, tenure, EPC, flood risk)
+3 hero metrics (financial summary cards)
+BMV banner (if applicable)
+Deal Inputs table
+
+Page 3 — Financial Analysis
+
+Strategy metrics table (all results)
+Deal Score badge (colour coded Strong/Average/Weak)
+Risk flags
+
+Page 4 — Deal Rationale
+
+Why This Strategy (if populated)
+Property Description (if populated)
+
+Page 5 — Market Evidence
+
+Comparable Properties table (if populated)
+Property Listings / listing links (if populated)
+
+Page 6 — Property Photos (if any uploaded)
+Page 7 — Legal & Disclosure
+
+Vendor Situation (if populated)
+Sourcing Fee disclosure (if sourcing fee > 0)
+
+Empty sections never appear. If a whole page has no content, skip it entirely — do not render a blank page.
+Bug fixes to include in the same pass:
+Bug 1 — Ghost comparable data: Placeholder text (e.g. "65a Horwood Close") is rendering as real content. Check that only actual state values are passed to the PDF — placeholder attribute values must never be read as field values. Hide any row where the Address field is an empty string in state.
+Bug 2 — Blank final page: Find and remove whatever is generating a blank final page.
+Bug 3 — Photo grid: All uploaded photos must render. Fix why photos beyond the first row are dropping. Pre-compute photoChunks as a plain array before the JSX return, chunk size 3, render with a single map loop — no IIFEs, no fragments.
+Bug 4 — Stray apostrophe on listing link: Remove the trailing apostrophe from "View on Rightmove '". Correct format: "View on Rightmove →".
+Improvement 1 — Auto-populate listing link label: When a URL is pasted into the URL field in Home.tsx, auto-detect the platform and populate the Label field: rightmove.co.uk → "Rightmove", zoopla.co.uk → "Zoopla", onthemarket.com → "OnTheMarket", primelocation.com → "PrimeLocation", propertypal.com → "PropertyPal". Label stays editable after auto-fill. No match → leave label blank.
+Do not touch cover styles, footer, branding panel, contrast system, or any feature outside DealScorePDF.tsx and the listing links UI in Home.tsx. Run npx tsc --noEmit — zero errors required. Confirm exactly what you changed and in which file.

@@ -570,24 +570,23 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ];
   })();
 
-  const notes = [
-    { label: 'Executive Summary', text: props.executiveSummary.trim() },
-    { label: 'Why This Strategy?', text: props.strategyNotes.trim() },
-    { label: 'Property Description', text: props.propertyDescription.trim() },
-    { label: 'Vendor Situation', text: props.vendorSituation.trim() },
-  ].filter((n) => n.text.length > 0);
-
-  const hasComparables = props.comparables.some(r => r.address.trim() || r.bedsType.trim() || r.price.trim());
+  const execSummaryText = props.executiveSummary.trim();
+  const strategyNotesText = props.strategyNotes.trim();
+  const propertyDescText = props.propertyDescription.trim();
+  const vendorSituationText = props.vendorSituation.trim();
+  const hasRationale = !!(strategyNotesText || propertyDescText);
+  const hasComparables = props.comparables.some(r => r.address.trim());
   const hasLinks = props.listingLinks.some(r => r.url.trim());
-  const hasNotes = notes.length > 0 || props.sourcingFee > 0 || hasComparables || hasLinks;
+  const hasMarketEvidence = hasComparables || hasLinks;
+  const hasLegal = !!(vendorSituationText || props.sourcingFee > 0);
 
   const formatCompPrice = (price: string): string => {
     const trimmed = price.trim();
     if (!trimmed) return '';
     const cleaned = trimmed.replace(/[£,\s]/g, '');
     const num = parseFloat(cleaned);
-    if (!isNaN(num)) return '£' + Math.round(num).toLocaleString('en-GB');
-    return trimmed.startsWith('£') ? trimmed : '£' + trimmed;
+    if (!isNaN(num)) return '\u00A3' + Math.round(num).toLocaleString('en-GB');
+    return trimmed.startsWith('\u00A3') ? trimmed : '\u00A3' + trimmed;
   };
 
   const photoChunks: string[][] = [];
@@ -820,12 +819,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         )}
       </Page>
 
-      {/* ── Page 2: Property & Financial Summary ──────────────────────────── */}
+      {/* ── Page 2: Executive Summary + Property Overview ─────────────────── */}
       <Page size="A4" style={base.page}>
         <Footer />
 
+        {execSummaryText ? (
+          <View style={base.notePanel}>
+            <Text style={[base.notePanelLabel, { color: readableBrand }]}>Executive Summary</Text>
+            <Text style={base.notePanelText}>{execSummaryText}</Text>
+          </View>
+        ) : null}
+
         <SH title="Property Details" />
-        {/* FIX 3: EPC Rating row between Property Type and Flood Risk */}
         <Table rows={[
           ...(props.propertyAddress ? [['Address', addressPlain] as RowData] : []),
           ['Property Type', props.propertyType],
@@ -833,7 +838,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           ...(props.tenure === 'Leasehold' && props.leaseLengthYears > 0
             ? [['Remaining Lease', `${props.leaseLengthYears} years`] as RowData] : []),
           ...(props.epcRating ? [['EPC Rating', props.epcRating] as RowData] : []),
-          ...(props.floorArea ? [['Floor Area', `${props.floorArea} m²`] as RowData] : []),
+          ...(props.floorArea ? [['Floor Area', `${props.floorArea} m\u00B2`] as RowData] : []),
           ...(props.constructionDate ? [['Construction Date', props.constructionDate] as RowData] : []),
           ...(props.floodRisk ? [['Flood Risk', props.floodRisk] as RowData] : []),
         ]} />
@@ -868,15 +873,15 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Table rows={inputRows} />
       </Page>
 
-      {/* ── Page 3: Strategy Analysis & Deal Score ────────────────────────── */}
+      {/* ── Page 3: Financial Analysis ─────────────────────────────────────── */}
       <Page size="A4" style={base.page}>
         <Footer />
 
         <SH title={DEAL_LABELS[props.dealType]} />
+        <Table rows={resultsRows} />
 
         {props.currentScore !== 'Incomplete' && (
-          <View style={{ marginBottom: 14 }}>
-            {/* FIX 2: Deal Score badge — brand bg, contrast text */}
+          <View style={{ marginBottom: 14, marginTop: 6 }}>
             <View style={{
               backgroundColor: scoreColor,
               borderRadius: 4,
@@ -892,10 +897,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
-        <Table rows={resultsRows} />
-
         {props.riskFlags.length > 0 && (
-          <View style={{ marginTop: 6 }}>
+          <View style={{ marginTop: 4 }}>
             <SH title="Risk Flags" />
             {props.riskFlags.map((flag, i) => (
               <View key={i} style={base.riskFlag}>
@@ -906,18 +909,33 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         )}
       </Page>
 
-      {/* ── Page 4: Deal Notes ────────────────────────────────────────────── */}
-      {hasNotes && (
+      {/* ── Page 4: Deal Rationale ─────────────────────────────────────────── */}
+      {hasRationale && (
         <Page size="A4" style={base.page}>
           <Footer />
-          <SH title="Deal Notes" />
+          <SH title="Deal Rationale" />
 
-          {notes.map(({ label, text }) => (
-            <View key={label} style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>{label}</Text>
-              <Text style={base.notePanelText}>{text}</Text>
+          {strategyNotesText ? (
+            <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Why This Strategy?</Text>
+              <Text style={base.notePanelText}>{strategyNotesText}</Text>
             </View>
-          ))}
+          ) : null}
+
+          {propertyDescText ? (
+            <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Property Description</Text>
+              <Text style={base.notePanelText}>{propertyDescText}</Text>
+            </View>
+          ) : null}
+        </Page>
+      )}
+
+      {/* ── Page 5: Market Evidence ────────────────────────────────────────── */}
+      {hasMarketEvidence && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <SH title="Market Evidence" />
 
           {hasComparables && (
             <View style={[base.notePanel, { padding: 0, overflow: 'hidden' }]}>
@@ -928,7 +946,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#555555', textAlign: 'right' }}>Price</Text>
               </View>
               {props.comparables
-                .filter(r => r.address.trim() || r.bedsType.trim() || r.price.trim())
+                .filter(r => r.address.trim())
                 .map((row, i) => (
                   <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
                     <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
@@ -940,38 +958,23 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           )}
 
           {hasLinks && (
-            <View style={[base.notePanel, { marginTop: 4 }]}>
+            <View style={[base.notePanel, { marginTop: hasComparables ? 8 : 0 }]}>
               <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 6 }]}>Property Listings</Text>
               {props.listingLinks
                 .filter(r => r.url.trim())
                 .map((row, i, arr) => (
                   <View key={i} style={{ marginBottom: i < arr.length - 1 ? 4 : 0 }}>
                     <Link src={row.url.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
-                      {row.label.trim() ? `View on ${row.label.trim()} →` : 'View Listing →'}
+                      {row.label.trim() ? 'View on ' + row.label.trim() + ' >' : 'View Listing >'}
                     </Link>
                   </View>
                 ))}
             </View>
           )}
-
-          {props.sourcingFee > 0 && (
-            <View style={[base.notePanel, { marginTop: 4 }]}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Sourcing Fee</Text>
-              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: isProPlus ? accent : readableBrand, marginBottom: 4 }}>
-                {fc(props.sourcingFee)}
-              </Text>
-              <Text style={base.notePanelText}>Payable on completion.</Text>
-              {props.sourcingFeeDisclaimer.trim().length > 0 && (
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Oblique', color: '#888888', marginTop: 6, lineHeight: 1.5 }}>
-                  {props.sourcingFeeDisclaimer.trim()}
-                </Text>
-              )}
-            </View>
-          )}
         </Page>
       )}
 
-      {/* ── Photos Page ────────────────────────────────────────────────── */}
+      {/* ── Page 6: Property Photos ────────────────────────────────────────── */}
       {props.photoFiles.length > 0 && (
         <Page size="A4" style={base.page}>
           <Footer />
@@ -991,6 +994,36 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               ))}
             </View>
           ))}
+        </Page>
+      )}
+
+      {/* ── Page 7: Legal & Disclosure ─────────────────────────────────────── */}
+      {hasLegal && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <SH title="Legal & Disclosure" />
+
+          {vendorSituationText ? (
+            <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Vendor Situation</Text>
+              <Text style={base.notePanelText}>{vendorSituationText}</Text>
+            </View>
+          ) : null}
+
+          {props.sourcingFee > 0 && (
+            <View style={[base.notePanel, { marginTop: vendorSituationText ? 8 : 0 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Sourcing Fee</Text>
+              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: isProPlus ? accent : readableBrand, marginBottom: 4 }}>
+                {fc(props.sourcingFee)}
+              </Text>
+              <Text style={base.notePanelText}>Payable on completion.</Text>
+              {props.sourcingFeeDisclaimer.trim().length > 0 && (
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Oblique', color: '#888888', marginTop: 6, lineHeight: 1.5 }}>
+                  {props.sourcingFeeDisclaimer.trim()}
+                </Text>
+              )}
+            </View>
+          )}
         </Page>
       )}
 

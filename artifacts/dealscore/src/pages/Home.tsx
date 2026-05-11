@@ -1386,8 +1386,28 @@ export default function HomePage() {
                             placeholder="https://..."
                             value={row.url}
                             onChange={(e) => {
+                              const url = e.target.value;
                               const next = [...listingLinks];
-                              next[i] = { ...next[i], url: e.target.value };
+                              const PLATFORM_MAP: Record<string, string> = {
+                                'rightmove.co.uk': 'Rightmove',
+                                'zoopla.co.uk': 'Zoopla',
+                                'onthemarket.com': 'OnTheMarket',
+                                'primelocation.com': 'PrimeLocation',
+                                'propertypal.com': 'PropertyPal',
+                              };
+                              const PLATFORM_VALUES = new Set(Object.values(PLATFORM_MAP));
+                              let detectedLabel = '';
+                              try {
+                                const hostname = new URL(url).hostname.replace(/^www\./, '');
+                                detectedLabel = PLATFORM_MAP[hostname] ?? '';
+                              } catch { /* invalid URL — ignore */ }
+                              const currentLabel = next[i].label.trim();
+                              const shouldAutoFill = !currentLabel || PLATFORM_VALUES.has(currentLabel);
+                              next[i] = {
+                                ...next[i],
+                                url,
+                                ...(shouldAutoFill && detectedLabel ? { label: detectedLabel } : {}),
+                              };
                               setListingLinks(next);
                             }}
                             className="h-8 text-xs"
