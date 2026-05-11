@@ -699,6 +699,8 @@ export default function HomePage() {
       return f.filter(Boolean) as string[];
     })();
 
+    console.log('[pdfProps] riskFlags:', JSON.stringify(_riskFlags));
+
     return {
       dealType,
       dateStr,

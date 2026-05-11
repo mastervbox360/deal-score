@@ -919,12 +919,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
-        {props.riskFlags.length > 0 && (
+        {props.riskFlags && props.riskFlags.length > 0 && (
           <View style={{ marginBottom: 10 }}>
-            <SH title="Risk Flags" />
             {props.riskFlags.map((flag, i) => (
-              <View key={i} style={base.riskFlag}>
-                <Text style={base.riskFlagText}>{sanitizePdfText(flag)}</Text>
+              <View key={i} style={{ marginBottom: 4 }}>
+                <Text style={{ fontSize: 8.5, color: '#92400e', fontFamily: 'Helvetica' }}>
+                  {'WARNING: ' + flag.replace(/[^\u0020-\u00FF]/g, '').trim()}
+                </Text>
               </View>
             ))}
           </View>
