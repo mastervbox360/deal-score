@@ -79,8 +79,7 @@ export interface DealScorePDFProps {
   propertyDescription: string;
   vendorSituation: string;
   comparables: Array<{ address: string; bedsType: string; price: string }>;
-  rightmoveLink: string;
-  zooplaLink: string;
+  listingLinks: Array<{ label: string; url: string }>;
   photoFiles: string[];
 }
 
@@ -579,7 +578,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   ].filter((n) => n.text.length > 0);
 
   const hasComparables = props.comparables.some(r => r.address.trim() || r.bedsType.trim() || r.price.trim());
-  const hasLinks = !!(props.rightmoveLink.trim() || props.zooplaLink.trim());
+  const hasLinks = props.listingLinks.some(r => r.url.trim());
   const hasNotes = notes.length > 0 || props.sourcingFee > 0 || hasComparables || hasLinks;
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
 
@@ -929,22 +928,16 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           {hasLinks && (
             <View style={[base.notePanel, { marginTop: 4 }]}>
               <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 6 }]}>Property Listings</Text>
-              {props.rightmoveLink.trim() ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                  <Text style={{ fontSize: 8.5, color: '#555555', width: 68 }}>Rightmove:</Text>
-                  <Link src={props.rightmoveLink.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
-                    {props.rightmoveLink.trim().length > 62 ? props.rightmoveLink.trim().substring(0, 59) + '…' : props.rightmoveLink.trim()}
-                  </Link>
-                </View>
-              ) : null}
-              {props.zooplaLink.trim() ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 8.5, color: '#555555', width: 68 }}>Zoopla:</Text>
-                  <Link src={props.zooplaLink.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
-                    {props.zooplaLink.trim().length > 62 ? props.zooplaLink.trim().substring(0, 59) + '…' : props.zooplaLink.trim()}
-                  </Link>
-                </View>
-              ) : null}
+              {props.listingLinks
+                .filter(r => r.url.trim())
+                .map((row, i, arr) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: i < arr.length - 1 ? 4 : 0 }}>
+                    <Text style={{ fontSize: 8.5, color: '#555555', width: 80 }}>{row.label.trim() || 'Link'}:</Text>
+                    <Link src={row.url.trim()} style={{ fontSize: 8.5, color: '#1B3A6B', textDecoration: 'underline' }}>
+                      {row.url.trim().length > 60 ? row.url.trim().substring(0, 57) + '…' : row.url.trim()}
+                    </Link>
+                  </View>
+                ))}
             </View>
           )}
 

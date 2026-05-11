@@ -113,8 +113,7 @@ export default function HomePage() {
   const [executiveSummary, setExecutiveSummary] = useState<string>('');
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
   const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
-  const [rightmoveLink, setRightmoveLink] = useState<string>('');
-  const [zooplaLink, setZooplaLink] = useState<string>('');
+  const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
@@ -431,8 +430,7 @@ export default function HomePage() {
     ]);
     setPhotoFiles([]);
     setExecutiveSummary('');
-    setRightmoveLink('');
-    setZooplaLink('');
+    setListingLinks([{ label: '', url: '' }]);
     setTaxCountry('ENGLAND');
     setBuyerType('ADDITIONAL');
     setTaxOverrideActive(false);
@@ -757,8 +755,7 @@ export default function HomePage() {
       propertyDescription,
       vendorSituation,
       comparables,
-      rightmoveLink,
-      zooplaLink,
+      listingLinks,
       photoFiles,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -770,7 +767,7 @@ export default function HomePage() {
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
-    comparables, rightmoveLink, zooplaLink, photoFiles,
+    comparables, listingLinks, photoFiles,
   ]);
 
   const renderScoreBadge = (score: string) => {
@@ -1362,28 +1359,59 @@ export default function HomePage() {
                     </Button>
                   </div>
 
-                  {/* Property Listing Links */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="rightmove-link">Rightmove Link</Label>
-                      <Input
-                        id="rightmove-link"
-                        type="url"
-                        placeholder="https://www.rightmove.co.uk/..."
-                        value={rightmoveLink}
-                        onChange={(e) => setRightmoveLink(e.target.value)}
-                      />
+                  {/* Listing Links */}
+                  <div className="space-y-2">
+                    <Label>Listing Links</Label>
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 2fr auto' }}>
+                        <span>Label</span>
+                        <span>URL</span>
+                        <span />
+                      </div>
+                      {listingLinks.map((row, i) => (
+                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 2fr auto' }}>
+                          <Input
+                            type="text"
+                            placeholder='e.g. "Rightmove"'
+                            value={row.label}
+                            onChange={(e) => {
+                              const next = [...listingLinks];
+                              next[i] = { ...next[i], label: e.target.value };
+                              setListingLinks(next);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <Input
+                            type="url"
+                            placeholder="https://..."
+                            value={row.url}
+                            onChange={(e) => {
+                              const next = [...listingLinks];
+                              next[i] = { ...next[i], url: e.target.value };
+                              setListingLinks(next);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setListingLinks(listingLinks.filter((_, j) => j !== i))}
+                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                            title="Remove row"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zoopla-link">Zoopla Link</Label>
-                      <Input
-                        id="zoopla-link"
-                        type="url"
-                        placeholder="https://www.zoopla.co.uk/..."
-                        value={zooplaLink}
-                        onChange={(e) => setZooplaLink(e.target.value)}
-                      />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-1"
+                      onClick={() => setListingLinks([...listingLinks, { label: '', url: '' }])}
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Link
+                    </Button>
                   </div>
 
                   {/* Property Photos */}
