@@ -1040,7 +1040,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           {props.sourcingFee > 0 && (
             <View style={[base.notePanel, { marginTop: vendorSituationText ? 8 : 0 }]}>
               <Text style={[base.notePanelLabel, { color: readableBrand }]}>Sourcing Fee</Text>
-              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: isProPlus ? accent : readableBrand, marginBottom: 4 }}>
+              <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: getReadableBrandColour(accent), marginBottom: 4 }}>
                 {fc(props.sourcingFee)}
               </Text>
               <Text style={base.notePanelText}>Payable on completion.</Text>
