@@ -608,17 +608,22 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     return trimmed.startsWith('\u00A3') ? trimmed : '\u00A3' + trimmed;
   };
 
-  const validPhotos = props.photoFiles
-    .filter(Boolean)
-    .filter((s) => s.startsWith('data:image/'));
+  const validPhotos = props.photoFiles.filter((s) => Boolean(s) && s.startsWith('data:image/'));
   const heroIdx = props.heroPhotoIndex ?? 0;
   const heroPhoto = validPhotos[heroIdx] ?? validPhotos[0] ?? null;
   const gridPhotos = validPhotos.filter((_, i) => i !== heroIdx);
-  // Split grid photos into pages of 9
+  const validGridPhotos = gridPhotos.filter((s) => s.startsWith('data:image/'));
   const photoPages: string[][] = [];
-  for (let i = 0; i < gridPhotos.length; i += 9) {
-    const chunk = gridPhotos.slice(i, i + 9).filter((s) => s.startsWith('data:image/'));
-    if (chunk.length > 0) photoPages.push(chunk);
+  if (validGridPhotos.length > 0) {
+    const pageCount = Math.ceil(validGridPhotos.length / 9);
+    const baseSize = Math.floor(validGridPhotos.length / pageCount);
+    const remainder = validGridPhotos.length % pageCount;
+    let cursor = 0;
+    for (let p = 0; p < pageCount; p++) {
+      const size = baseSize + (p < remainder ? 1 : 0);
+      photoPages.push(validGridPhotos.slice(cursor, cursor + size));
+      cursor += size;
+    }
   }
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);

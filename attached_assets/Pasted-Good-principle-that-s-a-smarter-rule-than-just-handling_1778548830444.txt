@@ -1,0 +1,41 @@
+Good principle — that's a smarter rule than just handling the lone-photo edge case. It means distributing photos to keep each page as full as possible, which is a bin-packing problem but with a simple greedy solution for this use case.
+The logic: instead of always chunking 9-per-page, calculate the optimal chunk size by working out how many pages are needed and distributing evenly. For example, 31 photos across 4 pages = 8+8+8+7, all pages near-full, no wasted space. Better than 9+9+9+4 which leaves the last page half empty.
+Here's the Replit Agent prompt:
+
+One file to change: artifacts/dealscore/src/components/DealScorePDF.tsx. Read the file before changing anything.
+Replace the photo chunking block. Find:
+typescriptconst photoPages: string[][] = [];
+for (let i = 0; i < gridPhotos.length; i += 9) {
+  const chunk = gridPhotos.slice(i, i + 9).filter((s) => s.startsWith('data:image/'));
+  if (chunk.length > 0) photoPages.push(chunk);
+}
+// If the last page has only 1 photo, move it to the previous page
+if (photoPages.length >= 2 && photoPages[photoPages.length - 1].length === 1) {
+  const lastPhoto = photoPages.pop()![0];
+  photoPages[photoPages.length - 1].push(lastPhoto);
+}
+Replace with:
+typescriptconst validGridPhotos = gridPhotos.filter((s) => s.startsWith('data:image/'));
+const photoPages: string[][] = [];
+if (validGridPhotos.length > 0) {
+  // Calculate number of pages needed (max 9 per page)
+  const pageCount = Math.ceil(validGridPhotos.length / 9);
+  // Distribute evenly: base size + give remainder to first pages
+  const baseSize = Math.floor(validGridPhotos.length / pageCount);
+  const remainder = validGridPhotos.length % pageCount;
+  let cursor = 0;
+  for (let p = 0; p < pageCount; p++) {
+    // First `remainder` pages get one extra photo
+    const size = baseSize + (p < remainder ? 1 : 0);
+    photoPages.push(validGridPhotos.slice(cursor, cursor + size));
+    cursor += size;
+  }
+}
+Also update the validPhotos filter two lines above — find:
+typescriptconst validPhotos = props.photoFiles.filter(Boolean);
+Replace with:
+typescriptconst validPhotos = props.photoFiles.filter((s) => Boolean(s) && s.startsWith('data:image/'));
+And remove the separate .filter((s) => s.startsWith('data:image/')) call on gridPhotos if it exists, since validPhotos is now pre-filtered and gridPhotos derives from it.
+Do not change anything else.
+Run npx tsc --noEmit. Zero errors required.
+Confirm what changed and what the distribution would be for 31 photos.
