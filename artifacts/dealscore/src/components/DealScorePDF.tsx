@@ -1068,7 +1068,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         for (let i = 0; i < pagePhotos.length; i += 3) {
           pageRows.push(pagePhotos.slice(i, i + 3));
         }
-        const rowHeight = Math.min(Math.floor(683 / pageRows.length), 220);
+        const rowHeight = Math.floor(683 / pageRows.length);
         return (
           <Page key={`photos-${pageIdx}`} size="A4" style={base.page}>
             <Footer />
