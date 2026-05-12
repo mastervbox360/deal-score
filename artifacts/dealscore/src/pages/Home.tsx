@@ -183,6 +183,7 @@ export default function HomePage() {
 
   const [addressSuggestions, setAddressSuggestions] = useState<{description: string; placeId: string}[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
@@ -434,6 +435,37 @@ export default function HomePage() {
       console.error('Autocomplete error:', err);
       setAddressSuggestions([]);
       setShowSuggestions(false);
+    }
+  };
+
+  const selectSuggestion = async (suggestion: { description: string; placeId: string }) => {
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
+    setHighlightedIndex(-1);
+    setPropertyAddress(suggestion.description);
+    try {
+      const place = new (window.google.maps.places as any).Place({
+        id: suggestion.placeId,
+        requestedLanguage: 'en',
+      });
+      await place.fetchFields({ fields: ['formattedAddress', 'addressComponents'] });
+      if (place.formattedAddress) {
+        let cleaned = place.formattedAddress
+          .replace(/, UK$/, '')
+          .replace(/, United Kingdom$/, '');
+        const comps = JSON.parse(JSON.stringify(place.addressComponents || []));
+        const postcodeComp = comps.find(
+          (c: any) => Array.isArray(c.types) && c.types.includes('postal_code')
+        );
+        const postcode = postcodeComp?.longText || '';
+        if (postcode && !cleaned.includes(postcode)) {
+          cleaned = `${cleaned}, ${postcode}`;
+        }
+        setPropertyAddress(cleaned);
+        detectTaxCountryFromPostcode(cleaned);
+      }
+    } catch {
+      // Keep suggestion.description if Place Details fails
     }
   };
 
@@ -931,7 +963,27 @@ export default function HomePage() {
                         value={propertyAddress}
                         onChange={(e) => {
                           setPropertyAddress(e.target.value);
+                          setHighlightedIndex(-1);
                           fetchAddressSuggestions(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (!showSuggestions || addressSuggestions.length === 0) return;
+                          if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            setHighlightedIndex((prev) => Math.min(prev + 1, addressSuggestions.length - 1));
+                          } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            setHighlightedIndex((prev) => Math.max(prev - 1, 0));
+                          } else if (e.key === 'Enter') {
+                            if (highlightedIndex >= 0) {
+                              e.preventDefault();
+                              selectSuggestion(addressSuggestions[highlightedIndex]);
+                            }
+                          } else if (e.key === 'Escape') {
+                            setShowSuggestions(false);
+                            setAddressSuggestions([]);
+                            setHighlightedIndex(-1);
+                          }
                         }}
                         onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                         data-testid="input-property-address"
@@ -952,46 +1004,17 @@ export default function HomePage() {
                           {addressSuggestions.map((suggestion, i) => (
                             <div
                               key={i}
-                              onMouseDown={async () => {
-                                setShowSuggestions(false);
-                                setAddressSuggestions([]);
-                                setPropertyAddress(suggestion.description);
-
-                                try {
-                                  const place = new (window.google.maps.places as any).Place({
-                                    id: suggestion.placeId,
-                                    requestedLanguage: 'en',
-                                  });
-                                  await place.fetchFields({ fields: ['formattedAddress', 'addressComponents'] });
-                                  if (place.formattedAddress) {
-                                    let cleaned = place.formattedAddress
-                                      .replace(/, UK$/, '')
-                                      .replace(/, United Kingdom$/, '');
-
-                                    const comps = JSON.parse(JSON.stringify(place.addressComponents || []));
-                                    const postcodeComp = comps.find(
-                                      (c: any) => Array.isArray(c.types) && c.types.includes('postal_code')
-                                    );
-                                    const postcode = postcodeComp?.longText || '';
-                                    if (postcode && !cleaned.includes(postcode)) {
-                                      cleaned = `${cleaned}, ${postcode}`;
-                                    }
-                                    setPropertyAddress(cleaned);
-                                    detectTaxCountryFromPostcode(cleaned);
-                                  }
-                                } catch {
-                                  // Keep suggestion.description if Place Details fails
-                                }
-                              }}
+                              onMouseDown={() => selectSuggestion(suggestion)}
                               style={{
                                 padding: '10px 12px',
                                 fontSize: 13,
                                 cursor: 'pointer',
                                 borderBottom: i < addressSuggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
                                 color: '#1a1a1a',
+                                background: i === highlightedIndex ? '#e8edf5' : '#fff',
                               }}
                               onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = i === highlightedIndex ? '#e8edf5' : '#fff')}
                             >
                               {suggestion.description}
                             </div>
