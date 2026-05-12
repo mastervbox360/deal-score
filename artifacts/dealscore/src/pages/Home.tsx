@@ -133,6 +133,7 @@ export default function HomePage() {
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [heroPhotoIndex, setHeroPhotoIndex] = useState<number>(0);
+  const [photoLimitError, setPhotoLimitError] = useState<boolean>(false);
   const [executiveSummary, setExecutiveSummary] = useState<string>('');
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
   const [strategyAiGenerating, setStrategyAiGenerating] = useState<boolean>(false);
@@ -1555,16 +1556,17 @@ export default function HomePage() {
                         multiple
                         className="hidden"
                         onChange={async (e) => {
+                          setPhotoLimitError(false);
                           const incoming = Array.from(e.target.files ?? []);
                           e.target.value = '';
                           if (incoming.length === 0) return;
-                          const slots = 20 - photoFiles.length;
+                          const slots = 11 - photoFiles.length;
                           if (slots <= 0) {
-                            alert('Maximum 20 photos allowed. No more photos can be added.');
+                            setPhotoLimitError(true);
                             return;
                           }
                           if (incoming.length > slots) {
-                            alert(`Maximum 20 photos allowed. Only the first ${slots} photo${slots === 1 ? '' : 's'} were added.`);
+                            setPhotoLimitError(true);
                           }
                           const filesToAdd = incoming.slice(0, slots);
                           const compressed = await Promise.all(filesToAdd.map(compressImage));
@@ -1573,6 +1575,9 @@ export default function HomePage() {
                       />
                       <span className="text-sm text-muted-foreground">Click to upload photos (JPG / PNG, multiple allowed)</span>
                     </label>
+                    {photoLimitError && (
+                      <p className="text-xs text-amber-600 font-medium">Maximum 11 photos allowed.</p>
+                    )}
                     {photoFiles.length > 0 && (
                       <div className="grid grid-cols-3 gap-2 mt-1">
                         {photoFiles.map((src, i) => (
@@ -1596,6 +1601,7 @@ export default function HomePage() {
                             <button
                               type="button"
                               onClick={() => {
+                                setPhotoLimitError(false);
                                 setPhotoFiles((prev) => {
                                   const next = prev.filter((_, j) => j !== i);
                                   if (heroPhotoIndex === i) setHeroPhotoIndex(0);
