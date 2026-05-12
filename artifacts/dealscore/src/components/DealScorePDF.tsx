@@ -1015,7 +1015,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   src={src}
                   style={{
                     flex: 1,
-                    height: pageRows.length === 1 ? 500 : pageRows.length === 2 ? 310 : 210,
+                    height: Math.floor(737 / pageRows.length),
                     objectFit: 'cover',
                   }}
                 />
