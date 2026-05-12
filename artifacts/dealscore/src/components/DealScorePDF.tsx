@@ -634,10 +634,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         const largeWS = rem > 0 ? (3 - ((base + 1) % 3)) % 3 : 0;
         const smallWS = (3 - (base % 3)) % 3;
         const totalWS = rem * largeWS + (pc - rem) * smallWS;
-        // Strongly prefer equal-sized pages (rem === 0); use total whitespace
-        // as secondary metric and page count as tiebreaker
-        const imbalance = rem > 0 ? 1 : 0;
-        const score = (imbalance * 100) + (totalWS * 10) + (pc * 1);
+        // Primary: minimise page count (fills pages with more rows, less whitespace).
+        // Secondary: minimise total empty grid slots as a tiebreaker.
+        const score = (pc * 1000) + totalWS;
         if (score < bestScore) {
           bestScore = score;
           bestPc = pc;
