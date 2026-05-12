@@ -86,6 +86,10 @@ async function compressImage(file: File): Promise<string> {
       URL.revokeObjectURL(url);
       resolve(canvas.toDataURL('image/jpeg', 0.82));
     };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve('');
+    };
     img.src = url;
   });
 }
@@ -1570,7 +1574,8 @@ export default function HomePage() {
                           }
                           const filesToAdd = incoming.slice(0, slots);
                           const compressed = await Promise.all(filesToAdd.map(compressImage));
-                          setPhotoFiles((prev) => [...prev, ...compressed]);
+                          const valid = compressed.filter(s => s.length > 0);
+                          setPhotoFiles((prev) => [...prev, ...valid]);
                         }}
                       />
                       <span className="text-sm text-muted-foreground">Click to upload photos (JPG / PNG, multiple allowed)</span>
