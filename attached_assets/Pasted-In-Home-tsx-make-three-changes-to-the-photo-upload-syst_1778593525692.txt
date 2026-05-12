@@ -1,0 +1,56 @@
+In Home.tsx, make three changes to the photo upload system.
+
+CHANGE 1 — Hard cap at 20 photos total.
+Find the photo upload handler (where photoFiles state is updated when 
+the user selects files). Before adding new files to the array, check 
+if the current count plus new files would exceed 20. If so:
+- Only accept enough new files to reach 20 total, reject the rest
+- Show a clear message to the user: "Maximum 20 photos allowed. 
+  Only the first X photos were added."
+- Use a simple alert() or set an existing error/message state if one 
+  exists in the component — do not add a new state variable if avoidable
+
+CHANGE 2 — Compress images on upload before storing as base64.
+Before storing any photo in the photoFiles array, resize and compress 
+it using a canvas element. Apply this to every uploaded file.
+
+Use this exact compression function — add it as a standalone function 
+outside the component:
+
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = url;
+  });
+}
+
+In the upload handler, replace the current file-to-base64 conversion 
+with: const compressed = await compressImage(file);
+Then store compressed instead of the raw base64.
+Make the upload handler async if it is not already.
+
+CHANGE 3 — Restrict accepted file types.
+On the file input element for photo upload, ensure accept="image/jpeg,image/png"
+is set. This prevents users accidentally uploading non-photo files.
+
+Do NOT touch: heroPhotoIndex logic, the lightbox, the remove button, 
+DealScorePDF.tsx, any other state, or any other component.
+
+After changes, confirm:
+- The name of the upload handler function that was made async
+- The exact line where compressImage is called
+- The accept attribute value on the file input

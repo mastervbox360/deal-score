@@ -69,6 +69,27 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
   );
 });
 
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = url;
+  });
+}
+
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
 
@@ -1533,16 +1554,21 @@ export default function HomePage() {
                         accept="image/jpeg,image/png"
                         multiple
                         className="hidden"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files ?? []);
-                          files.forEach((file) => {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              setPhotoFiles((prev) => [...prev, ev.target?.result as string]);
-                            };
-                            reader.readAsDataURL(file);
-                          });
+                        onChange={async (e) => {
+                          const incoming = Array.from(e.target.files ?? []);
                           e.target.value = '';
+                          if (incoming.length === 0) return;
+                          const slots = 20 - photoFiles.length;
+                          if (slots <= 0) {
+                            alert('Maximum 20 photos allowed. No more photos can be added.');
+                            return;
+                          }
+                          if (incoming.length > slots) {
+                            alert(`Maximum 20 photos allowed. Only the first ${slots} photo${slots === 1 ? '' : 's'} were added.`);
+                          }
+                          const filesToAdd = incoming.slice(0, slots);
+                          const compressed = await Promise.all(filesToAdd.map(compressImage));
+                          setPhotoFiles((prev) => [...prev, ...compressed]);
                         }}
                       />
                       <span className="text-sm text-muted-foreground">Click to upload photos (JPG / PNG, multiple allowed)</span>
