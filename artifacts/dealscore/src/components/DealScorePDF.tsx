@@ -1030,7 +1030,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Page key={`photo-${idx}`} size="A4" style={base.page}>
           <Footer />
           <SH title={idx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1 }} wrap={false}>
             <Image
               src={src}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
