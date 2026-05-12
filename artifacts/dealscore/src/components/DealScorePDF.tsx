@@ -617,7 +617,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const photoPageSrcs: string[] = [
     ...(heroPhoto ? [heroPhoto] : []),
     ...validGridPhotos,
-  ];
+  ].filter((src): src is string => Boolean(src) && src.startsWith('data:image/'));
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);
 
@@ -1026,18 +1026,21 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       )}
 
       {/* ── Photo Pages: one full-page photo per page ── */}
-      {photoPageSrcs.map((src, idx) => (
-        <Page key={`photo-${idx}`} size="A4" style={base.page}>
-          <Footer />
-          <SH title={idx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
-          <View style={{ flex: 1 }}>
-            <Image
-              src={src}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </View>
-        </Page>
-      ))}
+      {photoPageSrcs.map((src, idx) => {
+        if (!src) return null;
+        return (
+          <Page key={`photo-${idx}`} size="A4" style={base.page}>
+            <Footer />
+            <SH title={idx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
+            <View style={{ flex: 1 }}>
+              <Image
+                src={src}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </View>
+          </Page>
+        );
+      })}
 
       {/* ── Page 7: Legal & Disclosure ─────────────────────────────────────── */}
       {hasLegal && (
