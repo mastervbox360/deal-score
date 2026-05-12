@@ -1038,27 +1038,29 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         for (let i = 0; i < pagePhotos.length; i += 3) {
           pageRows.push(pagePhotos.slice(i, i + 3));
         }
-        const rowHeight = Math.min(Math.floor(737 / pageRows.length), 245);
+        const rowHeight = Math.min(Math.floor(683 / pageRows.length), 220);
         return (
           <Page key={`photos-${pageIdx}`} size="A4" style={base.page}>
             <Footer />
             <SH title={pageIdx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
-            {pageRows.map((row, rowIdx) => (
-              <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
-                {row.map((src, i) => (
-                  <View key={i} style={{ flex: 1, height: rowHeight, overflow: 'hidden' }}>
-                    <Image
-                      src={src}
-                      style={{
-                        width: '100%',
-                        height: rowHeight,
-                        objectFit: 'cover',
-                      }}
-                    />
-                  </View>
-                ))}
-              </View>
-            ))}
+            <View wrap={false}>
+              {pageRows.map((row, rowIdx) => (
+                <View key={rowIdx} wrap={false} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
+                  {row.map((src, i) => (
+                    <View key={i} style={{ flex: 1, height: rowHeight, overflow: 'hidden' }}>
+                      <Image
+                        src={src}
+                        style={{
+                          width: '100%',
+                          height: rowHeight,
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
           </Page>
         );
       })}
