@@ -615,9 +615,38 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const validGridPhotos = gridPhotos.filter((s) => s.startsWith('data:image/'));
   const photoPages: string[][] = [];
   if (validGridPhotos.length > 0) {
-    const pageCount = Math.ceil(validGridPhotos.length / 9);
-    const baseSize = Math.floor(validGridPhotos.length / pageCount);
-    const remainder = validGridPhotos.length % pageCount;
+    const n = validGridPhotos.length;
+
+    // Find the page count that minimises whitespace while ensuring
+    // every page has at least 4 photos (2 rows), except when n <= 3
+    const findBestPageCount = (total: number): number => {
+      if (total <= 9) return 1;
+      let bestPc = 1;
+      let bestScore = Infinity;
+      for (let pc = 1; pc <= total; pc++) {
+        const base = Math.floor(total / pc);
+        const rem = total % pc;
+        if (base > 9) continue;
+        if (base === 0) break;
+        // Reject page counts where any page has < 4 photos (< 2 rows),
+        // unless it's a single page
+        const minPage = base; // smallest page is base (without remainder bonus)
+        if (pc > 1 && minPage < 4) continue;
+        // Score: orphan photos + whitespace + page count
+        const orphans = rem > 0 && (base + 1) % 3 === 1 ? 1 : 0;
+        const whitespace = rem > 0 ? (3 - ((base + 1) % 3)) % 3 : (3 - (base % 3)) % 3;
+        const score = (orphans * 100) + (whitespace * 10) + (pc * 1);
+        if (score < bestScore) {
+          bestScore = score;
+          bestPc = pc;
+        }
+      }
+      return bestPc;
+    };
+
+    const pageCount = findBestPageCount(n);
+    const baseSize = Math.floor(n / pageCount);
+    const remainder = n % pageCount;
     let cursor = 0;
     for (let p = 0; p < pageCount; p++) {
       const size = baseSize + (p < remainder ? 1 : 0);
