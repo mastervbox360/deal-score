@@ -613,48 +613,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const heroPhoto = validPhotos[heroIdx] ?? validPhotos[0] ?? null;
   const gridPhotos = validPhotos.filter((_, i) => i !== heroIdx);
   const validGridPhotos = gridPhotos.filter((s) => s.startsWith('data:image/'));
-  const photoPages: string[][] = [];
-  if (validGridPhotos.length > 0) {
-    const n = validGridPhotos.length;
-
-    // Find the page count that minimises whitespace while ensuring
-    // every page has at least 4 photos (2 rows), except when n <= 3
-    const findBestPageCount = (total: number): number => {
-      if (total <= 9) return 1;
-      let bestPc = 1;
-      let bestScore = Infinity;
-      for (let pc = 1; pc <= total; pc++) {
-        const base = Math.floor(total / pc);
-        const rem = total % pc;
-        if (base > 12) continue; // allow up to 4 rows (12 photos) per page
-        if (base === 0) break;
-        // Reject page counts where the smallest page has < 4 photos (< 2 rows)
-        if (pc > 1 && base < 4) continue;
-        // Total empty grid slots across all pages (3-column grid)
-        const largeWS = rem > 0 ? (3 - ((base + 1) % 3)) % 3 : 0;
-        const smallWS = (3 - (base % 3)) % 3;
-        const totalWS = rem * largeWS + (pc - rem) * smallWS;
-        // Primary: minimise page count (fills pages with more rows, less whitespace).
-        // Secondary: minimise total empty grid slots as a tiebreaker.
-        const score = (pc * 1000) + totalWS;
-        if (score < bestScore) {
-          bestScore = score;
-          bestPc = pc;
-        }
-      }
-      return bestPc;
-    };
-
-    const pageCount = findBestPageCount(n);
-    const baseSize = Math.floor(n / pageCount);
-    const remainder = n % pageCount;
-    let cursor = 0;
-    for (let p = 0; p < pageCount; p++) {
-      const size = baseSize + (p < remainder ? 1 : 0);
-      photoPages.push(validGridPhotos.slice(cursor, cursor + size));
-      cursor += size;
-    }
-  }
+  // One page per photo: hero first, then remaining photos in upload order.
+  const photoPageSrcs: string[] = [
+    ...(heroPhoto ? [heroPhoto] : []),
+    ...validGridPhotos,
+  ];
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);
 
@@ -1062,38 +1025,19 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         </Page>
       )}
 
-      {/* ── Page 6+: Property Photos (one Page per 9 photos, no blank pages) ── */}
-      {photoPages.map((pagePhotos, pageIdx) => {
-        const pageRows: string[][] = [];
-        for (let i = 0; i < pagePhotos.length; i += 3) {
-          pageRows.push(pagePhotos.slice(i, i + 3));
-        }
-        const rowHeight = Math.floor(683 / pageRows.length);
-        return (
-          <Page key={`photos-${pageIdx}`} size="A4" style={base.page}>
-            <Footer />
-            <SH title={pageIdx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
-            <View wrap={false}>
-              {pageRows.map((row, rowIdx) => (
-                <View key={rowIdx} wrap={false} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
-                  {row.map((src, i) => (
-                    <View key={i} style={{ flex: 1, height: rowHeight, overflow: 'hidden' }}>
-                      <Image
-                        src={src}
-                        style={{
-                          width: '100%',
-                          height: rowHeight,
-                          objectFit: 'cover',
-                        }}
-                      />
-                    </View>
-                  ))}
-                </View>
-              ))}
-            </View>
-          </Page>
-        );
-      })}
+      {/* ── Photo Pages: one full-page photo per page ── */}
+      {photoPageSrcs.map((src, idx) => (
+        <Page key={`photo-${idx}`} size="A4" style={base.page}>
+          <Footer />
+          <SH title={idx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
+          <View style={{ flex: 1 }}>
+            <Image
+              src={src}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </View>
+        </Page>
+      ))}
 
       {/* ── Page 7: Legal & Disclosure ─────────────────────────────────────── */}
       {hasLegal && (
