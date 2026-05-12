@@ -608,14 +608,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   };
 
   const validPhotos = props.photoFiles.filter(Boolean);
-  const photoChunks: string[][] = [];
-  for (let i = 0; i < validPhotos.length; i += 3) {
-    photoChunks.push(validPhotos.slice(i, i + 3));
-  }
-  const PHOTO_ROWS_PER_PAGE = 3;
-  const photoPageChunks: string[][][] = [];
-  for (let i = 0; i < photoChunks.length; i += PHOTO_ROWS_PER_PAGE) {
-    photoPageChunks.push(photoChunks.slice(i, i + PHOTO_ROWS_PER_PAGE));
+  // Split into pages of 9 photos each
+  const photoPages: string[][] = [];
+  for (let i = 0; i < validPhotos.length; i += 9) {
+    photoPages.push(validPhotos.slice(i, i + 9));
   }
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);
@@ -1002,28 +998,35 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         </Page>
       )}
 
-      {/* ── Page 6+: Property Photos (one Page per 3 rows, no blank pages) ── */}
-      {photoPageChunks.map((pageRows, pageIdx) => (
-        <Page key={`photos-${pageIdx}`} size="A4" style={base.page}>
-          <Footer />
-          {pageIdx === 0 && <SH title="Property Photos" />}
-          {pageRows.map((row, rowIdx) => (
-            <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
-              {row.map((src, i) => (
-                <Image
-                  key={i}
-                  src={src}
-                  style={{
-                    flex: 1,
-                    height: Math.floor(737 / pageRows.length),
-                    objectFit: 'cover',
-                  }}
-                />
-              ))}
-            </View>
-          ))}
-        </Page>
-      ))}
+      {/* ── Page 6+: Property Photos (one Page per 9 photos, no blank pages) ── */}
+      {photoPages.map((pagePhotos, pageIdx) => {
+        const pageRows: string[][] = [];
+        for (let i = 0; i < pagePhotos.length; i += 3) {
+          pageRows.push(pagePhotos.slice(i, i + 3));
+        }
+        const rowHeight = Math.min(Math.floor(737 / pageRows.length), 245);
+        return (
+          <Page key={`photos-${pageIdx}`} size="A4" style={base.page}>
+            <Footer />
+            <SH title={pageIdx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
+            {pageRows.map((row, rowIdx) => (
+              <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
+                {row.map((src, i) => (
+                  <Image
+                    key={i}
+                    src={src}
+                    style={{
+                      flex: 1,
+                      height: rowHeight,
+                      objectFit: 'cover',
+                    }}
+                  />
+                ))}
+              </View>
+            ))}
+          </Page>
+        );
+      })}
 
       {/* ── Page 7: Legal & Disclosure ─────────────────────────────────────── */}
       {hasLegal && (
