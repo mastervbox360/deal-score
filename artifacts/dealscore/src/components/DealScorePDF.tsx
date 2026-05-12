@@ -81,6 +81,7 @@ export interface DealScorePDFProps {
   comparables: Array<{ address: string; bedsType: string; dateSold: string; price: string }>;
   listingLinks: Array<{ label: string; url: string }>;
   photoFiles: string[];
+  heroPhotoIndex: number;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -608,10 +609,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   };
 
   const validPhotos = props.photoFiles.filter(Boolean);
-  // Split into pages of 9 photos each
+  const heroIdx = props.heroPhotoIndex ?? 0;
+  const heroPhoto = validPhotos[heroIdx] ?? validPhotos[0] ?? null;
+  const gridPhotos = validPhotos.filter((_, i) => i !== heroIdx);
+  // Split grid photos into pages of 9
   const photoPages: string[][] = [];
-  for (let i = 0; i < validPhotos.length; i += 9) {
-    photoPages.push(validPhotos.slice(i, i + 9));
+  for (let i = 0; i < gridPhotos.length; i += 9) {
+    photoPages.push(gridPhotos.slice(i, i + 9));
   }
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);
@@ -844,12 +848,32 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       <Page size="A4" style={base.page}>
         <Footer />
 
-        {execSummaryText ? (
-          <View style={base.notePanel}>
-            <Text style={[base.notePanelLabel, { color: readableBrand }]}>Executive Summary</Text>
-            <Text style={base.notePanelText}>{execSummaryText}</Text>
+        {/* Two-column row: Executive Summary (left) + Hero photo (right) */}
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
+          {/* Left: Executive Summary (60%) */}
+          <View style={{ flex: 0.6 }}>
+            {execSummaryText ? (
+              <View style={[base.notePanel, { marginBottom: 0 }]}>
+                <Text style={[base.notePanelLabel, { color: readableBrand }]}>Executive Summary</Text>
+                <Text style={base.notePanelText}>{execSummaryText}</Text>
+              </View>
+            ) : null}
           </View>
-        ) : null}
+          {/* Right: Hero photo (38%) */}
+          <View style={{ flex: 0.38 }}>
+            {heroPhoto ? (
+              <View>
+                <Image
+                  src={heroPhoto}
+                  style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 4 }}
+                />
+                <Text style={{ fontSize: 7.5, color: '#9ca3af', textAlign: 'center', marginTop: 4 }}>
+                  Property Preview
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
 
         <SH title="Property Details" />
         <Table rows={[

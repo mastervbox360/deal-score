@@ -111,6 +111,7 @@ export default function HomePage() {
   ]);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
+  const [heroPhotoIndex, setHeroPhotoIndex] = useState<number>(0);
   const [executiveSummary, setExecutiveSummary] = useState<string>('');
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
   const [strategyAiGenerating, setStrategyAiGenerating] = useState<boolean>(false);
@@ -431,6 +432,7 @@ export default function HomePage() {
       { address: '', bedsType: '', dateSold: '', price: '' },
     ]);
     setPhotoFiles([]);
+    setHeroPhotoIndex(0);
     setExecutiveSummary('');
     setListingLinks([{ label: '', url: '' }]);
     setTaxCountry('ENGLAND');
@@ -804,6 +806,7 @@ export default function HomePage() {
       comparables,
       listingLinks,
       photoFiles,
+      heroPhotoIndex,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -814,7 +817,7 @@ export default function HomePage() {
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
-    comparables, listingLinks, photoFiles,
+    comparables, listingLinks, photoFiles, heroPhotoIndex,
   ]);
 
   const VERDICT_LABELS: Record<string, string> = {
@@ -1549,9 +1552,31 @@ export default function HomePage() {
                         {photoFiles.map((src, i) => (
                           <div key={i} className="relative group">
                             <img src={src} alt={`Photo ${i + 1}`} className="w-full h-20 object-cover rounded-lg cursor-pointer" onClick={() => setLightboxPhoto(src)} />
+                            {/* Hero badge */}
+                            {heroPhotoIndex === i ? (
+                              <span className="absolute top-1 left-1 bg-amber-400 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded pointer-events-none">
+                                ★ Hero
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setHeroPhotoIndex(i)}
+                                className="absolute top-1 left-1 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Set as hero photo"
+                              >
+                                ☆ Hero
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => setPhotoFiles((prev) => prev.filter((_, j) => j !== i))}
+                              onClick={() => {
+                                setPhotoFiles((prev) => {
+                                  const next = prev.filter((_, j) => j !== i);
+                                  if (heroPhotoIndex === i) setHeroPhotoIndex(0);
+                                  else if (heroPhotoIndex > i) setHeroPhotoIndex((h) => h - 1);
+                                  return next;
+                                });
+                              }}
                               className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Remove photo"
                             >
