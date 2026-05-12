@@ -633,7 +633,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         const minPage = base; // smallest page is base (without remainder bonus)
         if (pc > 1 && minPage < 4) continue;
         // Score: orphan photos + whitespace + page count
-        const orphans = rem > 0 && (base + 1) % 3 === 1 ? 1 : 0;
+        const maxPageSize = base + (rem > 0 ? 1 : 0);
+        const orphans = rem > 0 && (base + 1) % 3 === 1 && maxPageSize < 6 ? 1 : 0;
         const whitespace = rem > 0 ? (3 - ((base + 1) % 3)) % 3 : (3 - (base % 3)) % 3;
         const score = (orphans * 100) + (whitespace * 10) + (pc * 1);
         if (score < bestScore) {
