@@ -626,17 +626,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       for (let pc = 1; pc <= total; pc++) {
         const base = Math.floor(total / pc);
         const rem = total % pc;
-        if (base > 9) continue;
+        if (base > 12) continue; // allow up to 4 rows (12 photos) per page
         if (base === 0) break;
-        // Reject page counts where any page has < 4 photos (< 2 rows),
-        // unless it's a single page
-        const minPage = base; // smallest page is base (without remainder bonus)
-        if (pc > 1 && minPage < 4) continue;
-        // Score: orphan photos + whitespace + page count
-        const maxPageSize = base + (rem > 0 ? 1 : 0);
-        const orphans = rem > 0 && (base + 1) % 3 === 1 && maxPageSize < 6 ? 1 : 0;
-        const whitespace = rem > 0 ? (3 - ((base + 1) % 3)) % 3 : (3 - (base % 3)) % 3;
-        const score = (orphans * 100) + (whitespace * 10) + (pc * 1);
+        // Reject page counts where the smallest page has < 4 photos (< 2 rows)
+        if (pc > 1 && base < 4) continue;
+        // Total empty grid slots across all pages (3-column grid)
+        const largeWS = rem > 0 ? (3 - ((base + 1) % 3)) % 3 : 0;
+        const smallWS = (3 - (base % 3)) % 3;
+        const totalWS = rem * largeWS + (pc - rem) * smallWS;
+        // Strongly prefer equal-sized pages (rem === 0); use total whitespace
+        // as secondary metric and page count as tiebreaker
+        const imbalance = rem > 0 ? 1 : 0;
+        const score = (imbalance * 100) + (totalWS * 10) + (pc * 1);
         if (score < bestScore) {
           bestScore = score;
           bestPc = pc;
