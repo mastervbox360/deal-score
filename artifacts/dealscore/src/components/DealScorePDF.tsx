@@ -608,14 +608,17 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     return trimmed.startsWith('\u00A3') ? trimmed : '\u00A3' + trimmed;
   };
 
-  const validPhotos = props.photoFiles.filter(Boolean);
+  const validPhotos = props.photoFiles
+    .filter(Boolean)
+    .filter((s) => s.startsWith('data:image/'));
   const heroIdx = props.heroPhotoIndex ?? 0;
   const heroPhoto = validPhotos[heroIdx] ?? validPhotos[0] ?? null;
   const gridPhotos = validPhotos.filter((_, i) => i !== heroIdx);
   // Split grid photos into pages of 9
   const photoPages: string[][] = [];
   for (let i = 0; i < gridPhotos.length; i += 9) {
-    photoPages.push(gridPhotos.slice(i, i + 9));
+    const chunk = gridPhotos.slice(i, i + 9).filter((s) => s.startsWith('data:image/'));
+    if (chunk.length > 0) photoPages.push(chunk);
   }
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);
@@ -863,10 +866,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flex: 0.38 }}>
             {heroPhoto ? (
               <View>
-                <Image
-                  src={heroPhoto}
-                  style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 4 }}
-                />
+                <View style={{ width: '100%', height: 180, overflow: 'hidden', borderRadius: 4 }}>
+                  <Image
+                    src={heroPhoto}
+                    style={{ width: '100%', height: 180, objectFit: 'cover' }}
+                  />
+                </View>
                 <Text style={{ fontSize: 7.5, color: '#9ca3af', textAlign: 'center', marginTop: 4 }}>
                   Property Preview
                 </Text>
@@ -1036,15 +1041,16 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             {pageRows.map((row, rowIdx) => (
               <View key={rowIdx} style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
                 {row.map((src, i) => (
-                  <Image
-                    key={i}
-                    src={src}
-                    style={{
-                      flex: 1,
-                      height: rowHeight,
-                      objectFit: 'cover',
-                    }}
-                  />
+                  <View key={i} style={{ flex: 1, height: rowHeight, overflow: 'hidden' }}>
+                    <Image
+                      src={src}
+                      style={{
+                        width: '100%',
+                        height: rowHeight,
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </View>
                 ))}
               </View>
             ))}

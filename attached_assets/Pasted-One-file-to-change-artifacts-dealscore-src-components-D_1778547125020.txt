@@ -1,0 +1,56 @@
+One file to change: artifacts/dealscore/src/components/DealScorePDF.tsx. Read the file in full before changing anything.
+The problem: Some uploaded photos render in the PDF and some don't — producing blank pages. React-PDF's Image component requires base64 strings to include the data:image/...;base64, prefix. Some strings may be missing it if they were processed differently.
+Fix 1 — Sanitise all photo strings before use. Find the line:
+typescriptconst validPhotos = props.photoFiles.filter(Boolean);
+Replace with:
+typescriptconst validPhotos = props.photoFiles
+  .filter(Boolean)
+  .filter((s) => s.startsWith('data:image/'));
+This silently drops any malformed entries that would cause blank pages.
+Fix 2 — Wrap every Image in the photo grid pages in a try-safe View with a fixed size fallback. Find the Image component inside the photoPages.map render:
+tsx<Image
+  key={i}
+  src={src}
+  style={{
+    flex: 1,
+    height: rowHeight,
+    objectFit: 'cover',
+  }}
+/>
+Replace with:
+tsx<View key={i} style={{ flex: 1, height: rowHeight, overflow: 'hidden' }}>
+  <Image
+    src={src}
+    style={{
+      width: '100%',
+      height: rowHeight,
+      objectFit: 'cover',
+    }}
+  />
+</View>
+Fix 3 — Same wrapper for the hero image on Page 2. Find:
+tsx<Image
+  src={heroPhoto}
+  style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 4 }}
+/>
+Replace with:
+tsx<View style={{ width: '100%', height: 180, overflow: 'hidden', borderRadius: 4 }}>
+  <Image
+    src={heroPhoto}
+    style={{ width: '100%', height: 180, objectFit: 'cover' }}
+  />
+</View>
+Fix 4 — Guard against empty photo pages generating blank pages. Find the photo pages map:
+typescriptconst photoPages: string[][] = [];
+for (let i = 0; i < gridPhotos.length; i += 9) {
+  photoPages.push(gridPhotos.slice(i, i + 9));
+}
+Replace with:
+typescriptconst photoPages: string[][] = [];
+for (let i = 0; i < gridPhotos.length; i += 9) {
+  const chunk = gridPhotos.slice(i, i + 9).filter((s) => s.startsWith('data:image/'));
+  if (chunk.length > 0) photoPages.push(chunk);
+}
+Do not change anything else. No other pages, no formulas, no state, no other components.
+Run npx tsc --noEmit. Zero errors required.
+Confirm what changed.
