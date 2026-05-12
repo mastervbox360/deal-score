@@ -67,11 +67,14 @@ Write the executive summary now:`;
     });
 
     const data = await response.json() as { content?: Array<{ type: string; text: string }>; error?: { message: string } };
+    if (data.error) {
+      return { statusCode: 502, body: JSON.stringify({ error: data.error.message }) };
+    }
     const block = data.content?.[0];
     const summary = block?.type === "text" ? block.text.trim() : "";
 
     if (!summary) {
-      return { statusCode: 502, body: JSON.stringify({ error: "No summary returned" }) };
+      return { statusCode: 502, body: JSON.stringify({ error: data.error?.message || "No summary returned", raw: JSON.stringify(data) }) };
     }
 
     return {
