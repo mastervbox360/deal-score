@@ -1547,7 +1547,7 @@ export default function HomePage() {
 
                   {/* Property Photos */}
                   <div className="space-y-2">
-                    <Label>Property Photos</Label>
+                    <div className="flex items-center gap-1"><Label>Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
                     <label className="block w-full border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-[#1B3A6B] transition-colors">
                       <input
                         type="file"
@@ -2614,6 +2614,7 @@ const TT = {
   mortgageRate: 'The annual interest rate on your mortgage. Check with your broker for current BTL rates.',
   marketValue: 'The true open market value of the property — used to calculate BMV (Below Market Value) and equity on day one.',
   sourcingFee: 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.',
+  photoUpload: 'Upload up to 11 photos. The hero photo (★) appears as a preview on the executive summary page alongside your deal figures. All 11 photos — including the hero — then appear full-page in the Property Photos section of the investor pack, one photo per page.\n\nTo set a hero photo: click the ★ icon on any thumbnail. The hero defaults to your first uploaded photo.',
   monthlyRent: 'The monthly rental income you expect to receive from the tenant or tenants.',
   monthlyExpenses: 'All monthly running costs — insurance, maintenance reserve, letting agent fees, and any other regular costs. Do not include the mortgage payment.',
   numRooms: 'The total number of lettable rooms in the HMO.',
