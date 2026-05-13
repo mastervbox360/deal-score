@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw, Trash2, Plus, Sparkles, X } from 'lucide-react';
+import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw, Trash2, Plus, Sparkles, X, Loader2 } from 'lucide-react';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
 import { Card, CardContent } from '@/components/ui/card';
@@ -143,6 +143,7 @@ export default function HomePage() {
   const [executiveSummary, setExecutiveSummary] = useState<Record<string, string>>({});
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
   const [strategyAiGenerating, setStrategyAiGenerating] = useState<boolean>(false);
+  const [comparablesFetching, setComparablesFetching] = useState<boolean>(false);
   const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
@@ -535,6 +536,33 @@ export default function HomePage() {
     setPropertyData(null);
     setPropertyDataLoading(false);
     setPropertyDataOpen(true);
+  };
+
+  const detectedPostcode: string | null =
+    propertyAddress.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i)?.[0]
+      ?.replace(/\s+/g, '').toUpperCase() ?? null;
+
+  const fetchComparables = async () => {
+    if (!detectedPostcode) return;
+    setComparablesFetching(true);
+    try {
+      const res = await fetch(`/.netlify/functions/comparables?postcode=${detectedPostcode}`);
+      const data = await res.json() as { results?: Array<{ address: string; price: number; date: string; propertyType: string }> };
+      const sales = data.results ?? [];
+      if (sales.length > 0) {
+        const newRows = sales.map(s => ({
+          address: s.address,
+          bedsType: '',
+          dateSold: '',
+          price: s.price ? `£${s.price.toLocaleString('en-GB')}` : '',
+        }));
+        setComparables(prev => [...prev, ...newRows]);
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setComparablesFetching(false);
+    }
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
@@ -1433,7 +1461,25 @@ export default function HomePage() {
 
                   {/* Comparable Properties — dynamic table */}
                   <div className="space-y-2">
-                    <Label>Comparable Properties</Label>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <Label>Comparable Properties</Label>
+                        <InfoIcon id="comp-info" text={TT.comparables} />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!detectedPostcode || comparablesFetching}
+                        title={!detectedPostcode ? 'Enter a property address first.' : undefined}
+                        onClick={fetchComparables}
+                      >
+                        {comparablesFetching
+                          ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Fetching…</>
+                          : <><RefreshCw className="w-3 h-3 mr-1" />Fetch Recent Sales</>
+                        }
+                      </Button>
+                    </div>
                     <div className="border border-border rounded-lg overflow-hidden">
                       <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
                         <span>Address</span>
@@ -2664,6 +2710,7 @@ const TT = {
   mortgageRate: 'The annual interest rate on your mortgage. Check with your broker for current BTL rates.',
   marketValue: 'The true open market value of the property — used to calculate BMV (Below Market Value) and equity on day one.',
   propDescription: 'Pre-filled with basic property details from the address lookup. Edit this to add condition, specification, and any details relevant to the investor.',
+  comparables: 'Recent sold prices near this property, fetched from HM Land Registry. Data typically lags 2–6 months. Review and edit before including in the investor pack.',
   sourcingFee: 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.',
   photoUpload: 'Upload up to 11 photos. The hero photo (★) appears as a preview on the executive summary page alongside your deal figures. All 11 photos — including the hero — then appear full-page in the Property Photos section of the investor pack, one photo per page.\n\nTo set a hero photo: click the ★ icon on any thumbnail. The hero defaults to your first uploaded photo.',
   monthlyRent: 'The monthly rental income you expect to receive from the tenant or tenants.',
