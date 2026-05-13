@@ -118,6 +118,8 @@ export default function HomePage() {
   const [tenure, setTenure] = useState<'Freehold' | 'Leasehold'>('Freehold');
   const [autoFilledPropertyType, setAutoFilledPropertyType] = useState(false);
   const [autoFilledTenure, setAutoFilledTenure] = useState(false);
+  const [userSetTenure, setUserSetTenure] = useState(false);
+  const [userSetLeaseLength, setUserSetLeaseLength] = useState(false);
   const [leaseLengthYears, setLeaseLengthYears] = useState<number>(0);
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [sourcingFeeDisclaimer, setSourcingFeeDisclaimer] = useState<string | null>(null);
@@ -339,7 +341,7 @@ export default function HomePage() {
                 'flat / maisonette': 'Flat/Apartment', 'flat/maisonette': 'Flat/Apartment',
               };
               const detectedPropertyType = landRegTypeMap[propRaw] ?? null;
-              if (detectedTenure) { setTenure(detectedTenure); setAutoFilledTenure(true); }
+              if (detectedTenure && !userSetTenure) { setTenure(detectedTenure); setAutoFilledTenure(true); }
               if (detectedPropertyType) { setPropertyType(detectedPropertyType); setAutoFilledPropertyType(true); }
               setPropertyData(prev => prev ? {
                 ...prev,
@@ -477,6 +479,8 @@ export default function HomePage() {
     setTenure('Freehold');
     setAutoFilledPropertyType(false);
     setAutoFilledTenure(false);
+    setUserSetTenure(false);
+    setUserSetLeaseLength(false);
     setLeaseLengthYears(0);
     setSourcingFee(0);
     setSourcingFeeDisclaimer(null);
@@ -1034,7 +1038,7 @@ export default function HomePage() {
                     <PropertyTypeSelect value={propertyType} onChange={(v) => { setPropertyType(v); setAutoFilledPropertyType(false); }} />
                     {autoFilledPropertyType && <p className="text-xs text-slate-400 mt-1">Auto-suggested — please verify</p>}
                   </div>
-                  <TenureSection tenure={tenure} onChange={(v) => { setTenure(v); setAutoFilledTenure(false); }} leaseLength={leaseLengthYears} onLeaseLength={setLeaseLengthYears} hint={autoFilledTenure ? 'Auto-suggested — please verify' : undefined} />
+                  <TenureSection tenure={tenure} onChange={(v) => { setTenure(v); setAutoFilledTenure(false); setUserSetTenure(true); }} leaseLength={leaseLengthYears} onLeaseLength={(v) => { setLeaseLengthYears(v); setUserSetLeaseLength(true); }} hint={autoFilledTenure ? 'Auto-suggested — please verify' : undefined} />
                   {dealType !== 'R2R' && (
                     <>
                       <div className="space-y-2">
@@ -2638,8 +2642,8 @@ function Row({ label, value, isBold = false, tooltip }: { label: string, value: 
 const TT = {
   propAddress: 'The full address of the property being analysed. This appears on the investor PDF.',
   propType: 'The type of property — affects lender appetite and mortgage options.',
-  tenure: 'Freehold means you own the building and land outright. Leasehold means you own the property for a fixed term. Most lenders require 70+ years remaining on a lease.',
-  leaseLength: 'The number of years remaining on the lease. Properties with under 70 years can be difficult to mortgage.',
+  tenure: 'Auto-detected from Land Registry where available. Verify against the title register before including in an investor pack.',
+  leaseLength: 'Auto-populated from Land Registry where available. Always verify with the solicitor — Land Registry data may not reflect recent lease extensions.',
   purchasePrice: 'The price you are paying to buy the property. This is the starting point for all calculations.',
   propTax: 'Stamp Duty (England & Northern Ireland), LTT (Wales), or LBTT (Scotland). Automatically calculated based on country, buyer type, and purchase price.',
   refurbCost: 'The total cost of any renovation or refurbishment work needed before the property can be let or sold.',
