@@ -9,14 +9,14 @@ exports.handler = async function(event) {
     const raw = postcode.replace(/\s+/g, '').toUpperCase();
     const formatted = raw.slice(0, -3) + ' ' + raw.slice(-3);
     console.log('[comparables] normalised postcode:', formatted);
-    const url = `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?propertyAddress.postcode=${encodeURIComponent(formatted)}&_limit=5&_sort=-transactionDate`;
+    const url = `https://landregistry.data.gov.uk/data/ppi/transaction-record.json?propertyAddress.postcode=${encodeURIComponent(formatted)}`;
     console.log('[comparables] fetching URL:', url);
     const response = await fetch(url);
     console.log('[comparables] response status:', response.status);
     const bodyText = await response.text();
     console.log('[comparables] response body (first 500 chars):', bodyText.slice(0, 500));
     const data = JSON.parse(bodyText);
-    const items = data?.result?.items || [];
+    const items = (data?.result?.items || []).slice(0, 5);
 
     const getLdValue = (field) => {
       if (!field) return null;
