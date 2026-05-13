@@ -465,6 +465,18 @@ export default function HomePage() {
         }
         setPropertyAddress(cleaned);
         detectTaxCountryFromPostcode(cleaned);
+        // Pre-populate property description skeleton if field is empty
+        const postcodeArea = postcode.split(/\s+/)[0];
+        if (postcodeArea) {
+          setPropertyDescription((prev) => {
+            if (prev.trim()) return prev;
+            const parts: string[] = [];
+            if (propertyType) parts.push(propertyType);
+            if (tenure) parts.push(tenure);
+            parts.push(`${postcodeArea} area`);
+            return parts.join(', ') + '.';
+          });
+        }
       }
     } catch {
       // Keep suggestion.description if Place Details fails
@@ -1395,7 +1407,7 @@ export default function HomePage() {
 
                   {/* Property Description */}
                   <div className="space-y-2">
-                    <Label htmlFor="property-description">Property Description</Label>
+                    <div className="flex items-center gap-1"><Label htmlFor="property-description">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
                     <Textarea
                       id="property-description"
                       placeholder="e.g. 3-bed mid-terrace, 90 sqm, double glazing, gas central heating, west-facing garden, off-road parking…"
@@ -2651,6 +2663,7 @@ const TT = {
   deposit: 'The percentage of the purchase price you are putting in as a cash deposit. Most BTL lenders require 25%.',
   mortgageRate: 'The annual interest rate on your mortgage. Check with your broker for current BTL rates.',
   marketValue: 'The true open market value of the property — used to calculate BMV (Below Market Value) and equity on day one.',
+  propDescription: 'Pre-filled with basic property details from the address lookup. Edit this to add condition, specification, and any details relevant to the investor.',
   sourcingFee: 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.',
   photoUpload: 'Upload up to 11 photos. The hero photo (★) appears as a preview on the executive summary page alongside your deal figures. All 11 photos — including the hero — then appear full-page in the Property Photos section of the investor pack, one photo per page.\n\nTo set a hero photo: click the ★ icon on any thumbnail. The hero defaults to your first uploaded photo.',
   monthlyRent: 'The monthly rental income you expect to receive from the tenant or tenants.',
