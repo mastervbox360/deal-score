@@ -144,6 +144,7 @@ export default function HomePage() {
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
   const [strategyAiGenerating, setStrategyAiGenerating] = useState<boolean>(false);
   const [comparablesFetching, setComparablesFetching] = useState<boolean>(false);
+  const [comparablesNoResults, setComparablesNoResults] = useState<boolean>(false);
   const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
@@ -550,13 +551,21 @@ export default function HomePage() {
       const data = await res.json() as { results?: Array<{ address: string; price: number; date: string; propertyType: string }> };
       const sales = data.results ?? [];
       if (sales.length > 0) {
+        setComparablesNoResults(false);
         const newRows = sales.map(s => ({
           address: s.address,
           bedsType: '',
-          dateSold: '',
+          dateSold: s.date
+            ? new Date(s.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+            : '',
           price: s.price ? `£${s.price.toLocaleString('en-GB')}` : '',
         }));
-        setComparables(prev => [...prev, ...newRows]);
+        setComparables(prev => {
+          const filled = prev.filter(r => r.address || r.bedsType || r.dateSold || r.price);
+          return [...filled, ...newRows];
+        });
+      } else {
+        setComparablesNoResults(true);
       }
     } catch {
       // silent fail
@@ -1480,8 +1489,11 @@ export default function HomePage() {
                         }
                       </Button>
                     </div>
+                    {comparablesNoResults && (
+                      <p className="text-sm text-gray-500">No recent sales found for this postcode. Land Registry data may not be available for this area yet — add comparables manually.</p>
+                    )}
                     <div className="border border-border rounded-lg overflow-hidden">
-                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
+                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
                         <span>Address</span>
                         <span>Beds / Type</span>
                         <span>Date Sold</span>
@@ -1489,7 +1501,7 @@ export default function HomePage() {
                         <span />
                       </div>
                       {comparables.map((row, i) => (
-                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
+                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
                           <Input
                             type="text"
                             autoComplete="new-password"
@@ -1554,7 +1566,7 @@ export default function HomePage() {
                       variant="outline"
                       size="sm"
                       className="w-full mt-1"
-                      onClick={() => setComparables([...comparables, { address: '', bedsType: '', dateSold: '', price: '' }])}
+                      onClick={() => { setComparablesNoResults(false); setComparables([...comparables, { address: '', bedsType: '', dateSold: '', price: '' }]); }}
                     >
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Row
                     </Button>

@@ -16,7 +16,25 @@ exports.handler = async function(event) {
     const bodyText = await response.text();
     console.log('[comparables] response body (first 500 chars):', bodyText.slice(0, 500));
     const data = JSON.parse(bodyText);
-    const items = (data?.result?.items || []).slice(0, 5);
+    const allItems = data?.result?.items || [];
+    if (allItems.length > 0) {
+      console.log('[comparables] first raw item keys:', Object.keys(allItems[0]));
+      console.log('[comparables] first raw item:', JSON.stringify(allItems[0]));
+    } else {
+      console.log('[comparables] no items returned by API');
+    }
+    const getRawDate = (item) => {
+      const td = item.transactionDate;
+      if (!td) return '';
+      if (typeof td === 'string') return td;
+      if (td._value) return String(td._value);
+      if (td.label?.[0]?.['_value']) return td.label[0]['_value'];
+      return '';
+    };
+    const items = allItems
+      .slice()
+      .sort((a, b) => getRawDate(b).localeCompare(getRawDate(a)))
+      .slice(0, 5);
 
     const getLdValue = (field) => {
       if (!field) return null;
@@ -36,7 +54,7 @@ exports.handler = async function(event) {
       'other': 'Other',
     };
 
-    const results = items.slice(0, 5).map(item => {
+    const results = items.map(item => {
       const addr = item.propertyAddress || {};
       const saon = getLdValue(addr.saon) || '';
       const paon = getLdValue(addr.paon) || '';
