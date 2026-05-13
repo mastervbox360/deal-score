@@ -138,7 +138,7 @@ export default function HomePage() {
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [heroPhotoIndex, setHeroPhotoIndex] = useState<number>(0);
   const [photoLimitError, setPhotoLimitError] = useState<boolean>(false);
-  const [executiveSummary, setExecutiveSummary] = useState<string>('');
+  const [executiveSummary, setExecutiveSummary] = useState<Record<string, string>>({});
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
   const [strategyAiGenerating, setStrategyAiGenerating] = useState<boolean>(false);
   const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
@@ -491,7 +491,7 @@ export default function HomePage() {
     ]);
     setPhotoFiles([]);
     setHeroPhotoIndex(0);
-    setExecutiveSummary('');
+    setExecutiveSummary({});
     setListingLinks([{ label: '', url: '' }]);
     setTaxCountry('ENGLAND');
     setBuyerType('ADDITIONAL');
@@ -592,7 +592,7 @@ export default function HomePage() {
       const data = await response.json() as { summary?: string; error?: string };
       const summary = data.summary?.trim() ?? '';
       if (summary) {
-        setExecutiveSummary(summary);
+        setExecutiveSummary((prev) => ({ ...prev, [dealType]: summary }));
         const newCount = aiGenCount + 1;
         setAiGenCount(newCount);
         localStorage.setItem('ds_ai_gen_count', String(newCount));
@@ -857,7 +857,7 @@ export default function HomePage() {
       socialResults: _socialResults,
       currentScore: _currentScore,
       riskFlags: _riskFlags,
-      executiveSummary,
+      executiveSummary: executiveSummary[dealType] ?? '',
       strategyNotes: strategyNotes[dealType] ?? '',
       propertyDescription,
       vendorSituation,
@@ -1383,8 +1383,8 @@ export default function HomePage() {
                     <Textarea
                       id="executive-summary"
                       placeholder="A professional overview of this deal for investors — click 'Generate with AI' to auto-write, or type your own."
-                      value={executiveSummary}
-                      onChange={(e) => setExecutiveSummary(e.target.value)}
+                      value={executiveSummary[dealType] ?? ''}
+                      onChange={(e) => setExecutiveSummary((prev) => ({ ...prev, [dealType]: e.target.value }))}
                       rows={4}
                     />
                   </div>
