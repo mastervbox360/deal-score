@@ -33,7 +33,11 @@ exports.handler = async function(event) {
     };
     const items = allItems
       .slice()
-      .sort((a, b) => getRawDate(b).localeCompare(getRawDate(a)))
+      .sort((a, b) => {
+        const da = new Date(getRawDate(a)).getTime();
+        const db = new Date(getRawDate(b)).getTime();
+        return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
+      })
       .slice(0, 5);
 
     const getLdValue = (field) => {

@@ -554,7 +554,7 @@ export default function HomePage() {
         setComparablesNoResults(false);
         const newRows = sales.map(s => ({
           address: s.address,
-          bedsType: '',
+          bedsType: s.propertyType,
           dateSold: s.date
             ? new Date(s.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
             : '',
@@ -1493,7 +1493,7 @@ export default function HomePage() {
                       <p className="text-sm text-gray-500">No recent sales found for this postcode. Land Registry data may not be available for this area yet — add comparables manually.</p>
                     )}
                     <div className="border border-border rounded-lg overflow-hidden">
-                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
+                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '3fr 1fr 1fr 1fr auto' }}>
                         <span>Address</span>
                         <span>Beds / Type</span>
                         <span>Date Sold</span>
@@ -1501,7 +1501,7 @@ export default function HomePage() {
                         <span />
                       </div>
                       {comparables.map((row, i) => (
-                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
+                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '3fr 1fr 1fr 1fr auto' }}>
                           <Input
                             type="text"
                             autoComplete="new-password"
