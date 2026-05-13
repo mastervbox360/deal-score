@@ -8,7 +8,7 @@ exports.handler = async function(event) {
   const { address, strategy, purchasePrice, grossYield, cashFlow, roi, dealScore, whyThisStrategy, promptType, bmvPercent } = body;
   const prompt = promptType === "strategy"
     ? "You are a professional UK property sourcer. Write 2-3 sentences in first person explaining why the " + (strategy||"chosen") + " strategy was selected. Purchase Price: " + (purchasePrice ? "£"+Number(purchasePrice).toLocaleString("en-GB") : "Not entered") + ". Deal Score: " + (dealScore||"Incomplete") + ". Write the rationale now:"
-    : "You are a professional UK property investment analyst. Write a 3-4 sentence executive summary. Strategy: " + (strategy||"Not specified") + ". Purchase Price: " + (purchasePrice ? "£"+Number(purchasePrice).toLocaleString("en-GB") : "Not entered") + ". Gross Yield: " + (grossYield||"N/A") + ". Monthly Cash Flow: " + (cashFlow!=null ? "£"+Math.round(cashFlow) : "N/A") + ". ROI: " + (roi||"N/A") + ". Deal Score: " + (dealScore||"Incomplete") + ". Write the summary now:";
+    : "You are a professional UK property investment analyst. Write a 3-4 sentence executive summary. Strategy: " + (strategy||"Not specified") + ". Purchase Price: " + (purchasePrice ? "£"+Number(purchasePrice).toLocaleString("en-GB") : "Not entered") + ". Gross Yield: " + (grossYield||"N/A") + ". Monthly Cash Flow: " + (cashFlow!=null ? "£"+Math.round(cashFlow) : "N/A") + ". ROI: " + (roi||"N/A") + ". Deal Score: " + (dealScore||"Incomplete") + ". Do not include a heading or title. Start directly with the summary content. Write the summary now:";
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
