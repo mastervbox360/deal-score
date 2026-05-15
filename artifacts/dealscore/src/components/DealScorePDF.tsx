@@ -788,7 +788,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Monthly Profit', fc(props.r2rResults.monthlyProfit), true],
       ['Annual Profit', fc(props.r2rResults.annualProfit)],
       ['Setup Costs', fc(props.r2rInputs.setupCosts)],
-      ['Gross Return on Setup', fp(props.r2rResults.grossYield)],
+      ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
       ['Net Return on Setup Costs', fp(props.r2rResults.roi), true],
     ];
     return [

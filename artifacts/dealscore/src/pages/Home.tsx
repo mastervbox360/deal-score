@@ -1957,7 +1957,7 @@ export default function HomePage() {
                     <div className="space-y-3">
                       <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} tooltip={TT.r2rMgmtFees} />
                       <Row label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} tooltip={TT.setupCosts} />
-                      <Row label="Gross Return on Setup" value={formatPercent(r2rResults.grossYield)} tooltip={TT.r2rGrossReturn} />
+                      <Row label="Monthly Spread" value={formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)} tooltip={TT.r2rMonthlySpread} />
                       <Row label="Net Return on Setup Costs" value={formatPercent(r2rResults.roi)} isBold tooltip={TT.r2rNetReturn} />
                     </div>
                   </div>
@@ -2729,6 +2729,7 @@ const TT = {
   r2rMonthlyProfit: { text: 'What you actually keep each month — net income minus rent paid to landlord minus monthly running costs. This is the key R2R metric.', formula: 'Net Income − Rent to Landlord − Running Costs' },
   r2rAnnualProfit: { text: 'Monthly profit multiplied by 12. Your total annual earnings from this R2R deal.', formula: 'Monthly Profit × 12' },
   r2rGrossReturn: { text: 'Annual gross income as a percentage of your setup costs. Shows the raw income power of the deal relative to your upfront investment.', formula: '(Annual Gross Income ÷ Setup Costs) × 100' },
+  r2rMonthlySpread: { text: 'Monthly Spread is the difference between gross rental income and the landlord rental payment. This is the primary income metric for Rent-to-Rent.', formula: 'Gross Monthly Income − Landlord Rent' },
   r2rNetReturn: { text: 'Annual net profit as a percentage of your setup costs. The true ROI on an R2R deal — this is what you actually earn on your invested capital.', formula: '(Annual Net Profit ÷ Setup Costs) × 100' },
   socialGrossYield: { text: 'Annual guaranteed lease income as a percentage of purchase price.', formula: '(Monthly Lease Income × 12) ÷ Purchase Price × 100' },
   socialNetYield: { text: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.', formula: '((Lease Income − Management Costs) × 12) ÷ Purchase Price × 100' },
