@@ -1,0 +1,60 @@
+Stage 6C Step 1: PDF Page 3 Gold Standard Redesign
+
+Read artifacts/dealscore/src/components/DealScorePDF.tsx in full before making any changes.
+I need to redesign the strategy analysis page (Page 3) of the PDF. This is the page that currently shows a verdict badge and a results table. Transform it into a gold standard investor-facing page.
+The new Page 3 layout, in order from top to bottom:
+
+Section heading + rule — already exists, keep as-is, do not touch
+Verdict badge — already exists, keep as-is, do not touch
+Deal Score breakdown table — add this directly beneath the verdict badge. It is a small table with 5–6 rows. Each row has three columns: Dimension name (left), Score out of 10 (centre), and a colour-coded bar or filled rectangle (right). The six dimensions and their scores are calculated as follows:
+
+Gross Yield (weight 20%): For BTL/HMO/Social — score 10 if yield ≥ 8%, score 7 if ≥ 6%, score 4 if ≥ 4%, score 1 if below. For SA — use net yield, score 10 if ≥ 15%, 7 if ≥ 10%, 4 if ≥ 7%, 1 if below. For Flip/BRRR/R2R — score 7 (not the primary metric, neutral score).
+Net Cash Flow (weight 25%): Score 10 if monthly CF ≥ £500, score 7 if ≥ £200, score 4 if ≥ £0, score 1 if negative.
+Capital Growth Potential (weight 20%): Use existing capitalGrowthRating input if available (1–10 slider). If not present, default to 5.
+Tenant Demand (weight 15%): Use existing tenantDemandRating input if available (1–10 slider). If not present, default to 5.
+Deal Structure (weight 10%): For BTL/HMO/Social — score 10 if deposit ≤ 20%, score 7 if ≤ 25%, score 4 if ≤ 30%, score 1 if above. For BRRR — score 10 if cashLeftIn ≤ £5k, 7 if ≤ £10k, 4 if ≤ £25k, 1 if above. For Flip — score 10 if ROI ≥ 15%, 7 if ≥ 12%, 4 if ≥ 8%, 1 if below. For R2R/SA — score 7 (neutral).
+Risk Profile (weight 10%): Score 10 if verdict is Recommended, score 5 if Conditional, score 2 if Not Recommended.
+
+Overall score = weighted average of all six dimensions, rounded to one decimal place. Display as e.g. 7.4 / 10 in bold beneath the table.
+Colour-coded bar: green (#22C55E) if score ≥ 7, amber (#F59E0B) if ≥ 4, red (#EF4444) if below 4. Bar is a filled rectangle, width proportional to score (score/10 × max bar width). Bar sits inside a light grey (#F3F4F6) background track of fixed max width. No brand colour used anywhere in this table.
+Table styling: white background, light grey outer border (#E5E7EB), light grey row dividers, small padding. Dimension name in dark navy, score in dark navy bold, bar in right column.
+Verdict summary sentence — one sentence directly beneath the Deal Score breakdown table. Generated from data, not AI. Logic:
+
+Recommended: "This deal scores Recommended based on a [gross/net] yield of X%, [positive/strong] monthly cash flow of £X, and a cash-on-cash ROI of X% — all above threshold for [Strategy Name]."
+Conditional: "This deal scores Conditional — [the primary metric e.g. yield] meets threshold at X%, though [the weakest metric] of £X/X% is below the benchmark for [Strategy Name]."
+Not Recommended: "This deal scores Not Recommended — [key metric] of X% and monthly cash flow of £X fall below the minimum thresholds for [Strategy Name]."
+
+Use the correct metric names per strategy. For Flip, use Profit and ROI instead of yield and CF. For R2R, use Monthly Profit and Monthly Spread. Text colour: dark navy. Font size: 10pt. No brand colour on the text.
+3 Key metric callout cards — a row of 3 cards displayed horizontally above the full results table. Strategy-specific metrics:
+
+BTL: Gross Yield / Monthly Cash Flow / Cash-on-Cash ROI
+HMO: Gross Yield / Monthly Cash Flow / Mortgage Amount
+Flip: Net Profit / ROI / Net Margin
+SA: Net Yield / Monthly Cash Flow / Occupancy Rate
+BRRR: Cash Left In / Monthly Cash Flow / Refinance Amount
+R2R: Monthly Profit / Monthly Spread / Setup Costs
+Social: Cash-on-Cash ROI / Monthly Cash Flow / Gross Yield
+
+Card styling: white background, 1.5pt border in brandColour, 8px border radius, generous internal padding. Label: small grey text (#6B7280), 8pt, above the value. Value: dark navy (#1E2B3C), 16pt bold — not brand colour, not accent colour. Unit (£, %, /mo) displayed as part of the value string. Cards are equal width, spaced evenly in a row. No brand colour on value text.
+Full results table — keep exactly as-is, no changes. Sits below the callout cards.
+"What This Means" section — add below the results table. Subheading: "What This Means" in brand colour, 10pt bold. Followed by 2–3 sentences generated from the numbers. Logic:
+For BTL: "At a [deposit]% deposit on a £[purchasePrice] purchase, total cash invested is £[cashInvested]. The [interest-only/repayment] mortgage at [rate]% produces a monthly payment of £[monthlyMortgage], leaving £[monthlyCF] net cash flow after expenses. Gross yield of [yield]% [exceeds/falls short of] the 6% benchmark for this market."
+Adapt the sentence structure for each strategy using its own key inputs and outputs. Keep it factual and plain English. Dark navy text, 9pt. No brand colour on text.
+
+What NOT to touch:
+
+Page 1 (cover) — do not touch
+Page 2 (executive summary + property details) — do not touch
+Page 4 (deal rationale) — do not touch
+Page 5 (market evidence) — do not touch
+Page 6+ (photos, legal) — do not touch
+The existing results table on Page 3 — do not modify its data, layout, or styling
+The existing verdict badge component — do not modify
+The section heading and rule — do not modify
+Any other component outside DealScorePDF.tsx
+Do not touch Home.tsx, generate-summary.cjs, or any other file unless absolutely required for a type import
+
+After making changes:
+
+Run npx tsc --noEmit and confirm zero TypeScript errors
+Tell me exactly which parts of DealScorePDF.tsx were changed and what was added

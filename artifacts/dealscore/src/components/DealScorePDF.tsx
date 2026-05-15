@@ -72,6 +72,8 @@ export interface DealScorePDFProps {
   socialResults: SocialResults;
   currentScore: DealScore;
   riskFlags: string[];
+  capitalGrowthRating?: number;
+  tenantDemandRating?: number;
   accentColour: string;
   companyName: string;
   executiveSummary: string;
@@ -227,6 +229,210 @@ function formatComparables(text: string): string {
 
 type RowData = [string, string, boolean?];
 
+// ── Page 3 helpers ───────────────────────────────────────────────────────────
+
+interface ScoreDimension { name: string; score: number; weight: number; }
+
+function computeDealScoreBreakdown(props: DealScorePDFProps): { dims: ScoreDimension[]; overall: number } {
+  const dt = props.dealType;
+
+  let yieldScore: number;
+  if (dt === 'SA') {
+    const ny = props.saResults.netYield;
+    yieldScore = ny >= 15 ? 10 : ny >= 10 ? 7 : ny >= 7 ? 4 : 1;
+  } else if (dt === 'FLIP' || dt === 'BRRR' || dt === 'R2R') {
+    yieldScore = 7;
+  } else {
+    const gy = dt === 'BTL' ? props.btlResults.grossYield
+             : dt === 'HMO' ? props.hmoResults.grossYield
+             : props.socialResults.grossYield;
+    yieldScore = gy >= 8 ? 10 : gy >= 6 ? 7 : gy >= 4 ? 4 : 1;
+  }
+
+  let cf: number;
+  if (dt === 'BTL') cf = props.btlResults.monthlyCashFlow;
+  else if (dt === 'HMO') cf = props.hmoResults.monthlyCashFlow;
+  else if (dt === 'FLIP') cf = props.flipResults.profitPerMonth;
+  else if (dt === 'SA') cf = props.saResults.monthlyCashFlow;
+  else if (dt === 'BRRR') cf = props.brrrResults.monthlyCashFlow;
+  else if (dt === 'R2R') cf = props.r2rResults.monthlyProfit;
+  else cf = props.socialResults.monthlyCashFlow;
+  const cfScore = cf >= 500 ? 10 : cf >= 200 ? 7 : cf >= 0 ? 4 : 1;
+
+  const cgScore = Math.min(10, Math.max(1, props.capitalGrowthRating ?? 5));
+  const tdScore = Math.min(10, Math.max(1, props.tenantDemandRating ?? 5));
+
+  let dsScore: number;
+  if (dt === 'BTL' || dt === 'HMO' || dt === 'SOCIAL') {
+    const dep = props.depositPercent;
+    dsScore = dep <= 20 ? 10 : dep <= 25 ? 7 : dep <= 30 ? 4 : 1;
+  } else if (dt === 'BRRR') {
+    const cli = props.brrrResults.cashLeftInDeal;
+    dsScore = cli <= 5000 ? 10 : cli <= 10000 ? 7 : cli <= 25000 ? 4 : 1;
+  } else if (dt === 'FLIP') {
+    const roi = props.flipResults.roi;
+    dsScore = roi >= 15 ? 10 : roi >= 12 ? 7 : roi >= 8 ? 4 : 1;
+  } else {
+    dsScore = 7;
+  }
+
+  const rpScore = props.currentScore === 'Strong' ? 10 : props.currentScore === 'Average' ? 5 : 2;
+
+  const dims: ScoreDimension[] = [
+    { name: 'Gross Yield', score: yieldScore, weight: 0.20 },
+    { name: 'Net Cash Flow', score: cfScore, weight: 0.25 },
+    { name: 'Capital Growth Potential', score: cgScore, weight: 0.20 },
+    { name: 'Tenant Demand', score: tdScore, weight: 0.15 },
+    { name: 'Deal Structure', score: dsScore, weight: 0.10 },
+    { name: 'Risk Profile', score: rpScore, weight: 0.10 },
+  ];
+  const overall = dims.reduce((sum, d) => sum + d.score * d.weight, 0);
+  return { dims, overall };
+}
+
+function generateVerdictSummary(props: DealScorePDFProps): string {
+  const dt = props.dealType;
+  if (props.currentScore === 'Incomplete') return '';
+  const vl = VERDICT_LABELS[props.currentScore] ?? '';
+  const sn = DEAL_LABELS[dt].replace(' Analysis', '');
+
+  if (dt === 'FLIP') {
+    const r = props.flipResults;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} based on a net profit of ${fc(r.netProfit)}, ROI of ${fp(r.roi)}, and annualised ROI of ${fp(r.annualisedROI)} — all above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — net profit of ${fc(r.netProfit)} is achievable, though ROI of ${fp(r.roi)} is below the 12% benchmark for ${sn}.`;
+    return `This deal scores ${vl} — net profit of ${fc(r.netProfit)} and ROI of ${fp(r.roi)} fall below the minimum thresholds for ${sn}.`;
+  }
+  if (dt === 'R2R') {
+    const r = props.r2rResults;
+    const spread = r.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} based on monthly profit of ${fc(r.monthlyProfit)} and monthly spread of ${fc(spread)} — above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — monthly spread of ${fc(spread)} is positive, though monthly profit of ${fc(r.monthlyProfit)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — monthly profit of ${fc(r.monthlyProfit)} falls below the minimum thresholds for ${sn}.`;
+  }
+  if (dt === 'SA') {
+    const r = props.saResults;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} based on a net yield of ${fp(r.netYield)}, strong monthly cash flow of ${fc(r.monthlyCashFlow)}, and ${props.saInputs.occupancyPercent}% occupancy — all above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — net yield of ${fp(r.netYield)} meets threshold, though monthly cash flow of ${fc(r.monthlyCashFlow)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — net yield of ${fp(r.netYield)} and monthly cash flow of ${fc(r.monthlyCashFlow)} fall below the minimum thresholds for ${sn}.`;
+  }
+  if (dt === 'BRRR') {
+    const r = props.brrrResults;
+    const moneyOut = r.moneyOut && props.purchasePrice > 0;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} — ${moneyOut ? 'money out on refinance' : `cash left in of ${fc(r.cashLeftInDeal)}`}, monthly cash flow of ${fc(r.monthlyCashFlow)}, and equity of ${fc(r.equityCreated)} created — all above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — refinance recovers most capital, though monthly cash flow of ${fc(r.monthlyCashFlow)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — cash left in deal and monthly cash flow of ${fc(r.monthlyCashFlow)} fall below the minimum thresholds for ${sn}.`;
+  }
+  const r = dt === 'BTL' ? props.btlResults : dt === 'HMO' ? props.hmoResults : props.socialResults;
+  const gy = r.grossYield; const cf2 = r.monthlyCashFlow; const roi = r.cashOnCashROI;
+  if (props.currentScore === 'Strong') {
+    const cfWord = cf2 >= 500 ? 'strong' : 'positive';
+    return `This deal scores ${vl} based on a gross yield of ${fp(gy)}, ${cfWord} monthly cash flow of ${fc(cf2)}, and a cash-on-cash ROI of ${fp(roi)} — all above threshold for ${sn}.`;
+  }
+  if (props.currentScore === 'Average') {
+    if (gy >= 6) return `This deal scores ${vl} — gross yield meets threshold at ${fp(gy)}, though monthly cash flow of ${fc(cf2)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — monthly cash flow of ${fc(cf2)} is achievable, though gross yield of ${fp(gy)} falls below the 6% benchmark for ${sn}.`;
+  }
+  return `This deal scores ${vl} — gross yield of ${fp(gy)} and monthly cash flow of ${fc(cf2)} fall below the minimum thresholds for ${sn}.`;
+}
+
+function computeCalloutMetrics(props: DealScorePDFProps): { label: string; value: string }[] {
+  const dt = props.dealType;
+  if (dt === 'BTL') return [
+    { label: 'Gross Yield', value: fp(props.btlResults.grossYield) },
+    { label: 'Monthly Cash Flow', value: fc(props.btlResults.monthlyCashFlow) },
+    { label: 'Cash-on-Cash ROI', value: fp(props.btlResults.cashOnCashROI) },
+  ];
+  if (dt === 'HMO') return [
+    { label: 'Gross Yield', value: fp(props.hmoResults.grossYield) },
+    { label: 'Monthly Cash Flow', value: fc(props.hmoResults.monthlyCashFlow) },
+    { label: 'Mortgage Amount', value: fc(props.hmoResults.mortgageAmount) },
+  ];
+  if (dt === 'FLIP') {
+    const margin = props.flipInputs.expectedSalePrice > 0
+      ? props.flipResults.netProfit / props.flipInputs.expectedSalePrice * 100 : 0;
+    return [
+      { label: 'Net Profit', value: fc(props.flipResults.netProfit) },
+      { label: 'ROI', value: fp(props.flipResults.roi) },
+      { label: 'Net Margin', value: fp(margin) },
+    ];
+  }
+  if (dt === 'SA') return [
+    { label: 'Net Yield', value: fp(props.saResults.netYield) },
+    { label: 'Monthly Cash Flow', value: fc(props.saResults.monthlyCashFlow) },
+    { label: 'Occupancy Rate', value: `${props.saInputs.occupancyPercent.toFixed(0)}%` },
+  ];
+  if (dt === 'BRRR') return [
+    { label: 'Cash Left In', value: (props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal) },
+    { label: 'Monthly Cash Flow', value: fc(props.brrrResults.monthlyCashFlow) },
+    { label: 'Refinance Amount', value: fc(props.brrrResults.refinanceLoan) },
+  ];
+  if (dt === 'R2R') {
+    const spread = props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
+    return [
+      { label: 'Monthly Profit', value: fc(props.r2rResults.monthlyProfit) },
+      { label: 'Monthly Spread', value: fc(spread) },
+      { label: 'Setup Costs', value: fc(props.r2rInputs.setupCosts) },
+    ];
+  }
+  return [
+    { label: 'Cash-on-Cash ROI', value: fp(props.socialResults.cashOnCashROI) },
+    { label: 'Monthly Cash Flow', value: fc(props.socialResults.monthlyCashFlow) },
+    { label: 'Gross Yield', value: fp(props.socialResults.grossYield) },
+  ];
+}
+
+function generateWhatThisMeans(props: DealScorePDFProps): string {
+  const dt = props.dealType;
+  if (dt === 'BTL') {
+    const r = props.btlResults;
+    const monthlyMortgage = Math.max(0, props.btlInputs.monthlyRent - r.monthlyCashFlow - props.btlInputs.monthlyExpenses);
+    const mortgageTypeStr = props.mortgageType === 'IO' ? 'interest-only' : 'repayment';
+    const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. The ${mortgageTypeStr} mortgage at ${props.mortgageRate}% produces a monthly payment of ${fc(monthlyMortgage)}, leaving ${fc(r.monthlyCashFlow)} net cash flow after expenses. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for this market.`;
+  }
+  if (dt === 'HMO') {
+    const r = props.hmoResults;
+    const yieldVs = r.grossYield >= 8 ? 'exceeds' : 'falls short of';
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, ${props.hmoInputs.rooms} rooms at ${fc(props.hmoInputs.rentPerRoom)}/mo generate gross monthly income of ${fc(r.grossMonthlyRent)} at ${props.hmoInputs.occupancyRate}% occupancy. After mortgage and expenses, net cash flow is ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 8% benchmark typically required for HMO.`;
+  }
+  if (dt === 'FLIP') {
+    const r = props.flipResults;
+    const roiVs = r.roi >= 12 ? 'exceeds' : 'falls short of';
+    return `Total project cost of ${fc(r.totalCost)} against a sale price of ${fc(props.flipInputs.expectedSalePrice)} produces a net profit of ${fc(r.netProfit)} over ${props.flipInputs.projectLengthMonths} months. ROI of ${fp(r.roi)} ${roiVs} the 12% minimum threshold. Annualised ROI of ${fp(r.annualisedROI)}.`;
+  }
+  if (dt === 'SA') {
+    const r = props.saResults;
+    const yieldVs = r.netYield >= 10 ? 'exceeds' : 'falls short of';
+    return `At ${props.saInputs.occupancyPercent}% occupancy and ${fc(props.saInputs.nightlyRate)}/night, gross monthly revenue is ${fc(r.grossMonthlyRevenue)}. After platform fees and running costs, net monthly cash flow is ${fc(r.monthlyCashFlow)}. Net yield of ${fp(r.netYield)} ${yieldVs} the 10% benchmark for serviced accommodation.`;
+  }
+  if (dt === 'BRRR') {
+    const r = props.brrrResults;
+    const moneyOut = r.moneyOut && props.purchasePrice > 0;
+    const cashStr = moneyOut
+      ? `This deal is money out — all capital returned plus ${fc(Math.abs(r.cashLeftInDeal))} surplus.`
+      : `Cash left in deal is ${fc(r.cashLeftInDeal)}.`;
+    return `Total cash in is ${fc(r.totalCostIn)}, refinanced at ${props.brrrInputs.refinancePercent}% of GDV (${fc(props.brrrInputs.postRefurbValue)}), releasing ${fc(r.refinanceLoan)}. ${cashStr} Monthly cash flow after the refinance mortgage is ${fc(r.monthlyCashFlow)}.`;
+  }
+  if (dt === 'R2R') {
+    const r = props.r2rResults;
+    const spread = r.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
+    const paybackMonths = r.monthlyProfit > 0 ? Math.ceil(props.r2rInputs.setupCosts / r.monthlyProfit) : 0;
+    const paybackStr = paybackMonths > 0 ? `${paybackMonths} months` : 'not applicable at current profit';
+    return `Monthly rent to landlord of ${fc(props.r2rInputs.monthlyRentPaid)}, sub-let for ${fc(r.grossMonthlyIncome)}, generating a monthly spread of ${fc(spread)}. After management fees and running costs, monthly profit is ${fc(r.monthlyProfit)}. Setup costs of ${fc(props.r2rInputs.setupCosts)} recover in ${paybackStr}.`;
+  }
+  const r = props.socialResults;
+  const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+  return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy.`;
+}
+
 const base = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
@@ -282,6 +488,14 @@ const base = StyleSheet.create({
   footerLeft: { flex: 1, fontSize: 7.5, color: '#9ca3af', fontFamily: 'Helvetica' },
   footerCentre: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', textAlign: 'center' },
   footerRight: { flex: 1, fontSize: 7.5, color: '#9ca3af', fontFamily: 'Helvetica', textAlign: 'right' },
+  calloutCard: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 10,
+  },
+  calloutLabel: { fontSize: 8, color: '#6B7280', marginBottom: 4 },
+  calloutValue: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' },
 });
 
 export default function DealScorePDF(props: DealScorePDFProps) {
@@ -588,6 +802,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ...bmvRows,
     ];
   })();
+
+  const { dims: dealScoreDims, overall: dealScoreOverall } = computeDealScoreBreakdown(props);
+  const verdictSummary = generateVerdictSummary(props);
+  const calloutMetrics3 = computeCalloutMetrics(props);
+  const whatThisMeans = generateWhatThisMeans(props);
 
   const execSummaryText = props.executiveSummary.trim();
   const strategyNotesText = props.strategyNotes.trim();
@@ -927,9 +1146,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
         <SH title={DEAL_LABELS[props.dealType]} />
 
+        {/* Verdict badge — unchanged */}
         {props.currentScore !== 'Incomplete' && (
           <View style={{
-            marginBottom: 12,
+            marginBottom: 10,
             borderLeftWidth: 4,
             borderLeftColor: scoreColor,
             borderLeftStyle: 'solid',
@@ -943,8 +1163,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
+        {/* Risk flags — unchanged */}
         {props.riskFlags.length > 0 && (
-          <View style={{ marginBottom: 10 }}>
+          <View style={{ marginBottom: 8 }}>
             {props.riskFlags.map((flag, i) => (
               <View key={i} style={base.riskFlag}>
                 <Text style={base.riskFlagText}>
@@ -955,7 +1176,62 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
+        {/* Deal Score Breakdown Table */}
+        {props.currentScore !== 'Incomplete' && (
+          <View style={{ marginBottom: 8, borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
+            {/* Header */}
+            <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderBottom: '0.5pt solid #E5E7EB' }}>
+              <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#6B7280' }}>DIMENSION</Text>
+              <Text style={{ width: 50, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#6B7280', textAlign: 'center' }}>SCORE</Text>
+              <Text style={{ width: 90, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#6B7280' }}></Text>
+            </View>
+            {/* Dimension rows */}
+            {dealScoreDims.map((dim, i) => {
+              const barColor = dim.score >= 7 ? '#22C55E' : dim.score >= 4 ? '#F59E0B' : '#EF4444';
+              const barFill = (dim.score / 10) * 90;
+              return (
+                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#F9FAFB', borderBottom: i < dealScoreDims.length - 1 ? '0.5pt solid #E5E7EB' : undefined }}>
+                  <Text style={{ flex: 1, fontSize: 8.5, color: '#1E2B3C' }}>{dim.name}</Text>
+                  <Text style={{ width: 50, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center' }}>{dim.score} / 10</Text>
+                  <View style={{ width: 90, height: 7, backgroundColor: '#F3F4F6', borderRadius: 2 }}>
+                    <View style={{ width: barFill, height: 7, backgroundColor: barColor, borderRadius: 2 }} />
+                  </View>
+                </View>
+              );
+            })}
+            {/* Overall score */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 8, backgroundColor: '#F0F4FF', borderTop: '0.5pt solid #E5E7EB' }}>
+              <Text style={{ flex: 1, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>Overall Deal Score</Text>
+              <Text style={{ width: 140, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{dealScoreOverall.toFixed(1)} / 10</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Verdict summary sentence */}
+        {verdictSummary ? (
+          <Text style={{ fontSize: 9.5, color: '#1E2B3C', marginBottom: 10, lineHeight: 1.45 }}>{verdictSummary}</Text>
+        ) : null}
+
+        {/* 3 Key metric callout cards */}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+          {calloutMetrics3.map(({ label, value }) => (
+            <View key={label} style={[base.calloutCard, { borderWidth: 1.5, borderStyle: 'solid', borderColor: brand }]}>
+              <Text style={base.calloutLabel}>{label}</Text>
+              <Text style={base.calloutValue}>{value}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Full results table — unchanged */}
         <Table rows={resultsRows} />
+
+        {/* What This Means */}
+        {whatThisMeans ? (
+          <View style={{ marginTop: 8 }}>
+            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 5 }}>What This Means</Text>
+            <Text style={{ fontSize: 9, color: '#1E2B3C', lineHeight: 1.5 }}>{whatThisMeans}</Text>
+          </View>
+        ) : null}
       </Page>
 
       {/* ── Page 4: Deal Rationale ─────────────────────────────────────────── */}
