@@ -1,3 +1,4 @@
+// SINGLE SOURCE OF TRUTH — deployed Netlify Function. generate-summary.ts at ./netlify/functions/ has been deleted.
 exports.handler = async function(event) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
