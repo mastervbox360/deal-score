@@ -824,7 +824,9 @@ export default function HomePage() {
     return {
       dealType,
       dateStr,
-      propertyAddress,
+      propertyAddress: propertyAddress
+        ? propertyAddress.charAt(0).toUpperCase() + propertyAddress.slice(1)
+        : propertyAddress,
       propertyType,
       tenure,
       leaseLengthYears,
