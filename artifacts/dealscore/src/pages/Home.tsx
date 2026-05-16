@@ -1961,7 +1961,7 @@ export default function HomePage() {
                 )}
               </div>
               
-              <div className="bg-card text-card-foreground p-6 rounded-t-3xl">
+              <div className="px-6 pb-4">
                 {dealType === 'BTL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
