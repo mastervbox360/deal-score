@@ -1057,7 +1057,7 @@ export default function HomePage() {
     <>
     <div className="min-h-screen pb-20" style={{ backgroundColor: '#F5F7FA' }}>
       <header className="text-primary-foreground py-6 shadow-md sticky top-0 z-50" style={{ backgroundColor: '#1B3A6B' }}>
-        <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">DealScore</h1>
@@ -1117,10 +1117,10 @@ export default function HomePage() {
         </div>
       </div>
 
-      <main className="container max-w-5xl mx-auto px-4 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <main className="max-w-[860px] mx-auto px-4 sm:px-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 items-start">
           {/* Inputs Panel */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-6">
             <Card className="border-0 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center" style={{ borderLeft: '4px solid #1B3A6B' }}>
                 <h2 className="font-semibold text-lg flex items-center gap-2">
@@ -1834,7 +1834,7 @@ export default function HomePage() {
           </div>
 
           {/* Results Panel */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 lg:sticky lg:top-[196px]">
             <Card className="bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <div className="p-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="flex items-center justify-center gap-1">
