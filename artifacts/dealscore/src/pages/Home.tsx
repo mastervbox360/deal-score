@@ -634,6 +634,8 @@ export default function HomePage() {
     dealType === 'R2R' ? r2rResults.score :
     socialResults.score;
 
+  const hasAnalysed = currentScore !== 'Incomplete';
+
   const handleGenerateSummary = async () => {
     setAiGenerating(true);
     try {
@@ -1061,10 +1063,10 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div className="sticky top-[80px] z-40 bg-white border-b border-border shadow-sm">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2">
+      <div className="sticky top-[72px] z-40 bg-white border-b border-border shadow-sm">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-start">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full">
+            <TabsList className="flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full justify-start">
               <TabsTrigger value="BTL" title="Buy-to-Let" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Home className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BTL</span><InfoIcon id="tab-btl" text={TT.tabBtl} />
               </TabsTrigger>
@@ -1088,6 +1090,27 @@ export default function HomePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
+      </div>
+
+      {/* Sticky Deal Score Bar */}
+      <div className="sticky top-[120px] z-30 bg-white border-b border-border shadow-sm">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4 min-h-[40px]">
+          {hasAnalysed ? (
+            <>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deal Score</span>
+                <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>{dealLabel}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {renderScoreBadge(currentScore)}
+              </div>
+            </>
+          ) : (
+            <div className="w-full text-center">
+              <span className="text-xs text-muted-foreground">Analyse a deal to see your score</span>
+            </div>
+          )}
         </div>
       </div>
 

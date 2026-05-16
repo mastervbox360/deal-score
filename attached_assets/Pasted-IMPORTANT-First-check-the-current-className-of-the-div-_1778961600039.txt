@@ -1,0 +1,91 @@
+IMPORTANT: First check the current className of the div wrapping the Tabs component 
+
+(the one placed directly after </header>). Read it back to me before making any changes, 
+
+then confirm whether it contains the word "sticky".
+
+Read Home.tsx in full before making any changes. Then plan all edits explicitly. Then execute.
+
+TASK 1 — Fix pill tab bar stickiness:
+
+Find the sticky div wrapping the Tabs component (className contains "sticky top-[80px] z-40").
+
+Change top-[80px] to top-[72px].
+
+Also ensure the inner wrapper div has: className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-start"
+
+Change the TabsList className to also include: justify-start
+
+So pills are left-aligned within the container, not centred.
+
+TASK 2 — Add sticky Deal Score bar (layer 3, below pills):
+
+Add the following JSX directly after the closing </div> of the sticky pill tabs wrapper:
+
+{/* Sticky Deal Score Bar */}
+
+<div className="sticky top-[120px] z-30 bg-white border-b border-border shadow-sm">
+
+  <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4 min-h-[40px]">
+
+    {hasAnalysed ? (
+
+      <>
+
+        <div className="flex items-center gap-3">
+
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deal Score</span>
+
+          <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>{currentStrategyLabel}</span>
+
+        </div>
+
+        <div className="flex items-center gap-3">
+
+          {renderVerdictBadge(currentScore)}
+
+        </div>
+
+      </>
+
+    ) : (
+
+      <div className="w-full text-center">
+
+        <span className="text-xs text-muted-foreground">Analyse a deal to see your score</span>
+
+      </div>
+
+    )}
+
+  </div>
+
+</div>
+
+TASK 3 — Add hasAnalysed state:
+
+Add this state declaration near the top of the component with the other useState declarations:
+
+const [hasAnalysed, setHasAnalysed] = useState(false);
+
+Find the handleCalculate function (or equivalent function triggered by the Calculate button).
+
+At the very first line inside that function body, add:
+
+setHasAnalysed(true);
+
+Use existing variables: currentScore, currentStrategyLabel, renderVerdictBadge — do not redefine them.
+
+DO NOT change:
+
+- Any calculation logic beyond adding setHasAnalysed(true)
+
+- The header element
+
+- The pill tab labels, values, icons, or InfoIcon components
+
+- Anything inside <main>
+
+- DealScorePDF or any other file
+
+Confirm what you changed at the end.
