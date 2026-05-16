@@ -92,7 +92,6 @@ export interface DealScorePDFProps {
     rateUpCashFlow: number;
     rateUpCoC: number;
   };
-  includeWorkings?: boolean;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -1272,98 +1271,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
           </View>
         )}
-
-        {/* Calculation Workings */}
-        {props.includeWorkings && (() => {
-          const dep = props.purchasePrice * (props.depositPercent / 100);
-          type WRow = { label: string; formula: string; result: string };
-          let rows: WRow[] = [];
-          if (props.dealType === 'BTL') {
-            const annualRent = props.btlInputs.monthlyRent * 12;
-            rows = [
-              { label: 'Annual Rent', formula: `${fc(props.btlInputs.monthlyRent)} \u00d7 12`, result: fc(annualRent) },
-              { label: 'Gross Yield', formula: `(${fc(annualRent)} / ${fc(props.purchasePrice)}) \u00d7 100`, result: fp(props.btlResults.grossYield) },
-              { label: 'Monthly Cash Flow', formula: `${fc(props.btlInputs.monthlyRent)} \u2212 ${fc(props.btlInputs.monthlyExpenses)} \u2212 ${fc(props.btlResults.monthlyMortgageInterest)}`, result: fc(props.btlResults.monthlyCashFlow) },
-              { label: 'Cash Invested', formula: `${fc(dep)} + ${fc(props.effectiveTax)} + ${fc(props.refurbCost)} + ${fc(props.otherCosts)}`, result: fc(props.btlResults.totalCashInvested) },
-              { label: 'Cash-on-Cash ROI', formula: `(${fc(props.btlResults.annualCashFlow)} / ${fc(props.btlResults.totalCashInvested)}) \u00d7 100`, result: isFinite(props.btlResults.cashOnCashROI) ? fp(props.btlResults.cashOnCashROI) : '\u221e' },
-            ];
-          } else if (props.dealType === 'HMO') {
-            const annualRoomIncome = props.hmoResults.grossMonthlyRent * 12;
-            rows = [
-              { label: 'Total Room Income', formula: `${fc(props.hmoInputs.rentPerRoom)} \u00d7 ${props.hmoInputs.rooms} \u00d7 ${props.hmoInputs.occupancyRate}%`, result: fc(props.hmoResults.grossMonthlyRent) },
-              { label: 'Gross Yield', formula: `(${fc(annualRoomIncome)} / ${fc(props.purchasePrice)}) \u00d7 100`, result: fp(props.hmoResults.grossYield) },
-              { label: 'Monthly Cash Flow', formula: `${fc(props.hmoResults.grossMonthlyRent)} \u2212 ${fc(props.hmoInputs.monthlyExpenses)} \u2212 ${fc(props.hmoResults.monthlyMortgageInterest)}`, result: fc(props.hmoResults.monthlyCashFlow) },
-              { label: 'Cash Invested', formula: `${fc(dep)} + ${fc(props.effectiveTax)} + ${fc(props.refurbCost)} + ${fc(props.otherCosts)}`, result: fc(props.hmoResults.totalCashInvested) },
-              { label: 'Cash-on-Cash ROI', formula: `(${fc(props.hmoResults.annualCashFlow)} / ${fc(props.hmoResults.totalCashInvested)}) \u00d7 100`, result: isFinite(props.hmoResults.cashOnCashROI) ? fp(props.hmoResults.cashOnCashROI) : '\u221e' },
-            ];
-          } else if (props.dealType === 'SA') {
-            const occupiedNights = props.saInputs.occupancyPercent / 100 * (365 / 12);
-            const annualNetRevenue = (props.saResults.netMonthlyRevenue - props.saInputs.monthlyRunningCosts) * 12;
-            rows = [
-              { label: 'Monthly Revenue', formula: `${fc(props.saInputs.nightlyRate)} \u00d7 ${occupiedNights.toFixed(1)} nights`, result: fc(props.saResults.grossMonthlyRevenue) },
-              { label: 'Net Yield', formula: `(${fc(annualNetRevenue)} / ${fc(props.purchasePrice)}) \u00d7 100`, result: fp(props.saResults.netYield) },
-              { label: 'Monthly Cash Flow', formula: `${fc(props.saResults.grossMonthlyRevenue)} \u2212 ${fc(props.saInputs.monthlyRunningCosts)} \u2212 ${fc(props.saResults.monthlyMortgage)}`, result: fc(props.saResults.monthlyCashFlow) },
-              { label: 'Cash Invested', formula: `${fc(dep)} + ${fc(props.effectiveTax)} + ${fc(props.refurbCost)} + ${fc(props.otherCosts)}`, result: fc(props.saResults.totalCashInvested) },
-              { label: 'Cash-on-Cash ROI', formula: `(${fc(props.saResults.annualCashFlow)} / ${fc(props.saResults.totalCashInvested)}) \u00d7 100`, result: isFinite(props.saResults.cashOnCashROI) ? fp(props.saResults.cashOnCashROI) : '\u221e' },
-            ];
-          } else if (props.dealType === 'BRRR') {
-            const annualRent = props.brrrInputs.monthlyRent * 12;
-            rows = [
-              { label: 'Gross Yield', formula: `(${fc(annualRent)} / ${fc(props.brrrInputs.postRefurbValue)}) \u00d7 100`, result: fp(props.brrrResults.grossYield) },
-              { label: 'Refinance Amount', formula: `${fc(props.brrrInputs.postRefurbValue)} \u00d7 ${props.brrrInputs.refinancePercent}%`, result: fc(props.brrrResults.refinanceLoan) },
-              { label: 'Cash Left In Deal', formula: `${fc(props.brrrResults.totalCostIn)} \u2212 ${fc(props.brrrResults.refinanceLoan)}`, result: fc(props.brrrResults.cashLeftInDeal) },
-              { label: 'Monthly Cash Flow', formula: `${fc(props.brrrInputs.monthlyRent)} \u2212 ${fc(props.brrrInputs.monthlyExpenses)} \u2212 ${fc(props.brrrResults.monthlyMortgage)}`, result: fc(props.brrrResults.monthlyCashFlow) },
-              { label: 'Cash-on-Cash ROI', formula: `(${fc(props.brrrResults.annualCashFlow)} / ${fc(props.brrrResults.cashLeftInDeal)}) \u00d7 100`, result: props.brrrResults.moneyOut ? '\u221e' : isFinite(props.brrrResults.cashOnCashROI) ? fp(props.brrrResults.cashOnCashROI) : '\u221e' },
-            ];
-          } else if (props.dealType === 'FLIP') {
-            const holdingTotal = props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths;
-            const grossProfit = props.flipInputs.expectedSalePrice - props.flipResults.totalCost;
-            rows = [
-              { label: 'Total Costs', formula: `${fc(props.purchasePrice)} + ${fc(props.effectiveTax)} + ${fc(props.refurbCost)} + ${fc(props.otherCosts)} + ${fc(holdingTotal)}`, result: fc(props.flipResults.totalCost) },
-              { label: 'Gross Profit', formula: `${fc(props.flipInputs.expectedSalePrice)} \u2212 ${fc(props.flipResults.totalCost)}`, result: fc(grossProfit) },
-              { label: 'Net Profit', formula: `${fc(grossProfit)} \u2212 ${fc(props.flipResults.sellingCosts)}`, result: fc(props.flipResults.netProfit) },
-              { label: 'ROI', formula: `(${fc(props.flipResults.netProfit)} / ${fc(props.flipResults.totalCost)}) \u00d7 100`, result: fp(props.flipResults.roi) },
-              { label: 'Annualised ROI', formula: `${fp(props.flipResults.roi)} / ${props.flipInputs.projectLengthMonths} \u00d7 12`, result: fp(props.flipResults.annualisedROI) },
-            ];
-          } else if (props.dealType === 'R2R') {
-            const monthlySpread = props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
-            const otherMonthly = props.r2rResults.managementFees + props.r2rInputs.monthlyRunningCosts;
-            rows = [
-              { label: 'Monthly Spread', formula: `${fc(props.r2rResults.grossMonthlyIncome)} \u2212 ${fc(props.r2rInputs.monthlyRentPaid)}`, result: fc(monthlySpread) },
-              { label: 'Monthly Profit', formula: `${fc(monthlySpread)} \u2212 ${fc(otherMonthly)}`, result: fc(props.r2rResults.monthlyProfit) },
-              { label: 'Setup Costs', formula: fc(props.r2rInputs.setupCosts), result: fc(props.r2rInputs.setupCosts) },
-              { label: 'ROI', formula: `(${fc(props.r2rResults.annualProfit)} / ${fc(props.r2rInputs.setupCosts)}) \u00d7 100`, result: isFinite(props.r2rResults.roi) ? fp(props.r2rResults.roi) : '\u221e' },
-            ];
-          } else {
-            const annualLease = props.socialInputs.leaseIncomePerMonth * 12;
-            rows = [
-              { label: 'Annual Lease Income', formula: `${fc(props.socialInputs.leaseIncomePerMonth)} \u00d7 12`, result: fc(annualLease) },
-              { label: 'Gross Yield', formula: `(${fc(annualLease)} / ${fc(props.purchasePrice)}) \u00d7 100`, result: fp(props.socialResults.grossYield) },
-              { label: 'Monthly Cash Flow', formula: `${fc(props.socialInputs.leaseIncomePerMonth)} \u2212 ${fc(props.socialInputs.managementCostsPerMonth)} \u2212 ${fc(props.socialResults.monthlyMortgage)}`, result: fc(props.socialResults.monthlyCashFlow) },
-              { label: 'Cash Invested', formula: `${fc(dep)} + ${fc(props.effectiveTax)} + ${fc(props.refurbCost)} + ${fc(props.otherCosts)}`, result: fc(props.socialResults.totalCashInvested) },
-              { label: 'Cash-on-Cash ROI', formula: `(${fc(props.socialResults.annualCashFlow)} / ${fc(props.socialResults.totalCashInvested)}) \u00d7 100`, result: isFinite(props.socialResults.cashOnCashROI) ? fp(props.socialResults.cashOnCashROI) : '\u221e' },
-            ];
-          }
-          return (
-            <View style={{ marginTop: 10 }}>
-              <SH title="Calculation Workings" />
-              <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
-                <View style={{ flexDirection: 'row', backgroundColor: brand, paddingVertical: 5, paddingHorizontal: 8 }}>
-                  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>METRIC</Text>
-                  <Text style={{ flex: 2.5, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>WORKINGS</Text>
-                  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>RESULT</Text>
-                </View>
-                {rows.map((row, i) => (
-                  <View key={i} style={{ flexDirection: 'row', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
-                    <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C' }}>{row.label}</Text>
-                    <Text style={{ flex: 2.5, fontSize: 8, color: '#4B5563', fontFamily: 'Courier' }}>{row.formula}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{row.result}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          );
-        })()}
       </Page>
 
       {/* ── Page 4: Deal Rationale ─────────────────────────────────────────── */}

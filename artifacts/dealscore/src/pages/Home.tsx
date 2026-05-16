@@ -148,8 +148,6 @@ export default function HomePage() {
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
-  const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
-  const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
   const [taxOverrideActive, setTaxOverrideActive] = useState(false);
@@ -520,8 +518,6 @@ export default function HomePage() {
     setStrategyOpen(false);
     setDealNotesOpen(false);
     setStressTestOpen(false);
-    setShowWorkingsOpen(false);
-    setIncludeWorkingsInPDF(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0, monthlyExpenses: 0 });
@@ -603,81 +599,6 @@ export default function HomePage() {
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     return { monthlyCashFlow: 0, cashOnCashROI: 0 };
-  })();
-
-  const workingsRows: { label: string; formula: string; result: string }[] = (() => {
-    const dep = sharedInputs.purchasePrice * (sharedInputs.depositPercent / 100);
-    if (dealType === 'BTL') {
-      const annualRent = btlInputs.monthlyRent * 12;
-      return [
-        { label: 'Annual Rent', formula: `${formatCurrency(btlInputs.monthlyRent)} \u00d7 12`, result: formatCurrency(annualRent) },
-        { label: 'Gross Yield', formula: `(${formatCurrency(annualRent)} / ${formatCurrency(sharedInputs.purchasePrice)}) \u00d7 100`, result: formatPercent(btlResults.grossYield) },
-        { label: 'Monthly Cash Flow', formula: `${formatCurrency(btlInputs.monthlyRent)} \u2212 ${formatCurrency(btlInputs.monthlyExpenses)} \u2212 ${formatCurrency(btlResults.monthlyMortgageInterest)}`, result: formatCurrency(btlResults.monthlyCashFlow) },
-        { label: 'Cash Invested', formula: `${formatCurrency(dep)} + ${formatCurrency(effectiveTax)} + ${formatCurrency(sharedInputs.refurbCost)} + ${formatCurrency(sharedInputs.otherCosts)}`, result: formatCurrency(btlResults.totalCashInvested) },
-        { label: 'Cash-on-Cash ROI', formula: `(${formatCurrency(btlResults.annualCashFlow)} / ${formatCurrency(btlResults.totalCashInvested)}) \u00d7 100`, result: isFinite(btlResults.cashOnCashROI) ? formatPercent(btlResults.cashOnCashROI) : '\u221e' },
-      ];
-    }
-    if (dealType === 'HMO') {
-      const annualRoomIncome = hmoResults.grossMonthlyRent * 12;
-      return [
-        { label: 'Total Room Income', formula: `${formatCurrency(hmoInputs.rentPerRoom)} \u00d7 ${hmoInputs.rooms} \u00d7 ${hmoInputs.occupancyRate}%`, result: formatCurrency(hmoResults.grossMonthlyRent) },
-        { label: 'Gross Yield', formula: `(${formatCurrency(annualRoomIncome)} / ${formatCurrency(sharedInputs.purchasePrice)}) \u00d7 100`, result: formatPercent(hmoResults.grossYield) },
-        { label: 'Monthly Cash Flow', formula: `${formatCurrency(hmoResults.grossMonthlyRent)} \u2212 ${formatCurrency(hmoInputs.monthlyExpenses)} \u2212 ${formatCurrency(hmoResults.monthlyMortgageInterest)}`, result: formatCurrency(hmoResults.monthlyCashFlow) },
-        { label: 'Cash Invested', formula: `${formatCurrency(dep)} + ${formatCurrency(effectiveTax)} + ${formatCurrency(sharedInputs.refurbCost)} + ${formatCurrency(sharedInputs.otherCosts)}`, result: formatCurrency(hmoResults.totalCashInvested) },
-        { label: 'Cash-on-Cash ROI', formula: `(${formatCurrency(hmoResults.annualCashFlow)} / ${formatCurrency(hmoResults.totalCashInvested)}) \u00d7 100`, result: isFinite(hmoResults.cashOnCashROI) ? formatPercent(hmoResults.cashOnCashROI) : '\u221e' },
-      ];
-    }
-    if (dealType === 'SA') {
-      const occupiedNights = saInputs.occupancyPercent / 100 * (365 / 12);
-      const annualNetRevenue = (saResults.netMonthlyRevenue - saInputs.monthlyRunningCosts) * 12;
-      return [
-        { label: 'Monthly Revenue', formula: `${formatCurrency(saInputs.nightlyRate)} \u00d7 ${occupiedNights.toFixed(1)} nights`, result: formatCurrency(saResults.grossMonthlyRevenue) },
-        { label: 'Net Yield', formula: `(${formatCurrency(annualNetRevenue)} / ${formatCurrency(sharedInputs.purchasePrice)}) \u00d7 100`, result: formatPercent(saResults.netYield) },
-        { label: 'Monthly Cash Flow', formula: `${formatCurrency(saResults.grossMonthlyRevenue)} \u2212 ${formatCurrency(saInputs.monthlyRunningCosts)} \u2212 ${formatCurrency(saResults.monthlyMortgage)}`, result: formatCurrency(saResults.monthlyCashFlow) },
-        { label: 'Cash Invested', formula: `${formatCurrency(dep)} + ${formatCurrency(effectiveTax)} + ${formatCurrency(sharedInputs.refurbCost)} + ${formatCurrency(sharedInputs.otherCosts)}`, result: formatCurrency(saResults.totalCashInvested) },
-        { label: 'Cash-on-Cash ROI', formula: `(${formatCurrency(saResults.annualCashFlow)} / ${formatCurrency(saResults.totalCashInvested)}) \u00d7 100`, result: isFinite(saResults.cashOnCashROI) ? formatPercent(saResults.cashOnCashROI) : '\u221e' },
-      ];
-    }
-    if (dealType === 'BRRR') {
-      const annualRent = brrrInputs.monthlyRent * 12;
-      return [
-        { label: 'Gross Yield', formula: `(${formatCurrency(annualRent)} / ${formatCurrency(brrrInputs.postRefurbValue)}) \u00d7 100`, result: formatPercent(brrrResults.grossYield) },
-        { label: 'Refinance Amount', formula: `${formatCurrency(brrrInputs.postRefurbValue)} \u00d7 ${brrrInputs.refinancePercent}%`, result: formatCurrency(brrrResults.refinanceLoan) },
-        { label: 'Cash Left In Deal', formula: `${formatCurrency(brrrResults.totalCostIn)} \u2212 ${formatCurrency(brrrResults.refinanceLoan)}`, result: formatCurrency(brrrResults.cashLeftInDeal) },
-        { label: 'Monthly Cash Flow', formula: `${formatCurrency(brrrInputs.monthlyRent)} \u2212 ${formatCurrency(brrrInputs.monthlyExpenses)} \u2212 ${formatCurrency(brrrResults.monthlyMortgage)}`, result: formatCurrency(brrrResults.monthlyCashFlow) },
-        { label: 'Cash-on-Cash ROI', formula: `(${formatCurrency(brrrResults.annualCashFlow)} / ${formatCurrency(brrrResults.cashLeftInDeal)}) \u00d7 100`, result: brrrResults.moneyOut ? '\u221e' : isFinite(brrrResults.cashOnCashROI) ? formatPercent(brrrResults.cashOnCashROI) : '\u221e' },
-      ];
-    }
-    if (dealType === 'FLIP') {
-      const holdingTotal = flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths;
-      const grossProfit = flipInputs.expectedSalePrice - flipResults.totalCost;
-      return [
-        { label: 'Total Costs', formula: `${formatCurrency(sharedInputs.purchasePrice)} + ${formatCurrency(effectiveTax)} + ${formatCurrency(sharedInputs.refurbCost)} + ${formatCurrency(sharedInputs.otherCosts)} + ${formatCurrency(holdingTotal)}`, result: formatCurrency(flipResults.totalCost) },
-        { label: 'Gross Profit', formula: `${formatCurrency(flipInputs.expectedSalePrice)} \u2212 ${formatCurrency(flipResults.totalCost)}`, result: formatCurrency(grossProfit) },
-        { label: 'Net Profit', formula: `${formatCurrency(grossProfit)} \u2212 ${formatCurrency(flipResults.sellingCosts)}`, result: formatCurrency(flipResults.netProfit) },
-        { label: 'ROI', formula: `(${formatCurrency(flipResults.netProfit)} / ${formatCurrency(flipResults.totalCost)}) \u00d7 100`, result: formatPercent(flipResults.roi) },
-        { label: 'Annualised ROI', formula: `${formatPercent(flipResults.roi)} / ${flipInputs.projectLengthMonths} \u00d7 12`, result: formatPercent(flipResults.annualisedROI) },
-      ];
-    }
-    if (dealType === 'R2R') {
-      const monthlySpread = r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid;
-      const otherMonthly = r2rResults.managementFees + r2rInputs.monthlyRunningCosts;
-      return [
-        { label: 'Monthly Spread', formula: `${formatCurrency(r2rResults.grossMonthlyIncome)} \u2212 ${formatCurrency(r2rInputs.monthlyRentPaid)}`, result: formatCurrency(monthlySpread) },
-        { label: 'Monthly Profit', formula: `${formatCurrency(monthlySpread)} \u2212 ${formatCurrency(otherMonthly)}`, result: formatCurrency(r2rResults.monthlyProfit) },
-        { label: 'Setup Costs', formula: formatCurrency(r2rInputs.setupCosts), result: formatCurrency(r2rInputs.setupCosts) },
-        { label: 'ROI', formula: `(${formatCurrency(r2rResults.annualProfit)} / ${formatCurrency(r2rInputs.setupCosts)}) \u00d7 100`, result: isFinite(r2rResults.roi) ? formatPercent(r2rResults.roi) : '\u221e' },
-      ];
-    }
-    // SOCIAL
-    const annualLease = socialInputs.leaseIncomePerMonth * 12;
-    return [
-      { label: 'Annual Lease Income', formula: `${formatCurrency(socialInputs.leaseIncomePerMonth)} \u00d7 12`, result: formatCurrency(annualLease) },
-      { label: 'Gross Yield', formula: `(${formatCurrency(annualLease)} / ${formatCurrency(sharedInputs.purchasePrice)}) \u00d7 100`, result: formatPercent(socialResults.grossYield) },
-      { label: 'Monthly Cash Flow', formula: `${formatCurrency(socialInputs.leaseIncomePerMonth)} \u2212 ${formatCurrency(socialInputs.managementCostsPerMonth)} \u2212 ${formatCurrency(socialResults.monthlyMortgage)}`, result: formatCurrency(socialResults.monthlyCashFlow) },
-      { label: 'Cash Invested', formula: `${formatCurrency(dep)} + ${formatCurrency(effectiveTax)} + ${formatCurrency(sharedInputs.refurbCost)} + ${formatCurrency(sharedInputs.otherCosts)}`, result: formatCurrency(socialResults.totalCashInvested) },
-      { label: 'Cash-on-Cash ROI', formula: `(${formatCurrency(socialResults.annualCashFlow)} / ${formatCurrency(socialResults.totalCashInvested)}) \u00d7 100`, result: isFinite(socialResults.cashOnCashROI) ? formatPercent(socialResults.cashOnCashROI) : '\u221e' },
-    ];
   })();
 
   const taxLabel = TAX_LABEL[taxCountry];
@@ -1086,7 +1007,6 @@ export default function HomePage() {
         rateUpCashFlow: _stressRateUp.monthlyCashFlow,
         rateUpCoC: _stressRateUp.cashOnCashROI,
       } : undefined,
-      includeWorkings: includeWorkingsInPDF,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1097,7 +1017,7 @@ export default function HomePage() {
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
-    comparables, listingLinks, photoFiles, heroPhotoIndex, includeWorkingsInPDF,
+    comparables, listingLinks, photoFiles, heroPhotoIndex,
   ]);
 
   const VERDICT_LABELS: Record<string, string> = {
@@ -2264,48 +2184,6 @@ export default function HomePage() {
                 )}
               </div>
             )}
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => setShowWorkingsOpen((v) => !v)}
-                aria-expanded={showWorkingsOpen}
-                className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
-                data-testid="toggle-show-workings"
-              >
-                <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
-                  Show Workings
-                </span>
-                <ChevronDown
-                  className="h-4 w-4 transition-transform duration-200"
-                  style={{ color: '#1B3A6B', transform: showWorkingsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                />
-              </button>
-              {showWorkingsOpen && (
-                <div className="mt-3 rounded-xl border border-border overflow-hidden">
-                  <div className="px-4 py-2.5" style={{ backgroundColor: '#1B3A6B' }}>
-                    <span className="text-xs font-semibold uppercase tracking-widest text-white">Calculation Workings</span>
-                  </div>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-muted/50 border-b border-border">
-                        <th className="py-2 px-3 text-left text-xs font-semibold text-muted-foreground w-[28%]">Metric</th>
-                        <th className="py-2 px-3 text-left text-xs font-semibold text-muted-foreground">Workings</th>
-                        <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground whitespace-nowrap">Result</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {workingsRows.map((row, i) => (
-                        <tr key={i} className={`border-b border-border last:border-0 ${i % 2 === 1 ? 'bg-muted/30' : ''}`}>
-                          <td className="py-2 px-3 text-xs font-medium text-foreground leading-snug">{row.label}</td>
-                          <td className="py-2 px-3 text-xs text-muted-foreground font-mono leading-snug">{row.formula}</td>
-                          <td className="py-2 px-3 text-right text-xs font-semibold tabular-nums text-foreground leading-snug whitespace-nowrap">{row.result}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -2596,17 +2474,6 @@ export default function HomePage() {
 
           {/* Buttons */}
           <div className="mt-6 flex flex-col gap-3">
-            {tierOverride !== 'free' && (
-              <label className="flex items-center gap-2.5 cursor-pointer select-none" data-testid="toggle-include-workings">
-                <input
-                  type="checkbox"
-                  checked={includeWorkingsInPDF}
-                  onChange={(e) => setIncludeWorkingsInPDF(e.target.checked)}
-                  className="h-4 w-4 rounded border-border accent-[#1B3A6B] cursor-pointer"
-                />
-                <span className="text-xs text-slate-600">Include calculation workings in PDF</span>
-              </label>
-            )}
             {tierOverride !== 'free' && (
               <button
                 type="button"
