@@ -92,6 +92,7 @@ export interface DealScorePDFProps {
     rateUpCashFlow: number;
     rateUpCoC: number;
   };
+  includeWorkings?: boolean;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -551,6 +552,19 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         </View>
       ))}
     </View>
+  );
+
+  const WPdfRow = ({ lbl, val, bold, clr }: { lbl: string; val: string; bold?: boolean; clr?: string }) => (
+    <View style={bold
+      ? { flexDirection: 'row', paddingVertical: 3, borderTop: '0.5pt solid #E5E7EB', marginTop: 2 }
+      : { flexDirection: 'row', paddingVertical: 2 }
+    }>
+      <Text style={{ flex: 1.6, fontSize: 8.5, fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica', color: clr ?? (bold ? '#1B3A6B' : '#374151') }}>{lbl}</Text>
+      <Text style={{ fontSize: 8.5, fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica', color: clr ?? (bold ? '#1B3A6B' : '#1E2B3C'), textAlign: 'right' }}>{val}</Text>
+    </View>
+  );
+  const WPdfSec = ({ title }: { title: string }) => (
+    <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1B3A6B', marginTop: 7, marginBottom: 2 }}>{title}</Text>
   );
 
   // FIX 2: hero metric values use #333333, not brand colour
@@ -1269,6 +1283,143 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ))}
               </View>
             </View>
+          </View>
+        )}
+
+        {/* Calculation Workings */}
+        {props.includeWorkings && (
+          <View wrap={false} style={{ marginTop: 10 }}>
+            <SH title="Calculation Workings" />
+            {props.dealType === 'BTL' && (
+              <>
+                <WPdfSec title="A  CASH INVESTED" />
+                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
+                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
+                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
+                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
+                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.btlResults.totalCashInvested)} bold />
+                <WPdfSec title="B  MONTHLY CASH FLOW" />
+                <WPdfRow lbl="Monthly Rent" val={fc(props.btlInputs.monthlyRent)} />
+                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.btlResults.monthlyMortgageInterest)})`} />
+                <WPdfRow lbl="Less: Monthly Expenses" val={`(${fc(props.btlInputs.monthlyExpenses)})`} />
+                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.btlResults.monthlyCashFlow)} bold clr={props.btlResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl={`Gross Yield  (${fc(props.btlInputs.monthlyRent)} × 12) ÷ ${fc(props.purchasePrice)} × 100`} val={fp(props.btlResults.grossYield)} />
+                <WPdfRow lbl="Net Yield" val={fp(props.btlResults.netYield)} />
+                <WPdfRow lbl={`CoC ROI  ${fc(props.btlResults.annualCashFlow)} ÷ ${fc(props.btlResults.totalCashInvested)} × 100`} val={fp(props.btlResults.cashOnCashROI)} bold clr={readableBrand} />
+              </>
+            )}
+            {props.dealType === 'HMO' && (
+              <>
+                <WPdfSec title="A  CASH INVESTED" />
+                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
+                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
+                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
+                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
+                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.hmoResults.totalCashInvested)} bold />
+                <WPdfSec title="B  MONTHLY CASH FLOW" />
+                <WPdfRow lbl="Total Room Income" val={fc(props.hmoResults.grossMonthlyRent)} />
+                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.hmoResults.monthlyMortgageInterest)})`} />
+                <WPdfRow lbl="Less: Monthly Expenses" val={`(${fc(props.hmoInputs.monthlyExpenses)})`} />
+                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.hmoResults.monthlyCashFlow)} bold clr={props.hmoResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl={`Gross Yield  (${fc(props.hmoResults.grossMonthlyRent)} × 12) ÷ ${fc(props.purchasePrice)} × 100`} val={fp(props.hmoResults.grossYield)} />
+                <WPdfRow lbl="Net Yield" val={fp(props.hmoResults.netYield)} />
+                <WPdfRow lbl={`CoC ROI  ${fc(props.hmoResults.annualCashFlow)} ÷ ${fc(props.hmoResults.totalCashInvested)} × 100`} val={fp(props.hmoResults.cashOnCashROI)} bold clr={readableBrand} />
+              </>
+            )}
+            {props.dealType === 'FLIP' && (
+              <>
+                <WPdfSec title="A  TOTAL COSTS" />
+                <WPdfRow lbl="Purchase Price" val={fc(props.purchasePrice)} />
+                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
+                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
+                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
+                <WPdfRow lbl={`Holding Costs (${props.flipInputs.projectLengthMonths} months × ${fc(props.flipInputs.holdingCostsPerMonth)})`} val={fc(props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths)} />
+                <WPdfRow lbl="TOTAL COST IN" val={fc(props.flipResults.totalCost)} bold />
+                <WPdfSec title="B  PROFIT CALCULATION" />
+                <WPdfRow lbl="Expected Sale Price (GDV)" val={fc(props.flipInputs.expectedSalePrice)} />
+                <WPdfRow lbl="Less: Total Cost In" val={`(${fc(props.flipResults.totalCost)})`} />
+                <WPdfRow lbl={`Less: Selling Costs (${props.flipInputs.sellingCostsPercent}%)`} val={`(${fc(props.flipResults.sellingCosts)})`} />
+                <WPdfRow lbl="NET PROFIT" val={fc(props.flipResults.netProfit)} bold clr={props.flipResults.netProfit < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl={`Profit per Month  ${fc(props.flipResults.netProfit)} ÷ ${props.flipInputs.projectLengthMonths} months`} val={fc(props.flipResults.profitPerMonth)} />
+                <WPdfRow lbl={`Total ROI  ${fc(props.flipResults.netProfit)} ÷ ${fc(props.flipResults.totalCost)} × 100`} val={fp(props.flipResults.roi)} bold />
+                <WPdfRow lbl={`Annualised ROI  ${fp(props.flipResults.roi)} × 12 ÷ ${props.flipInputs.projectLengthMonths}`} val={fp(props.flipResults.annualisedROI)} bold clr={readableBrand} />
+              </>
+            )}
+            {props.dealType === 'SA' && (
+              <>
+                <WPdfSec title="A  CASH INVESTED" />
+                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
+                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
+                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
+                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
+                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.saResults.totalCashInvested)} bold />
+                <WPdfSec title="B  MONTHLY CASH FLOW" />
+                <WPdfRow lbl={`Monthly Revenue  ${fc(props.saInputs.nightlyRate)} nightly × ${props.saInputs.occupancyPercent}% occupancy`} val={fc(props.saResults.grossMonthlyRevenue)} />
+                <WPdfRow lbl="Less: Platform Fees" val={`(${fc(props.saResults.platformFees)})`} />
+                <WPdfRow lbl="Less: Monthly Running Costs" val={`(${fc(props.saInputs.monthlyRunningCosts)})`} />
+                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.saResults.monthlyMortgage)})`} />
+                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.saResults.monthlyCashFlow)} bold clr={props.saResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl="Net Yield" val={fp(props.saResults.netYield)} />
+                <WPdfRow lbl={`CoC ROI  ${fc(props.saResults.annualCashFlow)} ÷ ${fc(props.saResults.totalCashInvested)} × 100`} val={fp(props.saResults.cashOnCashROI)} bold clr={readableBrand} />
+              </>
+            )}
+            {props.dealType === 'BRRR' && (
+              <>
+                <WPdfSec title="A  CASH IN" />
+                <WPdfRow lbl="Purchase Price" val={fc(props.purchasePrice)} />
+                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
+                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
+                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
+                <WPdfRow lbl="TOTAL COST IN" val={fc(props.brrrResults.totalCostIn)} bold />
+                <WPdfSec title="B  REFINANCE" />
+                <WPdfRow lbl="Post-Refurb Value (GDV)" val={fc(props.brrrInputs.postRefurbValue)} />
+                <WPdfRow lbl="Refinance %" val={`${props.brrrInputs.refinancePercent}%`} />
+                <WPdfRow lbl="Refinance Loan" val={fc(props.brrrResults.refinanceLoan)} />
+                <WPdfRow lbl={props.brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'} val={fc(Math.abs(props.brrrResults.cashLeftInDeal))} bold clr={props.brrrResults.moneyOut ? '#22C55E' : undefined} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl="Monthly Cash Flow" val={fc(props.brrrResults.monthlyCashFlow)} clr={props.brrrResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfRow lbl="Gross Yield" val={fp(props.brrrResults.grossYield)} />
+                <WPdfRow lbl={`CoC ROI  ${fc(props.brrrResults.annualCashFlow)} ÷ ${props.brrrResults.moneyOut ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal)} × 100`} val={props.brrrResults.moneyOut ? '\u221E' : fp(props.brrrResults.cashOnCashROI)} bold clr={readableBrand} />
+              </>
+            )}
+            {props.dealType === 'R2R' && (
+              <>
+                <WPdfSec title="A  SETUP COSTS" />
+                <WPdfRow lbl="Setup Costs" val={fc(props.r2rInputs.setupCosts)} />
+                <WPdfRow lbl="TOTAL SETUP COSTS" val={fc(props.r2rInputs.setupCosts)} bold />
+                <WPdfSec title="B  MONTHLY CASH FLOW" />
+                <WPdfRow lbl="Gross Monthly Income" val={fc(props.r2rResults.grossMonthlyIncome)} />
+                <WPdfRow lbl="Less: Landlord Rent" val={`(${fc(props.r2rInputs.monthlyRentPaid)})`} />
+                <WPdfRow lbl="Monthly Spread" val={fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)} />
+                <WPdfRow lbl="Less: Management Fees" val={`(${fc(props.r2rResults.managementFees)})`} />
+                <WPdfRow lbl="Less: Running Costs" val={`(${fc(props.r2rInputs.monthlyRunningCosts)})`} />
+                <WPdfRow lbl="MONTHLY PROFIT" val={fc(props.r2rResults.monthlyProfit)} bold clr={props.r2rResults.monthlyProfit < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl={`ROI  ${fc(props.r2rResults.annualProfit)} ÷ ${fc(props.r2rInputs.setupCosts)} × 100`} val={fp(props.r2rResults.roi)} bold clr={readableBrand} />
+              </>
+            )}
+            {props.dealType === 'SOCIAL' && (
+              <>
+                <WPdfSec title="A  CASH INVESTED" />
+                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
+                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
+                {props.refurbCost > 0 ? <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} /> : null}
+                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
+                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.socialResults.totalCashInvested)} bold />
+                <WPdfSec title="B  MONTHLY CASH FLOW" />
+                <WPdfRow lbl="Monthly Lease Income" val={fc(props.socialInputs.leaseIncomePerMonth)} />
+                <WPdfRow lbl="Less: Management Costs" val={`(${fc(props.socialInputs.managementCostsPerMonth)})`} />
+                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.socialResults.monthlyMortgage)})`} />
+                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.socialResults.monthlyCashFlow)} bold clr={props.socialResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                <WPdfSec title="C  KEY METRICS" />
+                <WPdfRow lbl="Gross Yield" val={fp(props.socialResults.grossYield)} />
+                <WPdfRow lbl={`CoC ROI  ${fc(props.socialResults.annualCashFlow)} ÷ ${fc(props.socialResults.totalCashInvested)} × 100`} val={fp(props.socialResults.cashOnCashROI)} bold clr={readableBrand} />
+              </>
+            )}
           </View>
         )}
       </Page>

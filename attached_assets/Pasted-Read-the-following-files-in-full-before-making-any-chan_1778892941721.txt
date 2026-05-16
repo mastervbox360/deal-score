@@ -1,0 +1,188 @@
+Read the following files in full before making any changes:
+
+artifacts/dealscore/src/Home.tsx
+artifacts/dealscore/src/DealScorePDF.tsx
+
+Plan all edits across both files before executing anything. Then execute all changes in parallel. Confirm exactly what you changed at the end.
+
+WHAT TO BUILD
+Two things:
+
+A Show Workings collapsible panel in the app — showing a grouped, itemised breakdown of how key metrics are calculated, with named sections and individual line items
+A "Include calculation workings in PDF" checkbox in the branding panel — off by default. When checked, a matching workings section renders on PDF Page 3 after the Sensitivity Analysis block
+
+
+DEAL TYPE STRING REFERENCE
+Exact uppercase strings: 'BTL', 'HMO', 'SA', 'BRRR', 'SOCIAL', 'FLIP', 'R2R'
+
+EXISTING STATE REFERENCE
+Do not redeclare any existing state. New states to add:
+
+showWorkingsOpen — boolean, default false. Add setShowWorkingsOpen(false) to handleReset.
+includeWorkingsInPDF — boolean, default false. Add setIncludeWorkingsInPDF(false) to handleReset.
+
+Add includeWorkings: includeWorkingsInPDF to the pdfProps useMemo return object and its dependency array.
+
+PART 1 — IN-APP SHOW WORKINGS PANEL
+Position: directly below the closing )} of the {stressSupported && (...)} stress test block, before the closing </div></div> of the results column. Render for all 7 strategies.
+Toggle UI: same pattern as the Stress Test toggle — bg-slate-100 button, navy chevron, showWorkingsOpen state, uppercase tracking-widest label reading "Show Workings".
+Content when expanded: three named sections per strategy, each with itemised rows and a bold total row. Use a two-column layout: label on the left, value right-aligned. Deductions shown in brackets e.g. (£200). Bold total rows in navy #1B3A6B. Section headings in small uppercase navy bold.
+BTL and HMO sections:
+Section A — CASH INVESTED
+
+Deposit (X% of £PPP) → £DDD
+Stamp Duty / Tax → £TTT
+Refurb Cost → £RRR
+Other Costs → £OOO
+TOTAL CASH INVESTED → £CCC (bold, navy)
+
+Section B — MONTHLY CASH FLOW
+
+Monthly Rent → £MMM
+Less: Mortgage → (£MGG)
+Less: Monthly Expenses → (£EEE)
+MONTHLY CASH FLOW → £CFF (bold, navy, green if positive red if negative)
+
+Section C — KEY METRICS
+
+Gross Yield (£Rent × 12) ÷ £PP × 100 → X.X% (right-aligned, navy bold)
+Net Yield (£NetAnnual × 12) ÷ £PP × 100 → X.X%
+CoC ROI £AnnualCF ÷ £CashInvested × 100 → X.X% (brand colour bold)
+
+For HMO, label "Monthly Rent" as "Total Room Income".
+FLIP sections:
+Section A — TOTAL COSTS
+
+Purchase Price → £PPP
+Stamp Duty / Tax → £TTT
+Refurb Cost → £RRR
+Other Costs → £OOO
+Holding Costs (N months × £HHH) → £HHH_total
+TOTAL COST IN → £TTT (bold, navy)
+
+Section B — PROFIT CALCULATION
+
+Expected Sale Price (GDV) → £SSS
+Less: Total Cost In → (£TTT)
+Less: Selling Costs (X%) → (£SSS)
+NET PROFIT → £NNN (bold, navy, green/red)
+
+Section C — KEY METRICS
+
+Profit per Month £NNN ÷ N months → £PPM
+Total ROI £NNN ÷ £TTT × 100 → X.X% (navy bold)
+Annualised ROI X.X% ÷ N × 12 → X.X% (brand colour bold)
+
+SA sections:
+Section A — CASH INVESTED (same as BTL)
+Section B — MONTHLY CASH FLOW
+
+Monthly Revenue (Nightly Rate × Occupancy days) → £RRR
+Less: Platform Fees → (£FFF)
+Less: Monthly Running Costs → (£CCC)
+Less: Mortgage → (£MGG)
+MONTHLY CASH FLOW → £CFF (bold, navy, green/red)
+
+Section C — KEY METRICS
+
+Net Yield → X.X%
+CoC ROI £AnnualCF ÷ £CashInvested × 100 → X.X% (brand colour bold)
+
+BRRR sections:
+Section A — CASH INVESTED (same as BTL)
+Section B — REFINANCE
+
+Post-Refurb Value (GDV) → £GDV
+Refinance % → X%
+Refinance Loan → £RFL
+CASH LEFT IN DEAL → £CLI (bold, navy — show "Money Out" if moneyOut is true)
+
+Section C — KEY METRICS
+
+Monthly Cash Flow → £CFF (green/red)
+Gross Yield → X.X%
+CoC ROI £AnnualCF ÷ £CashLeft × 100 → X.X% (brand colour bold — show ∞ if moneyOut)
+
+R2R sections:
+Section A — SETUP COSTS
+
+Refurb Cost → £RRR
+Other / Setup Costs → £OOO
+TOTAL SETUP COSTS → £SSS (bold, navy)
+
+Section B — MONTHLY CASH FLOW
+
+Gross Monthly Income → £GGG
+Less: Landlord Rent → (£LLL)
+Monthly Spread → £SPR
+Less: Management Fees → (£MFF)
+Less: Running Costs → (£RCC)
+MONTHLY PROFIT → £PRF (bold, navy, green/red)
+
+Section C — KEY METRICS
+
+ROI £AnnualProfit ÷ £SetupCosts × 100 → X.X% (brand colour bold)
+
+SOCIAL sections:
+Section A — CASH INVESTED (same as BTL, no Refurb line if zero)
+Section B — MONTHLY CASH FLOW
+
+Monthly Lease Income → £LLL
+Less: Management Costs → (£MMM)
+Less: Mortgage → (£MGG)
+MONTHLY CASH FLOW → £CFF (bold, navy, green/red)
+
+Section C — KEY METRICS
+
+Gross Yield → X.X%
+CoC ROI £AnnualCF ÷ £CashInvested × 100 → X.X% (brand colour bold)
+
+Use these existing variables for values:
+
+sharedInputs.purchasePrice, sharedInputs.depositPercent, sharedInputs.refurbCost, sharedInputs.otherCosts, effectiveTax
+btlResults.totalCashInvested, btlResults.monthlyCashFlow, btlResults.mortgageAmount, btlResults.annualCashFlow, btlResults.grossYield, btlResults.netYield, btlResults.cashOnCashROI
+Same pattern for hmoResults, saResults, brrrResults, flipResults, r2rResults, socialResults
+brrrResults.cashLeftInDeal, brrrResults.moneyOut, brrrResults.refinanceLoan, brrrResults.monthlyMortgage
+flipResults.netProfit, flipResults.totalCost, flipResults.roi, flipResults.annualisedROI, flipResults.profitPerMonth
+r2rResults.grossMonthlyIncome, r2rResults.monthlyProfit, r2rInputs.monthlyRentPaid, r2rInputs.setupCosts
+Use formatCurrency() for £ values, formatPercent() for percentages — both already exist
+
+
+PART 2 — BRANDING PANEL CHECKBOX
+Add inside the {/* Buttons */} div, above the Preview PDF button, gated on tierOverride !== 'free':
+[ ] Include calculation workings in PDF
+Simple flex row: <input type="checkbox"> + <label> small text. Controlled by includeWorkingsInPDF state.
+
+PART 3 — PDF CALCULATION WORKINGS
+Add includeWorkings?: boolean to DealScorePDFProps interface (after the stressTest block at line ~95).
+When props.includeWorkings is true, render after the closing )} of the props.stressTest block, before </Page>:
+
+Use wrap={false} on the outer View container — prevents page splitting
+Section heading: <SH title="Calculation Workings" />
+Three subsections (A, B, C) matching the in-app structure above
+Subsection headings: small uppercase bold navy text e.g. A  CASH INVESTED
+Each line: label left, value right-aligned — two-column flexDirection: 'row'
+Bold total rows: fontFamily: 'Helvetica-Bold', colour #1B3A6B
+Deductions in brackets: (£200)
+Key metric result values in readableBrand colour (brand colour variable already used in the file)
+Font size 8.5 for rows, 7.5 for subsection headings
+Use fc() for £ values, fp() for percentages — both already defined in DealScorePDF.tsx
+All input values available via props.btlInputs, props.btlResults, props.sharedInputs etc. — same prop names as the interface
+
+
+DO NOT TOUCH
+
+Any existing formula logic or calculated outputs
+The Stress Test / Sensitivity Analysis panel and its props
+The Deal Score breakdown table, callout cards, verdict sentence, or What This Means paragraph
+The R2R Monthly Spread row
+generate-summary.cjs or any Netlify functions
+netlify.toml or package.json
+Main branch — all changes to stage-6 branch only
+
+
+AFTER BUILDING
+
+Run npx tsc --noEmit — zero TypeScript errors required
+Confirm exactly which files were changed and what was added
+Do NOT push to main. Do NOT merge branches.

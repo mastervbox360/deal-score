@@ -148,6 +148,8 @@ export default function HomePage() {
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
+  const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
+  const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
   const [taxOverrideActive, setTaxOverrideActive] = useState(false);
@@ -518,6 +520,8 @@ export default function HomePage() {
     setStrategyOpen(false);
     setDealNotesOpen(false);
     setStressTestOpen(false);
+    setShowWorkingsOpen(false);
+    setIncludeWorkingsInPDF(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0, monthlyExpenses: 0 });
@@ -1007,6 +1011,7 @@ export default function HomePage() {
         rateUpCashFlow: _stressRateUp.monthlyCashFlow,
         rateUpCoC: _stressRateUp.cashOnCashROI,
       } : undefined,
+      includeWorkings: includeWorkingsInPDF,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1018,6 +1023,7 @@ export default function HomePage() {
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
     comparables, listingLinks, photoFiles, heroPhotoIndex,
+    includeWorkingsInPDF,
   ]);
 
   const VERDICT_LABELS: Record<string, string> = {
@@ -2184,6 +2190,166 @@ export default function HomePage() {
                 )}
               </div>
             )}
+
+            {/* Show Workings Panel */}
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setShowWorkingsOpen((v) => !v)}
+                aria-expanded={showWorkingsOpen}
+                className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                data-testid="toggle-show-workings"
+              >
+                <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                  Show Workings
+                </span>
+                <ChevronDown
+                  className="h-4 w-4 transition-transform duration-200"
+                  style={{ color: '#1B3A6B', transform: showWorkingsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                />
+              </button>
+              {showWorkingsOpen && (
+                <div className="mt-3 rounded-xl border border-border p-4">
+                  {/* BTL */}
+                  {dealType === 'BTL' && (
+                    <>
+                      <WSec title="A  CASH INVESTED" />
+                      <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
+                      <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
+                      <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested)} bold />
+                      <WSec title="B  MONTHLY CASH FLOW" />
+                      <WRow label="Monthly Rent" value={formatCurrency(btlInputs.monthlyRent)} />
+                      <WRow label="Less: Mortgage" value={`(${formatCurrency(btlResults.monthlyMortgageInterest)})`} />
+                      <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(btlInputs.monthlyExpenses)})`} />
+                      <WRow label="MONTHLY CASH FLOW" value={formatCurrency(btlResults.monthlyCashFlow)} bold color={btlResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label={`Gross Yield  (${formatCurrency(btlInputs.monthlyRent)} × 12) ÷ ${formatCurrency(sharedInputs.purchasePrice)} × 100`} value={formatPercent(btlResults.grossYield)} />
+                      <WRow label="Net Yield" value={formatPercent(btlResults.netYield)} />
+                      <WRow label={`CoC ROI  ${formatCurrency(btlResults.annualCashFlow)} ÷ ${formatCurrency(btlResults.totalCashInvested)} × 100`} value={formatPercent(btlResults.cashOnCashROI)} bold color={brandColour} />
+                    </>
+                  )}
+                  {/* HMO */}
+                  {dealType === 'HMO' && (
+                    <>
+                      <WSec title="A  CASH INVESTED" />
+                      <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
+                      <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
+                      <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested)} bold />
+                      <WSec title="B  MONTHLY CASH FLOW" />
+                      <WRow label="Total Room Income" value={formatCurrency(hmoResults.grossMonthlyRent)} />
+                      <WRow label="Less: Mortgage" value={`(${formatCurrency(hmoResults.monthlyMortgageInterest)})`} />
+                      <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(hmoInputs.monthlyExpenses)})`} />
+                      <WRow label="MONTHLY CASH FLOW" value={formatCurrency(hmoResults.monthlyCashFlow)} bold color={hmoResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label={`Gross Yield  (${formatCurrency(hmoResults.grossMonthlyRent)} × 12) ÷ ${formatCurrency(sharedInputs.purchasePrice)} × 100`} value={formatPercent(hmoResults.grossYield)} />
+                      <WRow label="Net Yield" value={formatPercent(hmoResults.netYield)} />
+                      <WRow label={`CoC ROI  ${formatCurrency(hmoResults.annualCashFlow)} ÷ ${formatCurrency(hmoResults.totalCashInvested)} × 100`} value={formatPercent(hmoResults.cashOnCashROI)} bold color={brandColour} />
+                    </>
+                  )}
+                  {/* FLIP */}
+                  {dealType === 'FLIP' && (
+                    <>
+                      <WSec title="A  TOTAL COSTS" />
+                      <WRow label="Purchase Price" value={formatCurrency(sharedInputs.purchasePrice)} />
+                      <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
+                      <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      <WRow label={`Holding Costs (${flipInputs.projectLengthMonths} months × ${formatCurrency(flipInputs.holdingCostsPerMonth)})`} value={formatCurrency(flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths)} />
+                      <WRow label="TOTAL COST IN" value={formatCurrency(flipResults.totalCost)} bold />
+                      <WSec title="B  PROFIT CALCULATION" />
+                      <WRow label="Expected Sale Price (GDV)" value={formatCurrency(flipInputs.expectedSalePrice)} />
+                      <WRow label="Less: Total Cost In" value={`(${formatCurrency(flipResults.totalCost)})`} />
+                      <WRow label={`Less: Selling Costs (${flipInputs.sellingCostsPercent}%)`} value={`(${formatCurrency(flipResults.sellingCosts)})`} />
+                      <WRow label="NET PROFIT" value={formatCurrency(flipResults.netProfit)} bold color={flipResults.netProfit < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label={`Profit per Month  ${formatCurrency(flipResults.netProfit)} ÷ ${flipInputs.projectLengthMonths} months`} value={formatCurrency(flipResults.profitPerMonth)} />
+                      <WRow label={`Total ROI  ${formatCurrency(flipResults.netProfit)} ÷ ${formatCurrency(flipResults.totalCost)} × 100`} value={formatPercent(flipResults.roi)} bold />
+                      <WRow label={`Annualised ROI  ${formatPercent(flipResults.roi)} × 12 ÷ ${flipInputs.projectLengthMonths}`} value={formatPercent(flipResults.annualisedROI)} bold color={brandColour} />
+                    </>
+                  )}
+                  {/* SA */}
+                  {dealType === 'SA' && (
+                    <>
+                      <WSec title="A  CASH INVESTED" />
+                      <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
+                      <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
+                      <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(saResults.totalCashInvested)} bold />
+                      <WSec title="B  MONTHLY CASH FLOW" />
+                      <WRow label={`Monthly Revenue  ${formatCurrency(saInputs.nightlyRate)} nightly × ${saInputs.occupancyPercent}% occupancy`} value={formatCurrency(saResults.grossMonthlyRevenue)} />
+                      <WRow label="Less: Platform Fees" value={`(${formatCurrency(saResults.platformFees)})`} />
+                      <WRow label="Less: Monthly Running Costs" value={`(${formatCurrency(saInputs.monthlyRunningCosts)})`} />
+                      <WRow label="Less: Mortgage" value={`(${formatCurrency(saResults.monthlyMortgage)})`} />
+                      <WRow label="MONTHLY CASH FLOW" value={formatCurrency(saResults.monthlyCashFlow)} bold color={saResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label="Net Yield" value={formatPercent(saResults.netYield)} />
+                      <WRow label={`CoC ROI  ${formatCurrency(saResults.annualCashFlow)} ÷ ${formatCurrency(saResults.totalCashInvested)} × 100`} value={formatPercent(saResults.cashOnCashROI)} bold color={brandColour} />
+                    </>
+                  )}
+                  {/* BRRR */}
+                  {dealType === 'BRRR' && (
+                    <>
+                      <WSec title="A  CASH IN" />
+                      <WRow label="Purchase Price" value={formatCurrency(sharedInputs.purchasePrice)} />
+                      <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
+                      <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      <WRow label="TOTAL COST IN" value={formatCurrency(brrrResults.totalCostIn)} bold />
+                      <WSec title="B  REFINANCE" />
+                      <WRow label="Post-Refurb Value (GDV)" value={formatCurrency(brrrInputs.postRefurbValue)} />
+                      <WRow label="Refinance %" value={`${brrrInputs.refinancePercent}%`} />
+                      <WRow label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} />
+                      <WRow label={brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'} value={formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} bold color={brrrResults.moneyOut ? '#22C55E' : undefined} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label="Monthly Cash Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} color={brrrResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WRow label="Gross Yield" value={formatPercent(brrrResults.grossYield)} />
+                      <WRow label={`CoC ROI  ${formatCurrency(brrrResults.annualCashFlow)} ÷ ${brrrResults.moneyOut ? 'Money Out' : formatCurrency(brrrResults.cashLeftInDeal)} × 100`} value={brrrResults.moneyOut ? '\u221E' : formatPercent(brrrResults.cashOnCashROI)} bold color={brandColour} />
+                    </>
+                  )}
+                  {/* R2R */}
+                  {dealType === 'R2R' && (
+                    <>
+                      <WSec title="A  SETUP COSTS" />
+                      <WRow label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} />
+                      <WRow label="TOTAL SETUP COSTS" value={formatCurrency(r2rInputs.setupCosts)} bold />
+                      <WSec title="B  MONTHLY CASH FLOW" />
+                      <WRow label="Gross Monthly Income" value={formatCurrency(r2rResults.grossMonthlyIncome)} />
+                      <WRow label="Less: Landlord Rent" value={`(${formatCurrency(r2rInputs.monthlyRentPaid)})`} />
+                      <WRow label="Monthly Spread" value={formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)} />
+                      <WRow label="Less: Management Fees" value={`(${formatCurrency(r2rResults.managementFees)})`} />
+                      <WRow label="Less: Running Costs" value={`(${formatCurrency(r2rInputs.monthlyRunningCosts)})`} />
+                      <WRow label="MONTHLY PROFIT" value={formatCurrency(r2rResults.monthlyProfit)} bold color={r2rResults.monthlyProfit < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label={`ROI  ${formatCurrency(r2rResults.annualProfit)} ÷ ${formatCurrency(r2rInputs.setupCosts)} × 100`} value={formatPercent(r2rResults.roi)} bold color={brandColour} />
+                    </>
+                  )}
+                  {/* SOCIAL */}
+                  {dealType === 'SOCIAL' && (
+                    <>
+                      <WSec title="A  CASH INVESTED" />
+                      <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
+                      <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
+                      {sharedInputs.refurbCost > 0 && <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />}
+                      <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested)} bold />
+                      <WSec title="B  MONTHLY CASH FLOW" />
+                      <WRow label="Monthly Lease Income" value={formatCurrency(socialInputs.leaseIncomePerMonth)} />
+                      <WRow label="Less: Management Costs" value={`(${formatCurrency(socialInputs.managementCostsPerMonth)})`} />
+                      <WRow label="Less: Mortgage" value={`(${formatCurrency(socialResults.monthlyMortgage)})`} />
+                      <WRow label="MONTHLY CASH FLOW" value={formatCurrency(socialResults.monthlyCashFlow)} bold color={socialResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  KEY METRICS" />
+                      <WRow label="Gross Yield" value={formatPercent(socialResults.grossYield)} />
+                      <WRow label={`CoC ROI  ${formatCurrency(socialResults.annualCashFlow)} ÷ ${formatCurrency(socialResults.totalCashInvested)} × 100`} value={formatPercent(socialResults.cashOnCashROI)} bold color={brandColour} />
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -2474,6 +2640,18 @@ export default function HomePage() {
 
           {/* Buttons */}
           <div className="mt-6 flex flex-col gap-3">
+            {tierOverride !== 'free' && (
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeWorkingsInPDF}
+                  onChange={(e) => setIncludeWorkingsInPDF(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-[#1B3A6B]"
+                  data-testid="checkbox-include-workings"
+                />
+                <span className="text-xs text-slate-600">Include calculation workings in PDF</span>
+              </label>
+            )}
             {tierOverride !== 'free' && (
               <button
                 type="button"
@@ -3157,4 +3335,18 @@ function InfoIcon({ id, text }: { id: string; text: string | { text: string; for
       )}
     </>
   );
+}
+
+function WRow({ label, value, bold, color }: { label: string; value: string; bold?: boolean; color?: string }) {
+  const c = color ?? (bold ? '#1B3A6B' : undefined);
+  return (
+    <div className={`flex items-baseline justify-between gap-2 py-0.5 text-xs${bold ? ' border-t border-border/50 mt-1 pt-1' : ''}`}>
+      <span style={{ color: c ?? '#64748B', fontWeight: bold ? 700 : undefined }}>{label}</span>
+      <span className="tabular-nums shrink-0" style={{ color: c ?? '#1E293B', fontWeight: bold ? 700 : undefined }}>{value}</span>
+    </div>
+  );
+}
+
+function WSec({ title }: { title: string }) {
+  return <p className="text-[9px] font-bold uppercase tracking-widest mt-3 mb-0.5" style={{ color: '#1B3A6B' }}>{title}</p>;
 }
