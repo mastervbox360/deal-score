@@ -147,6 +147,7 @@ export default function HomePage() {
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
+  const [hasAnalysed, setHasAnalysed] = useState(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
@@ -634,7 +635,9 @@ export default function HomePage() {
     dealType === 'R2R' ? r2rResults.score :
     socialResults.score;
 
-  const hasAnalysed = currentScore !== 'Incomplete';
+  React.useEffect(() => {
+    if (currentScore !== 'Incomplete') setHasAnalysed(true);
+  }, [currentScore]);
 
   const handleGenerateSummary = async () => {
     setAiGenerating(true);
