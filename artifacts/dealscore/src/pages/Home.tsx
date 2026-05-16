@@ -2197,6 +2197,7 @@ export default function HomePage() {
               >
                 <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
                   Show Workings
+                  <InfoIcon id="show-workings" text={TT.showWorkings} />
                 </span>
                 <ChevronDown
                   className="h-4 w-4 transition-transform duration-200"
@@ -2204,7 +2205,7 @@ export default function HomePage() {
                 />
               </button>
               {showWorkingsOpen && (
-                <div className="mt-3 rounded-xl border border-border p-4">
+                <div className="mt-2 rounded-xl border border-border overflow-hidden bg-white p-4" style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}>
                   {/* BTL */}
                   {dealType === 'BTL' && (
                     <>
@@ -3094,6 +3095,7 @@ const TT = {
   socialNetYield: { text: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.', formula: '((Lease Income − Management Costs) × 12) ÷ Purchase Price × 100' },
   socialCocRoi: { text: 'Annual cash flow as a percentage of cash invested. Your leveraged return as an investor.', formula: '(Annual Cash Flow ÷ Total Cash Invested) × 100' },
   sensitivityAnalysis: 'Shows how this deal performs under two adverse scenarios. Rent −10% reduces gross monthly income by 10%. Rate +1.5% increases the mortgage rate by 1.5%. Both scenarios recalculate Monthly Cash Flow and Cash-on-Cash ROI.',
+  showWorkings: 'Step-by-step breakdown of how each metric is calculated, using your actual deal numbers. Expand to verify the workings behind the results.',
 };
 
 function RiskFlags({ flags }: { flags: string[] }) {
