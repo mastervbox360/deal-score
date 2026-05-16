@@ -1111,7 +1111,7 @@ export default function HomePage() {
 
   return (
     <>
-    <div className="min-h-screen pb-20" style={{ backgroundColor: '#F5F7FA' }}>
+    <div className="min-h-screen pb-20 overflow-visible" style={{ backgroundColor: '#F5F7FA' }}>
       <header className="text-primary-foreground py-6 shadow-md sticky top-0 z-50" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
@@ -1153,7 +1153,7 @@ export default function HomePage() {
       </div>
 
       {/* Sticky Deal Score Bar */}
-      <div className="sticky top-[148px] z-30 bg-white border-b border-border shadow-sm self-start w-full">
+      <div className="sticky top-[148px] z-30 bg-white border-b border-border shadow-sm w-full">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 flex items-center min-h-[44px]">
           {hasAnalysed ? (
             <div className="flex items-center gap-4 w-full overflow-x-auto scrollbar-hide">
