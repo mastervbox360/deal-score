@@ -1543,7 +1543,7 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
                     aria-expanded={strategyOpen}
-                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-strategy"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
@@ -1559,7 +1559,7 @@ export default function HomePage() {
                   </button>
                 </div>
                 {strategyOpen && (
-                <div className="mt-4 space-y-5">
+                <div className="px-6 pb-6 space-y-5">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="strategy-notes">Why This Strategy?</Label>
@@ -1597,7 +1597,7 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setDealNotesOpen((v) => !v)}
                     aria-expanded={dealNotesOpen}
-                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-deal-notes"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
@@ -1613,12 +1613,12 @@ export default function HomePage() {
                   </button>
                 </div>
                 {dealNotesOpen && (
-                <div className="mt-4 space-y-5">
+                <div className="px-6 pb-6 space-y-5">
 
                   {/* Executive Summary */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="executive-summary">Executive Summary</Label>
+                      <Label htmlFor="executive-summary" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Executive Summary</Label>
                       {tierOverride === 'free' && aiGenCount >= 3 ? (
                         <p className="text-xs text-amber-600 font-medium text-right">
                           You've used your 3 free AI generations. Upgrade to Pro for unlimited.
@@ -1647,7 +1647,7 @@ export default function HomePage() {
 
                   {/* Property Description */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label htmlFor="property-description">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
+                    <div className="flex items-center gap-1"><Label htmlFor="property-description" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
                     <Textarea
                       id="property-description"
                       placeholder="e.g. 3-bed mid-terrace, 90 sqm, double glazing, gas central heating, west-facing garden, off-road parking…"
@@ -1660,7 +1660,7 @@ export default function HomePage() {
 
                   {/* Vendor Situation */}
                   <div className="space-y-2">
-                    <Label htmlFor="vendor-situation">Vendor Situation</Label>
+                    <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
                     <Textarea
                       id="vendor-situation"
                       placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
@@ -1674,7 +1674,7 @@ export default function HomePage() {
                   {/* Comparable Properties — dynamic table */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
-                      <Label>Comparable Properties</Label>
+                      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Comparable Properties</Label>
                       <InfoIcon id="comp-info" text={TT.comparables} />
                     </div>
                     <div className="border border-border rounded-lg overflow-hidden">
@@ -1759,7 +1759,7 @@ export default function HomePage() {
 
                   {/* Listing Links */}
                   <div className="space-y-2">
-                    <Label>Listing Links</Label>
+                    <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Listing Links</Label>
                     <div className="border border-border rounded-lg overflow-hidden">
                       <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 2fr auto' }}>
                         <span>Label</span>
@@ -1834,7 +1834,7 @@ export default function HomePage() {
 
                   {/* Property Photos */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label>Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
+                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
                     <label className="block w-full border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-[#1B3A6B] transition-colors">
                       <input
                         type="file"

@@ -1,0 +1,61 @@
+Read Home.tsx and index.html (or index.css / global CSS file) before making 
+any changes. Plan all edits. Then execute.
+
+TASK 1 — Add Inter font globally:
+Find the main HTML entry point (index.html in the root or in public/).
+Add this inside the <head> tag:
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+Then find the global CSS file (likely index.css or globals.css in src/).
+Add or update the body font-family:
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+TASK 2 — Fix subheading typography inside expanded sections:
+In Home.tsx, find these label/heading elements inside the expanded 
+DEAL NOTES and RECOMMENDED STRATEGY sections and apply consistent styling.
+
+Find each of these text labels:
+- "Executive Summary" 
+- "Property Description"
+- "Vendor Situation"
+- "Comparable Properties"
+- "Listing Links"
+- "Property Photos"
+
+Each is currently rendered as a plain text node or with inconsistent className.
+Change each to use:
+className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2"
+
+This matches the section toggle label style and creates a unified typographic system.
+
+TASK 3 — Fix left padding alignment inside expanded sections:
+The expanded content inside RECOMMENDED STRATEGY and DEAL NOTES currently 
+renders at the card edge. 
+
+Find the expanded content wrapper divs inside both collapsibles 
+(the divs that appear when strategyOpen/dealNotesOpen is true).
+Ensure each expanded content wrapper has: className="px-6 pb-6 space-y-5"
+replacing whatever padding/spacing classes currently exist.
+
+TASK 4 — Fix focus ring on collapsible toggle buttons:
+Find the RECOMMENDED STRATEGY toggle button and DEAL NOTES toggle button.
+Add to each: focus:outline-none focus:ring-0
+
+TASK 5 — Add InfoIcon to Vendor Situation:
+Find the "Vendor Situation" label.
+Add an InfoIcon directly after it:
+<InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." />
+
+DO NOT change:
+- Any calculation logic or state
+- The sticky nav stack  
+- The results column
+- DealScorePDF or any other file
+- Any input field values or handlers
+
+If index.html is not found, check public/index.html or src/index.html.
+Confirm every change and confirm zero TypeScript errors.
