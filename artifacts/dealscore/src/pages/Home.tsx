@@ -1202,9 +1202,9 @@ export default function HomePage() {
           {/* Inputs Panel */}
           <div className="lg:col-span-6">
             <Card className="border-0 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
-              <div className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center" style={{ borderLeft: '4px solid #1B3A6B' }}>
-                <h2 className="font-semibold text-lg flex items-center gap-2">
-                  <Calculator className="w-5 h-5" style={{ color: '#1B3A6B' }} /> Deal Numbers
+              <div className="px-6 pt-6 pb-2 flex justify-between items-center">
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Calculator className="w-4 h-4" style={{ color: '#1B3A6B' }} /> Deal Numbers
                 </h2>
               </div>
               <CardContent className="p-6">
@@ -1915,7 +1915,7 @@ export default function HomePage() {
 
           {/* Results Panel */}
           <div className="lg:col-span-5 lg:sticky lg:top-[196px]">
-            <Card className="bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+            <Card className="bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: 'none', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <div className="p-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="flex items-center justify-center gap-1">
                   <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
@@ -2238,13 +2238,12 @@ export default function HomePage() {
             </Card>
 
             {stressSupported && (
-              <div className="mt-3">
+              <div className="bg-white rounded-2xl overflow-hidden mt-3" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
                 <button
                   type="button"
                   onClick={() => setStressTestOpen((v) => !v)}
                   aria-expanded={stressTestOpen}
-                  className="w-full flex items-center justify-between px-5 py-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors"
-                  style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}
+                  className="w-full flex items-center justify-between px-6 py-4"
                   data-testid="toggle-stress-test"
                 >
                   <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
@@ -2257,7 +2256,7 @@ export default function HomePage() {
                   />
                 </button>
                 {stressTestOpen && (
-                  <div className="mt-2 rounded-xl border border-border overflow-hidden bg-white" style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}>
+                  <div className="border-t border-border">
                     <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
                       <span className="text-xs text-muted-foreground col-span-1" />
                       <span className="text-xs font-medium text-muted-foreground text-right">Base Case</span>
@@ -2294,13 +2293,12 @@ export default function HomePage() {
             )}
 
             {/* Show Workings Panel */}
-            <div className="mt-3">
+            <div className="bg-white rounded-2xl overflow-hidden mt-3" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
               <button
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
                 aria-expanded={showWorkingsOpen}
-                className="w-full flex items-center justify-between px-5 py-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors"
-                style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}
+                className="w-full flex items-center justify-between px-6 py-4"
                 data-testid="toggle-show-workings"
               >
                 <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
@@ -2313,7 +2311,7 @@ export default function HomePage() {
                 />
               </button>
               {showWorkingsOpen && (
-                <div className="mt-2 rounded-xl border border-border overflow-hidden bg-white p-4" style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}>
+                <div className="border-t border-border p-4">
                   {/* BTL */}
                   {dealType === 'BTL' && (
                     <>
@@ -2458,11 +2456,11 @@ export default function HomePage() {
         </div>
 
         <div
-          className="mt-8 bg-white rounded-2xl p-6"
-          style={{ borderTop: '2px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+          className="mt-8 bg-white rounded-2xl overflow-hidden p-6"
+          style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
         >
-          <h3 className="font-semibold text-sm uppercase tracking-widest mb-5" style={{ color: '#1B3A6B' }}>
-            Prepared by
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+            PREPARED BY
           </h3>
           {tierOverride === 'pro_plus' && (
           <div className="mb-4 space-y-1.5">

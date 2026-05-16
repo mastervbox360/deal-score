@@ -1,0 +1,63 @@
+Read Home.tsx in full before making any changes. Then plan all edits explicitly. Then execute.
+
+TASK: Unify the visual design of all cards and panels — remove heavy borders and 
+header bars, use consistent shadow-only elevation throughout.
+
+CHANGE 1 — Inputs card (Deal Numbers):
+Find the Card element for the inputs panel:
+className="border-0 bg-white rounded-2xl overflow-hidden"
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+
+Keep the Card className and style exactly as-is.
+
+Find the grey header bar div directly inside it:
+className="bg-muted px-6 py-4 border-b border-border flex justify-between items-center"
+style={{ borderLeft: '4px solid #1B3A6B' }}
+
+Replace it entirely with:
+<div className="px-6 pt-6 pb-2 flex justify-between items-center">
+  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+    <Calculator className="w-4 h-4" style={{ color: '#1B3A6B' }} /> Deal Numbers
+  </h2>
+</div>
+
+CHANGE 2 — Results card (Deal Score):
+Find the Card element for the results panel:
+style={{ border: '1px solid #1B3A6B', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+
+Change its style to:
+style={{ border: 'none', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+
+Also ensure its className is:
+className="bg-white text-foreground rounded-2xl overflow-hidden"
+
+CHANGE 3 — Sensitivity Analysis panel:
+Find the collapsible Sensitivity Analysis panel wrapper. It likely has a border or 
+bg-white card style. Ensure its outer wrapper has:
+className="bg-white rounded-2xl overflow-hidden"
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+And its toggle button header has no bg-muted or heavy border — just:
+className="w-full flex items-center justify-between px-6 py-4"
+
+CHANGE 4 — Show Workings panel:
+Same treatment as Sensitivity Analysis — same card surface, same toggle button style.
+
+CHANGE 5 — Prepared By section:
+Find the Prepared By section wrapper. Ensure it has:
+className="bg-white rounded-2xl overflow-hidden mt-6"
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+Find its section heading "PREPARED BY" and ensure it uses:
+className="px-6 pt-6 pb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+
+DO NOT change:
+- Any input fields, labels, InfoIcon components, or calculation logic
+- The MetricBox, RiskFlags, or any results content
+- The verdict badge or score rendering
+- DealScorePDF or any other file
+- The sticky header, pills, or metrics bar
+
+If any panel's exact current className differs from what is described above, 
+read its actual current className first, then apply the equivalent visual change 
+(shadow-only elevation, no heavy borders, no bg-muted header bars).
+
+Confirm every change made and confirm zero TypeScript errors.
