@@ -1126,7 +1126,7 @@ export default function HomePage() {
       <div className="bg-white border-b border-border shadow-sm">
         <div className="max-w-[1024px] mx-auto px-6 py-2 flex items-center w-full">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full justify-start">
+            <TabsList className="grid grid-cols-7 h-11 bg-transparent border-0 shadow-none p-0 w-full gap-1">
               <TabsTrigger value="BTL" title="Buy-to-Let" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Home className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BTL</span><InfoIcon id="tab-btl" text={TT.tabBtl} />
               </TabsTrigger>
