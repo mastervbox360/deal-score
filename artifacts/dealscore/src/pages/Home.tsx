@@ -639,6 +639,62 @@ export default function HomePage() {
     if (currentScore !== 'Incomplete') setHasAnalysed(true);
   }, [currentScore]);
 
+  const currentMonthlyCF: number =
+    dealType === 'BTL' ? btlResults.monthlyCashFlow :
+    dealType === 'HMO' ? hmoResults.monthlyCashFlow :
+    dealType === 'SA' ? saResults.monthlyCashFlow :
+    dealType === 'BRRR' ? brrrResults.monthlyCashFlow :
+    dealType === 'SOCIAL' ? socialResults.monthlyCashFlow :
+    dealType === 'FLIP' ? flipResults.profitPerMonth :
+    r2rResults.monthlyProfit;
+
+  const currentYieldLabel: string =
+    dealType === 'FLIP' ? 'Net Margin' :
+    dealType === 'SA' ? 'Net Yield' :
+    'Gross Yield';
+
+  const currentYieldValue: string =
+    dealType === 'BTL' ? formatPercent(btlResults.grossYield) :
+    dealType === 'HMO' ? formatPercent(hmoResults.grossYield) :
+    dealType === 'SA' ? formatPercent(saResults.netYield) :
+    dealType === 'BRRR' ? formatPercent(brrrResults.grossYield) :
+    dealType === 'SOCIAL' ? formatPercent(socialResults.grossYield) :
+    dealType === 'FLIP' ? formatPercent(flipResults.roi) :
+    formatPercent(r2rResults.grossYield);
+
+  const currentROILabel: string =
+    dealType === 'FLIP' ? 'Ann. ROI' :
+    dealType === 'R2R' ? 'ROI' :
+    'CoC ROI';
+
+  const currentROIValue: string =
+    dealType === 'BTL' ? formatPercent(btlResults.cashOnCashROI) :
+    dealType === 'HMO' ? formatPercent(hmoResults.cashOnCashROI) :
+    dealType === 'SA' ? formatPercent(saResults.cashOnCashROI) :
+    dealType === 'BRRR' ? (brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI)) :
+    dealType === 'SOCIAL' ? formatPercent(socialResults.cashOnCashROI) :
+    dealType === 'FLIP' ? formatPercent(flipResults.annualisedROI) :
+    formatPercent(r2rResults.roi);
+
+  const currentCashInLabel: string =
+    dealType === 'FLIP' ? 'Total Cost' :
+    dealType === 'R2R' ? 'Setup Costs' :
+    'Cash In';
+
+  const currentCashInValue: number =
+    dealType === 'BTL' ? btlResults.totalCashInvested :
+    dealType === 'HMO' ? hmoResults.totalCashInvested :
+    dealType === 'SA' ? saResults.totalCashInvested :
+    dealType === 'BRRR' ? brrrResults.cashLeftInDeal :
+    dealType === 'SOCIAL' ? socialResults.totalCashInvested :
+    dealType === 'FLIP' ? flipResults.totalCost :
+    r2rInputs.setupCosts;
+
+  const currentCFLabel: string =
+    dealType === 'FLIP' ? 'Profit/mo' :
+    dealType === 'R2R' ? 'Monthly Profit' :
+    'Cash Flow';
+
   const handleGenerateSummary = async () => {
     setAiGenerating(true);
     try {
@@ -1097,22 +1153,52 @@ export default function HomePage() {
       </div>
 
       {/* Sticky Deal Score Bar */}
-      <div className="sticky top-[148px] z-30 bg-white border-b border-border shadow-sm">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4 min-h-[40px]">
+      <div className="sticky top-[148px] z-30 bg-white border-b border-border shadow-sm self-start w-full">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 flex items-center min-h-[44px]">
           {hasAnalysed ? (
-            <>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deal Score</span>
-                <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>{dealLabel}</span>
+            <div className="flex items-center gap-4 w-full overflow-x-auto scrollbar-hide">
+
+              <span className="text-[11px] font-bold text-[#1B3A6B] uppercase tracking-wide shrink-0">
+                {dealLabel}
+              </span>
+
+              <div className="w-px h-3.5 bg-border shrink-0" />
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] text-muted-foreground">{currentCFLabel}</span>
+                <span className="text-[11px] font-semibold text-foreground">
+                  {formatCurrency(currentMonthlyCF)}/mo
+                </span>
               </div>
-              <div className="flex items-center gap-3">
-                {renderScoreBadge(currentScore)}
+
+              <div className="w-px h-3.5 bg-border shrink-0 hidden sm:block" />
+
+              <div className="flex items-center gap-1.5 shrink-0 hidden sm:flex">
+                <span className="text-[11px] text-muted-foreground">{currentYieldLabel}</span>
+                <span className="text-[11px] font-semibold text-foreground">{currentYieldValue}</span>
               </div>
-            </>
-          ) : (
-            <div className="w-full text-center">
-              <span className="text-xs text-muted-foreground">Analyse a deal to see your score</span>
+
+              <div className="w-px h-3.5 bg-border shrink-0 hidden sm:block" />
+
+              <div className="flex items-center gap-1.5 shrink-0 hidden sm:flex">
+                <span className="text-[11px] text-muted-foreground">{currentROILabel}</span>
+                <span className="text-[11px] font-semibold text-foreground">{currentROIValue}</span>
+              </div>
+
+              <div className="w-px h-3.5 bg-border shrink-0 hidden md:block" />
+
+              <div className="flex items-center gap-1.5 shrink-0 hidden md:flex">
+                <span className="text-[11px] text-muted-foreground">{currentCashInLabel}</span>
+                <span className="text-[11px] font-semibold text-foreground">
+                  {formatCurrency(currentCashInValue)}
+                </span>
+              </div>
+
             </div>
+          ) : (
+            <span className="text-[11px] text-muted-foreground w-full text-center py-1">
+              Enter deal numbers to see live metrics
+            </span>
           )}
         </div>
       </div>
