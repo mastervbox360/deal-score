@@ -2186,15 +2186,16 @@ export default function HomePage() {
             )}
 
             {/* Show Workings Panel */}
-            <div className="mt-4">
+            <div className="mt-3">
               <button
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
                 aria-expanded={showWorkingsOpen}
-                className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="w-full flex items-center justify-between px-5 py-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors"
+                style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}
                 data-testid="toggle-show-workings"
               >
-                <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
                   Show Workings
                 </span>
                 <ChevronDown
@@ -3336,8 +3337,8 @@ function WRow({ label, value, bold, color }: { label: string; value: string; bol
   const c = color ?? (bold ? '#1B3A6B' : undefined);
   return (
     <div className={`flex items-baseline justify-between gap-2 py-0.5 text-xs${bold ? ' border-t border-border/50 mt-1 pt-1' : ''}`}>
-      <span style={{ color: c ?? '#64748B', fontWeight: bold ? 700 : undefined }}>{label}</span>
-      <span className="tabular-nums shrink-0" style={{ color: c ?? '#1E293B', fontWeight: bold ? 700 : undefined }}>{value}</span>
+      <span className="text-left" style={{ color: c ?? '#64748B', fontWeight: bold ? 700 : undefined }}>{label}</span>
+      <span className="tabular-nums text-right shrink-0" style={{ color: c ?? '#1E293B', fontWeight: bold ? 700 : undefined }}>{value}</span>
     </div>
   );
 }
