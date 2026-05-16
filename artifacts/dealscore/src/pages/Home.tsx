@@ -1157,13 +1157,11 @@ export default function HomePage() {
       <div className="bg-white border-b border-border shadow-sm w-full">
         <div className="max-w-[1024px] mx-auto px-6 flex items-center min-h-[44px] w-full">
           {hasAnalysed ? (
-            <div className="flex items-center gap-4 w-full overflow-x-auto scrollbar-hide">
+            <div className="flex items-center justify-between w-full">
 
               <span className="text-[11px] font-bold text-[#1B3A6B] uppercase tracking-wide shrink-0">
                 {dealLabel}
               </span>
-
-              <div className="w-px h-3.5 bg-border shrink-0" />
 
               <div className="flex items-center gap-1.5 shrink-0">
                 <span className="text-[11px] text-muted-foreground">{currentCFLabel}</span>
@@ -1172,21 +1170,15 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <div className="w-px h-3.5 bg-border shrink-0 hidden sm:block" />
-
               <div className="flex items-center gap-1.5 shrink-0 hidden sm:flex">
                 <span className="text-[11px] text-muted-foreground">{currentYieldLabel}</span>
                 <span className="text-[11px] font-semibold text-foreground">{currentYieldValue}</span>
               </div>
 
-              <div className="w-px h-3.5 bg-border shrink-0 hidden sm:block" />
-
               <div className="flex items-center gap-1.5 shrink-0 hidden sm:flex">
                 <span className="text-[11px] text-muted-foreground">{currentROILabel}</span>
                 <span className="text-[11px] font-semibold text-foreground">{currentROIValue}</span>
               </div>
-
-              <div className="w-px h-3.5 bg-border shrink-0 hidden md:block" />
 
               <div className="flex items-center gap-1.5 shrink-0 hidden md:flex">
                 <span className="text-[11px] text-muted-foreground">{currentCashInLabel}</span>
