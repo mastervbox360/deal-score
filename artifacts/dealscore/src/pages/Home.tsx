@@ -1113,7 +1113,7 @@ export default function HomePage() {
     <>
     <div className="min-h-screen pb-20 overflow-visible" style={{ backgroundColor: '#F5F7FA' }}>
       <header className="text-primary-foreground py-6 shadow-md sticky top-0 z-50" style={{ backgroundColor: '#1B3A6B' }}>
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 flex items-center gap-3">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">DealScore</h1>
@@ -1124,7 +1124,7 @@ export default function HomePage() {
 
       <div className="sticky top-[100px] z-40">
       <div className="bg-white border-b border-border shadow-sm">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-start">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 py-2 flex items-start">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
             <TabsList className="flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full justify-start">
               <TabsTrigger value="BTL" title="Buy-to-Let" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
@@ -1155,7 +1155,7 @@ export default function HomePage() {
 
       {/* Sticky Deal Score Bar */}
       <div className="bg-white border-b border-border shadow-sm w-full">
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 flex items-center min-h-[44px]">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center min-h-[44px]">
           {hasAnalysed ? (
             <div className="flex items-center gap-4 w-full overflow-x-auto scrollbar-hide">
 
@@ -1205,7 +1205,7 @@ export default function HomePage() {
       </div>
       </div>
 
-      <main className="max-w-[860px] mx-auto px-6 mt-6">
+      <main className="max-w-[1024px] mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 items-start">
           {/* Inputs Panel */}
           <div className="lg:col-span-6">
