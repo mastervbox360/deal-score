@@ -1205,7 +1205,7 @@ export default function HomePage() {
       </div>
       </div>
 
-      <main className="max-w-[860px] mx-auto px-4 sm:px-6 mt-6">
+      <main className="max-w-[860px] mx-auto px-6 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 items-start">
           {/* Inputs Panel */}
           <div className="lg:col-span-6">
