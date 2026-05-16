@@ -1,0 +1,130 @@
+I have everything I need. The prompt is accurate — one small but important addition based on what I can see in the file. Here's the updated prompt to send:
+
+REPLIT AGENT PROMPT — Stage 6C Step 5 continued: Show Workings Panel
+
+Read the following files in full before making any changes:
+
+artifacts/dealscore/src/Home.tsx
+artifacts/dealscore/src/DealScorePDF.tsx
+
+Plan all edits across both files before executing anything. Then execute all changes in parallel. Confirm exactly what you changed at the end.
+
+WHAT TO BUILD
+Two things:
+
+A Show Workings collapsible panel in the app — showing step-by-step formula build-up for the active strategy's key metrics
+A "Include calculation workings in PDF" toggle in the branding panel — off by default. When on, the formula chain renders on PDF Page 3 below the Sensitivity Analysis table
+
+
+DEAL TYPE STRING REFERENCE
+The dealType state uses these exact uppercase string values: 'BTL', 'HMO', 'SA', 'BRRR', 'SOCIAL', 'FLIP', 'R2R'. Use these exact strings in all conditionals.
+
+EXISTING STATE REFERENCE
+These states already exist — do not redeclare them:
+
+stressTestOpen / setStressTestOpen — boolean, already reset in handleReset
+brandColour, accentColour, coverStyle, logoSize, tierOverride — existing branding states
+
+New states to add:
+
+showWorkingsOpen — boolean, default false, controls in-app collapsible. Add to handleReset.
+includeWorkingsInPDF — boolean, default false, controls PDF toggle. Add to handleReset.
+
+Branding panel toggle position: add the "Include calculation workings in PDF" checkbox + label inside the {/* Buttons */} div, above the Preview PDF button. Only show when tierOverride !== 'free'. Style as a simple flex row with a checkbox and small label text, consistent with the panel's existing design language.
+pdfProps useMemo assembles at line ~773. Add includeWorkings: includeWorkingsInPDF to the return object alongside the existing stressTest prop.
+
+EXISTING PDF STRUCTURE REFERENCE
+The Sensitivity Analysis table already exists at the end of Page 3, rendering when props.stressTest is truthy. The Calculation Workings section goes after it — after the closing )} of the stressTest block, before the </Page> closing tag. Use the same SH heading component and same border/table styling as the Sensitivity Analysis table.
+The props interface already has stressTest?: { ... } at line ~87. Add includeWorkings?: boolean to the same interface.
+
+PART 1 — IN-APP SHOW WORKINGS PANEL
+Position: directly below the Stress Test panel. Render for all 7 strategies.
+UI:
+
+Collapsible panel, collapsed by default
+Toggle label: "Show Workings" with a chevron icon
+Same navy/chevron style as the existing Stress Test collapsible
+Title when expanded: "Calculation Workings"
+Each row shows: Label | formula with actual numbers substituted in | = Result
+Example: Gross Yield — (£16,800 / £207,000) × 100 = 8.1%
+Use actual calculated values from existing results objects — do not invent new calculations
+
+Formula chains per strategy — show these rows in this order:
+BTL:
+
+Annual Rent — Monthly Rent × 12
+Gross Yield — (Annual Rent / Purchase Price) × 100
+Monthly Cash Flow — Monthly Rent − Monthly Expenses − Monthly Mortgage
+Cash Invested — Deposit + Stamp Duty + Refurb + Other Costs
+Cash-on-Cash ROI — (Annual Cash Flow / Cash Invested) × 100
+
+HMO: same as BTL but label Monthly Rent as "Total Room Income"
+SA:
+
+Monthly Revenue — Nightly Rate × Occupancy Days per month
+Net Yield — (Annual Net Income / Purchase Price) × 100
+Monthly Cash Flow — Monthly Revenue − Monthly Expenses − Monthly Mortgage
+Cash Invested — Deposit + Stamp Duty + Refurb + Other Costs
+Cash-on-Cash ROI — (Annual Cash Flow / Cash Invested) × 100
+
+BRRR:
+
+Gross Yield — (Annual Rent / Purchase Price) × 100
+Refinance Amount — Post-Refurb Value × Refinance %
+Cash Left In Deal — Cash Invested − Refinance Amount
+Monthly Cash Flow — Monthly Rent − Monthly Expenses − Monthly Mortgage
+Cash-on-Cash ROI — (Annual Cash Flow / Cash Left In) × 100
+
+FLIP:
+
+Total Costs — Purchase Price + Stamp Duty + Refurb + Other Costs
+Gross Profit — Sale Price − Total Costs
+Net Profit — Gross Profit − Selling Costs
+ROI — (Net Profit / Total Costs) × 100
+Annualised ROI — ROI / Project Length × 12
+
+R2R:
+
+Monthly Spread — Gross Monthly Income − Landlord Rent
+Monthly Profit — Monthly Spread − Other Monthly Costs
+Setup Costs — Refurb + Other Costs
+ROI — (Annual Profit / Setup Costs) × 100
+
+SOCIAL:
+
+Annual Lease Income — Monthly Lease Income × 12
+Gross Yield — (Annual Lease Income / Purchase Price) × 100
+Monthly Cash Flow — Monthly Lease Income − Management Costs − Monthly Mortgage
+Cash Invested — Deposit + Stamp Duty + Other Costs
+Cash-on-Cash ROI — (Annual Cash Flow / Cash Invested) × 100
+
+
+PART 2 — PDF CALCULATION WORKINGS
+Add optional prop includeWorkings?: boolean to DealScorePDFProps interface.
+When includeWorkings is true, render a "Calculation Workings" section on PDF Page 3, after the closing )} of the existing props.stressTest block, before the </Page> closing tag.
+Rendering:
+
+Section heading: "Calculation Workings" using the existing SH component
+3-column table matching the Sensitivity Analysis table style: brand colour header row, white/alt-grey alternating data rows
+Columns: Metric | Workings | Result
+Same formula rows as the in-app panel for the active dealType
+Font size 8.5, colour #1E2B3C for data rows — consistent with existing results table
+Render for all 7 strategies
+
+
+DO NOT TOUCH
+
+Any existing formula logic or calculated outputs
+The Stress Test / Sensitivity Analysis panel and its props
+The Deal Score breakdown table, callout cards, verdict sentence, or What This Means paragraph
+The R2R Monthly Spread row
+generate-summary.cjs or any Netlify functions
+netlify.toml or package.json
+Main branch — all changes to stage-6 branch only
+
+
+AFTER BUILDING
+
+Run npx tsc --noEmit — zero TypeScript errors required before confirming complete
+Confirm exactly which files were changed and what was added
+Do NOT push to main. Do NOT merge branches.
