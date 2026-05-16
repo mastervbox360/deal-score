@@ -147,6 +147,7 @@ export default function HomePage() {
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
+  const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
@@ -518,6 +519,7 @@ export default function HomePage() {
     setManualTaxValue(0);
     setStrategyOpen(false);
     setDealNotesOpen(false);
+    setStressTestOpen(false);
     setShowWorkingsOpen(false);
     setIncludeWorkingsInPDF(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
@@ -2123,49 +2125,65 @@ export default function HomePage() {
                     </div>
                   </div>
                 )}
-              {stressSupported && (() => {
-                const baseCF = dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow;
-                const baseCoC = dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI;
-                return (
-                  <>
-                    <div className="border-t border-border mx-4 mt-3 mb-2" />
-                    <div className="flex justify-between items-center px-4 mb-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-0.5">
-                        Sensitivity Analysis
-                        <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
-                      </span>
-                      <div className="flex gap-4">
-                        <span className="text-[10px] text-muted-foreground w-16 text-right">Base</span>
-                        <span className="text-[10px] text-muted-foreground w-16 text-right">−10% Rent</span>
-                        <span className="text-[10px] text-muted-foreground w-16 text-right">+1.5% Rate</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center px-4 py-1">
-                      <span className="text-sm text-muted-foreground">Monthly Cash Flow</span>
-                      <div className="flex gap-4">
-                        {([baseCF, stressRentDown.monthlyCashFlow, stressRateUp.monthlyCashFlow] as number[]).map((v, i) => (
-                          <span key={i} className={`text-sm font-semibold tabular-nums w-16 text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
-                            {formatCurrency(v)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center px-4 py-1 mb-2">
-                      <span className="text-sm text-muted-foreground">Cash-on-Cash ROI</span>
-                      <div className="flex gap-4">
-                        {([baseCoC, stressRentDown.cashOnCashROI, stressRateUp.cashOnCashROI] as number[]).map((v, i) => (
-                          <span key={i} className={`text-sm font-semibold tabular-nums w-16 text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
-                            {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '\u221E' : isFinite(v) ? formatPercent(v) : '\u221E'}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
 
               </div>
             </Card>
+
+            {stressSupported && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setStressTestOpen((v) => !v)}
+                  aria-expanded={stressTestOpen}
+                  className="w-full flex items-center justify-between px-5 py-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors"
+                  style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}
+                  data-testid="toggle-stress-test"
+                >
+                  <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                    Sensitivity Analysis
+                    <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
+                  </span>
+                  <ChevronDown
+                    className="h-4 w-4 transition-transform duration-200"
+                    style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  />
+                </button>
+                {stressTestOpen && (
+                  <div className="mt-2 rounded-xl border border-border overflow-hidden bg-white" style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}>
+                    <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
+                      <span className="text-xs text-muted-foreground col-span-1" />
+                      <span className="text-xs font-medium text-muted-foreground text-right">Base Case</span>
+                      <span className="text-xs font-medium text-muted-foreground text-right">Rent −10%</span>
+                      <span className="text-xs font-medium text-muted-foreground text-right">Rate +1.5%</span>
+                    </div>
+                    <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
+                      <span className="text-sm text-muted-foreground col-span-1">Monthly CF</span>
+                      {([
+                        dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
+                        stressRentDown.monthlyCashFlow,
+                        stressRateUp.monthlyCashFlow,
+                      ] as number[]).map((v, i) => (
+                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                          {formatCurrency(v)}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-4 px-4 py-2.5">
+                      <span className="text-sm text-muted-foreground col-span-1">CoC ROI</span>
+                      {([
+                        dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
+                        stressRentDown.cashOnCashROI,
+                        stressRateUp.cashOnCashROI,
+                      ] as number[]).map((v, i) => (
+                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                          {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '\u221E' : isFinite(v) ? formatPercent(v) : '\u221E'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Show Workings Panel */}
             <div className="mt-4">

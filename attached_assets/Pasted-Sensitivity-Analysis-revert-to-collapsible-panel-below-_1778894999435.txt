@@ -1,0 +1,90 @@
+Sensitivity Analysis: revert to collapsible panel below Card
+
+Read artifacts/dealscore/src/Home.tsx in full before making any changes. Plan all edits then execute. Confirm what changed at the end.
+
+WHAT TO CHANGE
+The previous prompt added a Sensitivity Analysis block inside the results Card. This needs to be removed from inside the Card and replaced with a properly styled collapsible panel directly below the Card — the same position it was in before, but with better styling.
+
+STEP 1 — Remove from inside the Card
+Find and remove everything inside the Card that relates to Sensitivity Analysis — the divider, the "Sensitivity Analysis" header row with info icon, the Monthly Cash Flow row, and the Cash-on-Cash ROI row that were added inside the Card by the previous prompt. The Card should end cleanly after the last <Row> for each strategy (Equity on Day One or Cash-on-Cash ROI).
+If baseCF and baseCoC const declarations were added inside the Card JSX, remove those too.
+
+STEP 2 — Ensure stressTestOpen state exists
+Check if const [stressTestOpen, setStressTestOpen] = useState<boolean>(false) exists. If it was removed by a previous prompt, add it back at line ~150 with the other boolean states. Also ensure setStressTestOpen(false) is in handleReset.
+
+STEP 3 — Replace the collapsible panel below the Card
+Find the {stressSupported && (...)} block that sits after </Card>. Replace its entire contents with this improved styling:
+jsx{stressSupported && (
+  <div className="mt-3">
+    <button
+      type="button"
+      onClick={() => setStressTestOpen((v) => !v)}
+      aria-expanded={stressTestOpen}
+      className="w-full flex items-center justify-between px-5 py-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors"
+      style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}
+      data-testid="toggle-stress-test"
+    >
+      <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+        Sensitivity Analysis
+        <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
+      </span>
+      <ChevronDown
+        className="h-4 w-4 transition-transform duration-200"
+        style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+      />
+    </button>
+    {stressTestOpen && (
+      <div className="mt-2 rounded-xl border border-border overflow-hidden bg-white" style={{ boxShadow: '0 1px 4px rgba(27,58,107,0.06)' }}>
+        <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
+          <span className="text-xs text-muted-foreground col-span-1" />
+          <span className="text-xs font-medium text-muted-foreground text-right">Base Case</span>
+          <span className="text-xs font-medium text-muted-foreground text-right">Rent −10%</span>
+          <span className="text-xs font-medium text-muted-foreground text-right">Rate +1.5%</span>
+        </div>
+        <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
+          <span className="text-sm text-muted-foreground col-span-1">Monthly CF</span>
+          {([
+            dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
+            stressRentDown.monthlyCashFlow,
+            stressRateUp.monthlyCashFlow,
+          ] as number[]).map((v, i) => (
+            <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+              {formatCurrency(v)}
+            </span>
+          ))}
+        </div>
+        <div className="grid grid-cols-4 px-4 py-2.5">
+          <span className="text-sm text-muted-foreground col-span-1">CoC ROI</span>
+          {([
+            dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
+            stressRentDown.cashOnCashROI,
+            stressRateUp.cashOnCashROI,
+          ] as number[]).map((v, i) => (
+            <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+              {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '∞' : isFinite(v) ? formatPercent(v) : '∞'}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
+Note: TT.sensitivityAnalysis was added in the previous prompt. If it doesn't exist in the TT object, add it:
+sensitivityAnalysis: 'Shows how this deal performs under two adverse scenarios. Rent −10% reduces gross monthly income by 10%. Rate +1.5% increases the mortgage rate by 1.5%. Both scenarios recalculate Monthly Cash Flow and Cash-on-Cash ROI.',
+
+DO NOT TOUCH
+
+Show Workings panel or its state
+includeWorkingsInPDF checkbox
+stressSupported, stressRentDown, stressRateUp computed values
+stressTest prop in pdfProps
+DealScorePDF.tsx
+generate-summary.cjs or any Netlify functions
+Main branch — stage-6 only
+
+
+AFTER BUILDING
+
+Run npx tsc --noEmit — zero TypeScript errors required
+Confirm exactly what was changed
+Do NOT push to main. Do NOT merge branches.
