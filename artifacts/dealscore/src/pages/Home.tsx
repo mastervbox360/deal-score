@@ -2123,50 +2123,46 @@ export default function HomePage() {
                     </div>
                   </div>
                 )}
-              {stressSupported && (
-                <>
-                  <div className="border-t border-border mx-4 my-3" />
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-4 mb-2">
-                    Sensitivity Analysis
-                  </p>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr>
-                        <th className="py-2 px-4 text-left text-[10px] font-semibold text-muted-foreground w-2/5"></th>
-                        <th className="py-2 px-4 text-right text-[10px] font-semibold text-muted-foreground">Base Case</th>
-                        <th className="py-2 px-4 text-right text-[10px] font-semibold text-muted-foreground">Rent −10%</th>
-                        <th className="py-2 px-4 text-right text-[10px] font-semibold text-muted-foreground">Rate +1.5%</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-t border-border">
-                        <td className="py-2 px-4 text-xs text-muted-foreground">Monthly Cash Flow</td>
-                        {([
-                          dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
-                          stressRentDown.monthlyCashFlow,
-                          stressRateUp.monthlyCashFlow,
-                        ] as number[]).map((v, i) => (
-                          <td key={i} className={`py-2 px-4 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+              {stressSupported && (() => {
+                const baseCF = dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow;
+                const baseCoC = dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI;
+                return (
+                  <>
+                    <div className="border-t border-border mx-4 mt-3 mb-2" />
+                    <div className="flex justify-between items-center px-4 mb-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-0.5">
+                        Sensitivity Analysis
+                        <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
+                      </span>
+                      <div className="flex gap-4">
+                        <span className="text-[10px] text-muted-foreground w-16 text-right">Base</span>
+                        <span className="text-[10px] text-muted-foreground w-16 text-right">−10% Rent</span>
+                        <span className="text-[10px] text-muted-foreground w-16 text-right">+1.5% Rate</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1">
+                      <span className="text-sm text-muted-foreground">Monthly Cash Flow</span>
+                      <div className="flex gap-4">
+                        {([baseCF, stressRentDown.monthlyCashFlow, stressRateUp.monthlyCashFlow] as number[]).map((v, i) => (
+                          <span key={i} className={`text-sm font-semibold tabular-nums w-16 text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
                             {formatCurrency(v)}
-                          </td>
+                          </span>
                         ))}
-                      </tr>
-                      <tr className="border-t border-border">
-                        <td className="py-2 px-4 text-xs text-muted-foreground">Cash-on-Cash ROI</td>
-                        {([
-                          dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
-                          stressRentDown.cashOnCashROI,
-                          stressRateUp.cashOnCashROI,
-                        ] as number[]).map((v, i) => (
-                          <td key={i} className={`py-2 px-4 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
-                            {isFinite(v) ? formatPercent(v) : '\u221E'}
-                          </td>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1 mb-2">
+                      <span className="text-sm text-muted-foreground">Cash-on-Cash ROI</span>
+                      <div className="flex gap-4">
+                        {([baseCoC, stressRentDown.cashOnCashROI, stressRateUp.cashOnCashROI] as number[]).map((v, i) => (
+                          <span key={i} className={`text-sm font-semibold tabular-nums w-16 text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '\u221E' : isFinite(v) ? formatPercent(v) : '\u221E'}
+                          </span>
                         ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </>
-              )}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               </div>
             </Card>
@@ -3078,6 +3074,7 @@ const TT = {
   socialGrossYield: { text: 'Annual guaranteed lease income as a percentage of purchase price.', formula: '(Monthly Lease Income × 12) ÷ Purchase Price × 100' },
   socialNetYield: { text: 'Annual lease income minus management costs, as a percentage of purchase price. The property-level return before financing.', formula: '((Lease Income − Management Costs) × 12) ÷ Purchase Price × 100' },
   socialCocRoi: { text: 'Annual cash flow as a percentage of cash invested. Your leveraged return as an investor.', formula: '(Annual Cash Flow ÷ Total Cash Invested) × 100' },
+  sensitivityAnalysis: 'Shows how this deal performs under two adverse scenarios. Rent −10% reduces gross monthly income by 10%. Rate +1.5% increases the mortgage rate by 1.5%. Both scenarios recalculate Monthly Cash Flow and Cash-on-Cash ROI.',
 };
 
 function RiskFlags({ flags }: { flags: string[] }) {

@@ -1,0 +1,69 @@
+Sensitivity Analysis styling fix
+
+Read artifacts/dealscore/src/Home.tsx in full before making any changes. Plan all edits, then execute. Confirm what changed at the end.
+
+WHAT TO CHANGE
+The Sensitivity Analysis section inside the results Card needs a full styling redesign. Currently it uses a heavy table with wrapping labels and stacked column headers. Replace it with a clean layout that matches the existing Row component style.
+
+STEP 1 — Add tooltip to TT object
+In the const TT = { object at the bottom of the file, add this entry:
+sensitivityAnalysis: 'Shows how this deal performs under two adverse scenarios. Rent −10% reduces gross monthly income by 10%. Rate +1.5% increases the mortgage rate by 1.5%. Both scenarios recalculate Monthly Cash Flow and Cash-on-Cash ROI.',
+
+STEP 2 — Redesign the Sensitivity Analysis block inside the Card
+Find the existing Sensitivity Analysis block inside the Card (the {stressSupported && (...)} block containing the divider, the "SENSITIVITY ANALYSIS" label, and the table). Replace the entire contents with this new structure:
+Header row:
+jsx<div className="border-t border-border mx-4 mt-3 mb-2" />
+<div className="flex justify-between items-center px-4 mb-1">
+  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-0.5">
+    Sensitivity Analysis
+    <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
+  </span>
+  <div className="flex gap-4">
+    <span className="text-[10px] text-muted-foreground w-16 text-right">Base</span>
+    <span className="text-[10px] text-muted-foreground w-16 text-right">−10% Rent</span>
+    <span className="text-[10px] text-muted-foreground w-16 text-right">+1.5% Rate</span>
+  </div>
+</div>
+Monthly Cash Flow row — same pattern as existing Row component but with three values:
+jsx<div className="flex justify-between items-center px-4 py-1">
+  <span className="text-sm text-muted-foreground">Monthly Cash Flow</span>
+  <div className="flex gap-4">
+    {([baseCF, stressRentDown.monthlyCashFlow, stressRateUp.monthlyCashFlow] as number[]).map((v, i) => (
+      <span key={i} className={`text-sm font-semibold tabular-nums w-16 text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+        {formatCurrency(v)}
+      </span>
+    ))}
+  </div>
+</div>
+Cash-on-Cash ROI row — same pattern, handle BRRR money-out edge case:
+jsx<div className="flex justify-between items-center px-4 py-1 mb-2">
+  <span className="text-sm text-muted-foreground">Cash-on-Cash ROI</span>
+  <div className="flex gap-4">
+    {([baseCoC, stressRentDown.cashOnCashROI, stressRateUp.cashOnCashROI] as number[]).map((v, i) => (
+      <span key={i} className={`text-sm font-semibold tabular-nums w-16 text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+        {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '∞' : isFinite(v) ? formatPercent(v) : '∞'}
+      </span>
+    ))}
+  </div>
+</div>
+Where baseCF and baseCoC are:
+jsxconst baseCF = dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow;
+const baseCoC = dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI;
+Define these as const values directly inside the {stressSupported && (() => { ... })()} block or as inline expressions — whichever avoids TypeScript errors. Do not add new state.
+
+DO NOT TOUCH
+
+stressSupported, stressRentDown, stressRateUp computed values
+stressTest prop in pdfProps
+DealScorePDF.tsx
+Show Workings panel
+includeWorkingsInPDF checkbox
+generate-summary.cjs or any Netlify functions
+Main branch — stage-6 only
+
+
+AFTER BUILDING
+
+Run npx tsc --noEmit — zero TypeScript errors required
+Confirm exactly what was changed
+Do NOT push to main. Do NOT merge branches.
