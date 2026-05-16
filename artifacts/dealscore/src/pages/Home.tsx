@@ -1543,10 +1543,10 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
                     aria-expanded={strategyOpen}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 transition-colors"
                     data-testid="toggle-strategy"
                   >
-                    <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
                       Recommended Strategy
                     </span>
                     <ChevronDown
@@ -1597,10 +1597,10 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setDealNotesOpen((v) => !v)}
                     aria-expanded={dealNotesOpen}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 transition-colors"
                     data-testid="toggle-deal-notes"
                   >
-                    <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
                       Deal Notes
                     </span>
                     <ChevronDown
