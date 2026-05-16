@@ -147,6 +147,7 @@ export default function HomePage() {
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
+  const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
   const [taxOverrideActive, setTaxOverrideActive] = useState(false);
@@ -516,6 +517,7 @@ export default function HomePage() {
     setManualTaxValue(0);
     setStrategyOpen(false);
     setDealNotesOpen(false);
+    setStressTestOpen(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0, monthlyExpenses: 0 });
@@ -548,6 +550,56 @@ export default function HomePage() {
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs });
   const r2rResults = calculateR2R(r2rInputs);
   const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax });
+
+  const stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
+
+  const stressRentDown = (() => {
+    if (dealType === 'BTL') {
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'HMO') {
+      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SA') {
+      const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9 });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SOCIAL') {
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
+
+  const stressRateUp = (() => {
+    if (dealType === 'BTL') {
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'HMO') {
+      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SA') {
+      const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5 });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SOCIAL') {
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
 
   const taxLabel = TAX_LABEL[taxCountry];
   const buyerLabel = BUYER_LABEL[buyerType];
@@ -745,6 +797,70 @@ export default function HomePage() {
     const _r2rResults = calculateR2R(r2rInputs);
     const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax });
 
+    const _stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
+
+    const _stressRentDown = (() => {
+      if (dealType === 'BTL') {
+        const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'HMO') {
+        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'SA') {
+        const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'BRRR') {
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9 });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'SOCIAL') {
+        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+    })();
+
+    const _stressRateUp = (() => {
+      if (dealType === 'BTL') {
+        const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'HMO') {
+        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'SA') {
+        const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'BRRR') {
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5 });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      if (dealType === 'SOCIAL') {
+        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+      return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+    })();
+
+    const _baseCashFlow =
+      dealType === 'BTL' ? _btlResults.monthlyCashFlow :
+      dealType === 'HMO' ? _hmoResults.monthlyCashFlow :
+      dealType === 'SA' ? _saResults.monthlyCashFlow :
+      dealType === 'BRRR' ? _brrrResults.monthlyCashFlow :
+      _socialResults.monthlyCashFlow;
+
+    const _baseCoC =
+      dealType === 'BTL' ? _btlResults.cashOnCashROI :
+      dealType === 'HMO' ? _hmoResults.cashOnCashROI :
+      dealType === 'SA' ? _saResults.cashOnCashROI :
+      dealType === 'BRRR' ? _brrrResults.cashOnCashROI :
+      _socialResults.cashOnCashROI;
+
     const _currentScore =
       dealType === 'BTL' ? _btlResults.score :
       dealType === 'HMO' ? _hmoResults.score :
@@ -883,6 +999,14 @@ export default function HomePage() {
       listingLinks,
       photoFiles,
       heroPhotoIndex,
+      stressTest: _stressSupported ? {
+        baseCashFlow: _baseCashFlow,
+        baseCoC: _baseCoC,
+        rentDownCashFlow: _stressRentDown.monthlyCashFlow,
+        rentDownCoC: _stressRentDown.cashOnCashROI,
+        rateUpCashFlow: _stressRateUp.monthlyCashFlow,
+        rateUpCoC: _stressRateUp.cashOnCashROI,
+      } : undefined,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1998,6 +2122,68 @@ export default function HomePage() {
 
               </div>
             </Card>
+            {stressSupported && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStressTestOpen((v) => !v)}
+                  aria-expanded={stressTestOpen}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                  data-testid="toggle-stress-test"
+                >
+                  <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                    Stress Test
+                  </span>
+                  <ChevronDown
+                    className="h-4 w-4 transition-transform duration-200"
+                    style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  />
+                </button>
+                {stressTestOpen && (
+                  <div className="mt-3 rounded-xl border border-border overflow-hidden">
+                    <div className="px-4 py-2.5" style={{ backgroundColor: '#1B3A6B' }}>
+                      <span className="text-xs font-semibold uppercase tracking-widest text-white">Sensitivity Analysis</span>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50 border-b border-border">
+                          <th className="py-2 px-3 text-left text-xs font-semibold text-muted-foreground w-2/5">Metric</th>
+                          <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground">Base Case</th>
+                          <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground">Rent &minus;10%</th>
+                          <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground">Rate +1.5%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-border">
+                          <td className="py-2.5 px-3 text-xs text-muted-foreground">Monthly Cash Flow</td>
+                          {([
+                            dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
+                            stressRentDown.monthlyCashFlow,
+                            stressRateUp.monthlyCashFlow,
+                          ] as number[]).map((v, i) => (
+                            <td key={i} className={`py-2.5 px-3 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                              {formatCurrency(v)}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 px-3 text-xs text-muted-foreground">Cash-on-Cash ROI</td>
+                          {([
+                            dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
+                            stressRentDown.cashOnCashROI,
+                            stressRateUp.cashOnCashROI,
+                          ] as number[]).map((v, i) => (
+                            <td key={i} className={`py-2.5 px-3 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                              {isFinite(v) ? formatPercent(v) : '\u221E'}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

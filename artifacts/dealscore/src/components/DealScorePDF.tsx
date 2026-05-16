@@ -84,6 +84,14 @@ export interface DealScorePDFProps {
   listingLinks: Array<{ label: string; url: string }>;
   photoFiles: string[];
   heroPhotoIndex: number;
+  stressTest?: {
+    baseCashFlow: number;
+    baseCoC: number;
+    rentDownCashFlow: number;
+    rentDownCoC: number;
+    rateUpCashFlow: number;
+    rateUpCoC: number;
+  };
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -1232,6 +1240,37 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <Text style={{ fontSize: 9, color: '#1E2B3C', lineHeight: 1.5 }}>{whatThisMeans}</Text>
           </View>
         ) : null}
+
+        {/* Sensitivity Analysis — stress test */}
+        {props.stressTest && (
+          <View style={{ marginTop: 10 }}>
+            <SH title="Sensitivity Analysis" />
+            <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: brand, paddingVertical: 5, paddingHorizontal: 8 }}>
+                <Text style={{ flex: 1.8, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>METRIC</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>BASE CASE</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>RENT {'\u221210%'}</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>RATE +1.5%</Text>
+              </View>
+              <View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
+                {([props.stressTest.baseCashFlow, props.stressTest.rentDownCashFlow, props.stressTest.rateUpCashFlow] as number[]).map((v, i) => (
+                  <Text key={i} style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {fc(v)}
+                  </Text>
+                ))}
+              </View>
+              <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
+                {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
+                  <Text key={i} style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {isFinite(v) ? fp(v) : '\u221E'}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
       </Page>
 
       {/* ── Page 4: Deal Rationale ─────────────────────────────────────────── */}

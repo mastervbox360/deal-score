@@ -1,0 +1,74 @@
+Stage 6C Step 5: Stress Test / Sensitivity Panel
+
+Read the following files in full before making any changes:
+
+artifacts/dealscore/src/Home.tsx
+artifacts/dealscore/src/DealScorePDF.tsx
+
+Plan all edits across both files before executing anything. Then execute all changes in parallel. Confirm exactly what you changed at the end.
+
+WHAT TO BUILD
+A stress test / sensitivity panel showing how the deal performs under two adverse scenarios versus the base case. Two new calculated values per scenario: Monthly Cash Flow and Cash-on-Cash ROI.
+Applies to these strategies only: BTL, HMO, SA, SOCIAL, BRRR.
+Do not render the panel for FLIP or R2R — those strategies have different structures and stress testing does not apply in the same way.
+
+DEAL TYPE STRING REFERENCE
+The dealType state uses these exact uppercase string values:
+
+'BTL', 'HMO', 'SA', 'BRRR', 'SOCIAL' — stress test applies, render the panel
+'FLIP', 'R2R' — stress test does not apply, hide the panel entirely
+
+Use these exact strings in all conditionals. Do not invent new values.
+
+SCENARIO DEFINITIONS
+
+Base Case — current inputs as entered
+Rent -10% — gross monthly income reduced by 10%, all other inputs unchanged
+Rate +1.5% — mortgage interest rate increased by 1.5%, all other inputs unchanged
+
+For each scenario, recalculate:
+
+Monthly Cash Flow — net monthly income after mortgage and expenses
+Cash-on-Cash ROI — annual net cash flow divided by total cash invested, expressed as a percentage
+
+These are derived calculations only — do not add any new input fields.
+
+IN-APP PANEL
+
+Collapsible panel, collapsed by default
+Toggle label: "Stress Test" with a chevron icon
+Position: directly below the main results panel, above any existing collapsible sections
+Title when expanded: "Sensitivity Analysis"
+Layout: 3-column table. Columns: Base Case / Rent -10% / Rate +1.5%. Rows: Monthly Cash Flow / Cash-on-Cash ROI
+Positive CF values in green, negative in red. ROI same colour logic.
+Style to match existing results panel — consistent navy/white design language
+Only render this panel for BTL, HMO, SA, SOCIAL, BRRR tabs. Hide entirely for FLIP and R2R.
+
+
+PDF PAGE 3
+
+Add a stress test table below the existing results table on PDF Page 3
+Section heading: "Sensitivity Analysis" in brand colour, same style as other PDF section headings
+Same 3-column structure: Base Case / Rent -10% / Rate +1.5%
+Same 2 rows: Monthly Cash Flow / Cash-on-Cash ROI
+Positive values in green (#22C55E), negative in red (#EF4444) — consistent with existing score bar colours in the Deal Score breakdown table
+Only render for BTL, HMO, SA, SOCIAL, BRRR. Do not render for FLIP or R2R.
+Brand colour header row, white data rows, alternating light grey on second row — match existing results table style
+
+
+DO NOT TOUCH
+
+Any existing formula logic or calculated outputs
+The Deal Score breakdown table, callout cards, verdict sentence, or What This Means paragraph (built Session 28)
+The R2R Monthly Spread row (built Session 29)
+generate-summary.cjs
+Any other Netlify functions
+netlify.toml or package.json
+Main branch — all changes to stage-6 branch only
+
+
+AFTER BUILDING
+
+Run npx tsc --noEmit — zero TypeScript errors required before confirming complete
+Confirm exactly which files were changed and what was added
+Do NOT push to main. Do NOT merge branches.
