@@ -1201,8 +1201,8 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 items-start">
           {/* Inputs Panel */}
           <div className="lg:col-span-6">
-            <Card className="border-0 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
-              <div className="px-6 pt-6 pb-2 flex justify-between items-center">
+            <Card className="border-0 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}>
+              <div className="px-6 pt-5 pb-2 flex justify-between items-center">
                 <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <Calculator className="w-4 h-4" style={{ color: '#1B3A6B' }} /> Deal Numbers
                 </h2>
@@ -1915,11 +1915,11 @@ export default function HomePage() {
 
           {/* Results Panel */}
           <div className="lg:col-span-5 lg:sticky lg:top-[196px]">
-            <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+            <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}>
             <Card className="bg-white text-foreground overflow-hidden" style={{ border: 'none' }}>
-              <div className="px-6 pt-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
+              <div className="px-6 pt-5 pb-4 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="flex items-center justify-center gap-1">
-                  <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Deal Score</h2>
                   <InfoIcon id="deal-score-header" text={TT.dealScore} />
                 </div>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
@@ -2294,7 +2294,7 @@ export default function HomePage() {
             )}
 
             {/* Show Workings Panel */}
-            <div className="bg-white overflow-hidden border-t border-border">
+            <div className="bg-white overflow-hidden border-t border-border pb-2">
               <button
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}

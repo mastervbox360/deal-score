@@ -1,0 +1,52 @@
+Read Home.tsx in full before making any changes. Then plan all edits. Then execute.
+
+TASK: Visual balance fix for the two columns — matching top accent lines, 
+aligned tops, consistent card style.
+
+CHANGE 1 — Add navy top accent to inputs card:
+Find the inputs Card element:
+className="border-0 bg-white rounded-2xl overflow-hidden"
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+
+Change style to:
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}
+
+CHANGE 2 — Add matching navy top accent to unified results card:
+Find the unified results wrapper div:
+className="bg-white rounded-2xl overflow-hidden"
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}
+
+Change style to:
+style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}
+
+CHANGE 3 — Match top padding on both column headers:
+Find the inputs card header div:
+className="px-6 pt-6 pb-2 flex justify-between items-center"
+Change to: className="px-6 pt-5 pb-2 flex justify-between items-center"
+
+Find the Deal Score heading div:
+className="px-6 pt-6 pb-4 flex flex-col items-center justify-center text-center space-y-4"
+Change to: className="px-6 pt-5 pb-4 flex flex-col items-center justify-center text-center space-y-4"
+
+CHANGE 4 — Match label styles between columns:
+The inputs card has: text-xs font-semibold uppercase tracking-widest text-muted-foreground
+The Deal Score heading has: font-medium uppercase tracking-widest text-sm + navy colour style
+
+Make the Deal Score heading match the inputs label style:
+Find: <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
+Replace with: <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Deal Score</h2>
+
+CHANGE 5 — Add bottom padding to results unified card:
+Find the Show Workings outer div (last element inside the unified results card):
+className="bg-white overflow-hidden border-t border-border"
+Change to: className="bg-white overflow-hidden border-t border-border pb-2"
+
+DO NOT change:
+- Any InfoIcon components
+- The verdict badge or score rendering
+- Any metric values or calculation logic
+- The inputs column content
+- The sticky nav stack
+- DealScorePDF or any other file
+
+Confirm every change and confirm zero TypeScript errors.
