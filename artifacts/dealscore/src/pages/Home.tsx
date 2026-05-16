@@ -1066,7 +1066,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div className="sticky top-[72px] z-40 bg-white border-b border-border shadow-sm">
+      <div className="sticky top-[100px] z-40 bg-white border-b border-border shadow-sm">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-start">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
             <TabsList className="flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full justify-start">
@@ -1097,7 +1097,7 @@ export default function HomePage() {
       </div>
 
       {/* Sticky Deal Score Bar */}
-      <div className="sticky top-[120px] z-30 bg-white border-b border-border shadow-sm">
+      <div className="sticky top-[148px] z-30 bg-white border-b border-border shadow-sm">
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4 min-h-[40px]">
           {hasAnalysed ? (
             <>
