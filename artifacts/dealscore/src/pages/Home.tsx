@@ -1916,7 +1916,7 @@ export default function HomePage() {
           {/* Results Panel */}
           <div className="lg:col-span-5 lg:sticky lg:top-[196px]">
             <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}>
-            <Card className="bg-white text-foreground overflow-hidden" style={{ border: 'none' }}>
+            <div className="bg-white overflow-hidden">
               <div className="px-6 pt-5 pb-4 flex flex-col items-start justify-start text-left space-y-4">
                 <div className="flex items-center justify-center gap-1">
                   <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -2228,7 +2228,7 @@ export default function HomePage() {
                 )}
 
               </div>
-            </Card>
+            </div>
 
             {stressSupported && (
               <div className="bg-white overflow-hidden border-t border-border">
