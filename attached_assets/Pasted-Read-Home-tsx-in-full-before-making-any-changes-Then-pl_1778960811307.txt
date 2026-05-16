@@ -1,0 +1,45 @@
+Read Home.tsx in full before making any changes. Then plan all edits explicitly. Then execute.
+
+TASK: Restructure the header and strategy tab bar into a two-layer sticky navigation system.
+
+CHANGES REQUIRED:
+
+1. Header — make sticky:
+   Find the <header> element (className contains "text-primary-foreground py-6 shadow-md").
+   Add `sticky top-0 z-50` to its className.
+
+2. Strategy tabs — extract from <main> and make sticky below header:
+   The <Tabs> component and its <TabsList> (the 7-tab grid) currently sits inside <main> inside a <div className="mb-8">.
+   Move it OUT of <main> entirely.
+   Place it in a new <div> directly after the </header> closing tag with className:
+   `sticky top-[80px] z-40 bg-white border-b border-border shadow-sm`
+   Inside that div, wrap the Tabs in:
+   `<div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2">`
+
+3. Update TabsList styling:
+   Change TabsList className to:
+   `flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full`
+   Change each TabsTrigger className to:
+   `flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]`
+
+4. Add hover tooltip (title attribute) to each TabsTrigger showing the full strategy name:
+   BTL → title="Buy-to-Let"
+   HMO → title="House in Multiple Occupation"
+   FLIP → title="Flip / Refurb"
+   SA → title="Serviced Accommodation"
+   BRRR → title="Buy, Refurb, Refinance, Rent"
+   R2R → title="Rent-to-Rent"
+   SOCIAL → title="Social Housing"
+
+5. Remove the <div className="mb-8"> wrapper that previously held the Tabs inside <main> entirely.
+
+DO NOT change:
+- Any tab values (BTL, HMO, FLIP, SA, BRRR, R2R, SOCIAL)
+- The InfoIcon components inside each TabsTrigger
+- The icon imports or icon components inside each TabsTrigger
+- The onValueChange handler on <Tabs>
+- Anything inside <main> other than removing the now-empty mb-8 div
+- Any calculation logic, state, or handlers
+- DealScorePDF, App.tsx, or any other file
+
+Confirm what you changed at the end.

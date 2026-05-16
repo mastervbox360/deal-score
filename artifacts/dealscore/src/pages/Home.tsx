@@ -1051,7 +1051,7 @@ export default function HomePage() {
   return (
     <>
     <div className="min-h-screen pb-20" style={{ backgroundColor: '#F5F7FA' }}>
-      <header className="text-primary-foreground py-6 shadow-md" style={{ backgroundColor: '#1B3A6B' }}>
+      <header className="text-primary-foreground py-6 shadow-md sticky top-0 z-50" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="container max-w-5xl mx-auto px-4 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
           <div>
@@ -1061,35 +1061,37 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="container max-w-5xl mx-auto px-4 mt-8">
-        <div className="mb-8">
+      <div className="sticky top-[80px] z-40 bg-white border-b border-border shadow-sm">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-2">
           <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="w-full grid grid-cols-7 h-12 bg-white border border-border rounded-xl p-1 shadow-sm">
-              <TabsTrigger value="BTL" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+            <TabsList className="flex flex-row gap-1 h-11 bg-transparent border-0 shadow-none p-0 overflow-x-auto scrollbar-hide w-full">
+              <TabsTrigger value="BTL" title="Buy-to-Let" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Home className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BTL</span><InfoIcon id="tab-btl" text={TT.tabBtl} />
               </TabsTrigger>
-              <TabsTrigger value="HMO" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+              <TabsTrigger value="HMO" title="House in Multiple Occupation" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Building2 className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">HMO</span><InfoIcon id="tab-hmo" text={TT.tabHmo} />
               </TabsTrigger>
-              <TabsTrigger value="FLIP" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+              <TabsTrigger value="FLIP" title="Flip / Refurb" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Hammer className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Flip</span><InfoIcon id="tab-flip" text={TT.tabFlip} />
               </TabsTrigger>
-              <TabsTrigger value="SA" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+              <TabsTrigger value="SA" title="Serviced Accommodation" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <BedDouble className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">SA</span><InfoIcon id="tab-sa" text={TT.tabSa} />
               </TabsTrigger>
-              <TabsTrigger value="BRRR" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+              <TabsTrigger value="BRRR" title="Buy, Refurb, Refinance, Rent" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <RefreshCw className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">BRRR</span><InfoIcon id="tab-brrr" text={TT.tabBrrr} />
               </TabsTrigger>
-              <TabsTrigger value="R2R" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+              <TabsTrigger value="R2R" title="Rent-to-Rent" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Key className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">R2R</span><InfoIcon id="tab-r2r" text={TT.tabR2r} />
               </TabsTrigger>
-              <TabsTrigger value="SOCIAL" className="rounded-lg text-xs font-semibold text-muted-foreground data-[state=active]:text-white data-[state=active]:shadow-md transition-all data-[state=active]:bg-[#1B3A6B]">
+              <TabsTrigger value="SOCIAL" title="Social Housing" className="flex-shrink-0 rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
                 <Shield className="w-3.5 h-3.5 mr-1 shrink-0 hidden sm:block" /><span className="truncate">Social</span><InfoIcon id="tab-social" text={TT.tabSocial} />
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
+      </div>
 
+      <main className="container max-w-5xl mx-auto px-4 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Inputs Panel */}
           <div className="lg:col-span-7">
