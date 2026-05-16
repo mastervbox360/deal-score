@@ -1919,8 +1919,9 @@ export default function HomePage() {
             <Card className="bg-white text-foreground overflow-hidden" style={{ border: 'none' }}>
               <div className="px-6 pt-5 pb-4 flex flex-col items-start justify-start text-left space-y-4">
                 <div className="flex items-center justify-center gap-1">
-                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Deal Score</h2>
-                  <InfoIcon id="deal-score-header" text={TT.dealScore} />
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" style={{ color: '#1B3A6B' }} />Deal Score
+                  </h2>
                 </div>
                 {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
                 {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
@@ -1930,15 +1931,6 @@ export default function HomePage() {
                 {dealType === 'R2R' && renderScoreBadge(r2rResults.score)}
                 {dealType === 'SOCIAL' && renderScoreBadge(socialResults.score)}
 
-                {(dealType === 'BTL' && btlResults.score === 'Incomplete') ||
-                 (dealType === 'HMO' && hmoResults.score === 'Incomplete') ||
-                 (dealType === 'FLIP' && flipResults.score === 'Incomplete') ||
-                 (dealType === 'SA' && saResults.score === 'Incomplete') ||
-                 (dealType === 'BRRR' && brrrResults.score === 'Incomplete') ||
-                 (dealType === 'R2R' && r2rResults.score === 'Incomplete') ||
-                 (dealType === 'SOCIAL' && socialResults.score === 'Incomplete') ? (
-                  <p className="text-sm opacity-80 mt-2">Enter properties to see verdict</p>
-                ) : null}
 
                 {marketValue > 0 && dealType !== 'R2R' && (
                   <div
