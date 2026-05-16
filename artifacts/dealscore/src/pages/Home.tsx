@@ -2236,10 +2236,10 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setStressTestOpen((v) => !v)}
                   aria-expanded={stressTestOpen}
-                  className="w-full flex items-center justify-between px-6 py-4"
+                  className="w-full flex items-center justify-between px-6 py-4 bg-slate-100 hover:bg-slate-200 transition-colors"
                   data-testid="toggle-stress-test"
                 >
-                  <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
                     Sensitivity Analysis
                     <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
                   </span>
@@ -2291,10 +2291,10 @@ export default function HomePage() {
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
                 aria-expanded={showWorkingsOpen}
-                className="w-full flex items-center justify-between px-6 py-4"
+                className="w-full flex items-center justify-between px-6 py-4 bg-slate-100 hover:bg-slate-200 transition-colors"
                 data-testid="toggle-show-workings"
               >
-                <span className="flex items-center gap-1.5 font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
+                <span className="text-xs font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
                   Show Workings
                   <InfoIcon id="show-workings" text={TT.showWorkings} />
                 </span>
