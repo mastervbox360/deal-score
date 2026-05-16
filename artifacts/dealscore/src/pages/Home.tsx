@@ -1111,7 +1111,7 @@ export default function HomePage() {
 
   return (
     <>
-    <div className="min-h-screen pb-20 overflow-visible" style={{ backgroundColor: '#F5F7FA' }}>
+    <div className="min-h-screen pb-20 overflow-visible" style={{ backgroundColor: '#EDEEF2' }}>
       <header className="text-primary-foreground py-6 shadow-md sticky top-0 z-50" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-accent" />
@@ -1562,7 +1562,7 @@ export default function HomePage() {
                 <div className="px-6 pb-6 space-y-5">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="strategy-notes">Why This Strategy?</Label>
+                      <Label htmlFor="strategy-notes" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why This Strategy?</Label>
                       {tierOverride === 'free' && aiGenCount >= 3 ? (
                         <p className="text-xs text-amber-600 font-medium text-right">
                           You've used your 3 free AI generations. Upgrade to Pro for unlimited.
@@ -2236,7 +2236,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setStressTestOpen((v) => !v)}
                   aria-expanded={stressTestOpen}
-                  className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                   data-testid="toggle-stress-test"
                 >
                   <span className="text-xs font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
@@ -2291,7 +2291,7 @@ export default function HomePage() {
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
                 aria-expanded={showWorkingsOpen}
-                className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                 data-testid="toggle-show-workings"
               >
                 <span className="text-xs font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
@@ -2836,12 +2836,12 @@ export default function HomePage() {
 
 function MetricBox({ label, value, highlight = false, tooltip }: { label: string, value: string, highlight?: boolean, tooltip?: string | { text: string; formula: string } }) {
   return (
-    <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center">
+    <div className="p-4 rounded-xl flex flex-col justify-center" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
       <span className="text-xs text-muted-foreground mb-1 flex items-center gap-0.5">
         {label}
         {tooltip && <InfoIcon id={`mb-${label.replace(/[^a-z0-9]/gi, '')}`} text={tooltip} />}
       </span>
-      <span className={`text-xl font-bold tracking-tight ${highlight ? 'text-destructive' : 'text-foreground'}`}>
+      <span className={`text-2xl font-bold tracking-tight ${highlight ? 'text-destructive' : 'text-foreground'}`}>
         {value}
       </span>
     </div>
@@ -3104,12 +3104,12 @@ function MortgageTypeToggle({ value, onChange }: { value: 'IO' | 'REPAYMENT', on
 
 function Row({ label, value, isBold = false, tooltip }: { label: string, value: string, isBold?: boolean, tooltip?: string | { text: string; formula: string } }) {
   return (
-    <div className="flex justify-between items-center py-1">
+    <div className="flex justify-between items-center py-2 border-b border-border/40 last:border-0">
       <span className="text-sm text-muted-foreground flex items-center gap-0.5">
         {label}
         {tooltip && <InfoIcon id={`row-${label.replace(/[^a-z0-9]/gi, '')}`} text={tooltip} />}
       </span>
-      <span className={`text-base ${isBold ? 'font-bold text-primary' : 'font-medium text-foreground'}`}>
+      <span className={`text-sm ${isBold ? 'font-bold text-[#1B3A6B]' : 'font-medium text-foreground'}`}>
         {value}
       </span>
     </div>

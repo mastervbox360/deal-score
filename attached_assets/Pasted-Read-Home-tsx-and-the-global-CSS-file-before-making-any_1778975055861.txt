@@ -1,0 +1,62 @@
+Read Home.tsx and the global CSS file before making any changes. 
+Plan all edits explicitly. Then execute.
+
+TASK 1 — Darken page background:
+Find: style={{ backgroundColor: '#F5F7FA' }} on the outer wrapper div.
+Change to: style={{ backgroundColor: '#EDEEF2' }}
+
+TASK 2 — Strengthen MetricBox visual weight:
+Find the MetricBox function (line ~2837).
+Current inner div className: "p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center"
+Change to: "p-4 rounded-xl flex flex-col justify-center"
+Change style to: style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}
+
+The label span: "text-xs text-muted-foreground mb-1 flex items-center gap-0.5"
+Keep as-is — correct.
+
+The value span: "text-xl font-bold tracking-tight"
+Change to: "text-2xl font-bold tracking-tight"
+This makes the key numbers (£89,950, £180,000) more prominent and readable.
+
+TASK 3 — Fix Row component typography:
+Find the Row function (line ~3105).
+The value span currently: "text-base ${isBold ? 'font-bold text-primary' : 'font-medium text-foreground'}"
+Change to: "text-sm ${isBold ? 'font-bold text-[#1B3A6B]' : 'font-medium text-foreground'}"
+
+The label span: "text-sm text-muted-foreground"
+Change to: "text-sm text-muted-foreground"
+Keep as-is — correct.
+
+Add a subtle separator between rows:
+Change the Row outer div from: "flex justify-between items-center py-1"
+To: "flex justify-between items-center py-2 border-b border-border/40 last:border-0"
+
+TASK 4 — Fix "Why This Strategy?" label:
+Find line ~1565: <Label htmlFor="strategy-notes">Why This Strategy?</Label>
+Change to: 
+<Label htmlFor="strategy-notes" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why This Strategy?</Label>
+
+TASK 5 — Fix "Vendor Situation" label size:
+Find: <Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+Keep exactly as-is — already correct.
+
+TASK 6 — Add row separators to metrics section:
+Find the space-y-2 or similar wrapper div containing the Row components
+(Gross Yield, Net Yield, Cash-on-Cash ROI rows).
+Change its className to include: "divide-y divide-border/40"
+And remove individual py spacing from rows if divide handles it.
+
+TASK 7 — Fix focus rings on all collapsible buttons:
+Find every button element that is a collapsible toggle 
+(RECOMMENDED STRATEGY, DEAL NOTES, SENSITIVITY ANALYSIS, SHOW WORKINGS).
+Add to each: focus:outline-none focus:ring-0
+
+DO NOT change:
+- Any calculation logic or state
+- The highlight prop behaviour on MetricBox (negative values)
+- The sticky nav stack
+- DealScorePDF or any other file
+- The verdict badge colours
+- Any input field values or handlers
+
+Confirm every change and confirm zero TypeScript errors.
