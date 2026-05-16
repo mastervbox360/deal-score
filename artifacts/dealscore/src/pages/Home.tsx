@@ -147,7 +147,6 @@ export default function HomePage() {
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
   const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
-  const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
@@ -519,7 +518,6 @@ export default function HomePage() {
     setManualTaxValue(0);
     setStrategyOpen(false);
     setDealNotesOpen(false);
-    setStressTestOpen(false);
     setShowWorkingsOpen(false);
     setIncludeWorkingsInPDF(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
@@ -2125,71 +2123,53 @@ export default function HomePage() {
                     </div>
                   </div>
                 )}
+              {stressSupported && (
+                <>
+                  <div className="border-t border-border mx-4 my-3" />
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-4 mb-2">
+                    Sensitivity Analysis
+                  </p>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="py-2 px-4 text-left text-[10px] font-semibold text-muted-foreground w-2/5"></th>
+                        <th className="py-2 px-4 text-right text-[10px] font-semibold text-muted-foreground">Base Case</th>
+                        <th className="py-2 px-4 text-right text-[10px] font-semibold text-muted-foreground">Rent −10%</th>
+                        <th className="py-2 px-4 text-right text-[10px] font-semibold text-muted-foreground">Rate +1.5%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t border-border">
+                        <td className="py-2 px-4 text-xs text-muted-foreground">Monthly Cash Flow</td>
+                        {([
+                          dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
+                          stressRentDown.monthlyCashFlow,
+                          stressRateUp.monthlyCashFlow,
+                        ] as number[]).map((v, i) => (
+                          <td key={i} className={`py-2 px-4 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            {formatCurrency(v)}
+                          </td>
+                        ))}
+                      </tr>
+                      <tr className="border-t border-border">
+                        <td className="py-2 px-4 text-xs text-muted-foreground">Cash-on-Cash ROI</td>
+                        {([
+                          dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
+                          stressRentDown.cashOnCashROI,
+                          stressRateUp.cashOnCashROI,
+                        ] as number[]).map((v, i) => (
+                          <td key={i} className={`py-2 px-4 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            {isFinite(v) ? formatPercent(v) : '\u221E'}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              )}
 
               </div>
             </Card>
-            {stressSupported && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => setStressTestOpen((v) => !v)}
-                  aria-expanded={stressTestOpen}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
-                  data-testid="toggle-stress-test"
-                >
-                  <span className="font-semibold text-sm uppercase tracking-widest" style={{ color: '#1B3A6B' }}>
-                    Stress Test
-                  </span>
-                  <ChevronDown
-                    className="h-4 w-4 transition-transform duration-200"
-                    style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  />
-                </button>
-                {stressTestOpen && (
-                  <div className="mt-3 rounded-xl border border-border overflow-hidden">
-                    <div className="px-4 py-2.5" style={{ backgroundColor: '#1B3A6B' }}>
-                      <span className="text-xs font-semibold uppercase tracking-widest text-white">Sensitivity Analysis</span>
-                    </div>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-muted/50 border-b border-border">
-                          <th className="py-2 px-3 text-left text-xs font-semibold text-muted-foreground w-2/5">Metric</th>
-                          <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground">Base Case</th>
-                          <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground">Rent &minus;10%</th>
-                          <th className="py-2 px-3 text-right text-xs font-semibold text-muted-foreground">Rate +1.5%</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b border-border">
-                          <td className="py-2.5 px-3 text-xs text-muted-foreground">Monthly Cash Flow</td>
-                          {([
-                            dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
-                            stressRentDown.monthlyCashFlow,
-                            stressRateUp.monthlyCashFlow,
-                          ] as number[]).map((v, i) => (
-                            <td key={i} className={`py-2.5 px-3 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
-                              {formatCurrency(v)}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <td className="py-2.5 px-3 text-xs text-muted-foreground">Cash-on-Cash ROI</td>
-                          {([
-                            dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
-                            stressRentDown.cashOnCashROI,
-                            stressRateUp.cashOnCashROI,
-                          ] as number[]).map((v, i) => (
-                            <td key={i} className={`py-2.5 px-3 text-right text-xs font-semibold tabular-nums ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
-                              {isFinite(v) ? formatPercent(v) : '\u221E'}
-                            </td>
-                          ))}
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Show Workings Panel */}
             <div className="mt-4">
