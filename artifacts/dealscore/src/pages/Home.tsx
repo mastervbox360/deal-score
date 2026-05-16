@@ -1915,8 +1915,9 @@ export default function HomePage() {
 
           {/* Results Panel */}
           <div className="lg:col-span-5 lg:sticky lg:top-[196px]">
-            <Card className="bg-white text-foreground rounded-2xl overflow-hidden" style={{ border: 'none', boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
-              <div className="p-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+            <Card className="bg-white text-foreground overflow-hidden" style={{ border: 'none' }}>
+              <div className="px-6 pt-6 pb-4 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="flex items-center justify-center gap-1">
                   <h2 className="font-medium uppercase tracking-widest text-sm" style={{ color: '#1B3A6B' }}>Deal Score</h2>
                   <InfoIcon id="deal-score-header" text={TT.dealScore} />
@@ -2238,7 +2239,7 @@ export default function HomePage() {
             </Card>
 
             {stressSupported && (
-              <div className="bg-white rounded-2xl overflow-hidden mt-3" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+              <div className="bg-white overflow-hidden border-t border-border">
                 <button
                   type="button"
                   onClick={() => setStressTestOpen((v) => !v)}
@@ -2293,7 +2294,7 @@ export default function HomePage() {
             )}
 
             {/* Show Workings Panel */}
-            <div className="bg-white rounded-2xl overflow-hidden mt-3" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+            <div className="bg-white overflow-hidden border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
@@ -2451,6 +2452,7 @@ export default function HomePage() {
                   )}
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>

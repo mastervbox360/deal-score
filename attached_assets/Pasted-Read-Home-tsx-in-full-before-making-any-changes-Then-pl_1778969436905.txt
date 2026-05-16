@@ -1,0 +1,49 @@
+Read Home.tsx in full before making any changes. Then plan all edits. Then execute.
+
+TASK: Unify the right column into a single card surface with internal dividers, 
+matching the left column's single-card layout.
+
+CHANGE 1 — Wrap all three right column components in one card:
+Find the results column wrapper:
+<div className="lg:col-span-5 lg:sticky lg:top-[196px]">
+
+Inside it, there are currently three separate components:
+- The Deal Score Card
+- The Sensitivity Analysis panel div
+- The Show Workings panel div
+
+Wrap all three in a single outer div:
+<div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)' }}>
+  {/* Deal Score Card */}
+  {/* Sensitivity Analysis */}
+  {/* Show Workings */}
+</div>
+
+CHANGE 2 — Strip individual card styling from the three components:
+- Deal Score Card: remove its own boxShadow style, remove rounded-2xl — it is now inside the unified card
+  Change className to: "bg-white text-foreground overflow-hidden"
+  Change style to: {{ border: 'none' }}
+
+- Sensitivity Analysis outer div: remove its own boxShadow and rounded-2xl
+  Change className to: "bg-white overflow-hidden border-t border-border"
+
+- Show Workings outer div: same treatment
+  Change className to: "bg-white overflow-hidden border-t border-border"
+
+CHANGE 3 — Align column tops:
+The inputs card has a "DEAL NUMBERS" label header (px-6 pt-6 pb-2).
+Add a matching top spacer to the results unified card so DEAL SCORE 
+vertically aligns with DEAL NUMBERS:
+Find the p-6 pb-4 div inside the Deal Score card that wraps the heading.
+Change its className from "p-6 pb-4 flex flex-col items-center justify-center text-center space-y-4"
+to "px-6 pt-6 pb-4 flex flex-col items-center justify-center text-center space-y-4"
+
+DO NOT change:
+- Any content inside the cards
+- The verdict badge, MetricBox, RiskFlags components
+- The sticky results column wrapper (lg:col-span-5 lg:sticky)
+- Anything inside the inputs column
+- The metrics bar, pills, header
+- DealScorePDF or any other file
+
+Confirm every change and confirm zero TypeScript errors.
