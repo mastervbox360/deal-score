@@ -1538,7 +1538,7 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-6 w-full">
                   <button
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
@@ -1592,7 +1592,7 @@ export default function HomePage() {
                 </div>
                 )}
 
-                <div className="mt-4">
+                <div className="mt-4 w-full">
                   <button
                     type="button"
                     onClick={() => setDealNotesOpen((v) => !v)}
