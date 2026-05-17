@@ -1508,19 +1508,19 @@ export default function HomePage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Management Fee (%)</Label><InfoIcon id="shared-mgmt-fee" text="Letting agent management fee as a percentage of effective rent (after void). Typical range 8–15%." /></div>
-                      <Input type="number" step="0.5" placeholder="e.g. 10" value={managementFeePercent || ''} onChange={(e) => setManagementFeePercent(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" step="0.5" placeholder="e.g. 10" value={managementFeePercent === 0 ? '' : managementFeePercent} onChange={(e) => setManagementFeePercent(parseFloat(e.target.value) || 0)} />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Void Allowance (%)</Label><InfoIcon id="shared-void" text="Percentage of gross rent lost to void periods between tenancies. 5% ≈ 3 weeks per year." /></div>
-                      <Input type="number" step="0.5" placeholder="e.g. 5" value={voidAllowancePercent || ''} onChange={(e) => setVoidAllowancePercent(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" step="0.5" placeholder="e.g. 5" value={voidAllowancePercent === 0 ? '' : voidAllowancePercent} onChange={(e) => setVoidAllowancePercent(parseFloat(e.target.value) || 0)} />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Maintenance Reserve (£/mo)</Label><InfoIcon id="shared-maint" text="Monthly allowance for repairs and maintenance. Typical range £50–£150/mo." /></div>
-                      <Input type="number" placeholder="e.g. 75" value={maintenanceReserve || ''} onChange={(e) => setMaintenanceReserve(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" placeholder="e.g. 75" value={maintenanceReserve === 0 ? '' : maintenanceReserve} onChange={(e) => setMaintenanceReserve(parseFloat(e.target.value) || 0)} />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Buildings Insurance (£/mo)</Label><InfoIcon id="shared-bldg-ins" text="Monthly buildings insurance cost. Typical range £20–£50/mo." /></div>
-                      <Input type="number" placeholder="e.g. 30" value={buildingsInsurance || ''} onChange={(e) => setBuildingsInsurance(parseFloat(e.target.value) || 0)} />
+                      <Input type="number" placeholder="e.g. 30" value={buildingsInsurance === 0 ? '' : buildingsInsurance} onChange={(e) => setBuildingsInsurance(parseFloat(e.target.value) || 0)} />
                     </div>
                     {tenure === 'Leasehold' && (
                       <div className="space-y-2">
