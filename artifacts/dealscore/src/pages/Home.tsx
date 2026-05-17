@@ -1385,7 +1385,7 @@ export default function HomePage() {
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="btl-rent" text={TT.monthlyRent} /></div>
+                      <div className="flex items-center gap-1"><Label>Monthly Rental Income (£)</Label><InfoIcon id="btl-rent" text={TT.monthlyRent} /></div>
                       <Input type="number" placeholder="Enter monthly rent" value={btlInputs.monthlyRent || ''} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
                     </div>
                   </div>
@@ -1464,7 +1464,7 @@ export default function HomePage() {
                       <Input type="number" step="0.1" placeholder="Enter new mortgage rate" value={brrrInputs.newMortgageRate || ''} onChange={(e) => handleBrrrChange('newMortgageRate', e.target.value)} data-testid="input-brrr-mortgage-rate" />
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="brrr-rent" text={TT.monthlyRent} /></div>
+                      <div className="flex items-center gap-1"><Label>Monthly Rental Income (£)</Label><InfoIcon id="brrr-rent" text={TT.monthlyRent} /></div>
                       <Input type="number" placeholder="Enter monthly rent" value={brrrInputs.monthlyRent || ''} onChange={(e) => handleBrrrChange('monthlyRent', e.target.value)} data-testid="input-brrr-monthly-rent" />
                     </div>
                   </div>
