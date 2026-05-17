@@ -1088,6 +1088,12 @@ export default function HomePage() {
         rateUpCoC: _stressRateUp.cashOnCashROI,
       } : undefined,
       includeWorkings: includeWorkingsInPDF,
+      managementFeePercent,
+      voidAllowancePercent,
+      maintenanceReserve,
+      buildingsInsurance,
+      serviceCharge,
+      groundRentAnnual,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
