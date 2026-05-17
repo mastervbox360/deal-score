@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Home, Hammer, TrendingUp, Calculator, Download, ChevronDown, BedDouble, RefreshCw, Key, Shield, RotateCcw, Trash2, Plus, Sparkles, X } from 'lucide-react';
+import { Home, TrendingUp, Calculator, Download, ChevronDown, RotateCcw, Trash2, Plus, Sparkles, X } from 'lucide-react';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -1123,51 +1122,6 @@ export default function HomePage() {
       </header>
 
       <div className="sticky top-[100px] z-40">
-      <div className="bg-white border-b border-border shadow-sm">
-        <div className="max-w-[1024px] mx-auto px-6 py-2 flex items-center w-full">
-          <Tabs value={dealType} onValueChange={(v) => setDealType(v as DealType)} className="w-full">
-            <TabsList className="hidden lg:grid lg:grid-cols-7 h-11 bg-transparent border-0 shadow-none p-0 w-full gap-1">
-              <TabsTrigger value="BTL" title="Buy-to-Let" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>Buy-to-Let</span><InfoIcon id="tab-btl" text={TT.tabBtl} />
-              </TabsTrigger>
-              <TabsTrigger value="HMO" title="House in Multiple Occupation" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>HMO</span><InfoIcon id="tab-hmo" text={TT.tabHmo} />
-              </TabsTrigger>
-              <TabsTrigger value="FLIP" title="Flip / Refurb" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>Flip / Refurb</span><InfoIcon id="tab-flip" text={TT.tabFlip} />
-              </TabsTrigger>
-              <TabsTrigger value="SA" title="Serviced Accommodation" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>Serviced Accom</span><InfoIcon id="tab-sa" text={TT.tabSa} />
-              </TabsTrigger>
-              <TabsTrigger value="BRRR" title="Buy, Refurb, Refinance, Rent" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>BRRR</span><InfoIcon id="tab-brrr" text={TT.tabBrrr} />
-              </TabsTrigger>
-              <TabsTrigger value="R2R" title="Rent-to-Rent" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>Rent-to-Rent</span><InfoIcon id="tab-r2r" text={TT.tabR2r} />
-              </TabsTrigger>
-              <TabsTrigger value="SOCIAL" title="Social Housing" className="flex-shrink-0 min-w-[44px] rounded-full px-4 h-9 text-xs font-semibold text-muted-foreground whitespace-nowrap border border-border data-[state=active]:text-white data-[state=active]:border-[#1B3A6B] data-[state=active]:shadow-sm transition-all data-[state=active]:bg-[#1B3A6B]">
-                <span>Social Housing</span><InfoIcon id="tab-social" text={TT.tabSocial} />
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        <div className="lg:hidden w-full px-6 pb-2">
-          <select
-            value={dealType}
-            onChange={(e) => setDealType(e.target.value as DealType)}
-            style={{ fontSize: '16px' }}
-            className="w-full h-11 rounded-xl border border-[#1B3A6B] px-4 text-sm font-semibold bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] appearance-none"
-          >
-            <option value="BTL">Buy-to-Let</option>
-            <option value="HMO">HMO</option>
-            <option value="FLIP">Flip / Refurb</option>
-            <option value="SA">Serviced Accommodation</option>
-            <option value="BRRR">BRRR</option>
-            <option value="R2R">Rent-to-Rent</option>
-            <option value="SOCIAL">Social Housing</option>
-          </select>
-        </div>
-      </div>
 
       {/* Sticky Deal Score Bar */}
       <div className="bg-white border-b border-border shadow-sm w-full">
@@ -1224,6 +1178,27 @@ export default function HomePage() {
                 </h2>
               </div>
               <CardContent className="p-6">
+                {/* Strategy Selector */}
+                <div className="space-y-2 mb-6 pb-6 border-b border-border">
+                  <div className="flex items-center gap-1">
+                    <Label>Investment Strategy</Label>
+                    <InfoIcon id="strategy-selector" text="Select the investment strategy you want to analyse for this deal. Each strategy uses different metrics and scoring thresholds." />
+                  </div>
+                  <select
+                    value={dealType}
+                    onChange={(e) => setDealType(e.target.value as DealType)}
+                    style={{ fontSize: '16px' }}
+                    className="w-full h-11 rounded-xl border border-input bg-background px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] cursor-pointer"
+                  >
+                    <option value="BTL">Buy-to-Let (BTL)</option>
+                    <option value="HMO">HMO — House in Multiple Occupation</option>
+                    <option value="FLIP">Flip / Refurb</option>
+                    <option value="SA">Serviced Accommodation (SA)</option>
+                    <option value="BRRR">BRRR — Buy, Refurb, Refinance, Rent</option>
+                    <option value="R2R">Rent-to-Rent (R2R)</option>
+                    <option value="SOCIAL">Social Housing</option>
+                  </select>
+                </div>
                 {/* Shared: property metadata and universal financial inputs */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                   <div className="space-y-2 md:col-span-2">
@@ -1926,7 +1901,7 @@ export default function HomePage() {
           </div>
 
           {/* Results Panel */}
-          <div className="lg:col-span-5 lg:sticky lg:top-[196px]">
+          <div className="lg:col-span-5 lg:sticky lg:top-[160px]">
             <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}>
             <div className="bg-white overflow-hidden">
               <div className="px-6 pt-5 pb-4 flex flex-col items-start justify-start text-left space-y-4">

@@ -1,0 +1,75 @@
+Read Home.tsx in full before making any changes. Then plan all edits. Then execute.
+
+TASK: Remove the pill tab bar and mobile dropdown entirely. Replace with a 
+strategy selector as the first field inside the Deal Numbers card. The sticky 
+nav becomes header + metrics bar only (two layers instead of three).
+
+CHANGE 1 — Remove the entire pill tab wrapper from the sticky nav.
+Find and delete this entire block (from opening div to closing div, inclusive):
+<div className="bg-white border-b border-border shadow-sm">
+  <div className="max-w-[1024px] mx-auto px-6 py-2 flex items-center w-full">
+    <Tabs value={dealType} onValueChange={...} className="w-full">
+      <TabsList ...>
+        ... all 7 TabsTriggers ...
+      </TabsList>
+    </Tabs>
+  </div>
+</div>
+
+Also find and delete the mobile dropdown div (className contains "lg:hidden") 
+that wraps the strategy <select> element — remove it entirely.
+
+CHANGE 2 — Fix the sticky top values now that the pill bar layer is gone.
+The sticky nav now has only 2 layers: header (≈100px) + metrics bar (≈44px).
+
+Find the outer sticky wrapper: className="sticky top-[100px] z-40"
+Change to: className="sticky top-[100px] z-40"
+(keep as-is — metrics bar was already inside this wrapper)
+
+Find the results column sticky: className="lg:col-span-5 lg:sticky lg:top-[196px]"
+Change to: className="lg:col-span-5 lg:sticky lg:top-[160px]"
+(100px header + 44px metrics bar + 16px gap = 160px)
+
+CHANGE 3 — Add strategy selector as first field inside Deal Numbers card.
+Find the Deal Numbers CardContent opening:
+<CardContent className="p-6">
+
+Directly inside it, before any other content, add:
+
+{/* Strategy Selector */}
+<div className="space-y-2 mb-6 pb-6 border-b border-border">
+  <div className="flex items-center gap-1">
+    <Label>Investment Strategy</Label>
+    <InfoIcon id="strategy-selector" text="Select the investment strategy you want to analyse for this deal. Each strategy uses different metrics and scoring thresholds." />
+  </div>
+  <select
+    value={dealType}
+    onChange={(e) => setDealType(e.target.value as DealType)}
+    style={{ fontSize: '16px' }}
+    className="w-full h-11 rounded-xl border border-input bg-background px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] cursor-pointer"
+  >
+    <option value="BTL">Buy-to-Let (BTL)</option>
+    <option value="HMO">HMO — House in Multiple Occupation</option>
+    <option value="FLIP">Flip / Refurb</option>
+    <option value="SA">Serviced Accommodation (SA)</option>
+    <option value="BRRR">BRRR — Buy, Refurb, Refinance, Rent</option>
+    <option value="R2R">Rent-to-Rent (R2R)</option>
+    <option value="SOCIAL">Social Housing</option>
+  </select>
+</div>
+
+CHANGE 4 — Remove unused imports now that Tabs/TabsList/TabsTrigger are gone.
+Remove from the import line: Tabs, TabsList, TabsTrigger
+Also remove these icon imports if they are now unused (only used in the tab triggers):
+Building2, Hammer, BedDouble, RefreshCw, Key, Shield
+Check each icon — only remove if it appears nowhere else in the file.
+
+DO NOT change:
+- The dealType state or setDealType handler
+- The dealLabel variable or any references to it
+- The metrics bar content
+- Anything inside the inputs or results panels (other than adding the strategy field)
+- The Tabs import from calculations (DealType type is still needed)
+- DealScorePDF or any other file
+
+Confirm every change and confirm zero TypeScript errors.
