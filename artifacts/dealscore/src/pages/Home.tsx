@@ -1542,12 +1542,12 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="w-full pb-0 mb-0">
+                <div className="mt-6 w-full pb-0 mb-0">
                   <button
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
                     aria-expanded={strategyOpen}
-                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                    className="w-full flex items-center justify-between py-3 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-strategy"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
