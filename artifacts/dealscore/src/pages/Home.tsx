@@ -1150,11 +1150,11 @@ export default function HomePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="lg:hidden px-4 py-2 flex justify-center">
+          <div className="lg:hidden w-full px-6 py-2">
             <select
               value={dealType}
               onChange={(e) => setDealType(e.target.value as DealType)}
-              className="w-full max-w-xs h-11 rounded-full border border-[#1B3A6B] px-4 text-sm font-semibold bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] text-center"
+              className="w-full h-11 rounded-full border border-[#1B3A6B] px-4 text-sm font-semibold bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B]"
             >
               <option value="BTL">Buy-to-Let</option>
               <option value="HMO">HMO</option>
