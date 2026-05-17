@@ -1,0 +1,193 @@
+Read the full contents of DealScorePDF.tsx before making 
+any changes. Plan all edits explicitly, then execute 
+in parallel.
+
+━━━ TASK OVERVIEW ━━━
+Add a new PDF page — Financial Detail — inserted after the
+existing Page 3 (Financial Analysis, ending ~line 1425) and
+before the existing Page 4 (Deal Rationale, ~line 1427).
+
+This page only renders for BTL, HMO, SA, BRRR, and SOCIAL.
+Wrap the entire new Page in:
+  {(props.dealType === 'BTL' || props.dealType === 'HMO' || 
+    props.dealType === 'SA' || props.dealType === 'BRRR' || 
+    props.dealType === 'SOCIAL') && (
+    <Page size="A4" style={base.page}>
+      ...
+    </Page>
+  )}
+
+━━━ ADD TO DealScorePDFProps INTERFACE ━━━
+
+IMPORTANT: The 6 new props below do not yet exist in 
+DealScorePDFProps — add all 6. Do not skip any.
+The Results types (BTLResults, HMOResults etc) are 
+ReturnType<typeof calculateXxx> and already include 
+the new calculated fields automatically — do not 
+touch the Results type definitions.
+
+Add these new optional props to DealScorePDFProps:
+  managementFeePercent?: number;
+  voidAllowancePercent?: number;
+  maintenanceReserve?: number;
+  buildingsInsurance?: number;
+  serviceCharge?: number;
+  groundRentAnnual?: number;
+
+The new calculated fields (breakEvenRent, paybackPeriod,
+voidAllowanceAmount, effectiveRent, managementFeeAmount,
+totalOperatingCosts, netOperatingIncome) are already 
+available via btlResults, hmoResults, saResults, 
+brrrResults, socialResults — access them from there.
+Do not add them to the interface separately.
+
+━━━ PAGE CONTENT ━━━
+
+At the top of the new page, derive the active strategy 
+values using these exact field names which are confirmed 
+present in the results objects:
+
+  const activeResults = 
+    props.dealType === 'BTL' ? props.btlResults :
+    props.dealType === 'HMO' ? props.hmoResults :
+    props.dealType === 'SA' ? props.saResults :
+    props.dealType === 'BRRR' ? props.brrrResults :
+    props.socialResults;
+
+  const grossRent =
+    props.dealType === 'BTL' ? props.btlInputs.monthlyRent :
+    props.dealType === 'HMO' ? props.hmoResults.grossMonthlyRent :
+    props.dealType === 'SA' ? props.saResults.netMonthlyRevenue :
+    props.dealType === 'BRRR' ? props.brrrInputs.monthlyRent :
+    props.socialInputs.leaseIncomePerMonth;
+
+  const mortgagePayment =
+    props.dealType === 'BTL' ? props.btlResults.monthlyMortgageInterest :
+    props.dealType === 'HMO' ? props.hmoResults.monthlyMortgageInterest :
+    props.dealType === 'SA' ? props.saResults.monthlyMortgage :
+    props.dealType === 'BRRR' ? props.brrrResults.monthlyMortgage :
+    props.socialResults.monthlyMortgage;
+
+  const voidPct = props.voidAllowancePercent ?? 5;
+  const mgmtPct = props.managementFeePercent ?? 10;
+  const maintenance = props.maintenanceReserve ?? 75;
+  const insurance = props.buildingsInsurance ?? 30;
+  const sc = props.serviceCharge ?? 0;
+  const gr = props.groundRentAnnual ?? 0;
+  const grMonthly = gr / 12;
+
+  const payback = activeResults.paybackPeriod ?? 0;
+  const paybackDisplay = (!isFinite(payback) || payback > 25 || payback <= 0)
+    ? 'N/A'
+    : payback.toFixed(1) + ' years';
+
+━━━ PAGE LAYOUT ━━━
+
+Page heading matching Page 3 style:
+  "FINANCIAL DETAIL" in brand colour (readableBrand)
+  Brand colour rule beneath (1pt, brand colour)
+
+Then a three-column header row:
+  Col 1: "ITEM" (label style, left aligned)
+  Col 2: "MONTHLY" (label style, right aligned)
+  Col 3: "ANNUAL" (label style, right aligned)
+
+Then waterfall rows. Each row has:
+  label left, monthly value right-aligned centre col,
+  annual value right-aligned far col.
+
+ROWS IN ORDER:
+
+1.  Gross Rent
+    monthly: fc(grossRent)
+    annual: fc(grossRent * 12)
+
+2.  Void Allowance ({voidPct}%)
+    monthly: (fc(activeResults.voidAllowanceAmount))
+    annual: (fc(activeResults.voidAllowanceAmount * 12))
+    [show as negative with parentheses]
+
+3.  Effective Rent
+    monthly: fc(activeResults.effectiveRent)
+    annual: fc(activeResults.effectiveRent * 12)
+    [BOLD + borderTop 1pt brand colour]
+
+4.  Management Fee ({mgmtPct}%)
+    monthly: (fc(activeResults.managementFeeAmount))
+    annual: (fc(activeResults.managementFeeAmount * 12))
+    [negative with parentheses]
+
+5.  Maintenance Reserve
+    monthly: (fc(maintenance))
+    annual: (fc(maintenance * 12))
+    [negative with parentheses]
+
+6.  Buildings Insurance
+    monthly: (fc(insurance))
+    annual: (fc(insurance * 12))
+    [negative with parentheses]
+
+7.  Service Charge        [ONLY render if sc > 0]
+    monthly: (fc(sc))
+    annual: (fc(sc * 12))
+    [negative with parentheses]
+
+8.  Ground Rent           [ONLY render if gr > 0]
+    monthly: (fc(grMonthly))
+    annual: (fc(gr))
+    [negative with parentheses]
+
+9.  Net Operating Income
+    monthly: fc(activeResults.netOperatingIncome)
+    annual: fc(activeResults.netOperatingIncome * 12)
+    [BOLD + borderTop 1pt brand colour]
+
+10. Mortgage Payment
+    monthly: (fc(mortgagePayment))
+    annual: (fc(mortgagePayment * 12))
+    [negative with parentheses]
+
+11. NET CASH FLOW
+    monthly: fc(activeResults.monthlyCashFlow)
+    annual: fc(activeResults.monthlyCashFlow * 12)
+    [BOLD, fontSize 1pt larger than other rows,
+     borderTop 1pt brand colour]
+
+Below the waterfall, a light divider (#E2E8F0), then
+KEY METRICS block in a 2x2 grid layout:
+  Cash-on-Cash ROI:   fp(activeResults.cashOnCashROI)
+  Gross Yield:        fp(activeResults.grossYield)
+  Net Yield:          fp(activeResults.netYield)
+  Payback Period:     paybackDisplay
+
+Key Metrics block styling: light background (#F0F4F8),
+border 1pt brand colour, padding 8, borderRadius 4.
+Each metric: label in muted colour, value in dark navy 
+bold (#1E2B3C).
+
+━━━ STYLING RULES ━━━
+- All monetary values: color #1E2B3C (dark navy) — never
+  brand colour
+- Negative/cost rows: parentheses format (£X) — same
+  dark navy colour, not red
+- Bold divider rows (rows 3, 9, 11): fontWeight 'bold',
+  borderTopWidth: 1, borderTopColor: readableBrand
+- Row 11 NET CASH FLOW: fontSize 1pt larger than body rows
+- Alternating row background: odd rows #FAFAFA,
+  even rows white — subtle zebra striping
+- Page footer: handled by Document-level render prop —
+  no change needed
+
+━━━ DO NOT CHANGE ━━━
+Any existing pages, any existing props (only additions
+to interface), any other strategy rendering, Page 3,
+Deal Rationale page, Market Evidence page, Legal page,
+photo pages, any Results type definitions.
+
+After completing, confirm:
+1. Exact line number where new page was inserted
+2. All 6 new props confirmed added to interface
+3. The 5-strategy conditional wrapper is present
+4. Service Charge and Ground Rent row conditionals
+   are in place
+5. That npx tsc --noEmit passes with zero errors

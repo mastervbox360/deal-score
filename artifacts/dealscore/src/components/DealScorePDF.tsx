@@ -93,6 +93,12 @@ export interface DealScorePDFProps {
     rateUpCoC: number;
   };
   includeWorkings?: boolean;
+  managementFeePercent?: number;
+  voidAllowancePercent?: number;
+  maintenanceReserve?: number;
+  buildingsInsurance?: number;
+  serviceCharge?: number;
+  groundRentAnnual?: number;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -868,6 +874,41 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     props.preparedBy.phone,
   ].filter(Boolean).join(' · ');
 
+  // ── Financial Detail page derived values ──────────────────────────────────
+  const activeResults =
+    props.dealType === 'BTL' ? props.btlResults :
+    props.dealType === 'HMO' ? props.hmoResults :
+    props.dealType === 'SA' ? props.saResults :
+    props.dealType === 'BRRR' ? props.brrrResults :
+    props.socialResults;
+
+  const fdGrossRent =
+    props.dealType === 'BTL' ? props.btlInputs.monthlyRent :
+    props.dealType === 'HMO' ? props.hmoResults.grossMonthlyRent :
+    props.dealType === 'SA' ? props.saResults.netMonthlyRevenue :
+    props.dealType === 'BRRR' ? props.brrrInputs.monthlyRent :
+    props.socialInputs.leaseIncomePerMonth;
+
+  const fdMortgagePayment =
+    props.dealType === 'BTL' ? props.btlResults.monthlyMortgageInterest :
+    props.dealType === 'HMO' ? props.hmoResults.monthlyMortgageInterest :
+    props.dealType === 'SA' ? props.saResults.monthlyMortgage :
+    props.dealType === 'BRRR' ? props.brrrResults.monthlyMortgage :
+    props.socialResults.monthlyMortgage;
+
+  const fdVoidPct = props.voidAllowancePercent ?? 5;
+  const fdMgmtPct = props.managementFeePercent ?? 10;
+  const fdMaintenance = props.maintenanceReserve ?? 75;
+  const fdInsurance = props.buildingsInsurance ?? 30;
+  const fdSc = props.serviceCharge ?? 0;
+  const fdGr = props.groundRentAnnual ?? 0;
+  const fdGrMonthly = fdGr / 12;
+
+  const fdRawPayback = activeResults.paybackPeriod;
+  const fdPayback = fdRawPayback ?? 0;
+  const fdPaybackDisplay = (!isFinite(fdPayback) || fdPayback > 25 || fdPayback <= 0)
+    ? 'N/A'
+    : fdPayback.toFixed(1) + ' years';
 
   return (
     <Document>
@@ -1423,6 +1464,129 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
       </Page>
+
+      {/* ── Financial Detail Page ─────────────────────────────────────────── */}
+      {(props.dealType === 'BTL' || props.dealType === 'HMO' ||
+        props.dealType === 'SA' || props.dealType === 'BRRR' ||
+        props.dealType === 'SOCIAL') && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <SH title="FINANCIAL DETAIL" />
+
+          {/* Column header row */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: readableBrand }}>
+            <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}>ITEM</Text>
+            <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'right' }}>MONTHLY</Text>
+            <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'right' }}>ANNUAL</Text>
+          </View>
+
+          {/* Row 1: Gross Rent */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#FAFAFA' }}>
+            <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>Gross Rent</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{fc(fdGrossRent)}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{fc(fdGrossRent * 12)}</Text>
+          </View>
+
+          {/* Row 2: Void Allowance */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#ffffff' }}>
+            <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>{`Void Allowance (${fdVoidPct}%)`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(activeResults.voidAllowanceAmount)})`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(activeResults.voidAllowanceAmount * 12)})`}</Text>
+          </View>
+
+          {/* Row 3: Effective Rent — BOLD, border-top */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#FAFAFA', borderTop: `1pt solid ${readableBrand}` }}>
+            <Text style={{ flex: 2, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>Effective Rent</Text>
+            <Text style={{ flex: 1, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{fc(activeResults.effectiveRent)}</Text>
+            <Text style={{ flex: 1, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{fc(activeResults.effectiveRent * 12)}</Text>
+          </View>
+
+          {/* Row 4: Management Fee */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#ffffff' }}>
+            <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>{`Management Fee (${fdMgmtPct}%)`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(activeResults.managementFeeAmount)})`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(activeResults.managementFeeAmount * 12)})`}</Text>
+          </View>
+
+          {/* Row 5: Maintenance Reserve */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#FAFAFA' }}>
+            <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>Maintenance Reserve</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdMaintenance)})`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdMaintenance * 12)})`}</Text>
+          </View>
+
+          {/* Row 6: Buildings Insurance */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#ffffff' }}>
+            <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>Buildings Insurance</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdInsurance)})`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdInsurance * 12)})`}</Text>
+          </View>
+
+          {/* Row 7: Service Charge (conditional) */}
+          {fdSc > 0 && (
+            <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#FAFAFA' }}>
+              <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>Service Charge</Text>
+              <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdSc)})`}</Text>
+              <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdSc * 12)})`}</Text>
+            </View>
+          )}
+
+          {/* Row 8: Ground Rent (conditional) */}
+          {fdGr > 0 && (
+            <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#ffffff' }}>
+              <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>Ground Rent</Text>
+              <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdGrMonthly)})`}</Text>
+              <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdGr)})`}</Text>
+            </View>
+          )}
+
+          {/* Row 9: Net Operating Income — BOLD, border-top */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#FAFAFA', borderTop: `1pt solid ${readableBrand}` }}>
+            <Text style={{ flex: 2, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>Net Operating Income</Text>
+            <Text style={{ flex: 1, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{fc(activeResults.netOperatingIncome)}</Text>
+            <Text style={{ flex: 1, fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{fc(activeResults.netOperatingIncome * 12)}</Text>
+          </View>
+
+          {/* Row 10: Mortgage Payment */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: '#ffffff' }}>
+            <Text style={{ flex: 2, fontSize: 9, color: '#1E2B3C' }}>Mortgage Payment</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdMortgagePayment)})`}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: '#1E2B3C', textAlign: 'right' }}>{`(${fc(fdMortgagePayment * 12)})`}</Text>
+          </View>
+
+          {/* Row 11: NET CASH FLOW — BOLD, 1pt larger, border-top */}
+          <View style={{ flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 6, backgroundColor: '#FAFAFA', borderTop: `1pt solid ${readableBrand}` }}>
+            <Text style={{ flex: 2, fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>NET CASH FLOW</Text>
+            <Text style={{ flex: 1, fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{fc(activeResults.monthlyCashFlow)}</Text>
+            <Text style={{ flex: 1, fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'right' }}>{fc(activeResults.monthlyCashFlow * 12)}</Text>
+          </View>
+
+          {/* Divider */}
+          <View style={{ borderBottom: '1pt solid #E2E8F0', marginVertical: 14 }} />
+
+          {/* Key Metrics 2×2 */}
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+            <View style={{ flex: 1, backgroundColor: '#F0F4F8', border: `1pt solid ${readableBrand}`, padding: 8, borderRadius: 4 }}>
+              <Text style={{ fontSize: 8, color: '#6B7280', marginBottom: 3 }}>Cash-on-Cash ROI</Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeResults.cashOnCashROI)}</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: '#F0F4F8', border: `1pt solid ${readableBrand}`, padding: 8, borderRadius: 4 }}>
+              <Text style={{ fontSize: 8, color: '#6B7280', marginBottom: 3 }}>Gross Yield</Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeResults.grossYield)}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flex: 1, backgroundColor: '#F0F4F8', border: `1pt solid ${readableBrand}`, padding: 8, borderRadius: 4 }}>
+              <Text style={{ fontSize: 8, color: '#6B7280', marginBottom: 3 }}>Net Yield</Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeResults.netYield)}</Text>
+            </View>
+            <View style={{ flex: 1, backgroundColor: '#F0F4F8', border: `1pt solid ${readableBrand}`, padding: 8, borderRadius: 4 }}>
+              <Text style={{ fontSize: 8, color: '#6B7280', marginBottom: 3 }}>Payback Period</Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fdPaybackDisplay}</Text>
+            </View>
+          </View>
+        </Page>
+      )}
 
       {/* ── Page 4: Deal Rationale ─────────────────────────────────────────── */}
       {hasRationale && (
