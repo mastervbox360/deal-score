@@ -1678,7 +1678,7 @@ export default function HomePage() {
                       <InfoIcon id="comp-info" text={TT.comparables} />
                     </div>
                     <div className="border border-border rounded-lg overflow-hidden">
-                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '3fr 1fr 1fr 1fr auto' }}>
+                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-foreground px-3 py-2" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
                         <span>Address</span>
                         <span>Beds / Type</span>
                         <span>Date Sold</span>
@@ -1686,7 +1686,7 @@ export default function HomePage() {
                         <span />
                       </div>
                       {comparables.map((row, i) => (
-                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '3fr 1fr 1fr 1fr auto' }}>
+                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
                           <Input
                             type="text"
                             autoComplete="new-password"
@@ -1697,7 +1697,7 @@ export default function HomePage() {
                               next[i] = { ...next[i], address: e.target.value };
                               setComparables(next);
                             }}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs"
                           />
                           <Input
                             type="text"
@@ -1709,7 +1709,7 @@ export default function HomePage() {
                               next[i] = { ...next[i], bedsType: e.target.value };
                               setComparables(next);
                             }}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs"
                           />
                           <Input
                             type="text"
@@ -1721,7 +1721,7 @@ export default function HomePage() {
                               next[i] = { ...next[i], dateSold: e.target.value };
                               setComparables(next);
                             }}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs"
                           />
                           <Input
                             type="text"
@@ -1733,7 +1733,7 @@ export default function HomePage() {
                               next[i] = { ...next[i], price: e.target.value };
                               setComparables(next);
                             }}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs"
                           />
                           <button
                             type="button"
@@ -1746,15 +1746,13 @@ export default function HomePage() {
                         </div>
                       ))}
                     </div>
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-1"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-[#1B3A6B]/40 text-xs font-semibold text-[#1B3A6B] hover:bg-[#1B3A6B]/5 hover:border-[#1B3A6B] transition-colors cursor-pointer"
                       onClick={() => setComparables([...comparables, { address: '', bedsType: '', dateSold: '', price: '' }])}
                     >
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Row
-                    </Button>
+                      <Plus className="w-3.5 h-3.5" /> Add Row
+                    </button>
                   </div>
 
                   {/* Listing Links */}
@@ -1777,7 +1775,7 @@ export default function HomePage() {
                               next[i] = { ...next[i], label: e.target.value };
                               setListingLinks(next);
                             }}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs"
                           />
                           <Input
                             type="url"
@@ -1808,7 +1806,7 @@ export default function HomePage() {
                               };
                               setListingLinks(next);
                             }}
-                            className="h-8 text-xs"
+                            className="h-9 text-xs"
                           />
                           <button
                             type="button"
@@ -1821,21 +1819,19 @@ export default function HomePage() {
                         </div>
                       ))}
                     </div>
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-1"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-[#1B3A6B]/40 text-xs font-semibold text-[#1B3A6B] hover:bg-[#1B3A6B]/5 hover:border-[#1B3A6B] transition-colors cursor-pointer"
                       onClick={() => setListingLinks([...listingLinks, { label: '', url: '' }])}
                     >
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Add Link
-                    </Button>
+                      <Plus className="w-3.5 h-3.5" /> Add Link
+                    </button>
                   </div>
 
                   {/* Property Photos */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
-                    <label className="block w-full border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-[#1B3A6B] transition-colors">
+                    <label className="block w-full border-2 border-dashed border-[#1B3A6B]/30 rounded-xl p-8 text-center cursor-pointer hover:border-[#1B3A6B] hover:bg-[#1B3A6B]/5 transition-colors">
                       <input
                         type="file"
                         accept="image/jpeg,image/png"
@@ -1860,7 +1856,7 @@ export default function HomePage() {
                           setPhotoFiles((prev) => [...prev, ...valid]);
                         }}
                       />
-                      <span className="text-sm text-muted-foreground">Click to upload photos (JPG / PNG, multiple allowed)</span>
+                      <span className="text-sm font-medium text-[#1B3A6B]/70">Click to upload photos (JPG / PNG, multiple allowed)</span>
                     </label>
                     {photoLimitError && (
                       <p className="text-xs text-amber-600 font-medium">Maximum 11 photos allowed.</p>
@@ -2767,8 +2763,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-white font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition"
-              style={{ backgroundColor: '#6B7280' }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:bg-slate-100 transition-colors cursor-pointer"
               data-testid="button-reset"
             >
               <RotateCcw className="w-4 h-4" />

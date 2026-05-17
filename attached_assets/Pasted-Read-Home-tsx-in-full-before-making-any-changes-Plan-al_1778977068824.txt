@@ -1,0 +1,46 @@
+Read Home.tsx in full before making any changes. Plan all edits. Then execute.
+
+TASK 1 — Comparable Properties table: improve column widths and cell sizing:
+Find the Comparable Properties table grid div with:
+style={{ gridTemplateColumns: '3fr 1fr 1fr 1fr auto' }}
+Change to:
+style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}
+
+Find the input cells inside the comparables rows — they currently have className="h-8 text-xs"
+Change each to: className="h-9 text-xs"
+
+Find the header row div with className containing "grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2"
+Change to: className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-foreground px-3 py-2"
+
+TASK 2 — Add Row and Add Link buttons: make them look clearly interactive:
+Find the Add Row button:
+className contains "w-full flex items-center justify-center"
+Change its className to:
+"w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-[#1B3A6B]/40 text-xs font-semibold text-[#1B3A6B] hover:bg-[#1B3A6B]/5 hover:border-[#1B3A6B] transition-colors cursor-pointer"
+
+Find the Add Link button — apply the identical className.
+
+TASK 3 — Property Photos upload area: make it more prominent:
+Find the photo upload label element (className contains "border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-[#1B3A6B]")
+Change to:
+className="block w-full border-2 border-dashed border-[#1B3A6B]/30 rounded-xl p-8 text-center cursor-pointer hover:border-[#1B3A6B] hover:bg-[#1B3A6B]/5 transition-colors"
+
+Find the upload text span inside it: className="text-sm text-muted-foreground"
+Change to: className="text-sm font-medium text-[#1B3A6B]/70"
+
+TASK 4 — Reset button: de-emphasise vs PDF actions:
+Find the Reset button at the bottom of the Prepared By section.
+It currently likely has a dark or prominent style matching the Download button.
+Change its className to use a ghost/outline style:
+className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-muted-foreground border border-border hover:bg-slate-100 transition-colors cursor-pointer"
+Remove any dark background colour from it.
+
+DO NOT change:
+- Any calculation logic or state
+- The PDF download or Preview PDF buttons
+- The sticky nav stack
+- DealScorePDF or any other file
+- Any input field values or handlers
+- The photo grid or lightbox functionality
+
+Confirm every change and confirm zero TypeScript errors.
