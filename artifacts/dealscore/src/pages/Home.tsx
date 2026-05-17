@@ -1191,10 +1191,10 @@ export default function HomePage() {
                     className="w-full h-11 rounded-xl border border-input bg-background px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] cursor-pointer"
                   >
                     <option value="BTL">Buy-to-Let (BTL)</option>
-                    <option value="HMO">HMO — House in Multiple Occupation</option>
+                    <option value="HMO">House in Multiple Occupation (HMO)</option>
                     <option value="FLIP">Flip / Refurb</option>
                     <option value="SA">Serviced Accommodation (SA)</option>
-                    <option value="BRRR">BRRR — Buy, Refurb, Refinance, Rent</option>
+                    <option value="BRRR">Buy, Refurb, Refinance, Rent (BRRR)</option>
                     <option value="R2R">Rent-to-Rent (R2R)</option>
                     <option value="SOCIAL">Social Housing</option>
                   </select>
