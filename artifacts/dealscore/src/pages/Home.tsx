@@ -1596,7 +1596,7 @@ export default function HomePage() {
                 </div>
                 )}
 
-                <div className="w-full pb-0 mb-0">
+                <div className="w-full pb-2 mb-0">
                   <button
                     type="button"
                     onClick={() => setDealNotesOpen((v) => !v)}
