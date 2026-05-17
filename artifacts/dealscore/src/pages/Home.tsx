@@ -1543,7 +1543,7 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
                     aria-expanded={strategyOpen}
-                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-strategy"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
@@ -1559,7 +1559,7 @@ export default function HomePage() {
                   </button>
                 </div>
                 {strategyOpen && (
-                <div className="px-6 pb-6 space-y-5">
+                <div className="pb-6 space-y-5">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="strategy-notes" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why This Strategy?</Label>
@@ -1597,7 +1597,7 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setDealNotesOpen((v) => !v)}
                     aria-expanded={dealNotesOpen}
-                    className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-deal-notes"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
@@ -1613,7 +1613,7 @@ export default function HomePage() {
                   </button>
                 </div>
                 {dealNotesOpen && (
-                <div className="px-6 pb-6 space-y-5">
+                <div className="pb-6 space-y-5">
 
                   {/* Executive Summary */}
                   <div className="space-y-2">
