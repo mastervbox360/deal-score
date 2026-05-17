@@ -1618,7 +1618,7 @@ export default function HomePage() {
                   {/* Executive Summary */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="executive-summary" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Executive Summary</Label>
+                      <Label htmlFor="executive-summary" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Executive Summary</Label>
                       {tierOverride === 'free' && aiGenCount >= 3 ? (
                         <p className="text-xs text-amber-600 font-medium text-right">
                           You've used your 3 free AI generations. Upgrade to Pro for unlimited.
@@ -1647,7 +1647,7 @@ export default function HomePage() {
 
                   {/* Property Description */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label htmlFor="property-description" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
+                    <div className="flex items-center gap-1"><Label htmlFor="property-description" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
                     <Textarea
                       id="property-description"
                       placeholder="e.g. 3-bed mid-terrace, 90 sqm, double glazing, gas central heating, west-facing garden, off-road parking…"
@@ -1660,7 +1660,7 @@ export default function HomePage() {
 
                   {/* Vendor Situation */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
+                    <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
                     <Textarea
                       id="vendor-situation"
                       placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
@@ -1674,7 +1674,7 @@ export default function HomePage() {
                   {/* Comparable Properties — dynamic table */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
-                      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Comparable Properties</Label>
+                      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Comparable Properties</Label>
                       <InfoIcon id="comp-info" text={TT.comparables} />
                     </div>
                     <div className="border border-border rounded-lg overflow-hidden">
@@ -1759,7 +1759,7 @@ export default function HomePage() {
 
                   {/* Listing Links */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Listing Links</Label>
+                    <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Listing Links</Label>
                     <div className="border border-border rounded-lg overflow-hidden">
                       <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 2fr auto' }}>
                         <span>Label</span>
@@ -1834,7 +1834,7 @@ export default function HomePage() {
 
                   {/* Property Photos */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
+                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
                     <label className="block w-full border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-[#1B3A6B] transition-colors">
                       <input
                         type="file"
@@ -2252,9 +2252,9 @@ export default function HomePage() {
                   <div className="border-t border-border">
                     <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
                       <span className="text-xs text-muted-foreground col-span-1" />
-                      <span className="text-xs font-medium text-muted-foreground text-right">Base Case</span>
-                      <span className="text-xs font-medium text-muted-foreground text-right">Rent −10%</span>
-                      <span className="text-xs font-medium text-muted-foreground text-right">Rate +1.5%</span>
+                      <span className="text-xs font-semibold text-foreground text-right">Base Case</span>
+                      <span className="text-xs font-semibold text-foreground text-right">Rent −10%</span>
+                      <span className="text-xs font-semibold text-foreground text-right">Rate +1.5%</span>
                     </div>
                     <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
                       <span className="text-sm text-muted-foreground col-span-1">Monthly CF</span>
@@ -3438,7 +3438,7 @@ function InfoIcon({ id, text }: { id: string; text: string | { text: string; for
 function WRow({ label, value, bold, color }: { label: string; value: string; bold?: boolean; color?: string }) {
   const c = color ?? (bold ? '#1B3A6B' : undefined);
   return (
-    <div className={`flex items-baseline justify-between gap-2 py-0.5 text-xs${bold ? ' border-t border-border/50 mt-1 pt-1' : ''}`}>
+    <div className={`flex items-baseline justify-between gap-2 py-1 text-xs${bold ? ' border-t border-border/50 mt-1 pt-1' : ''}`}>
       <span className="text-left" style={{ color: c ?? '#64748B', fontWeight: bold ? 700 : undefined }}>{label}</span>
       <span className="tabular-nums text-right shrink-0" style={{ color: c ?? '#1E293B', fontWeight: bold ? 700 : undefined }}>{value}</span>
     </div>
@@ -3446,5 +3446,5 @@ function WRow({ label, value, bold, color }: { label: string; value: string; bol
 }
 
 function WSec({ title }: { title: string }) {
-  return <p className="text-[9px] font-bold uppercase tracking-widest mt-3 mb-0.5" style={{ color: '#1B3A6B' }}>{title}</p>;
+  return <p className="text-[10px] font-bold uppercase tracking-widest mt-3 mb-1" style={{ color: '#1B3A6B' }}>{title}</p>;
 }
