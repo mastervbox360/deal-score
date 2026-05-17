@@ -1159,9 +1159,14 @@ export default function HomePage() {
 
             </div>
           ) : (
-            <span className="text-[11px] text-muted-foreground w-full text-center py-1">
-              Enter deal numbers to see live metrics
-            </span>
+            <div className="flex items-center justify-between w-full">
+              <span className="text-[11px] font-bold text-[#1B3A6B] uppercase tracking-wide shrink-0">
+                {dealLabel}
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                Enter deal numbers to see live metrics
+              </span>
+            </div>
           )}
         </div>
       </div>
