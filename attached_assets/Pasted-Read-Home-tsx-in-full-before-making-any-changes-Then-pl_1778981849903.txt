@@ -1,0 +1,53 @@
+Read Home.tsx in full before making any changes. Then plan all edits. Then execute.
+
+TASK: Responsive strategy selector — full named pills on desktop, dropdown on mobile.
+
+CHANGE 1 — Desktop pills (lg and above): show full strategy names, span full width.
+Find the TabsList className. Change to:
+className="hidden lg:grid lg:grid-cols-7 h-11 bg-transparent border-0 shadow-none p-0 w-full gap-1"
+
+For each TabsTrigger, update the label span to show full names on desktop:
+- BTL trigger: change <span className="truncate">BTL</span> to <span>Buy-to-Let</span>
+- HMO trigger: <span>HMO</span> (keep as-is — HMO is the full name)
+- FLIP trigger: <span>Flip / Refurb</span>
+- SA trigger: <span>Serviced Accom</span>
+- BRRR trigger: <span>BRRR</span> (keep as-is)
+- R2R trigger: <span>Rent-to-Rent</span>
+- SOCIAL trigger: <span>Social Housing</span>
+
+Remove the icons (Home, Building2, Hammer etc) from all TabsTriggers entirely — 
+with full names there is no need for icons. Keep only the label span and InfoIcon.
+
+Keep each TabsTrigger className as-is (rounded-full, navy active state etc).
+
+CHANGE 2 — Mobile dropdown (below lg): add a native select below the pill bar.
+Directly after the closing </Tabs> tag, add:
+
+<div className="lg:hidden px-4 py-2">
+  <select
+    value={dealType}
+    onChange={(e) => setDealType(e.target.value as DealType)}
+    className="w-full h-11 rounded-full border border-border px-4 text-sm font-semibold bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B]"
+  >
+    <option value="BTL">Buy-to-Let</option>
+    <option value="HMO">HMO</option>
+    <option value="FLIP">Flip / Refurb</option>
+    <option value="SA">Serviced Accommodation</option>
+    <option value="BRRR">BRRR</option>
+    <option value="R2R">Rent-to-Rent</option>
+    <option value="SOCIAL">Social Housing</option>
+  </select>
+</div>
+
+The Tabs component still controls state — the select just calls setDealType directly.
+The hidden lg:grid on TabsList hides pills on mobile.
+The lg:hidden on the select div hides the dropdown on desktop.
+
+DO NOT change:
+- The Tabs value or onValueChange handler
+- Any tab values (BTL, HMO, FLIP, SA, BRRR, R2R, SOCIAL)
+- The InfoIcon components inside each TabsTrigger
+- Anything else in the file
+- DealScorePDF or any other file
+
+Confirm zero TypeScript errors.
