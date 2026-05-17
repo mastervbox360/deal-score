@@ -1546,7 +1546,7 @@ export default function HomePage() {
                     className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-strategy"
                   >
-                    <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
                       Recommended Strategy
                     </span>
                     <ChevronDown
@@ -1600,7 +1600,7 @@ export default function HomePage() {
                     className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-deal-notes"
                   >
-                    <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
                       Deal Notes
                     </span>
                     <ChevronDown
@@ -1995,7 +1995,7 @@ export default function HomePage() {
                       <MetricBox label="Annual Flow" value={formatCurrency(btlResults.annualCashFlow)} highlight={btlResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Gross Yield" value={formatPercent(btlResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(btlResults.netYield)} tooltip={TT.netYield} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(btlResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
@@ -2036,7 +2036,7 @@ export default function HomePage() {
                       <MetricBox label="Annual Flow" value={formatCurrency(hmoResults.annualCashFlow)} highlight={hmoResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Mortgage" value={formatCurrency(hmoResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                       <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} tooltip={TT.netYield} />
@@ -2068,7 +2068,7 @@ export default function HomePage() {
                       <MetricBox label="Profit / Month" value={formatCurrency(flipResults.profitPerMonth)} highlight={flipResults.profitPerMonth < 0} tooltip={TT.profitPerMonth} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold tooltip={TT.flipTotalROI} />
                       <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} tooltip={TT.annualisedROI} />
                       {marketValue > 0 && (
@@ -2103,7 +2103,7 @@ export default function HomePage() {
                       <MetricBox label="Annual Flow" value={formatCurrency(saResults.annualCashFlow)} highlight={saResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                       <Row label="Gross Yield" value={formatPercent(saResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(saResults.netYield)} tooltip={TT.netYield} />
@@ -2148,7 +2148,7 @@ export default function HomePage() {
                       <MetricBox label="Annual Flow" value={formatCurrency(brrrResults.annualCashFlow)} highlight={brrrResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} tooltip={TT.brrrRefinanceLoan} />
                       <Row label="Monthly Mortgage" value={formatCurrency(brrrResults.monthlyMortgage)} tooltip={TT.mortgageAmount} />
                       <Row label="Gross Yield (on GDV)" value={formatPercent(brrrResults.grossYield)} tooltip={TT.grossYield} />
@@ -2185,7 +2185,7 @@ export default function HomePage() {
                       <MetricBox label="Annual Profit" value={formatCurrency(r2rResults.annualProfit)} highlight={r2rResults.annualProfit < 0} tooltip={TT.r2rAnnualProfit} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} tooltip={TT.r2rMgmtFees} />
                       <Row label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} tooltip={TT.setupCosts} />
                       <Row label="Monthly Spread" value={formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)} tooltip={TT.r2rMonthlySpread} />
@@ -2216,7 +2216,7 @@ export default function HomePage() {
                       <MetricBox label="Annual Flow" value={formatCurrency(socialResults.annualCashFlow)} highlight={socialResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-3">
                       <Row label="Gross Yield" value={formatPercent(socialResults.grossYield)} tooltip={TT.socialGrossYield} />
                       <Row label="Net Yield" value={formatPercent(socialResults.netYield)} tooltip={TT.socialNetYield} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(socialResults.cashOnCashROI)} isBold tooltip={TT.socialCocRoi} />
@@ -2239,7 +2239,7 @@ export default function HomePage() {
                   className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                   data-testid="toggle-stress-test"
                 >
-                  <span className="text-xs font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
                     Sensitivity Analysis
                     <InfoIcon id="sensitivity-analysis" text={TT.sensitivityAnalysis} />
                   </span>
@@ -2294,7 +2294,7 @@ export default function HomePage() {
                 className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                 data-testid="toggle-show-workings"
               >
-                <span className="text-xs font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
                   Show Workings
                   <InfoIcon id="show-workings" text={TT.showWorkings} />
                 </span>
