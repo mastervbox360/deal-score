@@ -2231,7 +2231,8 @@ export default function HomePage() {
             </div>
 
             {stressSupported && (
-              <div className="bg-white overflow-hidden border-t border-border">
+              <div className="bg-white overflow-hidden">
+                <div className="mx-6 border-t border-border" />
                 <button
                   type="button"
                   onClick={() => setStressTestOpen((v) => !v)}
@@ -2286,7 +2287,8 @@ export default function HomePage() {
             )}
 
             {/* Show Workings Panel */}
-            <div className="bg-white overflow-hidden border-t border-border pb-2">
+            <div className="bg-white overflow-hidden pb-2">
+              <div className="mx-6 border-t border-border" />
               <button
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
