@@ -2259,7 +2259,7 @@ export default function HomePage() {
                         stressRentDown.monthlyCashFlow,
                         stressRateUp.monthlyCashFlow,
                       ] as number[]).map((v, i) => (
-                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
                           {formatCurrency(v)}
                         </span>
                       ))}
@@ -2271,7 +2271,7 @@ export default function HomePage() {
                         stressRentDown.cashOnCashROI,
                         stressRateUp.cashOnCashROI,
                       ] as number[]).map((v, i) => (
-                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
                           {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '\u221E' : isFinite(v) ? formatPercent(v) : '\u221E'}
                         </span>
                       ))}
