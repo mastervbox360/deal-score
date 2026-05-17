@@ -14,7 +14,12 @@ export interface BTLInputs extends BaseInputs {
   mortgageTerm: number;
   mortgageType: MortgageType;
   monthlyRent: number;
-  monthlyExpenses: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
 }
 
 export interface HMOInputs extends BaseInputs {
@@ -25,7 +30,12 @@ export interface HMOInputs extends BaseInputs {
   rooms: number;
   rentPerRoom: number;
   occupancyRate: number;
-  monthlyExpenses: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
 }
 
 export interface SAInputs extends BaseInputs {
@@ -36,7 +46,12 @@ export interface SAInputs extends BaseInputs {
   nightlyRate: number;
   occupancyPercent: number;
   platformFeesPercent: number;
-  monthlyRunningCosts: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
 }
 
 export interface BRRRInputs extends BaseInputs {
@@ -44,7 +59,12 @@ export interface BRRRInputs extends BaseInputs {
   refinancePercent: number;
   newMortgageRate: number;
   monthlyRent: number;
-  monthlyExpenses: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
 }
 
 function calculateMonthlyMortgagePayment(
@@ -234,14 +254,27 @@ export function calculateBTL(inputs: BTLInputs) {
     inputs.mortgageTerm,
     inputs.mortgageType,
   );
-  const monthlyCashFlow = inputs.monthlyRent - monthlyMortgageInterest - inputs.monthlyExpenses;
-  const annualCashFlow = monthlyCashFlow * 12;
+
+  const grossRent = inputs.monthlyRent;
+  const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
+  const effectiveRent = grossRent - voidAllowanceAmount;
+  const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
+  const groundRentMonthly = inputs.groundRentAnnual / 12;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const netOperatingIncome = effectiveRent - totalOperatingCosts;
+  const netCashFlow = netOperatingIncome - monthlyMortgageInterest;
+  const annualNetCashFlow = netCashFlow * 12;
   const annualRent = inputs.monthlyRent * 12;
-  const annualOperatingIncome = (inputs.monthlyRent - inputs.monthlyExpenses) * 12;
 
   const grossYield = inputs.purchasePrice > 0 ? (annualRent / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualOperatingIncome / inputs.purchasePrice) * 100 : 0;
-  const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (netOperatingIncome * 12 / inputs.purchasePrice) * 100 : 0;
+  const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgageInterest + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+  const paybackPeriod = annualNetCashFlow > 0 ? totalCashInvested / annualNetCashFlow : Infinity;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.monthlyRent) {
@@ -261,7 +294,14 @@ export function calculateBTL(inputs: BTLInputs) {
     grossYield,
     netYield,
     cashOnCashROI,
-    score
+    score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
   };
 }
 
@@ -275,16 +315,29 @@ export function calculateHMO(inputs: HMOInputs) {
     inputs.mortgageTerm,
     inputs.mortgageType,
   );
-  
+
   const grossMonthlyRent = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
   const annualRent = grossMonthlyRent * 12;
-  const monthlyCashFlow = grossMonthlyRent - monthlyMortgageInterest - inputs.monthlyExpenses;
-  const annualCashFlow = monthlyCashFlow * 12;
-  const annualOperatingIncome = (grossMonthlyRent - inputs.monthlyExpenses) * 12;
+
+  const grossRent = grossMonthlyRent;
+  const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
+  const effectiveRent = grossRent - voidAllowanceAmount;
+  const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
+  const groundRentMonthly = inputs.groundRentAnnual / 12;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const netOperatingIncome = effectiveRent - totalOperatingCosts;
+  const netCashFlow = netOperatingIncome - monthlyMortgageInterest;
+  const annualNetCashFlow = netCashFlow * 12;
 
   const grossYield = inputs.purchasePrice > 0 ? (annualRent / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualOperatingIncome / inputs.purchasePrice) * 100 : 0;
-  const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (netOperatingIncome * 12 / inputs.purchasePrice) * 100 : 0;
+  const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgageInterest + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+  const paybackPeriod = annualNetCashFlow > 0 ? totalCashInvested / annualNetCashFlow : Infinity;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.rentPerRoom || !inputs.rooms) {
@@ -305,7 +358,14 @@ export function calculateHMO(inputs: HMOInputs) {
     grossYield,
     netYield,
     cashOnCashROI,
-    score
+    score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
   };
 }
 
@@ -313,7 +373,7 @@ export function calculateFlip(inputs: FlipInputs) {
   const totalCost = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths);
   const sellingCosts = inputs.expectedSalePrice * (inputs.sellingCostsPercent / 100);
   const netProfit = inputs.expectedSalePrice - totalCost - sellingCosts;
-  
+
   const roi = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
   const annualisedROI = inputs.projectLengthMonths > 0 ? roi * (12 / inputs.projectLengthMonths) : 0;
   const profitPerMonth = inputs.projectLengthMonths > 0 ? netProfit / inputs.projectLengthMonths : 0;
@@ -353,14 +413,27 @@ export function calculateSA(inputs: SAInputs) {
   const grossMonthlyRevenue = inputs.nightlyRate * (inputs.occupancyPercent / 100) * nightsPerMonth;
   const platformFees = grossMonthlyRevenue * (inputs.platformFeesPercent / 100);
   const netMonthlyRevenue = grossMonthlyRevenue - platformFees;
-  const monthlyCashFlow = netMonthlyRevenue - monthlyMortgage - inputs.monthlyRunningCosts;
-  const annualCashFlow = monthlyCashFlow * 12;
   const annualRevenue = grossMonthlyRevenue * 12;
 
-  const annualNetRevenue = (netMonthlyRevenue - inputs.monthlyRunningCosts) * 12;
+  const grossRent = netMonthlyRevenue;
+  const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
+  const effectiveRent = grossRent - voidAllowanceAmount;
+  const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
+  const groundRentMonthly = inputs.groundRentAnnual / 12;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const netOperatingIncome = effectiveRent - totalOperatingCosts;
+  const netCashFlow = netOperatingIncome - monthlyMortgage;
+  const annualNetCashFlow = netCashFlow * 12;
+
   const grossYield = inputs.purchasePrice > 0 ? (annualRevenue / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualNetRevenue / inputs.purchasePrice) * 100 : 0;
-  const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (netOperatingIncome * 12 / inputs.purchasePrice) * 100 : 0;
+  const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgage + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+  const paybackPeriod = annualNetCashFlow > 0 ? totalCashInvested / annualNetCashFlow : Infinity;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.nightlyRate) {
@@ -384,6 +457,13 @@ export function calculateSA(inputs: SAInputs) {
     netYield,
     cashOnCashROI,
     score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
   };
 }
 
@@ -408,7 +488,12 @@ export interface SocialHousingInputs {
   mortgageType: MortgageType;
   leaseIncomePerMonth: number;
   leaseLengthYears: number;
-  managementCostsPerMonth: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
 }
 
 export function calculateR2R(inputs: R2RInputs) {
@@ -455,12 +540,26 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
     inputs.mortgageType,
   );
   const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
-  const monthlyCashFlow = inputs.leaseIncomePerMonth - monthlyMortgage - inputs.managementCostsPerMonth;
-  const annualCashFlow = monthlyCashFlow * 12;
-  const annualOperatingIncome = (inputs.leaseIncomePerMonth - inputs.managementCostsPerMonth) * 12;
+
+  const grossRent = inputs.leaseIncomePerMonth;
+  const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
+  const effectiveRent = grossRent - voidAllowanceAmount;
+  const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
+  const groundRentMonthly = inputs.groundRentAnnual / 12;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const netOperatingIncome = effectiveRent - totalOperatingCosts;
+  const netCashFlow = netOperatingIncome - monthlyMortgage;
+  const annualNetCashFlow = netCashFlow * 12;
+
   const grossYield = inputs.purchasePrice > 0 ? (inputs.leaseIncomePerMonth * 12 / inputs.purchasePrice) * 100 : 0;
-  const netYield = inputs.purchasePrice > 0 ? (annualOperatingIncome / inputs.purchasePrice) * 100 : 0;
-  const cashOnCashROI = totalCashInvested > 0 ? (annualCashFlow / totalCashInvested) * 100 : 0;
+  const netYield = inputs.purchasePrice > 0 ? (netOperatingIncome * 12 / inputs.purchasePrice) * 100 : 0;
+  const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgage + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+  const paybackPeriod = annualNetCashFlow > 0 ? totalCashInvested / annualNetCashFlow : Infinity;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.leaseIncomePerMonth) {
@@ -481,6 +580,13 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
     netYield,
     cashOnCashROI,
     score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
   };
 }
 
@@ -490,20 +596,32 @@ export function calculateBRRR(inputs: BRRRInputs) {
   const cashLeftInDeal = totalCostIn - refinanceLoan;
   const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.refurbCost - inputs.otherCosts;
   const monthlyMortgage = refinanceLoan * (inputs.newMortgageRate / 100) / 12;
-  const monthlyCashFlow = inputs.monthlyRent - monthlyMortgage - inputs.monthlyExpenses;
-  const annualCashFlow = monthlyCashFlow * 12;
   const annualRent = inputs.monthlyRent * 12;
-  const annualOperatingIncome = (inputs.monthlyRent - inputs.monthlyExpenses) * 12;
+
+  const grossRent = inputs.monthlyRent;
+  const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
+  const effectiveRent = grossRent - voidAllowanceAmount;
+  const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
+  const groundRentMonthly = inputs.groundRentAnnual / 12;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const netOperatingIncome = effectiveRent - totalOperatingCosts;
+  const netCashFlow = netOperatingIncome - monthlyMortgage;
+  const annualNetCashFlow = netCashFlow * 12;
 
   const grossYield = inputs.postRefurbValue > 0 ? (annualRent / inputs.postRefurbValue) * 100 : 0;
-  const netYield = inputs.postRefurbValue > 0 ? (annualOperatingIncome / inputs.postRefurbValue) * 100 : 0;
+  const netYield = inputs.postRefurbValue > 0 ? (netOperatingIncome * 12 / inputs.postRefurbValue) * 100 : 0;
   const cashOnCashROI = cashLeftInDeal > 0
-    ? (annualCashFlow / cashLeftInDeal) * 100
-    : cashLeftInDeal <= 0 && annualCashFlow > 0
+    ? (annualNetCashFlow / cashLeftInDeal) * 100
+    : cashLeftInDeal <= 0 && annualNetCashFlow > 0
     ? Infinity
     : 0;
-
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
   const moneyOut = cashLeftInDeal <= 0;
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgage + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+  const paybackPeriod = annualNetCashFlow <= 0 ? Infinity : cashLeftInDeal / annualNetCashFlow;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.purchasePrice || !inputs.postRefurbValue) {
@@ -527,5 +645,12 @@ export function calculateBRRR(inputs: BRRRInputs) {
     cashOnCashROI,
     moneyOut,
     score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
   };
 }

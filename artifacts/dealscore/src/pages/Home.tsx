@@ -106,9 +106,9 @@ export default function HomePage() {
     mortgageType: 'IO' as 'IO' | 'REPAYMENT',
   });
 
-  const [btlInputs, setBtlInputs] = useState({ monthlyRent: 0, monthlyExpenses: 0 });
+  const [btlInputs, setBtlInputs] = useState({ monthlyRent: 0 });
 
-  const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
+  const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90 });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [companyName, setCompanyName] = useState<string>('');
@@ -192,9 +192,9 @@ export default function HomePage() {
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
 
-  const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
+  const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
 
-  const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, monthlyExpenses: 0 });
+  const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0 });
 
   const [r2rInputs, setR2rInputs] = useState<R2RInputs>({
     monthlyRentPaid: 0,
@@ -206,7 +206,14 @@ export default function HomePage() {
     setupCosts: 0,
   });
 
-  const [socialInputs, setSocialInputs] = useState({ leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
+  const [socialInputs, setSocialInputs] = useState({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
+
+  const [managementFeePercent, setManagementFeePercent] = useState(0);
+  const [voidAllowancePercent, setVoidAllowancePercent] = useState(0);
+  const [maintenanceReserve, setMaintenanceReserve] = useState(0);
+  const [buildingsInsurance, setBuildingsInsurance] = useState(0);
+  const [serviceCharge, setServiceCharge] = useState(0);
+  const [groundRentAnnual, setGroundRentAnnual] = useState(0);
 
   const handleSharedChange = (field: keyof typeof sharedInputs, value: string) => {
     setSharedInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
@@ -524,20 +531,26 @@ export default function HomePage() {
     setIncludeWorkingsInPDF(false);
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
-      setBtlInputs({ monthlyRent: 0, monthlyExpenses: 0 });
+      setBtlInputs({ monthlyRent: 0 });
     } else if (dealType === 'HMO') {
-      setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, monthlyExpenses: 0 });
+      setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90 });
     } else if (dealType === 'FLIP') {
       setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
     } else if (dealType === 'SA') {
-      setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0, monthlyRunningCosts: 0 });
+      setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
-      setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, monthlyExpenses: 0 });
+      setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0 });
     } else if (dealType === 'R2R') {
       setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
     } else {
-      setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0, managementCostsPerMonth: 0 });
+      setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
     }
+    setManagementFeePercent(0);
+    setVoidAllowancePercent(0);
+    setMaintenanceReserve(0);
+    setBuildingsInsurance(0);
+    setServiceCharge(0);
+    setGroundRentAnnual(0);
     setPropertyData(null);
     setPropertyDataLoading(false);
     setPropertyDataOpen(true);
@@ -547,35 +560,36 @@ export default function HomePage() {
   const effectiveTax = taxOverrideActive ? manualTaxValue : sharedTax;
 
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
-  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax });
-  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: effectiveTax });
+  const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
+  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const flipResults = calculateFlip({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...flipInputs });
-  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax });
-  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs });
+  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, ...sharedCostInputs });
   const r2rResults = calculateR2R(r2rInputs);
-  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax });
+  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs });
 
   const stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
 
   const stressRentDown = (() => {
     if (dealType === 'BTL') {
-      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: effectiveTax });
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'HMO') {
-      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax });
+      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SA') {
-      const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax });
+      const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
-      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9 });
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SOCIAL') {
-      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: effectiveTax });
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -583,23 +597,23 @@ export default function HomePage() {
 
   const stressRateUp = (() => {
     if (dealType === 'BTL') {
-      const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'HMO') {
-      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SA') {
-      const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
-      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5 });
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SOCIAL') {
-      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax });
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -841,8 +855,9 @@ export default function HomePage() {
     const _taxLabel = TAX_LABEL[taxCountry];
     const _buyerLabel = BUYER_LABEL[buyerType];
 
-    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax });
-    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: _effectiveTax });
+    const _sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
+    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const _flipResults = calculateFlip({
       purchasePrice: sharedInputs.purchasePrice,
       refurbCost: sharedInputs.refurbCost,
@@ -850,38 +865,39 @@ export default function HomePage() {
       stampDuty: _effectiveTax,
       ...flipInputs,
     });
-    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax });
+    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const _brrrResults = calculateBRRR({
       purchasePrice: sharedInputs.purchasePrice,
       refurbCost: sharedInputs.refurbCost,
       otherCosts: sharedInputs.otherCosts,
       stampDuty: _effectiveTax,
       ...brrrInputs,
+      ..._sharedCostInputs,
     });
     const _r2rResults = calculateR2R(r2rInputs);
-    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax });
+    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
 
     const _stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
 
     const _stressRentDown = (() => {
       if (dealType === 'BTL') {
-        const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: _effectiveTax });
+        const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'HMO') {
-        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: _effectiveTax });
+        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SA') {
-        const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: _effectiveTax });
+        const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'BRRR') {
-        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9 });
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SOCIAL') {
-        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: _effectiveTax });
+        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -889,23 +905,23 @@ export default function HomePage() {
 
     const _stressRateUp = (() => {
       if (dealType === 'BTL') {
-        const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'HMO') {
-        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SA') {
-        const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'BRRR') {
-        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5 });
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SOCIAL') {
-        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax });
+        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -1039,13 +1055,13 @@ export default function HomePage() {
       logoSize,
       coverStyle,
       tierOverride,
-      btlInputs,
-      hmoInputs,
+      btlInputs: { ...btlInputs, ..._sharedCostInputs, monthlyExpenses: _btlResults.totalOperatingCosts },
+      hmoInputs: { ...hmoInputs, ..._sharedCostInputs, monthlyExpenses: _hmoResults.totalOperatingCosts },
       flipInputs,
-      saInputs,
-      brrrInputs,
+      saInputs: { ...saInputs, ..._sharedCostInputs, monthlyRunningCosts: _saResults.totalOperatingCosts },
+      brrrInputs: { ...brrrInputs, ..._sharedCostInputs, monthlyExpenses: _brrrResults.totalOperatingCosts },
       r2rInputs,
-      socialInputs,
+      socialInputs: { ...socialInputs, ..._sharedCostInputs, managementCostsPerMonth: _socialResults.totalOperatingCosts },
       btlResults: _btlResults,
       hmoResults: _hmoResults,
       flipResults: _flipResults,
@@ -1084,6 +1100,8 @@ export default function HomePage() {
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
     comparables, listingLinks, photoFiles, heroPhotoIndex,
     includeWorkingsInPDF,
+    managementFeePercent, voidAllowancePercent, maintenanceReserve,
+    buildingsInsurance, serviceCharge, groundRentAnnual,
   ]);
 
   const VERDICT_LABELS: Record<string, string> = {
@@ -1355,10 +1373,6 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="btl-rent" text={TT.monthlyRent} /></div>
                       <Input type="number" placeholder="Enter monthly rent" value={btlInputs.monthlyRent || ''} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="btl-exp" text={TT.monthlyExpenses} /></div>
-                      <Input type="number" placeholder="Enter monthly expenses" value={btlInputs.monthlyExpenses || ''} onChange={(e) => handleBtlChange('monthlyExpenses', e.target.value)} />
-                    </div>
                   </div>
                 )}
 
@@ -1375,10 +1389,6 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="hmo-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={hmoInputs.occupancyRate} onChange={(e) => handleHmoChange('occupancyRate', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="hmo-exp" text={TT.monthlyExpenses} /></div>
-                      <Input type="number" placeholder="Enter monthly expenses" value={hmoInputs.monthlyExpenses || ''} onChange={(e) => handleHmoChange('monthlyExpenses', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -1421,10 +1431,6 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Platform Fees (%)</Label><InfoIcon id="sa-pfees" text={TT.platformFees} /></div>
                       <Input type="number" step="0.5" placeholder="Enter platform fees %" value={saInputs.platformFeesPercent || ''} onChange={(e) => handleSaChange('platformFeesPercent', e.target.value)} data-testid="input-sa-platform-fees" />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Monthly Running Costs (£)</Label><InfoIcon id="sa-run" text={TT.runningCosts} /></div>
-                      <Input type="number" placeholder="Enter monthly running costs" value={saInputs.monthlyRunningCosts || ''} onChange={(e) => handleSaChange('monthlyRunningCosts', e.target.value)} data-testid="input-sa-running-costs" />
-                    </div>
                   </div>
                 )}
 
@@ -1445,10 +1451,6 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Monthly Rent (£)</Label><InfoIcon id="brrr-rent" text={TT.monthlyRent} /></div>
                       <Input type="number" placeholder="Enter monthly rent" value={brrrInputs.monthlyRent || ''} onChange={(e) => handleBrrrChange('monthlyRent', e.target.value)} data-testid="input-brrr-monthly-rent" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Monthly Expenses (£)</Label><InfoIcon id="brrr-exp" text={TT.monthlyExpenses} /></div>
-                      <Input type="number" placeholder="Enter monthly expenses" value={brrrInputs.monthlyExpenses || ''} onChange={(e) => handleBrrrChange('monthlyExpenses', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -1496,9 +1498,37 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Lease Length (years)</Label><InfoIcon id="soc-ll" text={TT.socialLeaseLength} /></div>
                       <Input type="number" placeholder="Enter lease length in years" value={socialInputs.leaseLengthYears || ''} onChange={(e) => handleSocialChange('leaseLengthYears', e.target.value)} />
                     </div>
+                  </div>
+                )}
+
+                {(['BTL', 'HMO', 'SA', 'BRRR', 'SOCIAL'] as const).includes(dealType as 'BTL' | 'HMO' | 'SA' | 'BRRR' | 'SOCIAL') && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    <div className="md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Monthly Costs</p>
+                    </div>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Management Costs / month (£)</Label><InfoIcon id="soc-mgmt" text={TT.mgmtCosts} /></div>
-                      <Input type="number" placeholder="Enter monthly management costs" value={socialInputs.managementCostsPerMonth || ''} onChange={(e) => handleSocialChange('managementCostsPerMonth', e.target.value)} />
+                      <div className="flex items-center gap-1"><Label>Management Fee (%)</Label><InfoIcon id="shared-mgmt-fee" text="Letting agent management fee as a percentage of effective rent (after void). Typical range 8–15%." /></div>
+                      <Input type="number" step="0.5" placeholder="e.g. 10" value={managementFeePercent || ''} onChange={(e) => setManagementFeePercent(parseFloat(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Void Allowance (%)</Label><InfoIcon id="shared-void" text="Percentage of gross rent lost to void periods between tenancies. 5% ≈ 3 weeks per year." /></div>
+                      <Input type="number" step="0.5" placeholder="e.g. 5" value={voidAllowancePercent || ''} onChange={(e) => setVoidAllowancePercent(parseFloat(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Maintenance Reserve (£/mo)</Label><InfoIcon id="shared-maint" text="Monthly allowance for repairs and maintenance. Typical range £50–£150/mo." /></div>
+                      <Input type="number" placeholder="e.g. 75" value={maintenanceReserve || ''} onChange={(e) => setMaintenanceReserve(parseFloat(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Buildings Insurance (£/mo)</Label><InfoIcon id="shared-bldg-ins" text="Monthly buildings insurance cost. Typical range £20–£50/mo." /></div>
+                      <Input type="number" placeholder="e.g. 30" value={buildingsInsurance || ''} onChange={(e) => setBuildingsInsurance(parseFloat(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Service Charge (£/mo)</Label><InfoIcon id="shared-svc-chg" text="Monthly service charge for leasehold properties. Enter 0 for freehold." /></div>
+                      <Input type="number" placeholder="0" value={serviceCharge || ''} onChange={(e) => setServiceCharge(parseFloat(e.target.value) || 0)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Ground Rent (£/yr)</Label><InfoIcon id="shared-grd-rent" text="Annual ground rent for leasehold properties. Enter 0 for freehold." /></div>
+                      <Input type="number" placeholder="0" value={groundRentAnnual || ''} onChange={(e) => setGroundRentAnnual(parseFloat(e.target.value) || 0)} />
                     </div>
                   </div>
                 )}
@@ -2318,8 +2348,15 @@ export default function HomePage() {
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Rent" value={formatCurrency(btlInputs.monthlyRent)} />
+                      <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(btlResults.voidAllowanceAmount)})`} />
+                      <WRow label="Effective Rent" value={formatCurrency(btlResults.effectiveRent)} bold />
+                      <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(btlResults.managementFeeAmount)})`} />
+                      <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
+                      <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
+                      {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
+                      {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
+                      <WRow label="Total Operating Costs" value={`(${formatCurrency(btlResults.totalOperatingCosts)})`} bold />
                       <WRow label="Less: Mortgage" value={`(${formatCurrency(btlResults.monthlyMortgageInterest)})`} />
-                      <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(btlInputs.monthlyExpenses)})`} />
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(btlResults.monthlyCashFlow)} bold color={btlResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
                       <WRow label={`Gross Yield  (${formatCurrency(btlInputs.monthlyRent)} × 12) ÷ ${formatCurrency(sharedInputs.purchasePrice)} × 100`} value={formatPercent(btlResults.grossYield)} />
@@ -2338,8 +2375,15 @@ export default function HomePage() {
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Total Room Income" value={formatCurrency(hmoResults.grossMonthlyRent)} />
+                      <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(hmoResults.voidAllowanceAmount)})`} />
+                      <WRow label="Effective Rent" value={formatCurrency(hmoResults.effectiveRent)} bold />
+                      <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(hmoResults.managementFeeAmount)})`} />
+                      <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
+                      <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
+                      {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
+                      {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
+                      <WRow label="Total Operating Costs" value={`(${formatCurrency(hmoResults.totalOperatingCosts)})`} bold />
                       <WRow label="Less: Mortgage" value={`(${formatCurrency(hmoResults.monthlyMortgageInterest)})`} />
-                      <WRow label="Less: Monthly Expenses" value={`(${formatCurrency(hmoInputs.monthlyExpenses)})`} />
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(hmoResults.monthlyCashFlow)} bold color={hmoResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
                       <WRow label={`Gross Yield  (${formatCurrency(hmoResults.grossMonthlyRent)} × 12) ÷ ${formatCurrency(sharedInputs.purchasePrice)} × 100`} value={formatPercent(hmoResults.grossYield)} />
@@ -2380,7 +2424,15 @@ export default function HomePage() {
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label={`Monthly Revenue  ${formatCurrency(saInputs.nightlyRate)} nightly × ${saInputs.occupancyPercent}% occupancy`} value={formatCurrency(saResults.grossMonthlyRevenue)} />
                       <WRow label="Less: Platform Fees" value={`(${formatCurrency(saResults.platformFees)})`} />
-                      <WRow label="Less: Monthly Running Costs" value={`(${formatCurrency(saInputs.monthlyRunningCosts)})`} />
+                      <WRow label="Net Revenue (after platform fees)" value={formatCurrency(saResults.netMonthlyRevenue)} bold />
+                      <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(saResults.voidAllowanceAmount)})`} />
+                      <WRow label="Effective Revenue" value={formatCurrency(saResults.effectiveRent)} bold />
+                      <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(saResults.managementFeeAmount)})`} />
+                      <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
+                      <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
+                      {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
+                      {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
+                      <WRow label="Total Operating Costs" value={`(${formatCurrency(saResults.totalOperatingCosts)})`} bold />
                       <WRow label="Less: Mortgage" value={`(${formatCurrency(saResults.monthlyMortgage)})`} />
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(saResults.monthlyCashFlow)} bold color={saResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
@@ -2402,8 +2454,18 @@ export default function HomePage() {
                       <WRow label="Refinance %" value={`${brrrInputs.refinancePercent}%`} />
                       <WRow label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} />
                       <WRow label={brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'} value={formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} bold color={brrrResults.moneyOut ? '#22C55E' : undefined} />
-                      <WSec title="C  KEY METRICS" />
-                      <WRow label="Monthly Cash Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} color={brrrResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="C  MONTHLY CASH FLOW" />
+                      <WRow label="Monthly Rent" value={formatCurrency(brrrInputs.monthlyRent)} />
+                      <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(brrrResults.voidAllowanceAmount)})`} />
+                      <WRow label="Effective Rent" value={formatCurrency(brrrResults.effectiveRent)} bold />
+                      <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(brrrResults.managementFeeAmount)})`} />
+                      <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
+                      <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
+                      {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
+                      {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
+                      <WRow label="Less: Refi Mortgage" value={`(${formatCurrency(brrrResults.monthlyMortgage)})`} />
+                      <WRow label="MONTHLY CASH FLOW" value={formatCurrency(brrrResults.monthlyCashFlow)} bold color={brrrResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
+                      <WSec title="D  KEY METRICS" />
                       <WRow label="Gross Yield" value={formatPercent(brrrResults.grossYield)} />
                       <WRow label={`CoC ROI  ${formatCurrency(brrrResults.annualCashFlow)} ÷ ${brrrResults.moneyOut ? 'Money Out' : formatCurrency(brrrResults.cashLeftInDeal)} × 100`} value={brrrResults.moneyOut ? '\u221E' : formatPercent(brrrResults.cashOnCashROI)} bold color={brandColour} />
                     </>
@@ -2436,7 +2498,14 @@ export default function HomePage() {
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Lease Income" value={formatCurrency(socialInputs.leaseIncomePerMonth)} />
-                      <WRow label="Less: Management Costs" value={`(${formatCurrency(socialInputs.managementCostsPerMonth)})`} />
+                      <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(socialResults.voidAllowanceAmount)})`} />
+                      <WRow label="Effective Income" value={formatCurrency(socialResults.effectiveRent)} bold />
+                      <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(socialResults.managementFeeAmount)})`} />
+                      <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
+                      <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
+                      {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
+                      {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
+                      <WRow label="Total Operating Costs" value={`(${formatCurrency(socialResults.totalOperatingCosts)})`} bold />
                       <WRow label="Less: Mortgage" value={`(${formatCurrency(socialResults.monthlyMortgage)})`} />
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(socialResults.monthlyCashFlow)} bold color={socialResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />

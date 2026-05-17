@@ -1,0 +1,238 @@
+Read the full contents of calculations.ts and Home.tsx 
+before making any changes. Plan all edits explicitly, 
+then execute in parallel.
+
+━━━ TASK OVERVIEW ━━━
+Replace per-strategy expense fields with 6 shared itemised 
+cost fields across BTL, HMO, SA, BRRR, and Social Housing.
+R2R and Flip are NOT touched anywhere in this prompt.
+
+━━━ IN calculations.ts ━━━
+
+For BTLInputs interface:
+- Remove: monthlyExpenses: number
+- Add: managementFeePercent: number, voidAllowancePercent: number,
+  maintenanceReserve: number, buildingsInsurance: number,
+  serviceCharge: number, groundRentAnnual: number
+
+For HMOInputs interface:
+- Remove: monthlyExpenses: number
+- Add same 6 fields as above
+
+For SAInputs interface:
+- Remove: monthlyRunningCosts: number
+- Add same 6 fields as above
+
+For BRRRInputs interface:
+- Remove: monthlyExpenses: number
+- Add same 6 fields as above
+
+For SocialHousingInputs interface:
+- Remove: managementCostsPerMonth: number
+- Add same 6 fields as above
+
+For calculateBTL, calculateHMO, calculateSA, calculateBRRR,
+calculateSocialHousing — implement these formulas, replacing
+all previous expense variable usage:
+
+  voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100)
+  effectiveRent = grossRent - voidAllowanceAmount
+  managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100)
+  groundRentMonthly = inputs.groundRentAnnual / 12
+  totalOperatingCosts = managementFeeAmount 
+    + inputs.maintenanceReserve 
+    + inputs.buildingsInsurance 
+    + inputs.serviceCharge 
+    + groundRentMonthly
+  netOperatingIncome = effectiveRent - totalOperatingCosts
+  netCashFlow = netOperatingIncome - mortgagePayment
+  annualNetCashFlow = netCashFlow * 12
+
+Where "grossRent" means:
+- BTL: inputs.monthlyRent
+- HMO: rooms * rentPerRoom * (occupancyRate / 100)
+- SA: netMonthlyRevenue (after platform fees — existing calc)
+- BRRR: inputs.monthlyRent
+- Social: inputs.leaseIncomePerMonth
+
+Update existing yield/ROI formulas to use the new values:
+  netYield = (netOperatingIncome * 12 / purchasePrice) * 100
+  cashOnCashROI = (annualNetCashFlow / totalCashInvested) * 100
+  monthlyCashFlow = netCashFlow (rename internally if needed)
+
+Add these NEW fields to the returned results object for all
+5 strategies:
+  voidAllowanceAmount
+  effectiveRent
+  managementFeeAmount
+  totalOperatingCosts
+  netOperatingIncome
+  breakEvenRent  (= (mortgagePayment + totalOperatingCosts) 
+                    / (1 - voidAllowancePercent / 100))
+  paybackPeriod  (= totalCashInvested / annualNetCashFlow,
+                    return Infinity if annualNetCashFlow <= 0)
+
+Note for BRRR: mortgagePayment = monthlyMortgage (refinance 
+loan payment). Note for Social: mortgagePayment = 
+monthlyMortgage. Use whichever variable name is already 
+in the function.
+
+DO NOT change: calculateR2R, calculateFlip, calculateSDLT,
+calculatePropertyTax, or any tax/scoring logic.
+
+━━━ IN Home.tsx ━━━
+
+Add 6 new shared state variables (standalone, not inside 
+any per-strategy state object):
+  const [managementFeePercent, setManagementFeePercent] = useState(10);
+  const [voidAllowancePercent, setVoidAllowancePercent] = useState(5);
+  const [maintenanceReserve, setMaintenanceReserve] = useState(75);
+  const [buildingsInsurance, setBuildingsInsurance] = useState(30);
+  const [serviceCharge, setServiceCharge] = useState(0);
+  const [groundRentAnnual, setGroundRentAnnual] = useState(0);
+
+Remove these fields from their respective state objects:
+  btlInputs: remove monthlyExpenses
+  hmoInputs: remove monthlyExpenses
+  saInputs: remove monthlyRunningCosts
+  brrrInputs: remove monthlyExpenses
+  socialInputs: remove managementCostsPerMonth
+
+In the reset handler (handleReset), reset all 6 new state
+variables to their defaults:
+  setManagementFeePercent(10)
+  setVoidAllowancePercent(5)
+  setMaintenanceReserve(75)
+  setBuildingsInsurance(30)
+  setServiceCharge(0)
+  setGroundRentAnnual(0)
+
+Also remove the old fields from the reset handler:
+  Remove monthlyExpenses from btlInputs reset
+  Remove monthlyExpenses from hmoInputs reset
+  Remove monthlyRunningCosts from saInputs reset
+  Remove monthlyExpenses from brrrInputs reset
+  Remove managementCostsPerMonth from socialInputs reset
+
+Wire all 6 new shared values into every formula call that
+currently uses the old expense fields:
+  calculateBTL call: add managementFeePercent, 
+    voidAllowancePercent, maintenanceReserve, 
+    buildingsInsurance, serviceCharge, groundRentAnnual
+  calculateHMO call: same 6
+  calculateSA call: same 6
+  calculateBRRR call: same 6
+  calculateSocialHousing call: same 6
+
+Also wire the 6 new values into the stress test recalculation
+calls (_stressRentDown and _stressRateUp) for all 5 
+strategies — they must include the new cost fields or the 
+stress calculations will error.
+
+In the Deal Numbers card UI, replace the existing expense
+input fields with a "MONTHLY COSTS" subsection. This 
+subsection only renders for BTL, HMO, SA, BRRR, and 
+Social strategies. It does NOT render for R2R or Flip.
+
+The subsection label should use the existing section 
+subheading style: text-xs font-semibold uppercase 
+tracking-widest text-muted-foreground
+
+The 6 new input fields inside the subsection:
+
+1. Management Fee (%)
+   - type="number", placeholder="e.g. 10"
+   - value={managementFeePercent || ''}
+   - onChange: setManagementFeePercent(parseFloat or 0)
+   - InfoIcon tooltip: "Letting agent management fee as a 
+     percentage of effective rent (rent after void). 
+     Typical range: 8–15%."
+
+2. Void Allowance (%)
+   - type="number", placeholder="e.g. 5"
+   - value={voidAllowancePercent || ''}
+   - onChange: setVoidAllowancePercent
+   - InfoIcon tooltip: "Percentage of gross rent lost to 
+     void periods between tenancies. 5% = approx 3 weeks 
+     per year."
+
+3. Maintenance Reserve (£/mo)
+   - type="number", placeholder="e.g. 75"
+   - value={maintenanceReserve || ''}
+   - onChange: setMaintenanceReserve
+   - InfoIcon tooltip: "Monthly allowance for repairs and 
+     maintenance. Typical range: £50–£150/mo depending on 
+     property age and condition."
+
+4. Buildings Insurance (£/mo)
+   - type="number", placeholder="e.g. 30"
+   - value={buildingsInsurance || ''}
+   - onChange: setBuildingsInsurance
+   - InfoIcon tooltip: "Monthly buildings insurance cost. 
+     Typical range: £20–£50/mo for a standard terraced 
+     or semi-detached property."
+
+5. Service Charge (£/mo)
+   - type="number", placeholder="0"
+   - value={serviceCharge || ''}
+   - onChange: setServiceCharge
+   - InfoIcon tooltip: "Monthly service charge for leasehold 
+     properties. Enter 0 for freehold."
+
+6. Ground Rent (£/yr)
+   - type="number", placeholder="0"
+   - value={groundRentAnnual || ''}
+   - onChange: setGroundRentAnnual
+   - InfoIcon tooltip: "Annual ground rent for leasehold 
+     properties. Enter 0 for freehold."
+
+Use the same Input and Label component styling as existing 
+fields in the Deal Numbers card.
+
+In Show Workings panel, replace the old single-line expense
+WRow entries with itemised rows for all 5 strategies.
+
+For BTL Show Workings (currently ~line 2322):
+Replace: <WRow label="Less: Monthly Expenses" .../>
+With:
+  <WRow label="Void Allowance" value={...} />
+  <WRow label="Effective Rent" value={...} bold />
+  <WRow label="Management Fee" value={...} />
+  <WRow label="Maintenance Reserve" value={...} />
+  <WRow label="Buildings Insurance" value={...} />
+  {serviceCharge > 0 && <WRow label="Service Charge" value={...} />}
+  {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={...} />}
+  <WRow label="Total Operating Costs" value={...} bold />
+
+Apply same pattern for HMO, SA, BRRR, and Social Show 
+Workings sections.
+
+In pdfProps useMemo, pass the new values:
+  managementFeePercent,
+  voidAllowancePercent,
+  maintenanceReserve,
+  buildingsInsurance,
+  serviceCharge,
+  groundRentAnnual,
+
+Also pass the new calculated fields from each strategy's
+results object. Since pdfProps already passes btlResults,
+hmoResults etc in full, the new fields (breakEvenRent,
+paybackPeriod, voidAllowanceAmount, effectiveRent,
+managementFeeAmount, totalOperatingCosts, netOperatingIncome)
+will be available automatically via those result objects.
+No additional wiring needed for results — only the 6 input
+state variables need explicit passing.
+
+Update the pdfProps useMemo dependency array to include:
+  managementFeePercent, voidAllowancePercent, 
+  maintenanceReserve, buildingsInsurance, 
+  serviceCharge, groundRentAnnual
+
+DO NOT change: R2R inputs, Flip inputs, DealScorePDF.tsx,
+any PDF rendering code, any tax logic, any scoring logic,
+any other components.
+
+After completing, confirm:
+1. Every file changed and every specific change made
+2. That npx tsc --noEmit passes with zero errors
