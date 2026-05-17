@@ -1150,7 +1150,7 @@ export default function HomePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="lg:hidden w-full px-6 py-2">
+          <div className="lg:hidden max-w-[1024px] mx-auto w-full px-6 py-2">
             <select
               value={dealType}
               onChange={(e) => setDealType(e.target.value as DealType)}
