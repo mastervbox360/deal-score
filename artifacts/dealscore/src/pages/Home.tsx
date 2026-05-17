@@ -208,8 +208,8 @@ export default function HomePage() {
 
   const [socialInputs, setSocialInputs] = useState({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
 
-  const [managementFeePercent, setManagementFeePercent] = useState(0);
-  const [voidAllowancePercent, setVoidAllowancePercent] = useState(0);
+  const [managementFeePercent, setManagementFeePercent] = useState(10);
+  const [voidAllowancePercent, setVoidAllowancePercent] = useState(5);
   const [maintenanceReserve, setMaintenanceReserve] = useState(75);
   const [buildingsInsurance, setBuildingsInsurance] = useState(30);
   const [serviceCharge, setServiceCharge] = useState(0);
@@ -545,8 +545,8 @@ export default function HomePage() {
     } else {
       setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
     }
-    setManagementFeePercent(0);
-    setVoidAllowancePercent(0);
+    setManagementFeePercent(10);
+    setVoidAllowancePercent(5);
     setMaintenanceReserve(75);
     setBuildingsInsurance(30);
     setServiceCharge(0);
@@ -1103,6 +1103,21 @@ export default function HomePage() {
     managementFeePercent, voidAllowancePercent, maintenanceReserve,
     buildingsInsurance, serviceCharge, groundRentAnnual,
   ]);
+
+  const hasMinimumData =
+    dealType === 'BTL'
+      ? sharedInputs.purchasePrice > 0 && btlInputs.monthlyRent > 0
+    : dealType === 'HMO'
+      ? sharedInputs.purchasePrice > 0 && hmoInputs.rooms > 0 && hmoInputs.rentPerRoom > 0
+    : dealType === 'SA'
+      ? sharedInputs.purchasePrice > 0 && saInputs.nightlyRate > 0
+    : dealType === 'BRRR'
+      ? sharedInputs.purchasePrice > 0 && brrrInputs.monthlyRent > 0
+    : dealType === 'R2R'
+      ? r2rInputs.monthlyRentPaid > 0 && r2rInputs.rooms > 0 && r2rInputs.rentPerRoom > 0
+    : dealType === 'FLIP'
+      ? sharedInputs.purchasePrice > 0 && flipInputs.expectedSalePrice > 0
+    : socialInputs.leaseIncomePerMonth > 0 && sharedInputs.purchasePrice > 0;
 
   const VERDICT_LABELS: Record<string, string> = {
     Strong: 'Recommended',
@@ -2025,8 +2040,8 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(btlResults.monthlyCashFlow)} highlight={btlResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(btlResults.annualCashFlow)} highlight={btlResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
+                      <MetricBox label="Monthly Flow" value={hasMinimumData ? formatCurrency(btlResults.monthlyCashFlow) : '—'} highlight={hasMinimumData && btlResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(btlResults.annualCashFlow) : '—'} highlight={hasMinimumData && btlResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -2066,8 +2081,8 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(hmoResults.monthlyCashFlow)} highlight={hmoResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(hmoResults.annualCashFlow)} highlight={hmoResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
+                      <MetricBox label="Monthly Flow" value={hasMinimumData ? formatCurrency(hmoResults.monthlyCashFlow) : '—'} highlight={hasMinimumData && hmoResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(hmoResults.annualCashFlow) : '—'} highlight={hasMinimumData && hmoResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -2133,8 +2148,8 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
                       <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} tooltip={TT.saNetRev} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(saResults.monthlyCashFlow)} highlight={saResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(saResults.annualCashFlow)} highlight={saResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
+                      <MetricBox label="Monthly Flow" value={hasMinimumData ? formatCurrency(saResults.monthlyCashFlow) : '—'} highlight={hasMinimumData && saResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(saResults.annualCashFlow) : '—'} highlight={hasMinimumData && saResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -2178,8 +2193,8 @@ export default function HomePage() {
                         tooltip={TT.brrrCashLeft}
                       />
                       <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} tooltip={TT.equityCreated} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(brrrResults.monthlyCashFlow)} highlight={brrrResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(brrrResults.annualCashFlow)} highlight={brrrResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
+                      <MetricBox label="Monthly Flow" value={hasMinimumData ? formatCurrency(brrrResults.monthlyCashFlow) : '—'} highlight={hasMinimumData && brrrResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(brrrResults.annualCashFlow) : '—'} highlight={hasMinimumData && brrrResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -2246,8 +2261,8 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <MetricBox label="Monthly Flow" value={formatCurrency(socialResults.monthlyCashFlow)} highlight={socialResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
-                      <MetricBox label="Annual Flow" value={formatCurrency(socialResults.annualCashFlow)} highlight={socialResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
+                      <MetricBox label="Monthly Flow" value={hasMinimumData ? formatCurrency(socialResults.monthlyCashFlow) : '—'} highlight={hasMinimumData && socialResults.monthlyCashFlow < 0} tooltip={TT.monthlyFlow} />
+                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(socialResults.annualCashFlow) : '—'} highlight={hasMinimumData && socialResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">

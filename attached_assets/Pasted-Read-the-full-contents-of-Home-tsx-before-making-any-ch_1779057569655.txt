@@ -1,0 +1,123 @@
+Read the full contents of Home.tsx before making any changes.
+Plan all edits explicitly, then execute in parallel.
+
+━━━ FIX 1: Management Fee and Void Allowance not displaying ━━━
+
+The state variables managementFeePercent and 
+voidAllowancePercent are not displaying their default 
+values (10 and 5) in the input fields.
+
+Find their useState declarations and confirm they read:
+  const [managementFeePercent, setManagementFeePercent] = useState(10);
+  const [voidAllowancePercent, setVoidAllowancePercent] = useState(5);
+
+If they are useState(0), change them to useState(10) and 
+useState(5) respectively.
+
+Then confirm the input value props read:
+  value={managementFeePercent === 0 ? '' : managementFeePercent}
+  value={voidAllowancePercent === 0 ? '' : voidAllowancePercent}
+
+If they still read value={managementFeePercent || ''} 
+change them to the === 0 pattern above.
+
+━━━ FIX 2: Monthly Flow and Annual Flow show blank until 
+data is entered ━━━
+
+Currently the Deal Score results panel shows Monthly Flow 
+and Annual Flow as negative numbers (e.g. -£105, -£1,260) 
+before the user has entered any deal data, because the 
+maintenance and insurance defaults create costs with no 
+income to offset them.
+
+The results panel should show a clean empty/zero state 
+until the user has entered enough data to produce a 
+meaningful result.
+
+Define a boolean called hasMinimumData:
+
+For BTL:
+  const hasMinimumData = sharedInputs.purchasePrice > 0 
+    && btlInputs.monthlyRent > 0;
+
+For HMO:
+  const hasMinimumData = sharedInputs.purchasePrice > 0 
+    && hmoInputs.rooms > 0 && hmoInputs.rentPerRoom > 0;
+
+For SA:
+  const hasMinimumData = sharedInputs.purchasePrice > 0 
+    && saInputs.nightlyRate > 0;
+
+For BRRR:
+  const hasMinimumData = sharedInputs.purchasePrice > 0 
+    && brrrInputs.monthlyRent > 0;
+
+For R2R:
+  const hasMinimumData = r2rInputs.monthlyRentPaid > 0 
+    && r2rInputs.rooms > 0 && r2rInputs.rentPerRoom > 0;
+
+For Flip:
+  const hasMinimumData = sharedInputs.purchasePrice > 0 
+    && flipInputs.expectedSalePrice > 0;
+
+For Social:
+  const hasMinimumData = sharedInputs.purchasePrice > 0 
+    && socialInputs.leaseIncomePerMonth > 0;
+
+Derive this as a single computed value based on dealType:
+  const hasMinimumData = 
+    dealType === 'BTL' 
+      ? sharedInputs.purchasePrice > 0 && btlInputs.monthlyRent > 0
+    : dealType === 'HMO'
+      ? sharedInputs.purchasePrice > 0 && hmoInputs.rooms > 0 && hmoInputs.rentPerRoom > 0
+    : dealType === 'SA'
+      ? sharedInputs.purchasePrice > 0 && saInputs.nightlyRate > 0
+    : dealType === 'BRRR'
+      ? sharedInputs.purchasePrice > 0 && brrrInputs.monthlyRent > 0
+    : dealType === 'R2R'
+      ? r2rInputs.monthlyRentPaid > 0 && r2rInputs.rooms > 0 && r2rInputs.rentPerRoom > 0
+    : dealType === 'FLIP'
+      ? sharedInputs.purchasePrice > 0 && flipInputs.expectedSalePrice > 0
+    : socialInputs.leaseIncomePerMonth > 0 && sharedInputs.purchasePrice > 0;
+
+Place this derived value near the other computed display 
+values (after pdfProps useMemo, before the return 
+statement).
+
+Then in the Deal Score results panel, find the Monthly 
+Flow and Annual Flow MetricBox components (or equivalent 
+display elements).
+
+Wrap their displayed values so they show '—' or blank 
+when hasMinimumData is false:
+
+  Monthly Flow display: hasMinimumData ? formatCurrency(monthlyCashFlow) : '—'
+  Annual Flow display: hasMinimumData ? formatCurrency(annualCashFlow) : '—'
+
+Where monthlyCashFlow and annualCashFlow are whatever 
+values are currently being passed to those display 
+elements for the active strategy.
+
+Also apply the same logic to the colour — the red 
+negative colour should only apply when hasMinimumData 
+is true. When false, show neutral colour (text-foreground 
+or text-muted-foreground).
+
+Also apply hasMinimumData to the live metrics bar — 
+the bar currently shows "Enter deal numbers to see live 
+metrics" before analysis. Confirm this pending state 
+already handles the blank display. If the metrics bar 
+is also showing negative values before data entry, 
+apply the same hasMinimumData guard there too.
+
+DO NOT change: any formula logic, any PDF code, any 
+other display values (Cash Invested, Mortgage, Gross 
+Yield, Net Yield, CoC ROI should remain as-is — they 
+already show £0 or 0.0% cleanly), any other components.
+
+After completing, confirm:
+1. Management Fee and Void Allowance now show 10 and 5
+2. Monthly Flow and Annual Flow show '—' on a blank form
+3. The colour guard is in place
+4. hasMinimumData logic covers all 7 strategies
+5. npx tsc --noEmit passes with zero errors
