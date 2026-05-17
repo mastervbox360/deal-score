@@ -1182,7 +1182,7 @@ export default function HomePage() {
                   <Calculator className="w-4 h-4" style={{ color: '#1B3A6B' }} /> Deal Numbers
                 </h2>
               </div>
-              <CardContent className="p-6">
+              <CardContent className="p-6 pb-0">
                 {/* Strategy Selector */}
                 <div className="space-y-2 mb-6 pb-6 border-b border-border">
                   <div className="flex items-center gap-1">
