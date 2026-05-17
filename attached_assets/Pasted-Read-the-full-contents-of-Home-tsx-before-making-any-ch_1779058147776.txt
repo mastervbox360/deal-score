@@ -1,0 +1,71 @@
+Read the full contents of Home.tsx before making any changes.
+Plan all edits explicitly, then execute in parallel.
+
+━━━ FIX 1: Hide Sensitivity Analysis when no data entered ━━━
+
+Find the Sensitivity Analysis collapsible panel in the 
+results card. It currently renders its table content 
+regardless of whether deal data has been entered.
+
+Wrap the inner content of the Sensitivity Analysis panel
+(the table rows showing Monthly CF and CoC ROI values)
+in a hasMinimumData conditional:
+
+IF hasMinimumData is true: show the existing table as-is
+IF hasMinimumData is false: show a single centred line 
+instead:
+  "Enter deal numbers to see sensitivity analysis"
+  Style: text-sm text-muted-foreground, text-centre, 
+  py-4
+
+Do NOT hide the collapsible toggle itself — the panel 
+header (SENSITIVITY ANALYSIS with the toggle arrow) 
+should always be visible. Only the inner content changes.
+
+━━━ FIX 2: Hide Show Workings content when no data entered ━━━
+
+Find the Show Workings collapsible panel. Apply the same 
+pattern:
+
+IF hasMinimumData is true: show existing workings as-is
+IF hasMinimumData is false: show:
+  "Enter deal numbers to see calculation workings"
+  Style: text-sm text-muted-foreground, text-centre, 
+  py-4
+
+Again — the toggle header always visible, only inner 
+content changes.
+
+━━━ FIX 3: CoC ROI colour in Show Workings ━━━
+
+Find the Show Workings Key Metrics section (Section C).
+The CoC ROI row currently renders in brand colour 
+(readableBrand or accentColour or similar).
+
+Change the CoC ROI value colour to fixed dark navy: 
+#1B3A6B
+
+This applies to ALL 7 strategy Show Workings sections 
+wherever CoC ROI appears in the Key Metrics block.
+
+The label text colour should also be dark navy or 
+text-foreground — not brand colour.
+
+Monthly Cash Flow in Show Workings: do NOT change — 
+the green colour on that row is intentional per 
+design spec.
+
+━━━ DO NOT CHANGE ━━━
+Any formula logic, any PDF code, hasMinimumData 
+definition, any other display elements, the Monthly 
+Cash Flow green colour in Show Workings.
+
+After completing confirm:
+1. Sensitivity Analysis inner content shows placeholder 
+   text when no data entered
+2. Show Workings inner content shows placeholder text 
+   when no data entered  
+3. CoC ROI in Show Workings Key Metrics is now dark 
+   navy #1B3A6B across all strategies
+4. Monthly Cash Flow green is unchanged
+5. npx tsc --noEmit passes with zero errors

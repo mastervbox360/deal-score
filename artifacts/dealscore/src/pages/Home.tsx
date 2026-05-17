@@ -2300,36 +2300,42 @@ export default function HomePage() {
                 </button>
                 {stressTestOpen && (
                   <div className="border-t border-border">
-                    <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
-                      <span className="text-xs text-muted-foreground col-span-1" />
-                      <span className="text-xs font-semibold text-foreground text-right">Base Case</span>
-                      <span className="text-xs font-semibold text-foreground text-right">Rent −10%</span>
-                      <span className="text-xs font-semibold text-foreground text-right">Rate +1.5%</span>
-                    </div>
-                    <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
-                      <span className="text-sm text-muted-foreground col-span-1">Monthly CF</span>
-                      {([
-                        dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
-                        stressRentDown.monthlyCashFlow,
-                        stressRateUp.monthlyCashFlow,
-                      ] as number[]).map((v, i) => (
-                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
-                          {formatCurrency(v)}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-4 px-4 py-2.5">
-                      <span className="text-sm text-muted-foreground col-span-1">CoC ROI</span>
-                      {([
-                        dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
-                        stressRentDown.cashOnCashROI,
-                        stressRateUp.cashOnCashROI,
-                      ] as number[]).map((v, i) => (
-                        <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
-                          {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '\u221E' : isFinite(v) ? formatPercent(v) : '\u221E'}
-                        </span>
-                      ))}
-                    </div>
+                    {hasMinimumData ? (
+                      <>
+                        <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
+                          <span className="text-xs text-muted-foreground col-span-1" />
+                          <span className="text-xs font-semibold text-foreground text-right">Base Case</span>
+                          <span className="text-xs font-semibold text-foreground text-right">Rent −10%</span>
+                          <span className="text-xs font-semibold text-foreground text-right">Rate +1.5%</span>
+                        </div>
+                        <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
+                          <span className="text-sm text-muted-foreground col-span-1">Monthly CF</span>
+                          {([
+                            dealType === 'BTL' ? btlResults.monthlyCashFlow : dealType === 'HMO' ? hmoResults.monthlyCashFlow : dealType === 'SA' ? saResults.monthlyCashFlow : dealType === 'BRRR' ? brrrResults.monthlyCashFlow : socialResults.monthlyCashFlow,
+                            stressRentDown.monthlyCashFlow,
+                            stressRateUp.monthlyCashFlow,
+                          ] as number[]).map((v, i) => (
+                            <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                              {formatCurrency(v)}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-4 px-4 py-2.5">
+                          <span className="text-sm text-muted-foreground col-span-1">CoC ROI</span>
+                          {([
+                            dealType === 'BTL' ? btlResults.cashOnCashROI : dealType === 'HMO' ? hmoResults.cashOnCashROI : dealType === 'SA' ? saResults.cashOnCashROI : dealType === 'BRRR' ? brrrResults.cashOnCashROI : socialResults.cashOnCashROI,
+                            stressRentDown.cashOnCashROI,
+                            stressRateUp.cashOnCashROI,
+                          ] as number[]).map((v, i) => (
+                            <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                              {i === 0 && dealType === 'BRRR' && brrrResults.moneyOut ? '\u221E' : isFinite(v) ? formatPercent(v) : '\u221E'}
+                            </span>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">Enter deal numbers to see sensitivity analysis</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -2356,6 +2362,8 @@ export default function HomePage() {
               </button>
               {showWorkingsOpen && (
                 <div className="border-t border-border p-4">
+                  {hasMinimumData ? (
+                    <>
                   {/* BTL */}
                   {dealType === 'BTL' && (
                     <>
@@ -2380,7 +2388,7 @@ export default function HomePage() {
                       <WSec title="C  KEY METRICS" />
                       <WRow label={`Gross Yield  (${formatCurrency(btlInputs.monthlyRent)} × 12) ÷ ${formatCurrency(sharedInputs.purchasePrice)} × 100`} value={formatPercent(btlResults.grossYield)} />
                       <WRow label="Net Yield" value={formatPercent(btlResults.netYield)} />
-                      <WRow label={`CoC ROI  ${formatCurrency(btlResults.annualCashFlow)} ÷ ${formatCurrency(btlResults.totalCashInvested)} × 100`} value={formatPercent(btlResults.cashOnCashROI)} bold color={brandColour} />
+                      <WRow label={`CoC ROI  ${formatCurrency(btlResults.annualCashFlow)} ÷ ${formatCurrency(btlResults.totalCashInvested)} × 100`} value={formatPercent(btlResults.cashOnCashROI)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* HMO */}
@@ -2407,7 +2415,7 @@ export default function HomePage() {
                       <WSec title="C  KEY METRICS" />
                       <WRow label={`Gross Yield  (${formatCurrency(hmoResults.grossMonthlyRent)} × 12) ÷ ${formatCurrency(sharedInputs.purchasePrice)} × 100`} value={formatPercent(hmoResults.grossYield)} />
                       <WRow label="Net Yield" value={formatPercent(hmoResults.netYield)} />
-                      <WRow label={`CoC ROI  ${formatCurrency(hmoResults.annualCashFlow)} ÷ ${formatCurrency(hmoResults.totalCashInvested)} × 100`} value={formatPercent(hmoResults.cashOnCashROI)} bold color={brandColour} />
+                      <WRow label={`CoC ROI  ${formatCurrency(hmoResults.annualCashFlow)} ÷ ${formatCurrency(hmoResults.totalCashInvested)} × 100`} value={formatPercent(hmoResults.cashOnCashROI)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* FLIP */}
@@ -2428,7 +2436,7 @@ export default function HomePage() {
                       <WSec title="C  KEY METRICS" />
                       <WRow label={`Profit per Month  ${formatCurrency(flipResults.netProfit)} ÷ ${flipInputs.projectLengthMonths} months`} value={formatCurrency(flipResults.profitPerMonth)} />
                       <WRow label={`Total ROI  ${formatCurrency(flipResults.netProfit)} ÷ ${formatCurrency(flipResults.totalCost)} × 100`} value={formatPercent(flipResults.roi)} bold />
-                      <WRow label={`Annualised ROI  ${formatPercent(flipResults.roi)} × 12 ÷ ${flipInputs.projectLengthMonths}`} value={formatPercent(flipResults.annualisedROI)} bold color={brandColour} />
+                      <WRow label={`Annualised ROI  ${formatPercent(flipResults.roi)} × 12 ÷ ${flipInputs.projectLengthMonths}`} value={formatPercent(flipResults.annualisedROI)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* SA */}
@@ -2456,7 +2464,7 @@ export default function HomePage() {
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(saResults.monthlyCashFlow)} bold color={saResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
                       <WRow label="Net Yield" value={formatPercent(saResults.netYield)} />
-                      <WRow label={`CoC ROI  ${formatCurrency(saResults.annualCashFlow)} ÷ ${formatCurrency(saResults.totalCashInvested)} × 100`} value={formatPercent(saResults.cashOnCashROI)} bold color={brandColour} />
+                      <WRow label={`CoC ROI  ${formatCurrency(saResults.annualCashFlow)} ÷ ${formatCurrency(saResults.totalCashInvested)} × 100`} value={formatPercent(saResults.cashOnCashROI)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* BRRR */}
@@ -2486,7 +2494,7 @@ export default function HomePage() {
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(brrrResults.monthlyCashFlow)} bold color={brrrResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="D  KEY METRICS" />
                       <WRow label="Gross Yield" value={formatPercent(brrrResults.grossYield)} />
-                      <WRow label={`CoC ROI  ${formatCurrency(brrrResults.annualCashFlow)} ÷ ${brrrResults.moneyOut ? 'Money Out' : formatCurrency(brrrResults.cashLeftInDeal)} × 100`} value={brrrResults.moneyOut ? '\u221E' : formatPercent(brrrResults.cashOnCashROI)} bold color={brandColour} />
+                      <WRow label={`CoC ROI  ${formatCurrency(brrrResults.annualCashFlow)} ÷ ${brrrResults.moneyOut ? 'Money Out' : formatCurrency(brrrResults.cashLeftInDeal)} × 100`} value={brrrResults.moneyOut ? '\u221E' : formatPercent(brrrResults.cashOnCashROI)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* R2R */}
@@ -2503,7 +2511,7 @@ export default function HomePage() {
                       <WRow label="Less: Running Costs" value={`(${formatCurrency(r2rInputs.monthlyRunningCosts)})`} />
                       <WRow label="MONTHLY PROFIT" value={formatCurrency(r2rResults.monthlyProfit)} bold color={r2rResults.monthlyProfit < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
-                      <WRow label={`ROI  ${formatCurrency(r2rResults.annualProfit)} ÷ ${formatCurrency(r2rInputs.setupCosts)} × 100`} value={formatPercent(r2rResults.roi)} bold color={brandColour} />
+                      <WRow label={`ROI  ${formatCurrency(r2rResults.annualProfit)} ÷ ${formatCurrency(r2rInputs.setupCosts)} × 100`} value={formatPercent(r2rResults.roi)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* SOCIAL */}
@@ -2529,8 +2537,12 @@ export default function HomePage() {
                       <WRow label="MONTHLY CASH FLOW" value={formatCurrency(socialResults.monthlyCashFlow)} bold color={socialResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
                       <WRow label="Gross Yield" value={formatPercent(socialResults.grossYield)} />
-                      <WRow label={`CoC ROI  ${formatCurrency(socialResults.annualCashFlow)} ÷ ${formatCurrency(socialResults.totalCashInvested)} × 100`} value={formatPercent(socialResults.cashOnCashROI)} bold color={brandColour} />
+                      <WRow label={`CoC ROI  ${formatCurrency(socialResults.annualCashFlow)} ÷ ${formatCurrency(socialResults.totalCashInvested)} × 100`} value={formatPercent(socialResults.cashOnCashROI)} bold color='#1B3A6B' />
                     </>
+                  )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Enter deal numbers to see calculation workings</p>
                   )}
                 </div>
               )}
