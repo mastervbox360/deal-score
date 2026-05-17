@@ -2237,7 +2237,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setStressTestOpen((v) => !v)}
                   aria-expanded={stressTestOpen}
-                  className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                   data-testid="toggle-stress-test"
                 >
                   <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
@@ -2293,7 +2293,7 @@ export default function HomePage() {
                 type="button"
                 onClick={() => setShowWorkingsOpen((v) => !v)}
                 aria-expanded={showWorkingsOpen}
-                className="w-full flex items-center justify-between px-6 py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                 data-testid="toggle-show-workings"
               >
                 <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
