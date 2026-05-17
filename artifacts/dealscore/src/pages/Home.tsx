@@ -1182,7 +1182,15 @@ export default function HomePage() {
                 <div className="space-y-2 mb-6 pb-6 border-b border-border">
                   <div className="flex items-center gap-1">
                     <Label>Investment Strategy</Label>
-                    <InfoIcon id="strategy-selector" text="Select the investment strategy you want to analyse for this deal. Each strategy uses different metrics and scoring thresholds." />
+                    <InfoIcon id="strategy-selector" text={
+                      dealType === 'BTL' ? TT.tabBtl :
+                      dealType === 'HMO' ? TT.tabHmo :
+                      dealType === 'FLIP' ? TT.tabFlip :
+                      dealType === 'SA' ? TT.tabSa :
+                      dealType === 'BRRR' ? TT.tabBrrr :
+                      dealType === 'R2R' ? TT.tabR2r :
+                      TT.tabSocial
+                    } />
                   </div>
                   <select
                     value={dealType}
