@@ -1522,14 +1522,18 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Buildings Insurance (£/mo)</Label><InfoIcon id="shared-bldg-ins" text="Monthly buildings insurance cost. Typical range £20–£50/mo." /></div>
                       <Input type="number" placeholder="e.g. 30" value={buildingsInsurance || ''} onChange={(e) => setBuildingsInsurance(parseFloat(e.target.value) || 0)} />
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Service Charge (£/mo)</Label><InfoIcon id="shared-svc-chg" text="Monthly service charge for leasehold properties. Enter 0 for freehold." /></div>
-                      <Input type="number" placeholder="0" value={serviceCharge || ''} onChange={(e) => setServiceCharge(parseFloat(e.target.value) || 0)} />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label>Ground Rent (£/yr)</Label><InfoIcon id="shared-grd-rent" text="Annual ground rent for leasehold properties. Enter 0 for freehold." /></div>
-                      <Input type="number" placeholder="0" value={groundRentAnnual || ''} onChange={(e) => setGroundRentAnnual(parseFloat(e.target.value) || 0)} />
-                    </div>
+                    {tenure === 'Leasehold' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label>Service Charge (£/mo)</Label><InfoIcon id="shared-svc-chg" text="Monthly service charge for leasehold properties. Enter 0 for freehold." /></div>
+                        <Input type="number" placeholder="0" value={serviceCharge || ''} onChange={(e) => setServiceCharge(parseFloat(e.target.value) || 0)} />
+                      </div>
+                    )}
+                    {tenure === 'Leasehold' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label>Ground Rent (£/yr)</Label><InfoIcon id="shared-grd-rent" text="Annual ground rent for leasehold properties. Enter 0 for freehold." /></div>
+                        <Input type="number" placeholder="0" value={groundRentAnnual || ''} onChange={(e) => setGroundRentAnnual(parseFloat(e.target.value) || 0)} />
+                      </div>
+                    )}
                   </div>
                 )}
 
