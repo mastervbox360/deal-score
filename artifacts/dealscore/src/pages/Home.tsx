@@ -1150,21 +1150,22 @@ export default function HomePage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="lg:hidden max-w-[1024px] mx-auto w-full px-6 py-2">
-            <select
-              value={dealType}
-              onChange={(e) => setDealType(e.target.value as DealType)}
-              className="w-full h-11 rounded-xl border border-[#1B3A6B] px-4 text-sm font-semibold bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] appearance-none"
-            >
-              <option value="BTL">Buy-to-Let</option>
-              <option value="HMO">HMO</option>
-              <option value="FLIP">Flip / Refurb</option>
-              <option value="SA">Serviced Accommodation</option>
-              <option value="BRRR">BRRR</option>
-              <option value="R2R">Rent-to-Rent</option>
-              <option value="SOCIAL">Social Housing</option>
-            </select>
-          </div>
+        </div>
+        <div className="lg:hidden w-full px-6 pb-2">
+          <select
+            value={dealType}
+            onChange={(e) => setDealType(e.target.value as DealType)}
+            style={{ fontSize: '16px' }}
+            className="w-full h-11 rounded-xl border border-[#1B3A6B] px-4 text-sm font-semibold bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] appearance-none"
+          >
+            <option value="BTL">Buy-to-Let</option>
+            <option value="HMO">HMO</option>
+            <option value="FLIP">Flip / Refurb</option>
+            <option value="SA">Serviced Accommodation</option>
+            <option value="BRRR">BRRR</option>
+            <option value="R2R">Rent-to-Rent</option>
+            <option value="SOCIAL">Social Housing</option>
+          </select>
         </div>
       </div>
 
