@@ -3441,5 +3441,16 @@ function WRow({ label, value, bold, color }: { label: string; value: string; bol
 }
 
 function WSec({ title }: { title: string }) {
-  return <p className="text-[10px] font-bold uppercase tracking-widest mt-3 mb-1" style={{ color: '#1B3A6B' }}>{title}</p>;
+  const letter = title.charAt(0);
+  const text = title.slice(2);
+  return (
+    <div className="flex items-center gap-2 mt-4 mb-2">
+      <span className="flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: '#1B3A6B' }}>
+        {letter}
+      </span>
+      <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+        {text}
+      </span>
+    </div>
+  );
 }
