@@ -210,8 +210,8 @@ export default function HomePage() {
 
   const [managementFeePercent, setManagementFeePercent] = useState(0);
   const [voidAllowancePercent, setVoidAllowancePercent] = useState(0);
-  const [maintenanceReserve, setMaintenanceReserve] = useState(0);
-  const [buildingsInsurance, setBuildingsInsurance] = useState(0);
+  const [maintenanceReserve, setMaintenanceReserve] = useState(75);
+  const [buildingsInsurance, setBuildingsInsurance] = useState(30);
   const [serviceCharge, setServiceCharge] = useState(0);
   const [groundRentAnnual, setGroundRentAnnual] = useState(0);
 
@@ -547,8 +547,8 @@ export default function HomePage() {
     }
     setManagementFeePercent(0);
     setVoidAllowancePercent(0);
-    setMaintenanceReserve(0);
-    setBuildingsInsurance(0);
+    setMaintenanceReserve(75);
+    setBuildingsInsurance(30);
     setServiceCharge(0);
     setGroundRentAnnual(0);
     setPropertyData(null);
