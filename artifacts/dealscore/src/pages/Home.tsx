@@ -2374,7 +2374,7 @@ export default function HomePage() {
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
-                      <WRow label="Monthly Rent" value={formatCurrency(btlInputs.monthlyRent)} />
+                      <WRow label="Monthly Rental Income" value={formatCurrency(btlInputs.monthlyRent)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(btlResults.voidAllowanceAmount)})`} />
                       <WRow label="Effective Rent" value={formatCurrency(btlResults.effectiveRent)} bold />
                       <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(btlResults.managementFeeAmount)})`} />
@@ -2482,7 +2482,7 @@ export default function HomePage() {
                       <WRow label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} />
                       <WRow label={brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'} value={formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} bold color={brrrResults.moneyOut ? '#22C55E' : undefined} />
                       <WSec title="C  MONTHLY CASH FLOW" />
-                      <WRow label="Monthly Rent" value={formatCurrency(brrrInputs.monthlyRent)} />
+                      <WRow label="Monthly Rental Income" value={formatCurrency(brrrInputs.monthlyRent)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(brrrResults.voidAllowanceAmount)})`} />
                       <WRow label="Effective Rent" value={formatCurrency(brrrResults.effectiveRent)} bold />
                       <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(brrrResults.managementFeeAmount)})`} />
