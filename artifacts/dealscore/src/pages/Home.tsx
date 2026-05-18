@@ -130,6 +130,16 @@ export default function HomePage() {
   const [strategyNotes, setStrategyNotes] = useState<Record<string, string>>({});
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
+  const [areaAverageYield, setAreaAverageYield] = useState(0);
+  const [timelineStages, setTimelineStages] = useState([
+    { label: 'Exchange', month: 0 },
+    { label: 'Completion', month: 1 },
+    { label: 'Refurb Complete', month: 3 },
+    { label: 'Tenant In', month: 4 },
+  ]);
+  const [offerDeadline, setOfferDeadline] = useState('');
+  const [viewingAvailable, setViewingAvailable] = useState(false);
+  const [refurbScope, setRefurbScope] = useState('');
   const [comparables, setComparables] = useState<Array<{ address: string; bedsType: string; dateSold: string; price: string }>>([
     { address: '', bedsType: '', dateSold: '', price: '' },
     { address: '', bedsType: '', dateSold: '', price: '' },
@@ -529,6 +539,16 @@ export default function HomePage() {
     setStressTestOpen(false);
     setShowWorkingsOpen(false);
     setIncludeWorkingsInPDF(false);
+    setAreaAverageYield(0);
+    setTimelineStages([
+      { label: 'Exchange', month: 0 },
+      { label: 'Completion', month: 1 },
+      { label: 'Refurb Complete', month: 3 },
+      { label: 'Tenant In', month: 4 },
+    ]);
+    setOfferDeadline('');
+    setViewingAvailable(false);
+    setRefurbScope('');
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0 });
@@ -1089,6 +1109,11 @@ export default function HomePage() {
       } : undefined,
       includeWorkings: includeWorkingsInPDF,
       managementFeePercent,
+      areaAverageYield,
+      timelineStages: timelineStages.filter(s => s.label.trim() !== ''),
+      offerDeadline,
+      viewingAvailable,
+      refurbScope,
       voidAllowancePercent,
       maintenanceReserve,
       buildingsInsurance,
@@ -1108,6 +1133,7 @@ export default function HomePage() {
     includeWorkingsInPDF,
     managementFeePercent, voidAllowancePercent, maintenanceReserve,
     buildingsInsurance, serviceCharge, groundRentAnnual,
+    areaAverageYield, timelineStages, offerDeadline, viewingAvailable, refurbScope,
   ]);
 
   const hasMinimumData =
@@ -1728,6 +1754,62 @@ export default function HomePage() {
                       rows={3}
                       data-testid="input-vendor-situation"
                     />
+                  </div>
+
+                  {/* Refurb Scope */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Scope</Label><InfoIcon id="shared-refurb-scope" text="Brief description of planned refurbishment works. Shown on the Deal Rationale page of the investor pack." /></div>
+                    <Textarea
+                      placeholder="e.g. Full kitchen and bathroom replacement, redecoration throughout"
+                      value={refurbScope}
+                      onChange={(e) => setRefurbScope(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Area Average Yield */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Area Average Yield (%)</Label><InfoIcon id="shared-area-yield" text="Average gross yield for comparable BTL properties in this area. Used for market context in the investor pack. Leave blank to omit." /></div>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 5.8"
+                      value={areaAverageYield || ''}
+                      onChange={(e) => setAreaAverageYield(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  {/* Investment Timeline */}
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Investment Timeline</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">Optional — leave blank to omit from investor pack</p>
+                    </div>
+                    <div className="space-y-2">
+                      {timelineStages.map((stage, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <Input
+                            type="text"
+                            className="flex-grow text-xs"
+                            placeholder="Stage label"
+                            value={stage.label}
+                            onChange={(e) => {
+                              const next = timelineStages.map((s, j) => j === i ? { ...s, label: e.target.value } : s);
+                              setTimelineStages(next);
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            className="w-20 text-xs"
+                            placeholder="Month"
+                            value={stage.month}
+                            onChange={(e) => {
+                              const next = timelineStages.map((s, j) => j === i ? { ...s, month: parseInt(e.target.value) || 0 } : s);
+                              setTimelineStages(next);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Comparable Properties — dynamic table */}
@@ -2613,6 +2695,30 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Offer Deadline */}
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs">Offer Deadline</Label>
+            <p className="text-xs text-slate-400 -mt-0.5">Optional — shown on last page of investor pack</p>
+            <Input
+              type="date"
+              value={offerDeadline}
+              onChange={(e) => setOfferDeadline(e.target.value)}
+            />
+          </div>
+
+          {/* Viewing Available */}
+          <div className="mt-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={viewingAvailable}
+                onChange={(e) => setViewingAvailable(e.target.checked)}
+                className="w-3.5 h-3.5 accent-[#1B3A6B]"
+              />
+              <span className="text-xs text-slate-600">Tick to show Viewing Available: Yes on investor pack</span>
+            </label>
+          </div>
+
           {/* Dev Tier Testing */}
           <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">🛠 Dev Tier Testing</p>
@@ -2853,7 +2959,7 @@ export default function HomePage() {
                   className="w-3.5 h-3.5 accent-[#1B3A6B]"
                   data-testid="checkbox-include-workings"
                 />
-                <span className="text-xs text-slate-600">Include calculation workings in PDF</span>
+                <span className="text-xs text-slate-600">Include full calculation workings as a PDF appendix</span>
               </label>
             )}
             {tierOverride !== 'free' && (

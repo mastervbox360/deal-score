@@ -1,0 +1,84 @@
+Read the full contents of Home.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+ADD STATE VARIABLES near other Deal Notes state:
+const [areaAverageYield, setAreaAverageYield] = useState(0);
+const [timelineStages, setTimelineStages] = useState([
+  { label: 'Exchange', month: 0 },
+  { label: 'Completion', month: 1 },
+  { label: 'Refurb Complete', month: 3 },
+  { label: 'Tenant In', month: 4 },
+]);
+const [offerDeadline, setOfferDeadline] = useState('');
+const [viewingAvailable, setViewingAvailable] = useState(false);
+const [refurbScope, setRefurbScope] = useState('');
+
+ADD TO handleReset:
+setAreaAverageYield(0);
+setTimelineStages([
+  { label: 'Exchange', month: 0 },
+  { label: 'Completion', month: 1 },
+  { label: 'Refurb Complete', month: 3 },
+  { label: 'Tenant In', month: 4 },
+]);
+setOfferDeadline('');
+setViewingAvailable(false);
+setRefurbScope('');
+
+UI — DEAL NOTES SECTION — ADD after existing fields, in this order:
+1. Refurb Scope
+Label: "Refurb Scope"
+Textarea (or text input), placeholder: "e.g. Full kitchen and bathroom replacement, redecoration throughout"
+value={refurbScope}
+onChange: setRefurbScope(e.target.value)
+InfoIcon tooltip: "Brief description of planned refurbishment works. Shown on the Deal Rationale page of the investor pack."
+2. Area Average Yield (%)
+Label: "Area Average Yield (%)"
+InfoIcon tooltip: "Average gross yield for comparable BTL properties in this area. Used for market context in the investor pack. Leave blank to omit."
+Input: type="number", placeholder "e.g. 5.8"
+value={areaAverageYield || ''}
+onChange: setAreaAverageYield(parseFloat(e.target.value) || 0)
+3. Investment Timeline
+Section subheading label: "Investment Timeline"
+Subtext below label: "Optional — leave blank to omit from investor pack"
+Four rows. Each row has two inputs side by side: Stage Label (text, flex-grow) + Month (number, width ~80px).
+Default values: Exchange/0, Completion/1, Refurb Complete/3, Tenant In/4.
+On change: update timelineStages immutably — replace the specific index only, preserve all other stages.
+
+UI — PREPARED BY SECTION — ADD after existing fields, in this order:
+4. Offer Deadline
+Label: "Offer Deadline"
+Subtext: "Optional — shown on last page of investor pack"
+Input: type="date"
+value={offerDeadline}
+onChange: setOfferDeadline(e.target.value)
+5. Viewing Available
+Label: "Viewing Available"
+Checkbox with label text: "Tick to show Viewing Available: Yes on investor pack"
+checked={viewingAvailable}
+onChange: setViewingAvailable(e.target.checked)
+6. Include workings checkbox
+Find the existing "Include calculation workings in PDF" checkbox.
+
+Update its label text to: "Include full calculation workings as a PDF appendix"
+Do NOT hide it — leave it visible in the UI
+Keep the includeWorkings state variable and its passing into pdfProps unchanged
+
+
+WIRE TO pdfProps return object — ADD:
+areaAverageYield,
+timelineStages: timelineStages.filter(s => s.label.trim() !== ''),
+offerDeadline,
+viewingAvailable,
+refurbScope,
+ADD all 5 new state variables to the pdfProps useMemo dependency array.
+
+DO NOT change: formula logic, PDF rendering code, existing fields, existing section structure, R2R/Flip inputs.
+
+After completing, confirm:
+
+All 5 state variables added with correct defaults
+All 5 UI fields added in correct sections
+includeWorkings checkbox label updated — not hidden, remains visible
+All 5 wired into pdfProps
+useMemo dependency array updated
+handleReset updated with all 5 new fields
+npx tsc --noEmit passes with zero errors
