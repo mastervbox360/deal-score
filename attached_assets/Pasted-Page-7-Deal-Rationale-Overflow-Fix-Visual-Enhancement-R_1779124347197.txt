@@ -1,0 +1,65 @@
+Page 7 Deal Rationale: Overflow Fix + Visual Enhancement
+Read the full contents of DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+
+CONTEXT
+Page 7 (Deal Rationale) is overflowing onto Page 8 when all optional sections are present. The page also reads as visually flat — all text, minimal colour. The Investment Timeline component needs a full visual upgrade.
+Brand colour rules (non-negotiable):
+
+Brand/accent colours apply only to structural elements (borders, rules, decorative lines, card borders)
+Metric values and data text must always render in dark navy (#1E2B3C or #1B3A6B)
+readableBrand colour for section labels and structural accents only
+
+
+CHANGE 1 — Fix overflow on Page 7
+Reduce spacing throughout the Deal Rationale page to prevent spill:
+
+All section blocks: add wrap={false} to each outer View so sections never split mid-render
+Between sections: reduce marginBottom from current value down to 6
+Section label rows: reduce marginBottom to 3
+Brand colour rule beneath each label: keep at marginBottom 4
+Body text: reduce marginBottom to 4
+Risk Factors bullet rows: reduce marginBottom between bullets to 3
+Investment Timeline outer View: add wrap={false} and marginBottom 6
+Why This Strategy paragraph: if the whyThisStrategy text is long, cap it to a numberOfLines-equivalent approach if available, or ensure font size is 8 not larger
+
+
+CHANGE 2 — Investment Timeline visual upgrade
+Replace the current circle-node timeline with a milestone card design. Spec:
+[Month 0]          [Month 1]          [Month 3]          [Month 4]
+ Exchange           Completion        Refurb Complete      Tenant In
+Container: flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 6
+Connecting line: A single View positioned absolutely (or via a thin separator View in a relative layout) — height: 2, backgroundColor: readableBrand (the brand accent colour), running horizontally through the centre of the node circles. Implement as a thin View with position: 'absolute', top: 14 (vertically centred on the circles), left: '10%', right: '10%', height: 2, backgroundColor: readableBrand, zIndex: 0.
+Each milestone card (4 total): Outer View with width: '22%', alignItems: 'center', zIndex: 1
+
+Month label (above circle): Text — fontSize: 7.5, color: readableBrand, fontFamily: boldFont, marginBottom: 3, textAlign: 'center' — e.g. "Month 0"
+Circle node: View — width: 14, height: 14, borderRadius: 7, backgroundColor: readableBrand, marginBottom: 4 — solid filled circle in brand accent colour
+Stage label (below circle): Text — fontSize: 7.5, color: '#1E2B3C', fontFamily: boldFont, textAlign: 'center', lineHeight: 1.3 — e.g. "Exchange"
+
+Outer wrapper View: position: 'relative', marginTop: 6, marginBottom: 6, wrap={false}
+Only render non-empty stages (existing logic preserved).
+
+CHANGE 3 — Risk Factors panel styling
+Wrap the Risk Factors section content (bullets only, not the label/rule) in a light background panel:
+
+Outer content View: backgroundColor: '#F8FAFC', borderRadius: 3, padding: 6, marginTop: 4
+Each bullet row: flexDirection: 'row', alignItems: 'flex-start', marginBottom: 3
+Bullet marker: View — width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 5, borderRadius: 0 (square)
+Bullet text: fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4
+
+This adds visual separation and a hint of colour (via the brand-coloured bullet squares) without violating the data-text colour rule.
+
+CHANGE 4 — Section label colour consistency check
+On Page 7, confirm every section label (Why This Strategy, Property Description, Refurb Scope, Vendor Situation, Investment Timeline, Risk Factors) uses:
+
+fontSize: 9, fontFamily: boldFont, color: readableBrand — the brand accent colour
+Followed immediately by a View rule: height: 1, backgroundColor: readableBrand, marginBottom: 4
+
+If any section label is using #1B3A6B dark navy instead of readableBrand, correct it to readableBrand. Do not change any data/body text — body text stays dark navy.
+
+AFTER COMPLETING, CONFIRM:
+
+Page 7 no longer spills to Page 8 when all optional sections are populated
+Investment Timeline renders as milestone cards with filled circles, month labels above in brand colour, stage labels below in dark navy, connecting accent line behind
+Risk Factors section has light grey background panel with brand-coloured square bullet markers
+All 6 section labels on Page 7 use readableBrand colour with rule beneath
+No metric values or body text have been changed to a brand/accent colour — data text remains dark navy throughout

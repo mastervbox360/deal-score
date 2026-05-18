@@ -1701,29 +1701,33 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <SH title="Deal Rationale" />
 
           {strategyNotesText ? (
-            <View style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Why This Strategy?</Text>
+            <View wrap={false} style={[base.notePanel, { marginBottom: 6 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 3 }]}>Why This Strategy?</Text>
+              <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
               <Text style={base.notePanelText}>{strategyNotesText}</Text>
             </View>
           ) : null}
 
           {propertyDescText ? (
-            <View style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Property Description</Text>
+            <View wrap={false} style={[base.notePanel, { marginBottom: 6 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 3 }]}>Property Description</Text>
+              <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
               <Text style={base.notePanelText}>{propertyDescText}</Text>
             </View>
           ) : null}
 
           {props.refurbScope?.trim() ? (
-            <View style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Refurb Scope</Text>
+            <View wrap={false} style={[base.notePanel, { marginBottom: 6 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 3 }]}>Refurb Scope</Text>
+              <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
               <Text style={base.notePanelText}>{props.refurbScope}</Text>
             </View>
           ) : null}
 
           {vendorSituationText ? (
-            <View style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Vendor Situation</Text>
+            <View wrap={false} style={[base.notePanel, { marginBottom: 6 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 3 }]}>Vendor Situation</Text>
+              <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
               <Text style={base.notePanelText}>{vendorSituationText}</Text>
             </View>
           ) : null}
@@ -1733,15 +1737,16 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             const filteredStages = props.timelineStages.filter(s => s.label.trim());
             if (filteredStages.length === 0) return null;
             return (
-              <View style={base.notePanel}>
-                <Text style={[base.notePanelLabel, { color: readableBrand }]}>Investment Timeline</Text>
-                <View style={{ position: 'relative', flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                  <View style={{ position: 'absolute', height: 1, backgroundColor: '#CBD5E1', top: 18, left: 0, right: 0 }} />
+              <View wrap={false} style={[base.notePanel, { marginBottom: 6 }]}>
+                <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 3 }]}>Investment Timeline</Text>
+                <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
+                <View style={{ position: 'relative', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 6, marginBottom: 6 }}>
+                  <View style={{ position: 'absolute', height: 2, backgroundColor: readableBrand, top: 14, left: '10%', right: '10%' }} />
                   {filteredStages.map((stage, i) => (
-                    <View key={i} style={{ flex: 1, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 7, color: '#6B7280' }}>{`Month ${stage.month}`}</Text>
-                      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#1B3A6B', marginTop: 4 }} />
-                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', marginTop: 4 }}>{stage.label}</Text>
+                    <View key={i} style={{ width: '22%', alignItems: 'center' }}>
+                      <Text style={{ fontSize: 7.5, color: readableBrand, fontFamily: 'Helvetica-Bold', marginBottom: 3, textAlign: 'center' }}>{`Month ${stage.month}`}</Text>
+                      <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: readableBrand, marginBottom: 4 }} />
+                      <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'Helvetica-Bold', textAlign: 'center', lineHeight: 1.3 }}>{stage.label}</Text>
                     </View>
                   ))}
                 </View>
@@ -1749,31 +1754,34 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             );
           })()}
 
-          <View style={base.notePanel}>
-            <Text style={[base.notePanelLabel, { color: readableBrand }]}>Risk Factors</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' }}>
-              <View style={{ width: 4, height: 4, backgroundColor: '#1B3A6B', marginTop: 3, marginRight: 6 }} />
-              <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1 }}>
-                {props.stressTest
-                  ? (props.stressTest.rateUpCashFlow > 0
-                      ? `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} — remains positive.`
-                      : `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))} — monitor rate movements carefully.`)
-                  : 'Rate sensitivity: stress test not available for this strategy.'}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' }}>
-              <View style={{ width: 4, height: 4, backgroundColor: '#1B3A6B', marginTop: 3, marginRight: 6 }} />
-              <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1 }}>
-                {`A void allowance of ${fdVoidPct}% has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' }}>
-              <View style={{ width: 4, height: 4, backgroundColor: '#1B3A6B', marginTop: 3, marginRight: 6 }} />
-              <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1 }}>
-                {props.tenure === 'Leasehold'
-                  ? 'Leasehold property — review lease length, service charge, and ground rent terms carefully before proceeding.'
-                  : 'Freehold tenure — no lease, service charge, or ground rent risk.'}
-              </Text>
+          <View wrap={false} style={[base.notePanel, { marginBottom: 6 }]}>
+            <Text style={[base.notePanelLabel, { color: readableBrand, marginBottom: 3 }]}>Risk Factors</Text>
+            <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
+            <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, padding: 6, marginTop: 4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 3 }}>
+                <View style={{ width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 5 }} />
+                <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4 }}>
+                  {props.stressTest
+                    ? (props.stressTest.rateUpCashFlow > 0
+                        ? `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} — remains positive.`
+                        : `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))} — monitor rate movements carefully.`)
+                    : 'Rate sensitivity: stress test not available for this strategy.'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 3 }}>
+                <View style={{ width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 5 }} />
+                <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4 }}>
+                  {`A void allowance of ${fdVoidPct}% has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 3 }}>
+                <View style={{ width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 5 }} />
+                <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4 }}>
+                  {props.tenure === 'Leasehold'
+                    ? 'Leasehold property — review lease length, service charge, and ground rent terms carefully before proceeding.'
+                    : 'Freehold tenure — no lease, service charge, or ground rent risk.'}
+                </Text>
+              </View>
             </View>
           </View>
         </Page>
