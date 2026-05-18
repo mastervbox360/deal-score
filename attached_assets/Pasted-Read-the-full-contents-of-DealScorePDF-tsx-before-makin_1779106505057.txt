@@ -1,0 +1,76 @@
+Read the full contents of DealScorePDF.tsx before making 
+any changes. Plan all edits explicitly then execute 
+in parallel.
+
+━━━ FIX 1: Page 2 duplicate header ━━━
+
+Page 2 currently shows the header twice — once at the 
+top (newly added) and once at the bottom (existing footer).
+
+Find the Page 2 component. The existing footer/header 
+on Page 2 that was there before Prompt 3 — remove it. 
+Keep only the new top header that was added in Prompt 3 
+(date left · company name centre · page number right).
+
+All other pages should be unaffected.
+
+━━━ FIX 2: Cash Invested overflows to Page 3 ━━━
+
+The Cash Invested section added to Page 2 is overflowing 
+onto a new page. Find the Cash Invested View container 
+on Page 2 and add wrap={false} to prevent it breaking 
+across pages. Also check if there is excessive 
+marginTop or paddingTop above the section — reduce 
+if needed to help it fit on Page 2.
+
+━━━ FIX 3: Optimistic rate label missing minus sign ━━━
+
+In the Stress Testing page, the Optimistic column 
+header currently shows "Rate 0.5%" — it should show 
+"Rate -0.5%" with a minus sign.
+
+Find the Optimistic column header text and add the 
+minus sign: "Rate -0.5%"
+
+━━━ FIX 4: Stress Testing BASE CASE column styling ━━━
+
+The BASE CASE column currently has backgroundColor 
+#F0F4F8 applied to every data cell, which renders as 
+disconnected floating grey boxes — visually noisy.
+
+Remove the backgroundColor from all BASE CASE column 
+cells entirely.
+
+Instead, add a left border accent to BASE CASE column 
+cells only:
+  borderLeftWidth: 2,
+  borderLeftColor: readableBrand,
+  borderLeftStyle: 'solid'
+
+Apply this left border to every data cell in the BASE 
+CASE column (all rows: Mortgage Rate, Monthly Mortgage, 
+Monthly Cash Flow, CoC ROI, Break-Even Rent, Rent 
+Headroom, Payback Period).
+
+Do NOT apply the left border to the BASE CASE header 
+cell — the header already has bold text to identify it.
+The border applies to data cells only.
+
+Keep the bold fontWeight on the BASE CASE header text.
+Remove bold from BASE CASE data cells if it was 
+previously applied — data values should be regular 
+weight matching the other columns.
+
+━━━ DO NOT CHANGE ━━━
+Any other pages, any formula logic, Financial Detail 
+page, any other headers or footers, Optimistic and 
+Stress column styling, any other content.
+
+After completing confirm:
+1. Page 2 header appears once only
+2. Cash Invested stays on Page 2 without overflowing
+3. Optimistic column shows "Rate -0.5%"
+4. BASE CASE cells have no background colour
+5. BASE CASE data cells have brand colour left border
+6. BASE CASE header remains bold, no left border
+7. npx tsc --noEmit passes with zero errors

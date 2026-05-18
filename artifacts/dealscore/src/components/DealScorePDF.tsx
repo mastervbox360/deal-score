@@ -1192,7 +1192,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
       {/* ── Page 2: Executive Summary + Property Overview ─────────────────── */}
       <Page size="A4" style={base.page}>
-        <Footer />
 
         {/* Top page header — date left, company name centre, page number right */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingBottom: 6, borderBottom: '0.5pt solid #E2E8F0' }}>
@@ -1278,7 +1277,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'SOCIAL') && (
           <>
             <SH title="Cash Invested" />
-            <View style={{ marginBottom: 14 }}>
+            <View wrap={false} style={{ marginBottom: 14 }}>
               <View style={[base.tableRow, base.tableRowAlt]}>
                 <Text style={base.tableLabel}>{`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`}</Text>
                 <Text style={base.tableValue}>{fc(p2CiDeposit)}</Text>
@@ -1310,7 +1309,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {props.dealType === 'BRRR' && (
           <>
             <SH title="Cash Invested" />
-            <View style={{ marginBottom: 14 }}>
+            <View wrap={false} style={{ marginBottom: 14 }}>
               <View style={[base.tableRow, base.tableRowAlt]}>
                 <Text style={base.tableLabel}>Initial Cash Out</Text>
                 <Text style={base.tableValue}>{fc(props.brrrResults.totalCostIn)}</Text>
@@ -1599,7 +1598,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', backgroundColor: readableBrand, paddingVertical: 5, paddingHorizontal: 8, borderRadius: 2 }}>
             <Text style={{ flex: 2.4, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}> </Text>
             <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'center' }}>
-              {`OPTIMISTIC\nRate \u22120.5%`}
+              {`OPTIMISTIC\nRate -0.5%`}
             </Text>
             <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'center' }}>
               {`BASE CASE\nCurrent Rate`}
@@ -1613,7 +1612,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA', borderBottom: '0.5pt solid #E5E7EB' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Mortgage Rate</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stOpt.rate.toFixed(2)}%</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{stBase.rate.toFixed(2)}%</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{stBase.rate.toFixed(2)}%</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stStress.rate.toFixed(2)}%</Text>
           </View>
 
@@ -1621,7 +1620,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Mortgage</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stOpt.mortgage)}</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stBase.mortgage)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{fc(stBase.mortgage)}</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stStress.mortgage)}</Text>
           </View>
 
@@ -1629,7 +1628,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA', borderBottom: '0.5pt solid #E5E7EB' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stOpt.cf), textAlign: 'center' }}>{fc(stOpt.cf)}</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stBase.cf), textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stBase.cf)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stBase.cf), textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{fc(stBase.cf)}</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stStress.cf), textAlign: 'center' }}>{fc(stStress.cf)}</Text>
           </View>
 
@@ -1637,7 +1636,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stOpt.roi), textAlign: 'center' }}>{fp(stOpt.roi)}</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stBase.roi), textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fp(stBase.roi)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stBase.roi), textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{fp(stBase.roi)}</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stStress.roi), textAlign: 'center' }}>{fp(stStress.roi)}</Text>
           </View>
 
@@ -1648,7 +1647,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA', borderBottom: '0.5pt solid #E5E7EB' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Break-Even Rent</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stBreakEvenRent)}</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stBreakEvenRent)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{fc(stBreakEvenRent)}</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stBreakEvenRent)}</Text>
           </View>
 
@@ -1656,7 +1655,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Rent Headroom</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stRentHeadroom)}</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stRentHeadroom)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{fc(stRentHeadroom)}</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stRentHeadroom)}</Text>
           </View>
 
@@ -1667,7 +1666,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA' }}>
             <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Payback Period</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stPaybackDisplay(stOpt)}</Text>
-            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{stPaybackDisplay(stBase)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center', borderLeftWidth: 2, borderLeftColor: readableBrand, borderLeftStyle: 'solid' }}>{stPaybackDisplay(stBase)}</Text>
             <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stPaybackDisplay(stStress)}</Text>
           </View>
 
