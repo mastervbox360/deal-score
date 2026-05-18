@@ -1471,7 +1471,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         props.dealType === 'SOCIAL') && (
         <Page size="A4" style={base.page}>
           <Footer />
-          <SH title="FINANCIAL DETAIL" />
+          <SH title="Financial Detail" />
 
           {/* Column header row */}
           <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, backgroundColor: readableBrand }}>
