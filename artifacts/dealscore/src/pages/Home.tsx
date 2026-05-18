@@ -2715,7 +2715,7 @@ export default function HomePage() {
                 onChange={(e) => setViewingAvailable(e.target.checked)}
                 className="w-3.5 h-3.5 accent-[#1B3A6B]"
               />
-              <span className="text-xs text-slate-600">Tick to show Viewing Available: Yes on investor pack</span>
+              <span className="text-xs text-slate-600">Viewing available — include on investor pack</span>
             </label>
           </div>
 
