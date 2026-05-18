@@ -1900,7 +1900,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>Optimistic — Rent Buffer</Text>
                   <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${beOpt.toFixed(1)}%`}</Text>
                 </View>
-                <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
+                <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: '2.5pt solid #3B82F6', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
                   <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>Base — Rent Buffer</Text>
                   <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${beBase.toFixed(1)}%`}</Text>
                 </View>
@@ -1972,25 +1972,82 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
           ) : null}
 
-          {/* Investment Timeline — milestone cards with fixed-height container */}
+          {/* Investment Timeline — proportional segments + concentric ring nodes */}
           {(() => {
             if (!props.timelineStages) return null;
             const filteredStages = props.timelineStages.filter(s => s.label.trim());
-            if (filteredStages.length === 0) return null;
+            if (filteredStages.length < 2) return null;
+
+            const durations: number[] = [];
+            for (let i = 0; i < filteredStages.length - 1; i++) {
+              durations.push(Math.max(1, filteredStages[i + 1].month - filteredStages[i].month));
+            }
+            const totalDuration = durations.reduce((a, b) => a + b, 0);
+
             return (
               <View wrap={false} style={{ marginBottom: 10 }}>
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Investment Timeline</Text>
-                <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
-                <View style={{ position: 'relative', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', height: 44 }}>
-                  <View style={{ position: 'absolute', height: 2, backgroundColor: structureColour, top: 12, left: '10%', right: '10%' }} />
-                  {filteredStages.map((stage, i) => (
-                    <View key={i} style={{ flex: 1, alignItems: 'center' }}>
-                      <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: structureColour, marginBottom: 3 }} />
-                      <Text style={{ fontSize: 7, color: '#6B7280', textAlign: 'center', marginBottom: 2 }}>{`Mo ${stage.month}`}</Text>
-                      <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'Helvetica-Bold', textAlign: 'center', lineHeight: 1.2 }}>{stage.label}</Text>
+                <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 10 }} />
+
+                {/* Duration labels row — proportional to segment widths */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, paddingHorizontal: 14 }}>
+                  <View style={{ width: 16, flexShrink: 0 }} />
+                  {durations.map((dur, i) => (
+                    <View key={i} style={{ flex: dur, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>
+                        {dur === 1 ? '1 month' : `${dur} months`}
+                      </Text>
                     </View>
                   ))}
+                  <View style={{ width: 16, flexShrink: 0 }} />
                 </View>
+
+                {/* Line and concentric ring nodes row */}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  {filteredStages.map((stage, i) => (
+                    <React.Fragment key={i}>
+                      <View style={{
+                        width: 20, height: 20, borderRadius: 10,
+                        border: `2pt solid ${structureColour}`,
+                        backgroundColor: '#ffffff',
+                        flexShrink: 0,
+                        alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: structureColour }} />
+                      </View>
+                      {i < filteredStages.length - 1 && (
+                        <View style={{ flex: durations[i], height: 1.5, backgroundColor: structureColour }} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </View>
+
+                {/* Stage name labels row — left / centre / right aligned */}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 6 }}>
+                  {filteredStages.map((stage, i) => {
+                    const isFirst = i === 0;
+                    const isLast = i === filteredStages.length - 1;
+                    return (
+                      <React.Fragment key={i}>
+                        <View style={{
+                          width: 20, flexShrink: 0,
+                          alignItems: isFirst ? 'flex-start' : isLast ? 'flex-end' : 'center',
+                        }}>
+                          <Text style={{
+                            fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C',
+                            textAlign: isFirst ? 'left' : isLast ? 'right' : 'center',
+                          }}>
+                            {stage.label}
+                          </Text>
+                        </View>
+                        {i < filteredStages.length - 1 && (
+                          <View style={{ flex: durations[i] }} />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </View>
+
               </View>
             );
           })()}
