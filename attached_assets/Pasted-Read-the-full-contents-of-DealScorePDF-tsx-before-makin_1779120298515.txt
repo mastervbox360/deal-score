@@ -1,0 +1,38 @@
+Read the full contents of DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+PROBLEM: Page 2 overflows onto an implicit continuation page with no header, footer, or page number. This happens because too much content is competing for one A4 page.
+FIX: Split the current Page 2 into two proper <Page> components.
+
+NEW PAGE 2 — Executive Summary + Property Overview
+Keep exactly what is currently on Page 2 up to and including the Financial Summary hero cards and BMV row. Remove Deal Inputs and Cash Invested from this page entirely.
+Contents in order:
+
+Top page header (date left, company name centre, page number right) — already exists, keep unchanged
+Executive Summary + hero photo two-column row — unchanged
+<SH title="Property Details" /> + Property Details table — unchanged
+<SH title="Financial Summary" /> + Hero metrics cards — unchanged
+BMV row (conditional) — unchanged
+
+Stop here. Do not render Deal Inputs or Cash Invested on this page.
+
+NEW PAGE 3 — Deal Inputs + Cash Invested
+A new <Page size="A4" style={base.page}> immediately after Page 2.
+Contents in order:
+
+<Footer /> component
+<SH title="Deal Inputs" />
+<Table rows={inputRows} /> — unchanged, all strategies
+Cash Invested block for BTL/HMO/SA/SOCIAL — unchanged, move here from old Page 2
+Cash Invested block for BRRR — unchanged, move here from old Page 2
+
+This page has no top header row — just the Footer component (which renders at the bottom fixed). That is correct and consistent with Pages 3, 4, 5 in the current file which all use <Footer /> without a top header.
+
+ALL SUBSEQUENT PAGES — no content changes, just confirm nothing has shifted unexpectedly. The old Page 3 (Deal Score Analysis) becomes Page 4, Financial Detail becomes Page 5, Stress Testing becomes Page 6, and so on. Page numbering will correct itself automatically via React-PDF's pageNumber / totalPages render prop.
+
+DO NOT change: any content, any styling, any formula logic, any props, any other pages.
+After completing, confirm:
+
+Page 2 ends after the BMV row — no Deal Inputs, no Cash Invested
+Page 3 is a new proper <Page> with Footer, Deal Inputs, and Cash Invested
+Both BTL/HMO/SA/SOCIAL and BRRR Cash Invested variants are on Page 3
+No content has been lost or reordered
+npx tsc --noEmit passes with zero errors

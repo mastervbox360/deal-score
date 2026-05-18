@@ -1276,6 +1276,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
+      </Page>
+
+      {/* ── Page 3: Deal Inputs + Cash Invested ────────────────────────────── */}
+      <Page size="A4" style={base.page}>
+        <Footer />
+
         <SH title="Deal Inputs" />
         <Table rows={inputRows} />
 
@@ -1338,7 +1344,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         )}
       </Page>
 
-      {/* ── Page 3: Financial Analysis ─────────────────────────────────────── */}
+      {/* ── Page 4: Financial Analysis ─────────────────────────────────────── */}
       <Page size="A4" style={base.page}>
         <Footer />
 
