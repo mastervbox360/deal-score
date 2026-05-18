@@ -1,0 +1,198 @@
+Read the full contents of DealScorePDF.tsx before making 
+any changes. Plan all edits explicitly, then execute 
+in parallel.
+
+━━━ FIX 1: Financial Detail page heading case ━━━
+
+Find the Financial Detail page heading. It currently 
+reads "FINANCIAL DETAIL" in all caps.
+Change it to "Financial Detail" to match title case 
+used on all other page headings.
+
+━━━ FIX 2: Page 2 missing header ━━━
+
+Find Page 2 (Property Overview page). It currently has 
+no top header showing date and company name.
+Add the same header treatment used on Pages 3, 4, 5, 6 
+— date left, company name centre, page number right —
+to Page 2 so all pages are consistent.
+
+━━━ FIX 3: Calculation Workings page — remove entirely ━━━
+
+Find the Calculation Workings page (currently Page 4, 
+the one with sections A CASH INVESTED, B MONTHLY CASH 
+FLOW, C KEY METRICS).
+
+Remove this entire page from the PDF.
+
+Then find Page 2 (Property Overview). After the existing 
+Deal Inputs table and before the end of the page, add 
+a new section:
+
+Section heading: "Cash Invested" — same style as other 
+section headings on Page 2 (brand colour, rule beneath).
+
+Then a simple breakdown table with these rows:
+  Deposit ([depositPercent]% of [fc(purchasePrice)])  
+    → fc(deposit amount)
+  [taxLabel] ([taxCountryLabel])                      
+    → fc(effectiveTax)
+  Refurb Cost                                         
+    → fc(refurbCost)  [only if refurbCost > 0]
+  Other Costs                                         
+    → fc(otherCosts)  [only if otherCosts > 0]
+  ─────────────────────────────────────────────
+  TOTAL CASH INVESTED                                 
+    → fc(totalCashInvested)  [bold]
+
+Where:
+  deposit amount = purchasePrice × (depositPercent / 100)
+  totalCashInvested = deposit + effectiveTax + refurbCost 
+    + otherCosts
+
+Use the same two-column row style as the existing Deal 
+Inputs table on Page 2. Total row in bold with a top 
+border rule in brand colour.
+
+Also remove the includeWorkings prop conditional — the 
+Calculation Workings page no longer exists so this prop 
+is now unused. Do not remove the prop from the interface 
+(Home.tsx still references it) — just remove the 
+conditional page render that used it.
+
+━━━ ADD: New Stress Testing page ━━━
+
+Insert a new page — Stress Testing — after the Financial 
+Detail page and before the Deal Rationale page.
+
+This page only renders for BTL, HMO, SA, BRRR, and 
+SOCIAL. Wrap the entire page in:
+  {(props.dealType === 'BTL' || props.dealType === 'HMO' || 
+    props.dealType === 'SA' || props.dealType === 'BRRR' || 
+    props.dealType === 'SOCIAL') && (
+    <Page size="A4" style={base.page}>
+      ...
+    </Page>
+  )}
+
+Page heading: "Stress Testing" — title case, brand colour,
+rule beneath. Matching style of all other page headings.
+
+Brief subheading line (small, muted):
+  "Analysis based on interest rate movements. 
+   Rent held constant across all scenarios."
+
+Derive shared values:
+  const voidPct = (props.voidAllowancePercent ?? 5) / 100;
+  const mgmtPct = (props.managementFeePercent ?? 10) / 100;
+  const maintenance = props.maintenanceReserve ?? 75;
+  const insurance = props.buildingsInsurance ?? 30;
+  const sc = props.serviceCharge ?? 0;
+  const gr = (props.groundRentAnnual ?? 0) / 12;
+  const totalFixedOpCosts = maintenance + insurance + sc + gr;
+
+  const grossRent =
+    props.dealType === 'BTL' ? props.btlInputs.monthlyRent :
+    props.dealType === 'HMO' ? props.hmoResults.grossMonthlyRent :
+    props.dealType === 'SA' ? props.saResults.netMonthlyRevenue :
+    props.dealType === 'BRRR' ? props.brrrInputs.monthlyRent :
+    props.socialInputs.leaseIncomePerMonth;
+
+  const cashInvested =
+    props.dealType === 'BRRR'
+      ? props.brrrResults.cashLeftInDeal
+      : props.dealType === 'BTL' ? props.btlResults.totalCashInvested
+      : props.dealType === 'HMO' ? props.hmoResults.totalCashInvested
+      : props.dealType === 'SA' ? props.saResults.totalCashInvested
+      : props.socialResults.totalCashInvested;
+
+  const loanAmount =
+    props.dealType === 'BRRR' ? props.brrrResults.refinanceLoan :
+    props.dealType === 'BTL' ? props.btlResults.mortgageAmount :
+    props.dealType === 'HMO' ? props.hmoResults.mortgageAmount :
+    props.dealType === 'SA' ? props.saResults.mortgageAmount :
+    props.socialResults.mortgageAmount;
+
+  const baseRate =
+    props.dealType === 'BRRR'
+      ? props.brrrInputs.newMortgageRate
+      : props.mortgageRate;
+
+For each of 3 scenarios (offsets: -0.5, 0, +1.5):
+  scenarioRate = baseRate + offset
+  scenarioMortgage = loanAmount * (scenarioRate / 100) / 12
+  effectiveRent = grossRent * (1 - voidPct)
+  mgmtFee = effectiveRent * mgmtPct
+  totalOpCosts = mgmtFee + totalFixedOpCosts
+  scenarioCF = effectiveRent - totalOpCosts - scenarioMortgage
+  scenarioROI = cashInvested > 0
+    ? (scenarioCF * 12 / cashInvested) * 100 : 0
+  scenarioPayback = (cashInvested > 0 && scenarioCF > 0)
+    ? cashInvested / (scenarioCF * 12) : Infinity
+
+Calculate once using base scenario:
+  breakEvenRent = (baseMortgage + totalOpCosts) / (1 - voidPct)
+  rentHeadroom = grossRent - breakEvenRent
+
+4-column table:
+  Col 1: row label (left aligned, ~40% width)
+  Col 2: OPTIMISTIC — Rate -{0.5}% (~20% width)
+  Col 3: BASE CASE — Current Rate (~20% width)
+    [bold header, background #F0F4F8 on every cell]
+  Col 4: STRESS — Rate +{1.5}% (~20% width)
+
+ROWS:
+1.  Mortgage Rate        X.X%     X.X%     X.X%
+2.  Monthly Mortgage     fc(X)    fc(X)    fc(X)
+3.  Monthly Cash Flow    fc(X)    fc(X)    fc(X)  [colour-coded]
+4.  Cash-on-Cash ROI     fp(X)    fp(X)    fp(X)  [colour-coded]
+    ── light divider row ──
+5.  Break-Even Rent      fc(X)    fc(X)    fc(X)  [always navy]
+6.  Rent Headroom        fc(X)    fc(X)    fc(X)  [always navy]
+    ── light divider row ──
+7.  Payback Period       X yrs    X yrs    X yrs
+    [show "N/A" if Infinity, <= 0, or > 25 years]
+
+Colour coding for rows 3 and 4:
+  value > 0: color '#16A34A' (green)
+  value === 0: color '#1E2B3C' (navy)
+  value < 0: color '#DC2626' (red)
+
+Break-Even Rent and Rent Headroom: always '#1E2B3C'
+
+BASE CASE column: fontWeight 'bold' on header,
+backgroundColor '#F0F4F8' on each data cell.
+
+Auto-generated sentence below table:
+IF stress scenarioCF > 0:
+  "At the stress rate of {X}%, monthly cash flow remains 
+  positive at {fc(stressCF)}, with break-even rent of 
+  {fc(breakEvenRent)} providing {fc(rentHeadroom)} headroom 
+  against contracted rent."
+IF stress scenarioCF <= 0:
+  "At the stress rate of {X}%, this deal moves to negative 
+  cash flow of {fc(Math.abs(stressCF))}. Break-even rent of 
+  {fc(breakEvenRent)} exceeds contracted rent by 
+  {fc(Math.abs(rentHeadroom))}."
+
+Style sentence: fontSize 8, color '#64748B', 
+fontStyle 'italic', marginTop 8.
+
+━━━ DO NOT CHANGE ━━━
+Financial Detail page content (only the heading case 
+fix above). Any existing pages other than those 
+specified. Any props interfaces. Any formula logic 
+in calculations.ts. Any Home.tsx files.
+
+After completing confirm:
+1. "Financial Detail" heading now title case
+2. Page 2 header added matching other pages
+3. Calculation Workings page removed entirely
+4. Cash Invested breakdown added to Page 2
+5. includeWorkings conditional render removed 
+   (prop kept in interface)
+6. Stress Testing page inserted in correct position
+7. Stress Testing heading is title case "Stress Testing"
+8. 5-strategy conditional wrapper present
+9. All inline calculations listed and correct
+10. npx tsc --noEmit passes with zero errors

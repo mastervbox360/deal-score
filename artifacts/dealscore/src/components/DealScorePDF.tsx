@@ -874,6 +874,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     props.preparedBy.phone,
   ].filter(Boolean).join(' · ');
 
+  // ── Page 2: Cash Invested breakdown ──────────────────────────────────────
+  const p2CiDeposit = props.purchasePrice * props.depositPercent / 100;
+  const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts;
+
   // ── Financial Detail page derived values ──────────────────────────────────
   const activeResults =
     props.dealType === 'BTL' ? props.btlResults :
@@ -909,6 +913,65 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const fdPaybackDisplay = (!isFinite(fdPayback) || fdPayback > 25 || fdPayback <= 0)
     ? 'N/A'
     : fdPayback.toFixed(1) + ' years';
+
+  // ── Stress Testing page derived values ───────────────────────────────────
+  const stVoidPct = (props.voidAllowancePercent ?? 5) / 100;
+  const stMgmtPct = (props.managementFeePercent ?? 10) / 100;
+  const stMaintenance = props.maintenanceReserve ?? 75;
+  const stInsurance = props.buildingsInsurance ?? 30;
+  const stSc = props.serviceCharge ?? 0;
+  const stGr = (props.groundRentAnnual ?? 0) / 12;
+  const stTotalFixedOpCosts = stMaintenance + stInsurance + stSc + stGr;
+
+  const stGrossRent =
+    props.dealType === 'BTL' ? props.btlInputs.monthlyRent :
+    props.dealType === 'HMO' ? props.hmoResults.grossMonthlyRent :
+    props.dealType === 'SA' ? props.saResults.netMonthlyRevenue :
+    props.dealType === 'BRRR' ? props.brrrInputs.monthlyRent :
+    props.socialInputs.leaseIncomePerMonth;
+
+  const stCashInvested =
+    props.dealType === 'BRRR' ? props.brrrResults.cashLeftInDeal :
+    props.dealType === 'BTL' ? props.btlResults.totalCashInvested :
+    props.dealType === 'HMO' ? props.hmoResults.totalCashInvested :
+    props.dealType === 'SA' ? props.saResults.totalCashInvested :
+    props.socialResults.totalCashInvested;
+
+  const stLoanAmount =
+    props.dealType === 'BRRR' ? props.brrrResults.refinanceLoan :
+    props.dealType === 'BTL' ? props.btlResults.mortgageAmount :
+    props.dealType === 'HMO' ? props.hmoResults.mortgageAmount :
+    props.dealType === 'SA' ? props.saResults.mortgageAmount :
+    props.socialResults.mortgageAmount;
+
+  const stBaseRate =
+    props.dealType === 'BRRR' ? props.brrrInputs.newMortgageRate : props.mortgageRate;
+
+  const stEffectiveRent = stGrossRent * (1 - stVoidPct);
+  const stMgmtFee = stEffectiveRent * stMgmtPct;
+  const stTotalOpCosts = stMgmtFee + stTotalFixedOpCosts;
+
+  const computeStScenario = (offset: number) => {
+    const rate = stBaseRate + offset;
+    const mortgage = stLoanAmount * (rate / 100) / 12;
+    const cf = stEffectiveRent - stTotalOpCosts - mortgage;
+    const roi = stCashInvested > 0 ? (cf * 12 / stCashInvested) * 100 : 0;
+    const payback = (stCashInvested > 0 && cf > 0) ? stCashInvested / (cf * 12) : Infinity;
+    return { rate, mortgage, cf, roi, payback };
+  };
+
+  const stOpt = computeStScenario(-0.5);
+  const stBase = computeStScenario(0);
+  const stStress = computeStScenario(1.5);
+
+  const stBreakEvenRent = (stBase.mortgage + stTotalOpCosts) / (1 - stVoidPct);
+  const stRentHeadroom = stGrossRent - stBreakEvenRent;
+  const stStressCF = stStress.cf;
+  const stStressRate = stStress.rate;
+
+  const stPaybackDisplay = (p: { payback: number }) =>
+    (p.payback <= 0 || !isFinite(p.payback) || p.payback > 25) ? 'N/A' : `${p.payback.toFixed(1)} yrs`;
+  const stCfColor = (v: number) => v > 0 ? '#16A34A' : v < 0 ? '#DC2626' : '#1E2B3C';
 
   return (
     <Document>
@@ -1131,6 +1194,16 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       <Page size="A4" style={base.page}>
         <Footer />
 
+        {/* Top page header — date left, company name centre, page number right */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingBottom: 6, borderBottom: '0.5pt solid #E2E8F0' }}>
+          <Text style={{ flex: 1, fontSize: 7.5, color: '#9ca3af' }}>{props.dateStr}</Text>
+          <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
+          <Text
+            render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}`}
+            style={{ flex: 1, fontSize: 7.5, color: '#9ca3af', textAlign: 'right' }}
+          />
+        </View>
+
         {/* Two-column row: Executive Summary (left) + Hero photo (right) */}
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
           {/* Left: Executive Summary (60%) */}
@@ -1201,6 +1274,38 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
         <SH title="Deal Inputs" />
         <Table rows={inputRows} />
+
+        {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'SOCIAL') && (
+          <>
+            <SH title="Cash Invested" />
+            <View style={{ marginBottom: 14 }}>
+              <View style={[base.tableRow, base.tableRowAlt]}>
+                <Text style={base.tableLabel}>{`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`}</Text>
+                <Text style={base.tableValue}>{fc(p2CiDeposit)}</Text>
+              </View>
+              <View style={base.tableRow}>
+                <Text style={base.tableLabel}>{`${props.taxLabel} (${props.taxCountryLabel})`}</Text>
+                <Text style={base.tableValue}>{fc(props.effectiveTax)}</Text>
+              </View>
+              {props.refurbCost > 0 && (
+                <View style={[base.tableRow, base.tableRowAlt]}>
+                  <Text style={base.tableLabel}>Refurb Cost</Text>
+                  <Text style={base.tableValue}>{fc(props.refurbCost)}</Text>
+                </View>
+              )}
+              {props.otherCosts > 0 && (
+                <View style={base.tableRow}>
+                  <Text style={base.tableLabel}>Other Costs</Text>
+                  <Text style={base.tableValue}>{fc(props.otherCosts)}</Text>
+                </View>
+              )}
+              <View style={[base.tableRow, { borderTop: `1pt solid ${readableBrand}` }]}>
+                <Text style={[base.tableLabel, { fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }]}>TOTAL CASH INVESTED</Text>
+                <Text style={[base.tableValue, { fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }]}>{fc(p2CiTotal)}</Text>
+              </View>
+            </View>
+          </>
+        )}
       </Page>
 
       {/* ── Page 3: Financial Analysis ─────────────────────────────────────── */}
@@ -1327,142 +1432,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
-        {/* Calculation Workings */}
-        {props.includeWorkings && (
-          <View wrap={false} style={{ marginTop: 10 }}>
-            <SH title="Calculation Workings" />
-            {props.dealType === 'BTL' && (
-              <>
-                <WPdfSec title="A  CASH INVESTED" />
-                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
-                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
-                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
-                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
-                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.btlResults.totalCashInvested)} bold />
-                <WPdfSec title="B  MONTHLY CASH FLOW" />
-                <WPdfRow lbl="Monthly Rent" val={fc(props.btlInputs.monthlyRent)} />
-                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.btlResults.monthlyMortgageInterest)})`} />
-                <WPdfRow lbl="Less: Monthly Expenses" val={`(${fc(props.btlInputs.monthlyExpenses)})`} />
-                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.btlResults.monthlyCashFlow)} bold clr={props.btlResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl={`Gross Yield  (${fc(props.btlInputs.monthlyRent)} × 12) ÷ ${fc(props.purchasePrice)} × 100`} val={fp(props.btlResults.grossYield)} />
-                <WPdfRow lbl="Net Yield" val={fp(props.btlResults.netYield)} />
-                <WPdfRow lbl={`CoC ROI  ${fc(props.btlResults.annualCashFlow)} ÷ ${fc(props.btlResults.totalCashInvested)} × 100`} val={fp(props.btlResults.cashOnCashROI)} bold clr={readableBrand} />
-              </>
-            )}
-            {props.dealType === 'HMO' && (
-              <>
-                <WPdfSec title="A  CASH INVESTED" />
-                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
-                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
-                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
-                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
-                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.hmoResults.totalCashInvested)} bold />
-                <WPdfSec title="B  MONTHLY CASH FLOW" />
-                <WPdfRow lbl="Total Room Income" val={fc(props.hmoResults.grossMonthlyRent)} />
-                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.hmoResults.monthlyMortgageInterest)})`} />
-                <WPdfRow lbl="Less: Monthly Expenses" val={`(${fc(props.hmoInputs.monthlyExpenses)})`} />
-                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.hmoResults.monthlyCashFlow)} bold clr={props.hmoResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl={`Gross Yield  (${fc(props.hmoResults.grossMonthlyRent)} × 12) ÷ ${fc(props.purchasePrice)} × 100`} val={fp(props.hmoResults.grossYield)} />
-                <WPdfRow lbl="Net Yield" val={fp(props.hmoResults.netYield)} />
-                <WPdfRow lbl={`CoC ROI  ${fc(props.hmoResults.annualCashFlow)} ÷ ${fc(props.hmoResults.totalCashInvested)} × 100`} val={fp(props.hmoResults.cashOnCashROI)} bold clr={readableBrand} />
-              </>
-            )}
-            {props.dealType === 'FLIP' && (
-              <>
-                <WPdfSec title="A  TOTAL COSTS" />
-                <WPdfRow lbl="Purchase Price" val={fc(props.purchasePrice)} />
-                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
-                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
-                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
-                <WPdfRow lbl={`Holding Costs (${props.flipInputs.projectLengthMonths} months × ${fc(props.flipInputs.holdingCostsPerMonth)})`} val={fc(props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths)} />
-                <WPdfRow lbl="TOTAL COST IN" val={fc(props.flipResults.totalCost)} bold />
-                <WPdfSec title="B  PROFIT CALCULATION" />
-                <WPdfRow lbl="Expected Sale Price (GDV)" val={fc(props.flipInputs.expectedSalePrice)} />
-                <WPdfRow lbl="Less: Total Cost In" val={`(${fc(props.flipResults.totalCost)})`} />
-                <WPdfRow lbl={`Less: Selling Costs (${props.flipInputs.sellingCostsPercent}%)`} val={`(${fc(props.flipResults.sellingCosts)})`} />
-                <WPdfRow lbl="NET PROFIT" val={fc(props.flipResults.netProfit)} bold clr={props.flipResults.netProfit < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl={`Profit per Month  ${fc(props.flipResults.netProfit)} ÷ ${props.flipInputs.projectLengthMonths} months`} val={fc(props.flipResults.profitPerMonth)} />
-                <WPdfRow lbl={`Total ROI  ${fc(props.flipResults.netProfit)} ÷ ${fc(props.flipResults.totalCost)} × 100`} val={fp(props.flipResults.roi)} bold />
-                <WPdfRow lbl={`Annualised ROI  ${fp(props.flipResults.roi)} × 12 ÷ ${props.flipInputs.projectLengthMonths}`} val={fp(props.flipResults.annualisedROI)} bold clr={readableBrand} />
-              </>
-            )}
-            {props.dealType === 'SA' && (
-              <>
-                <WPdfSec title="A  CASH INVESTED" />
-                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
-                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
-                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
-                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
-                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.saResults.totalCashInvested)} bold />
-                <WPdfSec title="B  MONTHLY CASH FLOW" />
-                <WPdfRow lbl={`Monthly Revenue  ${fc(props.saInputs.nightlyRate)} nightly × ${props.saInputs.occupancyPercent}% occupancy`} val={fc(props.saResults.grossMonthlyRevenue)} />
-                <WPdfRow lbl="Less: Platform Fees" val={`(${fc(props.saResults.platformFees)})`} />
-                <WPdfRow lbl="Less: Monthly Running Costs" val={`(${fc(props.saInputs.monthlyRunningCosts)})`} />
-                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.saResults.monthlyMortgage)})`} />
-                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.saResults.monthlyCashFlow)} bold clr={props.saResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl="Net Yield" val={fp(props.saResults.netYield)} />
-                <WPdfRow lbl={`CoC ROI  ${fc(props.saResults.annualCashFlow)} ÷ ${fc(props.saResults.totalCashInvested)} × 100`} val={fp(props.saResults.cashOnCashROI)} bold clr={readableBrand} />
-              </>
-            )}
-            {props.dealType === 'BRRR' && (
-              <>
-                <WPdfSec title="A  CASH IN" />
-                <WPdfRow lbl="Purchase Price" val={fc(props.purchasePrice)} />
-                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
-                <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} />
-                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
-                <WPdfRow lbl="TOTAL COST IN" val={fc(props.brrrResults.totalCostIn)} bold />
-                <WPdfSec title="B  REFINANCE" />
-                <WPdfRow lbl="Post-Refurb Value (GDV)" val={fc(props.brrrInputs.postRefurbValue)} />
-                <WPdfRow lbl="Refinance %" val={`${props.brrrInputs.refinancePercent}%`} />
-                <WPdfRow lbl="Refinance Loan" val={fc(props.brrrResults.refinanceLoan)} />
-                <WPdfRow lbl={props.brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'} val={fc(Math.abs(props.brrrResults.cashLeftInDeal))} bold clr={props.brrrResults.moneyOut ? '#22C55E' : undefined} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl="Monthly Cash Flow" val={fc(props.brrrResults.monthlyCashFlow)} clr={props.brrrResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfRow lbl="Gross Yield" val={fp(props.brrrResults.grossYield)} />
-                <WPdfRow lbl={`CoC ROI  ${fc(props.brrrResults.annualCashFlow)} ÷ ${props.brrrResults.moneyOut ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal)} × 100`} val={props.brrrResults.moneyOut ? '\u221E' : fp(props.brrrResults.cashOnCashROI)} bold clr={readableBrand} />
-              </>
-            )}
-            {props.dealType === 'R2R' && (
-              <>
-                <WPdfSec title="A  SETUP COSTS" />
-                <WPdfRow lbl="Setup Costs" val={fc(props.r2rInputs.setupCosts)} />
-                <WPdfRow lbl="TOTAL SETUP COSTS" val={fc(props.r2rInputs.setupCosts)} bold />
-                <WPdfSec title="B  MONTHLY CASH FLOW" />
-                <WPdfRow lbl="Gross Monthly Income" val={fc(props.r2rResults.grossMonthlyIncome)} />
-                <WPdfRow lbl="Less: Landlord Rent" val={`(${fc(props.r2rInputs.monthlyRentPaid)})`} />
-                <WPdfRow lbl="Monthly Spread" val={fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)} />
-                <WPdfRow lbl="Less: Management Fees" val={`(${fc(props.r2rResults.managementFees)})`} />
-                <WPdfRow lbl="Less: Running Costs" val={`(${fc(props.r2rInputs.monthlyRunningCosts)})`} />
-                <WPdfRow lbl="MONTHLY PROFIT" val={fc(props.r2rResults.monthlyProfit)} bold clr={props.r2rResults.monthlyProfit < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl={`ROI  ${fc(props.r2rResults.annualProfit)} ÷ ${fc(props.r2rInputs.setupCosts)} × 100`} val={fp(props.r2rResults.roi)} bold clr={readableBrand} />
-              </>
-            )}
-            {props.dealType === 'SOCIAL' && (
-              <>
-                <WPdfSec title="A  CASH INVESTED" />
-                <WPdfRow lbl={`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`} val={fc(props.purchasePrice * props.depositPercent / 100)} />
-                <WPdfRow lbl="Stamp Duty / Tax" val={fc(props.effectiveTax)} />
-                {props.refurbCost > 0 ? <WPdfRow lbl="Refurb Cost" val={fc(props.refurbCost)} /> : null}
-                <WPdfRow lbl="Other Costs" val={fc(props.otherCosts)} />
-                <WPdfRow lbl="TOTAL CASH INVESTED" val={fc(props.socialResults.totalCashInvested)} bold />
-                <WPdfSec title="B  MONTHLY CASH FLOW" />
-                <WPdfRow lbl="Monthly Lease Income" val={fc(props.socialInputs.leaseIncomePerMonth)} />
-                <WPdfRow lbl="Less: Management Costs" val={`(${fc(props.socialInputs.managementCostsPerMonth)})`} />
-                <WPdfRow lbl="Less: Mortgage" val={`(${fc(props.socialResults.monthlyMortgage)})`} />
-                <WPdfRow lbl="MONTHLY CASH FLOW" val={fc(props.socialResults.monthlyCashFlow)} bold clr={props.socialResults.monthlyCashFlow < 0 ? '#EF4444' : '#22C55E'} />
-                <WPdfSec title="C  KEY METRICS" />
-                <WPdfRow lbl="Gross Yield" val={fp(props.socialResults.grossYield)} />
-                <WPdfRow lbl={`CoC ROI  ${fc(props.socialResults.annualCashFlow)} ÷ ${fc(props.socialResults.totalCashInvested)} × 100`} val={fp(props.socialResults.cashOnCashROI)} bold clr={readableBrand} />
-              </>
-            )}
-          </View>
-        )}
       </Page>
 
       {/* ── Financial Detail Page ─────────────────────────────────────────── */}
@@ -1585,6 +1554,107 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fdPaybackDisplay}</Text>
             </View>
           </View>
+        </Page>
+      )}
+
+      {/* ── Stress Testing Page ───────────────────────────────────────────── */}
+      {(props.dealType === 'BTL' || props.dealType === 'HMO' ||
+        props.dealType === 'SA' || props.dealType === 'BRRR' ||
+        props.dealType === 'SOCIAL') && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <SH title="Stress Testing" />
+
+          <Text style={{ fontSize: 8, color: '#64748B', fontStyle: 'italic', marginBottom: 14, marginTop: -8 }}>
+            Analysis based on interest rate movements. Rent held constant across all scenarios.
+          </Text>
+
+          {/* Table header */}
+          <View style={{ flexDirection: 'row', backgroundColor: readableBrand, paddingVertical: 5, paddingHorizontal: 8, borderRadius: 2 }}>
+            <Text style={{ flex: 2.4, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand) }}> </Text>
+            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'center' }}>
+              {`OPTIMISTIC\nRate \u22120.5%`}
+            </Text>
+            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'center' }}>
+              {`BASE CASE\nCurrent Rate`}
+            </Text>
+            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: getContrastText(readableBrand), textAlign: 'center' }}>
+              {`STRESS\nRate +1.5%`}
+            </Text>
+          </View>
+
+          {/* Row 1: Mortgage Rate */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA', borderBottom: '0.5pt solid #E5E7EB' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Mortgage Rate</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stOpt.rate.toFixed(2)}%</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{stBase.rate.toFixed(2)}%</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stStress.rate.toFixed(2)}%</Text>
+          </View>
+
+          {/* Row 2: Monthly Mortgage */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Mortgage</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stOpt.mortgage)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stBase.mortgage)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stStress.mortgage)}</Text>
+          </View>
+
+          {/* Row 3: Monthly Cash Flow */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA', borderBottom: '0.5pt solid #E5E7EB' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stOpt.cf), textAlign: 'center' }}>{fc(stOpt.cf)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stBase.cf), textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stBase.cf)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stStress.cf), textAlign: 'center' }}>{fc(stStress.cf)}</Text>
+          </View>
+
+          {/* Row 4: Cash-on-Cash ROI */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stOpt.roi), textAlign: 'center' }}>{fp(stOpt.roi)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stBase.roi), textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fp(stBase.roi)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: stCfColor(stStress.roi), textAlign: 'center' }}>{fp(stStress.roi)}</Text>
+          </View>
+
+          {/* Light divider */}
+          <View style={{ height: 6, backgroundColor: '#F8FAFC', borderBottom: '0.5pt solid #E5E7EB' }} />
+
+          {/* Row 5: Break-Even Rent */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA', borderBottom: '0.5pt solid #E5E7EB' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Break-Even Rent</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stBreakEvenRent)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stBreakEvenRent)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stBreakEvenRent)}</Text>
+          </View>
+
+          {/* Row 6: Rent Headroom */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Rent Headroom</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stRentHeadroom)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{fc(stRentHeadroom)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{fc(stRentHeadroom)}</Text>
+          </View>
+
+          {/* Light divider */}
+          <View style={{ height: 6, backgroundColor: '#F8FAFC', borderBottom: '0.5pt solid #E5E7EB' }} />
+
+          {/* Row 7: Payback Period */}
+          <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#FAFAFA' }}>
+            <Text style={{ flex: 2.4, fontSize: 8.5, color: '#1E2B3C' }}>Payback Period</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stPaybackDisplay(stOpt)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', backgroundColor: '#F0F4F8' }}>{stPaybackDisplay(stBase)}</Text>
+            <Text style={{ flex: 1.2, fontSize: 8.5, color: '#1E2B3C', textAlign: 'center' }}>{stPaybackDisplay(stStress)}</Text>
+          </View>
+
+          {/* Auto-generated summary sentence */}
+          {stStressCF > 0 ? (
+            <Text style={{ fontSize: 8, color: '#64748B', fontStyle: 'italic', marginTop: 12 }}>
+              {`At the stress rate of ${stStressRate.toFixed(2)}%, monthly cash flow remains positive at ${fc(stStressCF)}, with break-even rent of ${fc(stBreakEvenRent)} providing ${fc(stRentHeadroom)} headroom against contracted rent.`}
+            </Text>
+          ) : (
+            <Text style={{ fontSize: 8, color: '#64748B', fontStyle: 'italic', marginTop: 12 }}>
+              {`At the stress rate of ${stStressRate.toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(stStressCF))}. Break-even rent of ${fc(stBreakEvenRent)} exceeds contracted rent by ${fc(Math.abs(stRentHeadroom))}.`}
+            </Text>
+          )}
         </Page>
       )}
 
