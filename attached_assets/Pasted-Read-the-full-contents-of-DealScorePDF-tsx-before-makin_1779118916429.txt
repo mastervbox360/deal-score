@@ -1,0 +1,109 @@
+Read the full contents of DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+TASK: Enrich three existing pages. No new pages.
+
+ADD TO DealScorePDFProps INTERFACE:
+timelineStages?: Array<{ label: string; month: number }>;
+areaAverageYield?: number;
+offerDeadline?: string;
+viewingAvailable?: boolean;
+refurbScope?: string;
+vendorSituation is already in the interface — confirm and do not re-add.
+
+PAGE 6 (Deal Rationale) — ADD after Property Description, in this order:
+1. REFURB SCOPE section
+Condition: only render if props.refurbScope exists and is non-empty.
+Label: "Refurb Scope" — same style as other notePanel label.
+Value: props.refurbScope — notePanelText style.
+2. VENDOR SITUATION section
+Condition: only render if props.vendorSituation.trim() is non-empty.
+Label: "Vendor Situation" — same style as other notePanel label.
+Value: props.vendorSituation — notePanelText style.
+3. INVESTMENT TIMELINE section
+Condition: only render if props.timelineStages exists AND at least one stage has a non-empty label.
+Label: "Investment Timeline" — notePanelLabel style with readableBrand colour.
+Below the label: a horizontal row of nodes using justifyContent: 'space-between'. Only render stages with non-empty labels. Each node is a View with alignItems: 'center':
+
+Text above: "Month X" — fontSize 7, color #6B7280
+View circle: width 10, height 10, borderRadius 5, backgroundColor #1B3A6B
+Text below: the stage label — fontSize 7.5, fontFamily Helvetica-Bold, color #1E2B3C, textAlign center
+Connecting line: a thin View with position: absolute, height 1, backgroundColor #CBD5E1, top aligned to the centre of the circles, left 0, right 0, zIndex -1.
+
+4. RISK FACTORS section
+Always renders. Wrap in base.notePanel.
+Label: "Risk Factors" — notePanelLabel style, color readableBrand.
+Three auto-generated bullet points. Each bullet is a View with flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start'. Bullet marker: View width 4, height 4, backgroundColor #1B3A6B, marginTop 3, marginRight 6. Text: fontSize 8, color #1E2B3C.
+Bullet 1 — Rate sensitivity:
+
+If stressTest exists AND stressTest.rateUpCashFlow > 0: "At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} — remains positive."
+If stressTest exists AND stressTest.rateUpCashFlow <= 0: "At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))} — monitor rate movements carefully."
+If stressTest does not exist: "Rate sensitivity: stress test not available for this strategy."
+
+Bullet 2 — Void allowance:
+"A void allowance of ${fdVoidPct}% has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year."
+Bullet 3 — Tenure:
+
+If props.tenure === 'Leasehold': "Leasehold property — review lease length, service charge, and ground rent terms carefully before proceeding."
+If props.tenure === 'Freehold': "Freehold tenure — no lease, service charge, or ground rent risk."
+
+Note: stBaseRate and fdVoidPct are already derived earlier in the component — use the existing variables, do not re-derive.
+
+PAGE 7 (Market Evidence) — ADD after the comparables table:
+1. MARKET COMMENTARY paragraph
+Condition: only render if 2 or more comparables have a parseable price > 0.
+Parse prices: strip £ and commas, then parseFloat. Skip empty or unparseable values.
+validPrices = comparables with parseable price > 0.
+Only proceed if validPrices.length >= 2.
+avgPrice = sum / count.
+priceDiffPct = ((purchasePrice - avgPrice) / avgPrice) * 100.
+
+If priceDiffPct < -2: "The purchase price of ${fc(props.purchasePrice)} sits ${Math.abs(priceDiffPct).toFixed(1)}% below the average of ${validPrices.length} recent comparable sales (avg ${fc(avgPrice)}), indicating a below-market acquisition with immediate equity on completion."
+If between -2 and +2: "The purchase price of ${fc(props.purchasePrice)} is broadly in line with ${validPrices.length} recent comparable sales averaging ${fc(avgPrice)}, suggesting fair market pricing and a credible entry point."
+If priceDiffPct > +2: "The purchase price of ${fc(props.purchasePrice)} sits ${priceDiffPct.toFixed(1)}% above the average of ${validPrices.length} recent comparable sales (avg ${fc(avgPrice)})."
+
+Style: fontSize 8, fontStyle italic (use Helvetica-Oblique in React-PDF), color #64748B, marginTop 8.
+2. AREA YIELD CONTEXT row
+Condition: only render if props.areaAverageYield exists and > 0.
+Derive activeGrossYield from activeResults.grossYield.
+yieldDiff = activeGrossYield - props.areaAverageYield.
+Single row with three equal flex columns:
+
+"Area Average Yield  ${fp(props.areaAverageYield)}" — label muted, value dark navy
+"This Deal  ${fp(activeGrossYield)}" — same style
+"Premium/Discount  ${yieldDiff >= 0 ? '+' : ''}${fp(Math.abs(yieldDiff))}" — value colour: #16A34A if yieldDiff >= 0, #DC2626 if negative
+
+Wrap the row in a View with flexDirection: 'row', marginTop: 8, backgroundColor: '#F8FAFC', padding: 8, borderRadius: 4. Each column: View with flex: 1, alignItems: 'center'. Label: fontSize 7, color #6B7280. Value: fontSize 10, fontFamily Helvetica-Bold, color as above.
+
+LAST PAGE (Legal & Disclosure) — three changes:
+1. REMOVE vendorSituation render from this page entirely.
+Delete the {vendorSituationText ? (...) : null} block. Do not touch anything else on this page.
+2. UPDATE hasLegal:
+Old: const hasLegal = !!(vendorSituationText || props.sourcingFee > 0);
+New: const hasLegal = !!(props.sourcingFee > 0 || props.preparedBy.name || props.preparedBy.email);
+3. ADD Next Steps section at the TOP of the Legal page, before the Sourcing Fee block.
+Condition: renders if props.preparedBy.name OR props.preparedBy.email is non-empty.
+Wrap in base.notePanel. Label: "Next Steps" — notePanelLabel style, color readableBrand.
+Intro text: "To discuss this opportunity or proceed with an offer, contact ${props.preparedBy.name || 'the deal sourcer'} directly:" — notePanelText style, marginBottom 6.
+Contact rows (only render each if the value is non-empty). Each row: View with flexDirection: 'row', marginBottom: 4. Label: fontSize 8, color #6B7280, width 80. Value: fontSize 8, fontFamily Helvetica-Bold, color #1E2B3C.
+
+Email: props.preparedBy.email
+Phone: props.preparedBy.phone
+Company: props.companyName (only if non-empty)
+
+Offer Deadline row (only if props.offerDeadline is non-empty):
+Label "Offer Deadline", value props.offerDeadline — same row style.
+Viewing Available row (only if props.viewingAvailable is defined and not undefined):
+Label "Viewing Available", value props.viewingAvailable ? 'Yes' : 'No' — same row style.
+
+DO NOT change: page order, photo pages, Page 3 (Deal Score Analysis), Financial Detail page, Stress Testing page, cover page, any formula logic, any existing props other than the hasLegal update above.
+
+After completing, confirm:
+
+Five new props added to interface: timelineStages, areaAverageYield, offerDeadline, viewingAvailable, refurbScope
+Deal Rationale page has four sections in order: Refurb Scope, Vendor Situation, Investment Timeline, Risk Factors
+Risk Factors uses existing stBaseRate and fdVoidPct variables — no new derivations
+Market Commentary renders only with 2+ priced comparables
+Area Yield Context renders only if areaAverageYield > 0
+Vendor Situation removed from Legal page
+hasLegal updated to new condition
+Next Steps section added to top of Legal page
+npx tsc --noEmit passes with zero errors

@@ -99,6 +99,11 @@ export interface DealScorePDFProps {
   buildingsInsurance?: number;
   serviceCharge?: number;
   groundRentAnnual?: number;
+  timelineStages?: Array<{ label: string; month: number }>;
+  areaAverageYield?: number;
+  offerDeadline?: string;
+  viewingAvailable?: boolean;
+  refurbScope?: string;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -840,11 +845,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const strategyNotesText = props.strategyNotes.trim();
   const propertyDescText = props.propertyDescription.trim();
   const vendorSituationText = props.vendorSituation.trim();
-  const hasRationale = !!(strategyNotesText || propertyDescText);
+  const hasRationale = true;
   const hasComparables = props.comparables.some(r => r.address.trim());
   const hasLinks = props.listingLinks.some(r => r.url.trim());
   const hasMarketEvidence = hasComparables || hasLinks;
-  const hasLegal = !!(vendorSituationText || props.sourcingFee > 0);
+  const hasLegal = !!(props.sourcingFee > 0 || props.preparedBy.name || props.preparedBy.email);
 
   const formatCompPrice = (price: string): string => {
     const trimmed = price.trim();
@@ -1702,6 +1707,69 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={base.notePanelText}>{propertyDescText}</Text>
             </View>
           ) : null}
+
+          {props.refurbScope?.trim() ? (
+            <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Refurb Scope</Text>
+              <Text style={base.notePanelText}>{props.refurbScope}</Text>
+            </View>
+          ) : null}
+
+          {vendorSituationText ? (
+            <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Vendor Situation</Text>
+              <Text style={base.notePanelText}>{vendorSituationText}</Text>
+            </View>
+          ) : null}
+
+          {(() => {
+            if (!props.timelineStages) return null;
+            const filteredStages = props.timelineStages.filter(s => s.label.trim());
+            if (filteredStages.length === 0) return null;
+            return (
+              <View style={base.notePanel}>
+                <Text style={[base.notePanelLabel, { color: readableBrand }]}>Investment Timeline</Text>
+                <View style={{ position: 'relative', flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                  <View style={{ position: 'absolute', height: 1, backgroundColor: '#CBD5E1', top: 18, left: 0, right: 0 }} />
+                  {filteredStages.map((stage, i) => (
+                    <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 7, color: '#6B7280' }}>{`Month ${stage.month}`}</Text>
+                      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#1B3A6B', marginTop: 4 }} />
+                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', marginTop: 4 }}>{stage.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            );
+          })()}
+
+          <View style={base.notePanel}>
+            <Text style={[base.notePanelLabel, { color: readableBrand }]}>Risk Factors</Text>
+            <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' }}>
+              <View style={{ width: 4, height: 4, backgroundColor: '#1B3A6B', marginTop: 3, marginRight: 6 }} />
+              <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1 }}>
+                {props.stressTest
+                  ? (props.stressTest.rateUpCashFlow > 0
+                      ? `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} — remains positive.`
+                      : `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))} — monitor rate movements carefully.`)
+                  : 'Rate sensitivity: stress test not available for this strategy.'}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' }}>
+              <View style={{ width: 4, height: 4, backgroundColor: '#1B3A6B', marginTop: 3, marginRight: 6 }} />
+              <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1 }}>
+                {`A void allowance of ${fdVoidPct}% has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' }}>
+              <View style={{ width: 4, height: 4, backgroundColor: '#1B3A6B', marginTop: 3, marginRight: 6 }} />
+              <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1 }}>
+                {props.tenure === 'Leasehold'
+                  ? 'Leasehold property — review lease length, service charge, and ground rent terms carefully before proceeding.'
+                  : 'Freehold tenure — no lease, service charge, or ground rent risk.'}
+              </Text>
+            </View>
+          </View>
         </Page>
       )}
 
@@ -1732,6 +1800,52 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ))}
             </View>
           )}
+
+          {(() => {
+            const validPrices = props.comparables
+              .filter(r => r.address.trim())
+              .map(r => parseFloat(r.price.replace(/[£,\s]/g, '')))
+              .filter(n => !isNaN(n) && n > 0);
+            if (validPrices.length < 2) return null;
+            const avgPrice = validPrices.reduce((s, n) => s + n, 0) / validPrices.length;
+            const priceDiffPct = ((props.purchasePrice - avgPrice) / avgPrice) * 100;
+            let commentary: string;
+            if (priceDiffPct < -2) {
+              commentary = `The purchase price of ${fc(props.purchasePrice)} sits ${Math.abs(priceDiffPct).toFixed(1)}% below the average of ${validPrices.length} recent comparable sales (avg ${fc(avgPrice)}), indicating a below-market acquisition with immediate equity on completion.`;
+            } else if (priceDiffPct > 2) {
+              commentary = `The purchase price of ${fc(props.purchasePrice)} sits ${priceDiffPct.toFixed(1)}% above the average of ${validPrices.length} recent comparable sales (avg ${fc(avgPrice)}).`;
+            } else {
+              commentary = `The purchase price of ${fc(props.purchasePrice)} is broadly in line with ${validPrices.length} recent comparable sales averaging ${fc(avgPrice)}, suggesting fair market pricing and a credible entry point.`;
+            }
+            return (
+              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#64748B', marginTop: 8 }}>
+                {commentary}
+              </Text>
+            );
+          })()}
+
+          {props.areaAverageYield != null && props.areaAverageYield > 0 && (() => {
+            const activeGrossYield = activeResults.grossYield;
+            const yieldDiff = activeGrossYield - props.areaAverageYield!;
+            return (
+              <View style={{ flexDirection: 'row', marginTop: 8, backgroundColor: '#F8FAFC', padding: 8, borderRadius: 4 }}>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 7, color: '#6B7280' }}>Area Average Yield</Text>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(props.areaAverageYield!)}</Text>
+                </View>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 7, color: '#6B7280' }}>This Deal</Text>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeGrossYield)}</Text>
+                </View>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 7, color: '#6B7280' }}>Premium / Discount</Text>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: yieldDiff >= 0 ? '#16A34A' : '#DC2626' }}>
+                    {`${yieldDiff >= 0 ? '+' : ''}${fp(Math.abs(yieldDiff))}`}
+                  </Text>
+                </View>
+              </View>
+            );
+          })()}
 
           {hasLinks && (
             <View style={[base.notePanel, { marginTop: hasComparables ? 8 : 0 }]}>
@@ -1770,15 +1884,47 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <Footer />
           <SH title="Legal & Disclosure" />
 
-          {vendorSituationText ? (
-            <View style={base.notePanel}>
-              <Text style={[base.notePanelLabel, { color: '#1B2B4B' }]}>Vendor Situation</Text>
-              <Text style={base.notePanelText}>{vendorSituationText}</Text>
+          {(props.preparedBy.name || props.preparedBy.email) && (
+            <View style={[base.notePanel, { marginBottom: 8 }]}>
+              <Text style={[base.notePanelLabel, { color: readableBrand }]}>Next Steps</Text>
+              <Text style={[base.notePanelText, { marginBottom: 6 }]}>
+                {`To discuss this opportunity or proceed with an offer, contact ${props.preparedBy.name || 'the deal sourcer'} directly:`}
+              </Text>
+              {props.preparedBy.email ? (
+                <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Email</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
+                </View>
+              ) : null}
+              {props.preparedBy.phone ? (
+                <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Phone</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
+                </View>
+              ) : null}
+              {props.companyName ? (
+                <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Company</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.companyName}</Text>
+                </View>
+              ) : null}
+              {props.offerDeadline ? (
+                <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Offer Deadline</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.offerDeadline}</Text>
+                </View>
+              ) : null}
+              {props.viewingAvailable !== undefined && (
+                <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Viewing Available</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.viewingAvailable ? 'Yes' : 'No'}</Text>
+                </View>
+              )}
             </View>
-          ) : null}
+          )}
 
           {props.sourcingFee > 0 && (
-            <View style={[base.notePanel, { marginTop: vendorSituationText ? 8 : 0 }]}>
+            <View style={base.notePanel}>
               <Text style={[base.notePanelLabel, { color: '#1B2B4B' }]}>Sourcing Fee</Text>
               <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', marginBottom: 4 }}>
                 {fc(props.sourcingFee)}
