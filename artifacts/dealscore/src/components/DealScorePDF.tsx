@@ -1525,6 +1525,76 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
+        {/* Setup Costs panel — R2R only */}
+        {props.dealType === 'R2R' && (
+          <View wrap={false}>
+            <SH title="Setup Costs" mt={8} mb={8} />
+            <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Monthly Rent to Landlord</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.monthlyRentPaid)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Gross Monthly Income</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.grossMonthlyIncome)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Monthly Spread</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Monthly Running Costs</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.monthlyRunningCosts)}</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>TOTAL SETUP COSTS</Text>
+                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Project Cost panel — FLIP only */}
+        {props.dealType === 'FLIP' && (
+          <View wrap={false}>
+            <SH title="Project Cost Summary" mt={8} mb={8} />
+            <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Purchase Price</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.purchasePrice)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Stamp Duty</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Refurb Cost</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.refurbCost)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Holding Costs</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Selling Costs</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipResults.sellingCosts)}</Text>
+                </View>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Target GDV</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipInputs.expectedSalePrice)}</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>NET PROFIT</Text>
+                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipResults.netProfit)}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Deal Insights paragraph */}
         {(() => {
           let insightText = '';

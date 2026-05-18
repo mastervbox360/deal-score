@@ -1586,17 +1586,19 @@ export default function HomePage() {
 
                 <div className="mt-6 pt-5 border-t border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label htmlFor="market-value">Market Value (£)</Label><InfoIcon id="shared-mv" text={TT.marketValue} /></div>
-                      <Input
-                        id="market-value"
-                        type="number"
-                        placeholder="Enter market value"
-                        value={marketValue || ''}
-                        onChange={(e) => setMarketValue(Number(e.target.value) || 0)}
-                        data-testid="input-market-value"
-                      />
-                    </div>
+                    {dealType !== 'R2R' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1"><Label htmlFor="market-value">Market Value (£)</Label><InfoIcon id="shared-mv" text={TT.marketValue} /></div>
+                        <Input
+                          id="market-value"
+                          type="number"
+                          placeholder="Enter market value"
+                          value={marketValue || ''}
+                          onChange={(e) => setMarketValue(Number(e.target.value) || 0)}
+                          data-testid="input-market-value"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label htmlFor="sourcing-fee">Sourcing Fee (£)</Label><InfoIcon id="shared-sf" text={TT.sourcingFee} /></div>
                       <Input

@@ -1,0 +1,104 @@
+Read the full contents of Home.tsx and DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+TASK: Four targeted strategy-relevance fixes across Home.tsx and DealScorePDF.tsx.
+
+FIX 1 — Home.tsx: Gate Market Value field for R2R
+Find the Market Value input field. It currently renders unconditionally. Wrap it so it only shows when dealType !== 'R2R':
+Find:
+tsx<div className="mt-6 pt-5 border-t border-border">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+    <div className="space-y-2">
+      <div className="flex items-center gap-1"><Label htmlFor="market-value">Market Value (£)</Label>
+Wrap the entire Market Value <div className="space-y-2"> block in:
+tsx{dealType !== 'R2R' && (
+  // existing Market Value div here
+)}
+
+FIX 2 — Home.tsx: Exclude FLIP from Deposit and Mortgage Rate fields
+Find the condition that gates Deposit % and Mortgage Rate:
+tsx{(['BTL', 'HMO', 'SA', 'SOCIAL'] as const).includes(dealType as 'BTL' | 'HMO' | 'SA' | 'SOCIAL') && (
+This already correctly excludes R2R, FLIP, and BRRR (BRRR has its own mortgage rate). Confirm this condition is correct as-is — FLIP has no deposit or mortgage (cash purchase), R2R has no mortgage, BRRR uses its own newMortgageRate field. No change needed here — this is already correct.
+Actually skip Fix 2 — the existing gating ['BTL', 'HMO', 'SA', 'SOCIAL'] is already correct. FLIP and R2R are already excluded. BRRR is also excluded from shared mortgage (it uses brrrInputs.newMortgageRate). ✅
+
+FIX 3 — DealScorePDF.tsx: Add Setup Costs summary panel for R2R on Page 3
+Currently Page 3 for R2R shows Deal Inputs but no Cash Invested panel — just white space. Add a Setup Costs summary panel for R2R in the same position as the Cash Invested panel.
+Find the Cash Invested section on Page 3. After the BRRR Cash Invested block (which ends with </View> after the CASH LEFT IN DEAL row), add:
+tsx{/* Setup Costs panel — R2R only */}
+{props.dealType === 'R2R' && (
+  <View wrap={false}>
+    <SH title="Setup Costs" mt={8} mb={8} />
+    <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Monthly Rent to Landlord</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.monthlyRentPaid)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Gross Monthly Income</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.grossMonthlyIncome)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Monthly Spread</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Monthly Running Costs</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.monthlyRunningCosts)}</Text>
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
+        <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>TOTAL SETUP COSTS</Text>
+        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+      </View>
+    </View>
+  </View>
+)}
+
+FIX 4 — DealScorePDF.tsx: Add Total Cost panel for FLIP on Page 3
+Same principle — FLIP has no Cash Invested panel, leaving white space. Add a project cost summary:
+After the R2R Setup Costs panel, add:
+tsx{/* Project Cost panel — FLIP only */}
+{props.dealType === 'FLIP' && (
+  <View wrap={false}>
+    <SH title="Project Cost Summary" mt={8} mb={8} />
+    <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Purchase Price</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.purchasePrice)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Stamp Duty</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Refurb Cost</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.refurbCost)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Holding Costs</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Selling Costs</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipResults.sellingCosts)}</Text>
+        </View>
+        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+          <Text style={{ fontSize: 8, color: tintText }}>Target GDV</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipInputs.expectedSalePrice)}</Text>
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
+        <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>NET PROFIT</Text>
+        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipResults.netProfit)}</Text>
+      </View>
+    </View>
+  </View>
+)}
+
+STEP 5 — Confirm on completion
+
+Market Value field hidden for R2R in Home.tsx
+R2R Setup Costs panel renders on Page 3 of PDF with tint treatment matching Cash Invested style
+FLIP Project Cost Summary panel renders on Page 3 of PDF with same tint treatment
+All existing strategy gating untouched
+npx tsc --noEmit passes with zero errors
