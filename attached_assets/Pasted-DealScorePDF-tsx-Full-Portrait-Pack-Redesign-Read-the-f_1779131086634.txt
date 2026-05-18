@@ -1,0 +1,533 @@
+DealScorePDF.tsx Full Portrait Pack Redesign
+Read the full contents of DealScorePDF.tsx before making any changes. Plan every edit explicitly across all pages, then execute all changes in parallel in a single pass.
+
+CONTEXT & RULES
+These rules are non-negotiable throughout every change:
+
+Brand/accent colours apply only to structural elements: borders, rules, top border accents on cards, bullet markers, section label text. Never on metric values or data text.
+All metric values, financial figures, and data text must render in #1E2B3C (dark navy) or #1B3A6B. Never in brand colour.
+readableBrand is the correct variable for section labels and structural accents on white backgrounds.
+coverBg (darkened brand) or fixed #1B3A6B must be used for any dark panel headers — never raw brand or readableBrand as a background for table headers, as light brand colours can render as white-on-white.
+Do not change: cover pages, photo pages, legal page, calculation logic, formula functions, props interface, helper functions, or the base StyleSheet. Only change page layout and visual presentation.
+Do not add any new props to the interface.
+
+
+CHANGE 1 — Add new style tokens to the base StyleSheet
+Add these new entries to the existing base StyleSheet.create block after calloutValue:
+typescript// New tokens for redesign
+sectionLabel: {
+  fontSize: 8.5,
+  fontFamily: 'Helvetica-Bold',
+  color: '#2EC4B6', // overridden per-page with readableBrand
+  textTransform: 'uppercase' as const,
+  letterSpacing: 0.5,
+  marginBottom: 2,
+},
+sectionRule: {
+  height: 1,
+  marginBottom: 6,
+},
+bodyText: {
+  fontSize: 8.5,
+  color: '#444444',
+  lineHeight: 1.55,
+},
+inputColLabel: {
+  fontSize: 8,
+  fontFamily: 'Helvetica-Bold',
+  color: '#2EC4B6', // overridden with readableBrand inline
+  textTransform: 'uppercase' as const,
+  letterSpacing: 0.5,
+  marginBottom: 3,
+  paddingBottom: 3,
+},
+metCard: {
+  flex: 1,
+  backgroundColor: '#ffffff',
+  borderRadius: 4,
+  padding: 8,
+  border: '0.5pt solid #d4dae8',
+},
+metCardLabel: { fontSize: 7.5, color: '#6B7280', marginBottom: 3 },
+metCardValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' },
+
+CHANGE 2 — Page 2: Property Overview
+Find the existing Page 2 ({/* ── Page 2: Executive Summary + Property Overview */}) and replace its entire body content (everything between <Page> and </Page>, excluding the <Footer /> component) with the following structure:
+Top header row — keep the existing date/company/page number header row exactly as-is.
+Hero photo — full width, 200px tall:
+Only render if heroPhoto exists.
+View: width 100%, height 200, borderRadius 4, overflow hidden, marginBottom 12, position relative.
+Image: width 100%, height 200, objectFit cover.
+Below the image (not overlaid — React-PDF absolute positioning on images is unreliable):
+  Text: address on one line (addressPlain), fontSize 8.5, color #9ca3af, textAlign center, marginBottom 8.
+Attribute chips row:
+View: flexDirection row, flexWrap wrap, gap 6, marginBottom 12.
+Render each chip as: View { borderRadius 10, border 0.5pt solid #d4dae8, paddingVertical 3, paddingHorizontal 9, backgroundColor #f5f7fa } containing Text { fontSize 8, color #1E2B3C, fontFamily Helvetica-Bold }.
+Chips to render (conditional on prop existing):
+  - props.propertyType (always render if present)
+  - props.tenure — if Freehold: border #2EC4B6, background #E1F5EE, color #0F6E56. If Leasehold: border #fbbf24, background #fef3c7, color #92400e.
+  - `${props.epcRating} EPC` — only if props.epcRating exists
+  - props.floodRisk — only if props.floodRisk exists, abbreviated: if contains 'No' → 'No Flood Risk'; otherwise → props.floodRisk
+  - Deal type pill: DEAL_LABELS[props.dealType].replace(' Analysis','') — border readableBrand, no background fill (transparent), color readableBrand
+Two-column row — Property Details left, Executive Summary right:
+View: flexDirection row, gap 14, marginBottom 14.
+
+LEFT (flex 1):
+  Section label: 'Property Details' — fontSize 8.5, fontFamily Helvetica-Bold, color readableBrand, marginBottom 2.
+  Rule: height 1, backgroundColor readableBrand, marginBottom 6.
+  Table rows using existing base.tableRow / base.tableRowAlt pattern, fontSize 8, all values in #1E2B3C:
+    Address (addressPlain) — bold value
+    Property Type
+    Tenure
+    Remaining Lease (only if Leasehold and leaseLengthYears > 0)
+    Floor Area (only if floorArea exists)
+    Construction Date (only if constructionDate exists)
+
+RIGHT (flex 1):
+  Section label: 'Executive Summary' — same style as left.
+  Rule: same.
+  If execSummaryText exists: Text fontSize 8.5, color #444444, lineHeight 1.55.
+  If no execSummaryText: render nothing (not a placeholder).
+Three hero metric cards:
+View: flexDirection row, gap 8, marginBottom 12.
+Each card (flex 1):
+  backgroundColor white, border 0.5pt solid #d4dae8, borderTop 2.5pt solid readableBrand, borderRadius 4, padding 10.
+  Value: fontSize 20, fontFamily Helvetica-Bold, color #1E2B3C, lineHeight 1, marginBottom 4.
+  Label: fontSize 7.5, color #6B7280, textTransform uppercase, letterSpacing 0.4.
+Use heroMetrics array (already computed) — maps to the 3 strategy-appropriate metrics.
+BMV strip — only if props.bmvAmount > 0 and dealType !== 'R2R':
+View: flexDirection row, justifyContent space-between, alignItems center,
+  backgroundColor #f0fdf4, border 0.5pt solid #86efac, borderRadius 4, padding 8 12, marginBottom 12.
+Left:
+  Text 'BELOW MARKET VALUE': fontSize 7, fontFamily Helvetica-Bold, color #166534, marginBottom 3.
+  Text fc(props.bmvAmount): fontSize 15, fontFamily Helvetica-Bold, color #1E2B3C.
+Right:
+  Text `${props.bmvPercent.toFixed(1)}%`: fontSize 20, fontFamily Helvetica-Bold, color #1E2B3C.
+  Text 'BMV discount': fontSize 7.5, color #6B7280, textAlign right, marginTop 2.
+NOTE: All values in #1E2B3C — no brand or accent colour on data values.
+
+CHANGE 3 — Page 3: Deal Inputs + Cash Invested
+Find the existing Page 3 ({/* ── Page 3: Deal Inputs + Cash Invested */}). Keep <Footer />. Replace the body content with:
+Page title and rule:
+SH component: title="Deal Inputs" — keep existing SH component call exactly.
+Two-column inputs layout:
+View: flexDirection row, gap 14, marginBottom 16.
+
+LEFT column (flex 1):
+  Text 'Purchase & Mortgage': fontSize 8, fontFamily Helvetica-Bold, color readableBrand,
+    textTransform uppercase, letterSpacing 0.5, marginBottom 3, paddingBottom 3,
+    borderBottom 1pt solid readableBrand.
+  Then render a subset of inputRows: only rows where label contains any of:
+    'Purchase Price', 'LTT', 'SDLT', 'Deposit', 'Mortgage Rate', 'Mortgage Type',
+    'Mortgage Term', 'Tenure', 'Lease', 'Post-Refurb', 'Refinance', 'GDV',
+    'Monthly Rent to Landlord', 'Setup Costs'.
+  Use base.tableRow / base.tableRowAlt, fontSize 8.5.
+
+RIGHT column (flex 1):
+  Text 'Income & Costs': same style as left column label.
+  Then render remaining inputRows not in the left column.
+  Use same table row styles.
+
+IMPORTANT: The two-column split must cover ALL inputRows with no rows omitted.
+  Simple approach: render first half of inputRows in left, second half in right,
+  splitting at Math.ceil(inputRows.length / 2). This avoids any label-matching logic.
+Cash Invested section — dark navy panel:
+SH title="Cash Invested" mt={8} mb={8} — keep existing SH call.
+
+Then render the navy panel View:
+  backgroundColor #1B3A6B, borderRadius 4, padding 12 14.
+
+Inside: two-column grid for the breakdown rows:
+  View: flexDirection row, flexWrap wrap.
+  Each breakdown row (deposit, tax, refurb if > 0, other if > 0):
+    View: width 50%, flexDirection row, justifyContent space-between,
+      paddingVertical 3, paddingRight 10, borderBottom 0.5pt solid rgba(255,255,255,0.08).
+    Key Text: fontSize 8, color rgba(255,255,255,0.55).
+    Value Text: fontSize 8, fontFamily Helvetica-Bold, color white.
+
+TOTAL row (full width, below the grid):
+  View: flexDirection row, justifyContent space-between, alignItems center,
+    marginTop 10, paddingTop 8, borderTop 1pt solid rgba(255,255,255,0.2).
+  Text 'TOTAL CASH INVESTED': fontSize 9, fontFamily Helvetica-Bold,
+    color rgba(255,255,255,0.7), textTransform uppercase, letterSpacing 0.5.
+  Text fc(p2CiTotal): fontSize 18, fontFamily Helvetica-Bold, color white.
+
+Apply same panel to BRRR variant (Initial Cash Out / Refinance Proceeds / CASH LEFT IN DEAL).
+Keep all existing BRRR conditional logic — just wrap in the navy panel style instead of the existing table rows.
+Deal Insights paragraph:
+Render below Cash Invested panel for BTL/HMO/SA/SOCIAL/BRRR strategies.
+View: backgroundColor #F8FAFC, borderRadius 3, padding 8 10, marginTop 12,
+  borderLeft 2pt solid readableBrand.
+Text 'Deal Insights': fontSize 7.5, fontFamily Helvetica-Bold, color readableBrand,
+  textTransform uppercase, letterSpacing 0.5, marginBottom 4.
+Then the insight paragraph text (auto-generated per strategy):
+
+BTL insight (3-4 sentences):
+  const mortgagePct = Math.round((fdMortgagePayment / props.btlInputs.monthlyRent) * 100);
+  const capitalEfficiency = props.btlResults.grossYield >= 7 ? 'efficient' : props.btlResults.grossYield >= 5 ? 'moderate' : 'stretched';
+  const refurbLine = props.refurbCost > 0
+    ? ` Refurb and acquisition costs of ${fc(props.refurbCost + props.otherCosts)} represent ${((props.refurbCost + props.otherCosts) / props.purchasePrice * 100).toFixed(1)}% of purchase price.`
+    : '';
+  Text: `A ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase commits ${fc(props.btlResults.totalCashInvested)} of capital — ${capitalEfficiency} use relative to the ${fp(props.btlResults.grossYield)} gross yield generated. The interest-only mortgage at ${props.mortgageRate}% consumes ${mortgagePct}% of gross rent, leaving ${fc(props.btlResults.netOperatingIncome > 0 ? props.btlResults.netOperatingIncome : 0)} net operating income before debt service.${refurbLine}`
+
+HMO insight:
+  `${props.hmoInputs.rooms} rooms at ${fc(props.hmoInputs.rentPerRoom)}/mo at ${props.hmoInputs.occupancyRate}% occupancy generates ${fc(props.hmoResults.grossMonthlyRent)} gross monthly rent. After mortgage and all expenses, net cash flow is ${fc(props.hmoResults.monthlyCashFlow)}, representing ${fp(props.hmoResults.cashOnCashROI)} cash-on-cash return on ${fc(props.hmoResults.totalCashInvested)} invested.`
+
+BRRR insight:
+  `Total cash in of ${fc(props.brrrResults.totalCostIn)} is ${props.brrrResults.moneyOut ? 'fully recycled — this deal is money out.' : `partially recycled via refinance, leaving ${fc(props.brrrResults.cashLeftInDeal)} in the deal.`} The ${props.brrrInputs.refinancePercent}% refinance of a ${fc(props.brrrInputs.postRefurbValue)} GDV releases ${fc(props.brrrResults.refinanceLoan)}.`
+
+SA insight:
+  `At ${props.saInputs.occupancyPercent}% occupancy and ${fc(props.saInputs.nightlyRate)}/night, gross monthly revenue is ${fc(props.saResults.grossMonthlyRevenue)}. After platform fees of ${fp(props.saInputs.platformFeesPercent)} and running costs, net monthly cash flow is ${fc(props.saResults.monthlyCashFlow)}.`
+
+R2R insight:
+  `Monthly rent paid to landlord of ${fc(props.r2rInputs.monthlyRentPaid)} sub-let for ${fc(props.r2rResults.grossMonthlyIncome)}, generating a monthly spread of ${fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)}. Setup costs of ${fc(props.r2rInputs.setupCosts)} recover in ${props.r2rResults.monthlyProfit > 0 ? Math.ceil(props.r2rInputs.setupCosts / props.r2rResults.monthlyProfit) + ' months' : 'N/A'} at current profit.`
+
+FLIP insight:
+  `Total project cost of ${fc(props.flipResults.totalCost)} against a GDV of ${fc(props.flipInputs.expectedSalePrice)} produces a gross margin of ${((props.flipResults.netProfit / props.flipInputs.expectedSalePrice) * 100).toFixed(1)}%. ROI of ${fp(props.flipResults.roi)} ${props.flipResults.roi >= 12 ? 'exceeds' : 'falls short of'} the 12% minimum threshold.`
+
+SOCIAL insight — same pattern as BTL using socialResults.
+
+Text style: fontSize 8.5, color #1E2B3C, lineHeight 1.55.
+
+CHANGE 4 — Page 4: Deal Score Analysis
+Find the existing Page 4 ({/* ── Page 4: Financial Analysis */}). Keep <Footer /> and <SH />. Replace the body content with:
+Verdict badge — move overall score inside:
+Existing verdict badge View (borderLeft 4 scoreColor, backgroundColor SCORE_TINT):
+  Keep exact existing styles.
+  Change interior: flexDirection row, justifyContent space-between, alignItems center.
+  Left: Text VERDICT_LABELS[props.currentScore] — fontSize 13, fontFamily Helvetica-Bold, color #1B2B4B.
+  Right: View flexDirection row, alignItems baseline, gap 4.
+    Text dealScoreOverall.toFixed(1): fontSize 32, fontFamily Helvetica-Bold, color #1B2B4B, lineHeight 1.
+    Text '/ 10': fontSize 14, color #9ca3af.
+Risk flags — keep exactly as-is.
+Score dimensions table — widen progress bars:
+Keep existing table structure (borderWidth 0.5, borderColor #E5E7EB, borderRadius 4).
+Keep header row exactly as-is.
+In each dimension row, change the progress bar View:
+  OLD: width 90, height 7, backgroundColor #F3F4F6, borderRadius 2.
+  NEW: flex 1, height 7, backgroundColor #F3F4F6, borderRadius 2.
+  The bar fill inner View: width remains (dim.score / 10) * 100 as a percentage string (`${(dim.score/10)*100}%`), height 7, backgroundColor barColor, borderRadius 2.
+Remove the overall score footer row from inside this table — it now lives in the verdict badge above.
+Verdict summary sentence — keep exactly as-is.
+Three callout metric cards:
+View: flexDirection row, gap 8, marginBottom 12.
+Each card (flex 1):
+  backgroundColor white, borderRadius 4, padding 9 10 8, border 0.5pt solid #d4dae8,
+  borderTop 2.5pt solid readableBrand.  ← REMOVE the existing full border in brand colour.
+  Label Text: fontSize 7.5, color #6B7280, textTransform uppercase, letterSpacing 0.3, marginBottom 4.
+  Value Text: fontSize 16, fontFamily Helvetica-Bold, color #1E2B3C.
+Full results table — keep exactly as-is (existing <Table rows={resultsRows} />).
+What This Means — keep exactly as-is.
+Sensitivity Analysis section:
+Keep existing SH title="Sensitivity Analysis" call.
+Change the table header row:
+  OLD: backgroundColor brand.
+  NEW: backgroundColor #1B3A6B.
+  Text color: #FFFFFF (unchanged).
+Keep all data rows exactly as-is.
+
+CHANGE 5 — Page 5: Financial Detail
+Find the existing Financial Detail page ({/* ── Page 5 / Financial Analysis page */} — the page with fdGrossRent). Keep <Footer /> and <SH title="Financial Detail" />. Add the following before the existing waterfall table:
+NET CASH FLOW hero panel — insert at top, before waterfall:
+View: backgroundColor #1B3A6B, borderRadius 4, padding 12 16, marginBottom 14,
+  flexDirection row, justifyContent space-between, alignItems center.
+
+LEFT side:
+  Text 'Net Cash Flow': fontSize 7.5, color rgba(255,255,255,0.55),
+    textTransform uppercase, letterSpacing 0.5, marginBottom 3.
+  Text fc(activeResults.monthlyCashFlow): fontSize 26, fontFamily Helvetica-Bold,
+    color white, lineHeight 1.
+  Text `${fc(activeResults.monthlyCashFlow * 12)} annually`: fontSize 9,
+    color rgba(255,255,255,0.55), marginTop 3.
+
+RIGHT side (alignItems flex-end):
+  Text 'Net Operating Income': fontSize 7.5, color rgba(255,255,255,0.45), marginBottom 2.
+  Text `${fc(activeResults.netOperatingIncome)} / mo`: fontSize 11,
+    fontFamily Helvetica-Bold, color rgba(255,255,255,0.85).
+  View marginTop 6:
+    Text 'Mortgage Payment': fontSize 7.5, color rgba(255,255,255,0.45), marginBottom 2.
+    Text `${fc(fdMortgagePayment)} / mo`: fontSize 11,
+      fontFamily Helvetica-Bold, color rgba(255,255,255,0.85).
+Waterfall table — wrap in border container and fix header:
+Wrap the entire waterfall in: View { border 0.5pt solid #E5E7EB, borderRadius 4, overflow hidden, marginBottom 14 }.
+Add a header row at the top of the waterfall:
+  View: flexDirection row, backgroundColor #F9FAFB, padding 5 8, borderBottom 0.5pt solid #E5E7EB.
+  Text 'Item': flex 2, fontSize 7.5, fontFamily Helvetica-Bold, color #6B7280, textTransform uppercase.
+  Text 'Monthly': flex 1, fontSize 7.5, fontFamily Helvetica-Bold, color #6B7280, textAlign right, textTransform uppercase.
+  Text 'Annual': flex 1, fontSize 7.5, fontFamily Helvetica-Bold, color #6B7280, textAlign right, textTransform uppercase.
+Keep all existing waterfall rows exactly as-is (rows 1-11 with their existing styles and conditional logic).
+2×2 metric cards — replace existing implementation:
+Add label above: Text 'Key Metrics': fontSize 8, fontFamily Helvetica-Bold, color #6B7280,
+  textTransform uppercase, letterSpacing 0.5, marginBottom 6.
+
+Replace the existing two separate View rows (the flexDirection row gap 8 blocks) with:
+View: flexDirection row, gap 8, marginBottom 8.
+  Card 1: Cash-on-Cash ROI — fp(activeResults.cashOnCashROI)
+  Card 2: Gross Yield — fp(activeResults.grossYield)
+View: flexDirection row, gap 8.
+  Card 3: Net Yield — fp(activeResults.netYield)
+  Card 4: Payback Period — fdPaybackDisplay
+
+Each card style:
+  flex 1, backgroundColor white, border 0.5pt solid #d4dae8,
+  borderTop 2pt solid readableBrand, borderRadius 4, padding 8 10.
+  Label: fontSize 7.5, color #6B7280, marginBottom 3.
+  Value: fontSize 14, fontFamily Helvetica-Bold, color #1E2B3C.
+
+REMOVE the existing divider View { borderBottom 1pt solid #E2E8F0, marginVertical 14 } — replaced by the 'Key Metrics' label.
+
+CHANGE 6 — Stress Testing page
+Find the Stress Testing page. Keep <Footer />, <SH title="Stress Testing" />, and the intro italic sentence. Make these changes:
+Table header — fix background colour:
+OLD: backgroundColor readableBrand.
+NEW: backgroundColor #1B3A6B.
+Text colour: getContrastText('#1B3A6B') — which always returns #FFFFFF. Can hardcode #FFFFFF.
+Add three callout cards below the table:
+Insert after the closing View of the stress table, before the auto-generated summary sentence:
+
+const stBreakEvenRate = (stTotalOpCosts / stLoanAmount) * 12 * 100 + (stVoidPct * stGrossRent * 12 / stLoanAmount) * 100;
+// Simplified: rate at which CF = 0 → solve for r: stEffectiveRent - stTotalOpCosts - (stLoanAmount * r/100/12) = 0
+// → r = (stEffectiveRent - stTotalOpCosts) / stLoanAmount * 12 * 100
+const beRate = stLoanAmount > 0 ? ((stEffectiveRent - stTotalOpCosts) / stLoanAmount * 12 * 100) : 0;
+
+View: flexDirection row, gap 8, marginTop 12, marginBottom 10.
+  Card 1 — Break-Even Rent:
+    backgroundColor #F8FAFC, border 0.5pt solid #d4dae8, borderRadius 4, padding 8 10, flex 1.
+    Label: 'Break-Even Rent', fontSize 7.5, color #6B7280, marginBottom 3.
+    Value: fc(stBreakEvenRent), fontSize 14, fontFamily Helvetica-Bold, color #1E2B3C.
+    Sub: '/ month', fontSize 7.5, color #9ca3af.
+  Card 2 — Rent Headroom:
+    Same card style.
+    Label: 'Rent Headroom'. Value: fc(stRentHeadroom). Sub: '/ month'.
+  Card 3 — Break-Even Rate:
+    Same card style.
+    Label: 'Break-Even Rate'. Value: `${beRate.toFixed(2)}%`.
+    Sub: 'rate at zero CF'.
+Replace auto-generated sentence with interpretation panel:
+Remove the existing single italic Text sentence.
+Replace with:
+View: backgroundColor #F8FAFC, borderRadius 3, padding 8 10, borderLeft 2pt solid readableBrand.
+  Text 'What This Means': fontSize 7.5, fontFamily Helvetica-Bold, color readableBrand,
+    textTransform uppercase, letterSpacing 0.5, marginBottom 4.
+  Text (auto-generated):
+    const remainsPositive = stStress.cf > 0;
+    const occupancyBreakEven = stBreakEvenRent > 0 ? Math.round((1 - stBreakEvenRent / stGrossRent) * 100) : 0;
+    `This deal remains cash flow ${remainsPositive ? 'positive' : 'negative'} under all three scenarios${remainsPositive ? ', including the stress rate of ' + stStressRate.toFixed(2) + '%' : ''}. The break-even rent of ${fc(stBreakEvenRent)} sits ${fc(stRentHeadroom)} below contracted rent — meaning occupancy would need to fall to approximately ${occupancyBreakEven}% before the deal runs at a loss. At the current rate, the mortgage consumes ${Math.round(stBase.mortgage / stGrossRent * 100)}% of gross rent.`
+    fontSize 8.5, color #1E2B3C, lineHeight 1.55.
+
+CHANGE 7 — Page 7: Deal Rationale
+Find the existing Deal Rationale page ({/* ── Page 4: Deal Rationale */} — note it may be labelled Page 4 in comments). Keep <Footer /> and <SH title="Deal Rationale" />. Replace the entire body content below the SH with:
+Helper — inline section header (use instead of notePanel for all text sections):
+typescriptconst RatSection = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <View wrap={false} style={{ marginBottom: 10 }}>
+    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: readableBrand,
+      textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>{label}</Text>
+    <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 6 }} />
+    {children}
+  </View>
+);
+Why This Strategy — plain text, no notePanel:
+{strategyNotesText ? (
+  <RatSection label="Why This Strategy?">
+    <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{strategyNotesText}</Text>
+  </RatSection>
+) : null}
+Property Description — plain text, no notePanel:
+{propertyDescText ? (
+  <RatSection label="Property Description">
+    <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{propertyDescText}</Text>
+  </RatSection>
+) : null}
+Refurb Scope + Vendor Situation — two columns:
+{(props.refurbScope?.trim() || vendorSituationText) ? (
+  <View wrap={false} style={{ flexDirection: 'row', gap: 14, marginBottom: 10 }}>
+    {props.refurbScope?.trim() ? (
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: readableBrand, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Refurb Scope</Text>
+        <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 6 }} />
+        <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{props.refurbScope}</Text>
+      </View>
+    ) : <View style={{ flex: 1 }} />}
+    {vendorSituationText ? (
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: readableBrand, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Vendor Situation</Text>
+        <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 6 }} />
+        <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{vendorSituationText}</Text>
+      </View>
+    ) : <View style={{ flex: 1 }} />}
+  </View>
+) : null}
+Investment Timeline — milestone cards:
+{props.timelineStages && props.timelineStages.filter(s => s.label.trim()).length > 0 && (() => {
+  const filteredStages = props.timelineStages!.filter(s => s.label.trim());
+  return (
+    <View wrap={false} style={{ marginBottom: 10 }}>
+      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: readableBrand, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Investment Timeline</Text>
+      <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 8 }} />
+      <View style={{ position: 'relative', height: 44 }}>
+        <View style={{ position: 'absolute', top: 13, left: '10%', right: '10%', height: 2, backgroundColor: readableBrand }} />
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
+          {filteredStages.map((stage, i) => (
+            <View key={i} style={{ width: '22%', alignItems: 'center' }}>
+              <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 3, textAlign: 'center' }}>Month {stage.month}</Text>
+              <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: readableBrand, marginBottom: 4 }} />
+              <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center', lineHeight: 1.3 }}>{stage.label}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+})()}
+Risk Factors — F8FAFC panel with bullet markers:
+<View wrap={false} style={{ marginBottom: 0 }}>
+  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: readableBrand, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Risk Factors</Text>
+  <View style={{ height: 1, backgroundColor: readableBrand, marginBottom: 4 }} />
+  <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, padding: 7 }}>
+    {/* Bullet 1 — rate sensitivity */}
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+      <View style={{ width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 6 }} />
+      <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4 }}>
+        {props.stressTest
+          ? (props.stressTest.rateUpCashFlow > 0
+              ? `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} — remains positive.`
+              : `At the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))} — monitor rate movements carefully.`)
+          : 'Rate sensitivity: stress test not available for this strategy.'}
+      </Text>
+    </View>
+    {/* Bullet 2 — void */}
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+      <View style={{ width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 6 }} />
+      <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4 }}>
+        {`A void allowance of ${fdVoidPct}% has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
+      </Text>
+    </View>
+    {/* Bullet 3 — tenure */}
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+      <View style={{ width: 4, height: 4, backgroundColor: readableBrand, marginTop: 2, marginRight: 6 }} />
+      <Text style={{ fontSize: 8, color: '#1E2B3C', flex: 1, lineHeight: 1.4 }}>
+        {props.tenure === 'Leasehold'
+          ? 'Leasehold property — review lease length, service charge, and ground rent terms carefully before proceeding.'
+          : 'Freehold tenure — no lease, service charge, or ground rent risk.'}
+      </Text>
+    </View>
+  </View>
+</View>
+Key Assumptions panel — dark navy, at the bottom:
+<View style={{ marginTop: 12, backgroundColor: '#1B3A6B', borderRadius: 4, padding: 10 12 }}>
+  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: readableBrand, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>Key Assumptions</Text>
+  <View style={{ flexDirection: 'row', gap: 20 }}>
+    {/* Left column — 4 rows */}
+    <View style={{ flex: 1 }}>
+      {[
+        ['Purchase price', fc(props.purchasePrice)],
+        ['Deposit', `${props.depositPercent}%`],
+        ['Mortgage rate', `${props.mortgageRate}%`],
+        ['Mortgage type', props.mortgageType === 'IO' ? 'Interest only' : 'Repayment'],
+      ].map(([k, v], i) => (
+        <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, borderBottom: i < 3 ? '0.5pt solid rgba(255,255,255,0.08)' : undefined }}>
+          <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{k}</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{v}</Text>
+        </View>
+      ))}
+    </View>
+    {/* Right column — 4 rows */}
+    <View style={{ flex: 1 }}>
+      {[
+        ['Monthly rent', fc(props.btlInputs?.monthlyRent ?? props.brrrInputs?.monthlyRent ?? 0)],
+        ['Void allowance', `${fdVoidPct}%`],
+        ['Mgmt fee', `${fdMgmtPct}%`],
+        ['Refurb cost', fc(props.refurbCost)],
+      ].map(([k, v], i) => (
+        <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, borderBottom: i < 3 ? '0.5pt solid rgba(255,255,255,0.08)' : undefined }}>
+          <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{k}</Text>
+          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{v}</Text>
+        </View>
+      ))}
+    </View>
+  </View>
+</View>
+Note on Key Assumptions rent value: For strategies without btlInputs (HMO, SA, FLIP, R2R, SOCIAL), use the appropriate rent source:
+
+HMO: fc(props.hmoInputs.rentPerRoom) with label 'Rent per room'
+SA: fc(props.saInputs.nightlyRate) with label 'Nightly rate'
+FLIP: fc(props.flipInputs.expectedSalePrice) with label 'Target GDV'
+R2R: fc(props.r2rInputs.rentPerRoom) with label 'Rent per room'
+SOCIAL: fc(props.socialInputs.leaseIncomePerMonth) with label 'Lease income'
+Use a ternary chain to set both rentLabel and rentValue variables before the panel, then use them in the right column row.
+
+
+CHANGE 8 — Page 8: Market Evidence
+Find the existing Market Evidence page ({/* ── Page 5: Market Evidence */}). Keep <Footer /> and <SH title="Market Evidence" />. Make these changes:
+Comparables table header — fix background:
+OLD: backgroundColor readableBrand, paddingVertical 4, paddingHorizontal 10.
+NEW: backgroundColor #1B3A6B, paddingVertical 5, paddingHorizontal 10.
+Text colour: #FFFFFF (hardcoded).
+Area Yield Context — replace the existing grey panel with hero cards + bar:
+Find the existing areaAverageYield conditional block. Replace the entire block with:
+
+{props.areaAverageYield != null && props.areaAverageYield > 0 && (() => {
+  const activeGrossYield = activeResults.grossYield;
+  const yieldDiff = activeGrossYield - props.areaAverageYield!;
+  const barAreaWidth = Math.min(100, (props.areaAverageYield! / activeGrossYield) * 100);
+
+  return (
+    <View style={{ marginTop: 10 }}>
+      {/* Three hero cards */}
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+        <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${readableBrand}`, borderRadius: 4, padding: 8 10 }}>
+          <Text style={{ fontSize: 7.5, color: '#6B7280', marginBottom: 3 }}>Area Average Yield</Text>
+          <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(props.areaAverageYield!)}</Text>
+        </View>
+        <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${readableBrand}`, borderRadius: 4, padding: 8 10 }}>
+          <Text style={{ fontSize: 7.5, color: '#6B7280', marginBottom: 3 }}>This Deal</Text>
+          <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeGrossYield)}</Text>
+        </View>
+        <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${yieldDiff >= 0 ? '#16A34A' : '#DC2626'}`, borderRadius: 4, padding: 8 10 }}>
+          <Text style={{ fontSize: 7.5, color: '#6B7280', marginBottom: 3 }}>Premium vs Area</Text>
+          <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: yieldDiff >= 0 ? '#16A34A' : '#DC2626' }}>
+            {`${yieldDiff >= 0 ? '+' : ''}${fp(Math.abs(yieldDiff))}`}
+          </Text>
+        </View>
+      </View>
+
+      {/* Yield bar visualisation */}
+      <View style={{ backgroundColor: '#F8FAFC', borderRadius: 4, padding: 8 10 }}>
+        <Text style={{ fontSize: 7.5, color: '#6B7280', marginBottom: 6 }}>Yield comparison</Text>
+        {/* Area bar */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+          <Text style={{ fontSize: 7.5, color: '#555555', width: 70 }}>Area average</Text>
+          <View style={{ flex: 1, height: 8, backgroundColor: '#E5E7EB', borderRadius: 2 }}>
+            <View style={{ width: `${barAreaWidth}%`, height: 8, backgroundColor: '#d4dae8', borderRadius: 2 }} />
+          </View>
+          <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', width: 30, textAlign: 'right' }}>{fp(props.areaAverageYield!)}</Text>
+        </View>
+        {/* This deal bar */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ fontSize: 7.5, color: '#555555', width: 70 }}>This deal</Text>
+          <View style={{ flex: 1, height: 8, backgroundColor: '#E5E7EB', borderRadius: 2 }}>
+            <View style={{ width: '100%', height: 8, backgroundColor: readableBrand, borderRadius: 2 }} />
+          </View>
+          <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', width: 30, textAlign: 'right' }}>{fp(activeGrossYield)}</Text>
+        </View>
+      </View>
+    </View>
+  );
+})()}
+Premium/discount value — fix Build Bible violation:
+The existing yieldDiff display uses `getReadableBrandColour(accent)` for positive values.
+Change to: yieldDiff >= 0 ? '#16A34A' : '#DC2626'.
+This removes brand colour from a data value.
+
+AFTER COMPLETING, CONFIRM:
+
+Page 2: hero photo full width, attribute chips, two-column property/exec summary, metric cards with brand top border only, BMV values in dark navy.
+Page 3: inputs in two columns, Cash Invested in dark navy panel with large white total, Deal Insights paragraph with teal left border.
+Page 4: overall score inside verdict badge at 32px, progress bars flex full width, callout cards with brand top border only, sensitivity table header fixed navy.
+Page 5: NET CASH FLOW navy hero panel above waterfall, waterfall wrapped in border, 'Key Metrics' label above 2×2 cards, metric cards with brand top border.
+Page 6: stress table header fixed navy, three break-even callout cards, 'What This Means' interpretation panel replacing single sentence.
+Page 7: all text sections plain (no notePanel), Refurb/Vendor in two columns, milestone timeline with height:44 container, Risk Factors in F8FAFC panel, Key Assumptions in navy panel at bottom.
+Page 8: comparables table header fixed navy, area yield context replaced with three hero cards + bar visualisation, premium value in semantic green/red not brand colour.
+No brand colour appears on any metric value, financial figure, or data text anywhere in the file.
+No new props have been added to the interface.
+Cover pages, photo pages, legal page, and all calculation logic are unchanged.
