@@ -1,0 +1,284 @@
+Read the full contents of DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+TASK: Implement the intelligent colour system throughout DealScorePDF.tsx. This replaces the previous colour system prompt — do not refer to any earlier version.
+
+STEP 1 — Add new helper function
+Add the following function immediately after the existing darkenColour function:
+ts/** Returns a quality-adjusted structural colour guaranteed to sit in the
+ *  legible range (luminance 0.08–0.35) for use on white paper.
+ *  Too-light colours are progressively darkened. Too-dark colours are
+ *  nudged slightly lighter. In-range colours are used as-is. */
+function getStructureColour(hex: string): string {
+  const lum = getLuminance(hex);
+  if (lum >= 0.08 && lum <= 0.35) return hex;
+  if (lum > 0.35) {
+    let amount = 0.3;
+    let result = darkenColour(hex, amount);
+    while (getLuminance(result) > 0.30 && amount < 0.75) {
+      amount += 0.05;
+      result = darkenColour(hex, amount);
+    }
+    return result;
+  }
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * 0.85 + 255 * 0.15);
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * 0.85 + 255 * 0.15);
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * 0.85 + 255 * 0.15);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+/** Returns the darkest useful version of the brand hue for use as a
+ *  filled panel background (NCF hero only). Progressively darkens until
+ *  luminance ≤ 0.10, staying within the brand hue family. Only falls
+ *  back to fixed navy if the brand has no hue to darken (near-pure white). */
+function getPanelBg(hex: string): string {
+  const lum = getLuminance(hex);
+  if (lum <= 0.12) return hex;
+  let amount = 0.5;
+  let result = darkenColour(hex, amount);
+  while (getLuminance(result) > 0.10 && amount < 0.92) {
+    amount += 0.05;
+    result = darkenColour(hex, amount);
+  }
+  return getLuminance(result) <= 0.15 ? result : '#1B3A6B';
+}
+
+STEP 2 — Add colour variables
+In the DealScorePDF function body, immediately after the existing lines:
+tsconst brand = props.brandColour;
+const coverBg = darkenColour(brand, 0.4);
+const readableBrand = getReadableBrandColour(brand);
+const coverBgText = getContrastText(coverBg);
+const isProPlus = props.tierOverride === 'pro_plus';
+const accent = props.accentColour;
+Add:
+ts// ── Intelligent colour system ─────────────────────────────────────────────
+
+// STRUCTURECOLOUR: section labels, rules, card borders, bullets, timeline,
+// table header text, tint background base. Quality-adjusted to always sit
+// in the legible range on white paper.
+const structureColour = (() => {
+  if (isProPlus && accent && getLuminance(accent) < 0.85) {
+    return getStructureColour(accent);
+  }
+  return getStructureColour(brand);
+})();
+
+// PANELBG: used exclusively for the NCF hero panel. Darkest useful version
+// of the brand hue. Always dark enough for white text.
+const panelBg = getPanelBg(brand);
+const panelText = getContrastText(panelBg);
+
+// TINTBG: light brand wash for Cash Invested, Key Assumptions panels.
+// Expressed as an rgba string using structureColour parsed to RGB.
+const tintBgRgb = (() => {
+  const c = structureColour.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return `${r},${g},${b}`;
+})();
+const tintBg = `rgba(${tintBgRgb},0.07)`;
+const tintBorder = `rgba(${tintBgRgb},0.15)`;
+const tintText = structureColour;
+
+// STRUCTUREBG: fixed neutral for editorial panels (Deal Insights,
+// What This Means, Risk Factors). Never brand-derived.
+const structureBg = '#F8FAFC';
+
+STEP 3 — Update the SH sub-component
+Find the existing SH component and replace with:
+tsxconst SH = ({ title, mt, mb }: { title: string; mt?: number; mb?: number }) => (
+  <View style={{ marginBottom: mb ?? 14, marginTop: mt ?? 0 }}>
+    <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: structureColour, marginBottom: 4 }}>{title}</Text>
+    <View style={{ borderBottom: `1pt solid ${structureColour}` }} />
+  </View>
+);
+
+STEP 4 — Replace all structural colour usages
+Replace every instance of readableBrand used as a structural colour with structureColour. Work through the full list below methodically.
+Page 2 — Property Overview:
+
+Property Details column header color: readableBrand → color: structureColour
+Property Details column rule backgroundColor: readableBrand → backgroundColor: structureColour
+Executive Summary column header color: readableBrand → color: structureColour
+Executive Summary column rule backgroundColor: readableBrand → backgroundColor: structureColour
+Three hero metric cards borderTop: \2.5pt solid ${readableBrand}`→borderTop: `2.5pt solid ${structureColour}``
+Deal type chip border: \0.5pt solid ${readableBrand}`→border: `0.5pt solid ${structureColour}`andcolor: readableBrand→color: structureColour`
+
+Page 3 — Deal Inputs:
+
+Purchase & Mortgage sub-header color: readableBrand and borderBottom: \1pt solid ${readableBrand}`→structureColour`
+Income & Costs sub-header same
+Deal Insights panel borderLeft: \2pt solid ${readableBrand}`→structureColour`
+Deal Insights label color: readableBrand → color: structureColour
+
+Page 4 — Deal Score Analysis:
+
+Three callout metric cards borderTop: \2.5pt solid ${readableBrand}`→structureColour`
+What This Means heading color: readableBrand → color: structureColour
+
+Page 5 — Financial Detail:
+
+Waterfall Effective Rent separator borderTop: \1pt solid ${readableBrand}`→structureColour`
+Waterfall Net Operating Income separator same
+Waterfall NET CASH FLOW separator same
+Key Metrics cards (all four) borderTop: \2pt solid ${readableBrand}`→structureColour`
+
+Page 6 — Stress Testing:
+
+BASE CASE column left border borderLeftColor: readableBrand → structureColour (all rows)
+Base Rent Buffer callout card borderTop: \2.5pt solid ${readableBrand}`→structureColour`
+What This Means panel borderLeft: \2pt solid ${readableBrand}`→structureColour`
+What This Means label color: readableBrand → color: structureColour
+
+Page 7 — Deal Rationale:
+
+Why This Strategy mini-header color: readableBrand → structureColour
+Why This Strategy rule backgroundColor: readableBrand → structureColour
+Property Description mini-header and rule same
+Refurb Scope mini-header and rule same
+Vendor Situation mini-header and rule same
+Investment Timeline mini-header and rule same
+Investment Timeline connecting line backgroundColor: readableBrand → structureColour
+Investment Timeline circles backgroundColor: readableBrand → structureColour
+Risk Factors mini-header and rule same
+Risk Factors bullet squares (all three) backgroundColor: readableBrand → structureColour
+
+Page 8 — Market Evidence:
+
+Area Yield "This Deal" card borderTop: \2.5pt solid ${readableBrand}`→structureColour`
+Area Yield "This deal" bar fill backgroundColor: readableBrand → structureColour
+Property Listing label color: readableBrand → color: structureColour
+
+Legal page:
+
+Next Steps label color: readableBrand → color: structureColour
+
+
+STEP 5 — Replace panel backgrounds with Option D treatment
+NCF hero panel (Financial Detail page) — keep as dark filled panel, use panelBg:
+Find:
+tsx<View style={{ backgroundColor: '#1B3A6B', borderRadius: 4, paddingVertical: 12, paddingHorizontal: 16, marginBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+Replace with:
+tsx<View style={{ backgroundColor: panelBg, borderRadius: 4, paddingVertical: 12, paddingHorizontal: 16, marginBottom: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+All color: 'rgba(255,255,255,...)' text inside this panel stays unchanged — panelBg is always dark so white text always works.
+
+Cash Invested panel — BTL/HMO/SA/SOCIAL — replace dark fill with light tint:
+Find the outer View with backgroundColor: '#1B3A6B' on the BTL/HMO/SA/SOCIAL Cash Invested block and replace:
+tsxbackgroundColor: '#1B3A6B'
+with:
+tsxbackgroundColor: tintBg
+Then inside this panel, update all text colours:
+
+color: 'rgba(255,255,255,0.55)' → color: tintText
+color: 'white' on the breakdown values → color: '#1E2B3C'
+The TOTAL CASH INVESTED label color: 'rgba(255,255,255,0.7)' → color: tintText
+The total value color: 'white' → color: '#1E2B3C'
+The inner divider borders borderBottom: '0.5pt solid rgba(255,255,255,0.08)' → borderBottom: \0.5pt solid ${tintBorder}``
+The total row top border borderTop: '1pt solid rgba(255,255,255,0.2)' → borderTop: \1pt solid ${tintBorder}``
+
+Also add a top border to the outer container:
+tsxborderTop: `2pt solid ${structureColour}`
+
+Cash Invested panel — BRRR — same treatment:
+Find the BRRR Cash Invested block outer View with backgroundColor: '#1B3A6B' and apply identical changes:
+
+backgroundColor: '#1B3A6B' → backgroundColor: tintBg
+color: 'rgba(255,255,255,0.55)' → color: tintText
+color: 'white' → color: '#1E2B3C'
+All rgba white dividers → tintBorder
+Add borderTop: \2pt solid ${structureColour}``
+MONEY OUT / CASH LEFT IN DEAL label color: 'rgba(255,255,255,0.7)' → color: tintText
+Total value color: 'white' → color: '#1E2B3C'
+
+
+Key Assumptions panel (Deal Rationale page) — replace dark fill with light tint:
+Find the Key Assumptions outer View with backgroundColor: '#1B3A6B' and apply:
+
+backgroundColor: '#1B3A6B' → backgroundColor: tintBg
+Add borderTop: \2pt solid ${structureColour}``
+KEY ASSUMPTIONS label color: 'rgba(255,255,255,0.55)' → color: tintText
+All breakdown label texts color: 'rgba(255,255,255,0.55)' → color: tintText
+All breakdown value texts color: 'white' → color: '#1E2B3C'
+All inner dividers borderBottom: '0.5pt solid rgba(255,255,255,0.08)' → borderBottom: \0.5pt solid ${tintBorder}``
+
+
+STEP 6 — Replace all table headers
+For each of the three table headers (Sensitivity Analysis, Stress Testing, Comparables), replace the filled dark header with a ruled header:
+Sensitivity Analysis header — find:
+tsx<View style={{ flexDirection: 'row', backgroundColor: '#1B3A6B', paddingVertical: 5, paddingHorizontal: 8 }}>
+  <Text style={{ flex: 1.8, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>METRIC</Text>
+  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>BASE CASE</Text>
+  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>RENT {'\\u221210%'}</Text>
+  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>RATE +1.5%</Text>
+</View>
+Replace with:
+tsx<View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 5, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
+  <Text style={{ flex: 1.8, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>METRIC</Text>
+  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
+  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RENT {'\\u221210%'}</Text>
+  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
+</View>
+Stress Testing header — find:
+tsx<View style={{ flexDirection: 'row', backgroundColor: '#1B3A6B', paddingVertical: 5, paddingHorizontal: 8, borderRadius: 2 }}>
+  <Text style={{ flex: 2.4, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}> </Text>
+  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center' }}>{`OPTIMISTIC\\nRate -0.5%`}</Text>
+  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center' }}>{`BASE CASE\\nCurrent Rate`}</Text>
+  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center' }}>{`STRESS\\nRate +1.5%`}</Text>
+</View>
+Replace with:
+tsx<View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 5, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
+  <Text style={{ flex: 2.4, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}> </Text>
+  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'center' }}>{`OPTIMISTIC\nRate -0.5%`}</Text>
+  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'center' }}>{`BASE CASE\nCurrent Rate`}</Text>
+  <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'center' }}>{`STRESS\nRate +1.5%`}</Text>
+</View>
+Comparables table header — find:
+tsx<View style={{ flexDirection: 'row', backgroundColor: '#1B3A6B', paddingVertical: 4, paddingHorizontal: 10 }}>
+  <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>Address</Text>
+  <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>Beds / Type</Text>
+  <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>Date Sold</Text>
+  <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'right' }}>Price</Text>
+</View>
+Replace with:
+tsx<View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+  <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
+  <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds / Type</Text>
+  <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Date Sold</Text>
+  <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Price</Text>
+</View>
+
+STEP 7 — What NOT to change
+
+color: '#1E2B3C', color: '#333333', color: '#444444' — all data text, untouched
+color: '#1B3A6B' used as text colour (not backgroundColor) — fixed navy text, untouched
+color: '#1B2B4B' — verdict badge text, untouched
+Progress bar fills green/amber/red — semantic, untouched
+Verdict badge borderLeftColor: scoreColor — semantic, untouched
+stCfColor() outputs — semantic, untouched
+Optimistic Rent Buffer card borderTop: '2.5pt solid #22C55E' — semantic, untouched
+Stress Rent Buffer card semantic border — untouched
+BMV strip fixed green colours — untouched
+Freehold/Leasehold chip colours — untouched
+diffColor on Premium/Discount card — untouched
+Cover page — entirely untouched. All coverBg, coverBgText, coverMuted usages stay
+readableBrand variable and getReadableBrandColour function — keep both, still used by cover and listing links
+getReadableBrandColour(accent) on listing links — untouched
+isProPlus ? accent : brand cover page rule lines — untouched
+
+
+STEP 8 — Confirm on completion
+
+getStructureColour and getPanelBg helpers added after darkenColour
+structureColour, panelBg, panelText, tintBg, tintBorder, tintText, structureBg variables added
+SH component updated to use structureColour
+All readableBrand structural usages replaced with structureColour across Pages 2–8 and Legal
+NCF hero panel uses panelBg with white rgba text unchanged
+Cash Invested (BTL/HMO/SA/SOCIAL) converted to tintBg with borderTop: 2pt solid structureColour, all internal text updated to dark navy and tintText
+Cash Invested (BRRR) same treatment
+Key Assumptions panel converted to tintBg with borderTop: 2pt solid structureColour, all internal text updated
+All three table headers converted to white background with structureColour text and 1.5pt solid structureColour bottom border
+All fixed data text colours untouched
+All semantic colours untouched
+Cover page entirely untouched
+npx tsc --noEmit passes with zero errors

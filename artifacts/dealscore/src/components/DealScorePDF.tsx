@@ -207,6 +207,22 @@ function getStructureColour(hex: string): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
+/** Returns the darkest useful version of the brand hue for use as a
+ *  filled panel background (NCF hero only). Progressively darkens until
+ *  luminance ≤ 0.10, staying within the brand hue family. Only falls
+ *  back to fixed navy if the brand has no hue to darken (near-pure white). */
+function getPanelBg(hex: string): string {
+  const lum = getLuminance(hex);
+  if (lum <= 0.12) return hex;
+  let amount = 0.5;
+  let result = darkenColour(hex, amount);
+  while (getLuminance(result) > 0.10 && amount < 0.92) {
+    amount += 0.05;
+    result = darkenColour(hex, amount);
+  }
+  return getLuminance(result) <= 0.15 ? result : '#1B3A6B';
+}
+
 // ── Address abbreviation expansion ──────────────────────────────────────────
 
 const noBreakHyphens = (str: string) => str ? str.replace(/-/g, '\u2011') : str;
@@ -587,26 +603,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const isProPlus = props.tierOverride === 'pro_plus';
   const accent = props.accentColour;
 
-  // ── 5-variable intelligent colour system ─────────────────────────────────
+  // ── Intelligent colour system ─────────────────────────────────────────────
 
-  // PANELBG: dark background for navy panels (Cash Invested, NCF hero,
-  // Key Assumptions, all table headers). Derived from brand but always dark.
-  const panelBg = (() => {
-    const lum = getLuminance(brand);
-    if (lum > 0.7) return '#1B3A6B'; // near-white brands → fixed navy
-    if (lum > 0.3) {
-      const darkened = darkenColour(brand, 0.5);
-      return getLuminance(darkened) >= 0.05 ? darkened : darkenColour(brand, 0.4);
-    }
-    return brand; // already dark — use as-is
-  })();
-
-  // PANELTEXT: text colour on panelBg — always auto-selected for contrast
-  const panelText = getContrastText(panelBg);
-
-  // STRUCTURECOLOUR: section labels, horizontal rules, card top borders,
-  // bullet markers, timeline circles, progress bar borders, waterfall
-  // separator lines. Quality-adjusted to always sit in the legible range.
+  // STRUCTURECOLOUR: section labels, rules, card borders, bullets, timeline,
+  // table header text, tint background base. Quality-adjusted to always sit
+  // in the legible range on white paper.
   const structureColour = (() => {
     if (isProPlus && accent && getLuminance(accent) < 0.85) {
       return getStructureColour(accent);
@@ -614,13 +615,27 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     return getStructureColour(brand);
   })();
 
-  // STRUCTUREBG: light tinted backgrounds — always fixed neutral,
-  // never brand-derived. Used for insight panels, risk factors, yield bar.
-  const structureBg = '#F8FAFC';
+  // PANELBG: used exclusively for the NCF hero panel. Darkest useful version
+  // of the brand hue. Always dark enough for white text.
+  const panelBg = getPanelBg(brand);
+  const panelText = getContrastText(panelBg);
 
-  // HEADERBG / HEADERTEXT: all table headers throughout the pack
-  const headerBg = panelBg;
-  const headerText = panelText;
+  // TINTBG: light brand wash for Cash Invested, Key Assumptions panels.
+  // Expressed as an rgba string using structureColour parsed to RGB.
+  const tintBgRgb = (() => {
+    const c = structureColour.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return `${r},${g},${b}`;
+  })();
+  const tintBg = `rgba(${tintBgRgb},0.07)`;
+  const tintBorder = `rgba(${tintBgRgb},0.15)`;
+  const tintText = structureColour;
+
+  // STRUCTUREBG: fixed neutral for editorial panels (Deal Insights,
+  // What This Means, Risk Factors). Never brand-derived.
+  const structureBg = '#F8FAFC';
 
   const LOGO_H: Record<'S' | 'M' | 'L', number> = { S: 35, M: 60, L: 100 };
   const LOGO_MAX_W: Record<'S' | 'M' | 'L', number> = { S: 100, M: 170, L: 280 };
@@ -1450,32 +1465,32 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'SOCIAL') && (
           <View wrap={false}>
             <SH title="Cash Invested" mt={8} mb={8} />
-            <View style={{ backgroundColor: panelBg, borderRadius: 4, paddingVertical: 12, paddingHorizontal: 14 }}>
+            <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 12, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                  <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{`Deposit (${props.depositPercent}%)`}</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(p2CiDeposit)}</Text>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>{`Deposit (${props.depositPercent}%)`}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(p2CiDeposit)}</Text>
                 </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                  <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{props.taxLabel}</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(props.effectiveTax)}</Text>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
                 </View>
                 {props.refurbCost > 0 && (
-                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                    <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>Refurb Cost</Text>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(props.refurbCost)}</Text>
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Refurb Cost</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.refurbCost)}</Text>
                   </View>
                 )}
                 {props.otherCosts > 0 && (
-                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                    <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>Other Costs</Text>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(props.otherCosts)}</Text>
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Other Costs</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.otherCosts)}</Text>
                   </View>
                 )}
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: '1pt solid rgba(255,255,255,0.2)' }}>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.5 }}>TOTAL CASH INVESTED</Text>
-                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(p2CiTotal)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>TOTAL CASH INVESTED</Text>
+                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(p2CiTotal)}</Text>
               </View>
             </View>
           </View>
@@ -1485,22 +1500,22 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         {props.dealType === 'BRRR' && (
           <View wrap={false}>
             <SH title="Cash Invested" mt={8} mb={8} />
-            <View style={{ backgroundColor: panelBg, borderRadius: 4, paddingVertical: 12, paddingHorizontal: 14 }}>
+            <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 12, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                  <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>Initial Cash Out</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(props.brrrResults.totalCostIn)}</Text>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Initial Cash Out</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.brrrResults.totalCostIn)}</Text>
                 </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                  <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>Refinance Proceeds</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{`(${fc(props.brrrResults.refinanceLoan)})`}</Text>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Refinance Proceeds</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`(${fc(props.brrrResults.refinanceLoan)})`}</Text>
                 </View>
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: '1pt solid rgba(255,255,255,0.2)' }}>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   {props.brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'}
                 </Text>
-                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: 'white' }}>
+                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>
                   {props.brrrResults.moneyOut
                     ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT`
                     : fc(props.brrrResults.cashLeftInDeal)}
@@ -1640,11 +1655,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <View style={{ marginTop: 10 }}>
             <SH title="Sensitivity Analysis" />
             <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
-              <View style={{ flexDirection: 'row', backgroundColor: headerBg, paddingVertical: 5, paddingHorizontal: 8 }}>
-                <Text style={{ flex: 1.8, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText }}>METRIC</Text>
-                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'right' }}>BASE CASE</Text>
-                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
-                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'right' }}>RATE +1.5%</Text>
+              <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 5, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
+                <Text style={{ flex: 1.8, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>METRIC</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
               </View>
               <View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
                 <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
@@ -1799,15 +1814,15 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </Text>
 
           {/* Table header — navy */}
-          <View style={{ flexDirection: 'row', backgroundColor: headerBg, paddingVertical: 5, paddingHorizontal: 8, borderRadius: 2 }}>
-            <Text style={{ flex: 2.4, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText }}> </Text>
-            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'center' }}>
+          <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 5, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
+            <Text style={{ flex: 2.4, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}> </Text>
+            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'center' }}>
               {`OPTIMISTIC\nRate -0.5%`}
             </Text>
-            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'center' }}>
+            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'center' }}>
               {`BASE CASE\nCurrent Rate`}
             </Text>
-            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'center' }}>
+            <Text style={{ flex: 1.2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'center' }}>
               {`STRESS\nRate +1.5%`}
             </Text>
           </View>
@@ -2023,29 +2038,29 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               return ['Monthly rent', fc((props.btlInputs?.monthlyRent ?? props.brrrInputs?.monthlyRent ?? 0))];
             })();
             return (
-              <View wrap={false} style={{ backgroundColor: panelBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14 }}>
-                <Text style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Key Assumptions</Text>
+              <View wrap={false} style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
+                <Text style={{ fontSize: 7.5, color: tintText, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Key Assumptions</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
-                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                      <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{`Deposit`}</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{`${props.depositPercent}%`}</Text>
+                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                      <Text style={{ fontSize: 8, color: tintText }}>{`Deposit`}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.depositPercent}%`}</Text>
                     </View>
                   ) : null}
                   {props.mortgageRate > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
-                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                      <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>Mortgage Rate</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{`${props.mortgageRate}%`}</Text>
+                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                      <Text style={{ fontSize: 8, color: tintText }}>Mortgage Rate</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.mortgageRate}%`}</Text>
                     </View>
                   ) : null}
-                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                    <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{rentLabel}</Text>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{rentValue}</Text>
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>{rentLabel}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{rentValue}</Text>
                   </View>
                   {props.taxLabel ? (
-                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: '0.5pt solid rgba(255,255,255,0.08)' }}>
-                      <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)' }}>{props.taxLabel}</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: 'white' }}>{fc(props.effectiveTax)}</Text>
+                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                      <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
                     </View>
                   ) : null}
                 </View>
@@ -2064,11 +2079,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           {hasComparables && (
             <View style={[base.notePanel, { padding: 0, overflow: 'hidden' }]}>
               <Text style={[base.notePanelLabel, { color: structureColour, padding: 10, paddingBottom: 6 }]}>Comparable Properties</Text>
-              <View style={{ flexDirection: 'row', backgroundColor: headerBg, paddingVertical: 4, paddingHorizontal: 10 }}>
-                <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: headerText }}>Address</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: headerText }}>Beds / Type</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: headerText }}>Date Sold</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: headerText, textAlign: 'right' }}>Price</Text>
+              <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+                <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds / Type</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Date Sold</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Price</Text>
               </View>
               {props.comparables
                 .filter(r => r.address.trim())
