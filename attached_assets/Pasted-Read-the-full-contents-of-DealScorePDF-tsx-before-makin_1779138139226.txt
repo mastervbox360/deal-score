@@ -1,0 +1,234 @@
+Read the full contents of DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+TASK: Implement the intelligent 5-variable colour system throughout DealScorePDF.tsx.
+
+STEP 1 — Add new helper function
+Add the following function to the helpers section, immediately after the existing darkenColour function:
+ts/** Returns a quality-adjusted structural colour guaranteed to sit in the
+ *  legible range (luminance 0.08–0.35) for use on white paper.
+ *  Too-light colours are progressively darkened. Too-dark colours are
+ *  nudged slightly lighter. In-range colours are used as-is. */
+function getStructureColour(hex: string): string {
+  const lum = getLuminance(hex);
+  if (lum >= 0.08 && lum <= 0.35) return hex;
+  if (lum > 0.35) {
+    let amount = 0.3;
+    let result = darkenColour(hex, amount);
+    while (getLuminance(result) > 0.30 && amount < 0.75) {
+      amount += 0.05;
+      result = darkenColour(hex, amount);
+    }
+    return result;
+  }
+  // Too dark — nudge slightly lighter by blending 15% toward white
+  const clean = hex.replace('#', '');
+  const r = Math.round(parseInt(clean.substring(0, 2), 16) * 0.85 + 255 * 0.15);
+  const g = Math.round(parseInt(clean.substring(2, 4), 16) * 0.85 + 255 * 0.15);
+  const b = Math.round(parseInt(clean.substring(4, 6), 16) * 0.85 + 255 * 0.15);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+STEP 2 — Add 5 computed colour variables
+In the DealScorePDF function body, immediately after the existing lines:
+tsconst brand = props.brandColour;
+const coverBg = darkenColour(brand, 0.4);
+const readableBrand = getReadableBrandColour(brand);
+const coverBgText = getContrastText(coverBg);
+const isProPlus = props.tierOverride === 'pro_plus';
+const accent = props.accentColour;
+Add the following block:
+ts// ── 5-variable intelligent colour system ─────────────────────────────────
+
+// PANELBG: dark background for navy panels (Cash Invested, NCF hero,
+// Key Assumptions, all table headers). Derived from brand but always dark.
+const panelBg = (() => {
+  const lum = getLuminance(brand);
+  if (lum > 0.7) return '#1B3A6B'; // near-white brands → fixed navy
+  if (lum > 0.3) {
+    const darkened = darkenColour(brand, 0.5);
+    return getLuminance(darkened) >= 0.05 ? darkened : darkenColour(brand, 0.4);
+  }
+  return brand; // already dark — use as-is
+})();
+
+// PANELTEXT: text colour on panelBg — always auto-selected for contrast
+const panelText = getContrastText(panelBg);
+
+// STRUCTURECOLOUR: section labels, horizontal rules, card top borders,
+// bullet markers, timeline circles, progress bar borders, waterfall
+// separator lines. Quality-adjusted to always sit in the legible range.
+const structureColour = (() => {
+  if (isProPlus && accent && getLuminance(accent) < 0.85) {
+    return getStructureColour(accent);
+  }
+  return getStructureColour(brand);
+})();
+
+// STRUCTUREBG: light tinted backgrounds — always fixed neutral,
+// never brand-derived. Used for insight panels, risk factors, yield bar.
+const structureBg = '#F8FAFC';
+
+// HEADERBG / HEADERTEXT: all table headers throughout the pack
+const headerBg = panelBg;
+const headerText = panelText;
+
+STEP 3 — Update the SH sub-component
+Find the existing SH component:
+tsxconst SH = ({ title, mt, mb }: { title: string; mt?: number; mb?: number }) => (
+  <View style={{ marginBottom: mb ?? 14, marginTop: mt ?? 0 }}>
+    <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 4 }}>{title}</Text>
+    <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}` }} />
+  </View>
+);
+Replace with:
+tsxconst SH = ({ title, mt, mb }: { title: string; mt?: number; mb?: number }) => (
+  <View style={{ marginBottom: mb ?? 14, marginTop: mt ?? 0 }}>
+    <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: structureColour, marginBottom: 4 }}>{title}</Text>
+    <View style={{ borderBottom: `1pt solid ${structureColour}` }} />
+  </View>
+);
+
+STEP 4 — Replace all structural colour usages
+Replace every instance of readableBrand used as a structural colour with structureColour. The full list of locations is below. Work through these methodically — do not miss any.
+Page 2 — Property Overview:
+
+Property Details column header: color: readableBrand → color: structureColour
+Property Details column rule: backgroundColor: readableBrand → backgroundColor: structureColour
+Executive Summary column header: color: readableBrand → color: structureColour
+Executive Summary column rule: backgroundColor: readableBrand → backgroundColor: structureColour
+Three hero metric cards: borderTop: \2.5pt solid ${readableBrand}`→borderTop: `2.5pt solid ${structureColour}``
+Deal type chip: border: \0.5pt solid ${readableBrand}`→border: `0.5pt solid ${structureColour}`andcolor: readableBrand→color: structureColour`
+
+Page 3 — Deal Inputs:
+
+Purchase & Mortgage column sub-header: color: readableBrand and borderBottom: \1pt solid ${readableBrand}`→structureColour`
+Income & Costs column sub-header: same
+Deal Insights panel left border: borderLeft: \2pt solid ${readableBrand}`→structureColour`
+Deal Insights label: color: readableBrand → color: structureColour
+
+Page 4 — Deal Score Analysis:
+
+Three callout metric cards: borderTop: \2.5pt solid ${readableBrand}`→structureColour`
+What This Means heading: color: readableBrand → color: structureColour
+
+Page 5 — Financial Detail:
+
+Waterfall Effective Rent separator: borderTop: \1pt solid ${readableBrand}`→structureColour`
+Waterfall Net Operating Income separator: borderTop: \1pt solid ${readableBrand}`→structureColour`
+Waterfall NET CASH FLOW separator: borderTop: \1pt solid ${readableBrand}`→structureColour`
+Key Metrics cards (all four): borderTop: \2pt solid ${readableBrand}`→structureColour`
+
+Page 6 — Stress Testing:
+
+BASE CASE column left border: borderLeftColor: readableBrand → structureColour (appears on all rows that have the base case left border style)
+Base Rent Buffer callout card: borderTop: \2.5pt solid ${readableBrand}`→structureColour`
+What This Means panel left border: borderLeft: \2pt solid ${readableBrand}`→structureColour`
+What This Means label: color: readableBrand → color: structureColour
+
+Page 7 — Deal Rationale:
+
+Why This Strategy section mini-header: color: readableBrand → color: structureColour
+Why This Strategy rule: backgroundColor: readableBrand → backgroundColor: structureColour
+Property Description section mini-header: same
+Property Description rule: same
+Refurb Scope section mini-header: same
+Refurb Scope rule: same
+Vendor Situation section mini-header: same
+Vendor Situation rule: same
+Investment Timeline section mini-header: same
+Investment Timeline rule: same
+Investment Timeline connecting line: backgroundColor: readableBrand → backgroundColor: structureColour
+Investment Timeline circles: backgroundColor: readableBrand → backgroundColor: structureColour
+Risk Factors section mini-header: same
+Risk Factors rule: same
+Risk Factors bullet squares (all three): backgroundColor: readableBrand → backgroundColor: structureColour
+
+Page 8 — Market Evidence:
+
+Area Yield Context "This Deal" card: borderTop: \2.5pt solid ${readableBrand}`→structureColour`
+Area Yield "This deal" bar fill: backgroundColor: readableBrand → backgroundColor: structureColour
+Property Listing / Property Listings label: color: readableBrand → color: structureColour
+
+Legal & Disclosure page:
+
+Next Steps label: color: readableBrand → color: structureColour
+
+
+STEP 5 — Replace all hardcoded #1B3A6B panel and table header backgrounds
+Find and replace every hardcoded #1B3A6B used as a backgroundColor on panels and table headers. Do not change #1B3A6B used as a text color value — those are fixed navy data text and must stay unchanged.
+Cash Invested panel — BTL/HMO/SA/SOCIAL:
+backgroundColor: '#1B3A6B'
+→
+backgroundColor: panelBg
+Cash Invested panel — BRRR:
+Same replacement — backgroundColor: '#1B3A6B' → backgroundColor: panelBg
+NET CASH FLOW hero panel — Financial Detail page:
+Same replacement — backgroundColor: '#1B3A6B' → backgroundColor: panelBg
+Key Assumptions panel — Deal Rationale page:
+Same replacement — backgroundColor: '#1B3A6B' → backgroundColor: panelBg
+Sensitivity Analysis table header — Page 4:
+
+backgroundColor: '#1B3A6B' → backgroundColor: headerBg
+color: '#FFFFFF' on header text cells → color: headerText
+
+Stress Testing table header — Page 6:
+
+backgroundColor: '#1B3A6B' → backgroundColor: headerBg
+color: '#FFFFFF' on header text cells → color: headerText
+
+Comparables table header — Market Evidence page:
+
+backgroundColor: '#1B3A6B' → backgroundColor: headerBg
+color: '#FFFFFF' on header text cells → color: headerText
+
+
+STEP 6 — What NOT to change
+Do not change any of the following — these must remain exactly as they are:
+Fixed dark navy text (data values and highlights — never brand-derived):
+
+color: '#1E2B3C' — all metric values, table data, body text
+color: '#333333' — general body text
+color: '#444444' — notes and description text
+color: '#1B3A6B' used as a text color (not backgroundColor) — bold result highlights, verdict badge text
+color: '#1B2B4B' — verdict badge text
+
+Semantic / score colours — always fixed:
+
+Progress bar fills: green #22C55E, amber #F59E0B, red #EF4444
+Verdict badge borderLeftColor: scoreColor
+Stress test cash flow colours: stCfColor() function output
+Optimistic Rent Buffer card: borderTop: '2.5pt solid #22C55E'
+Stress Rent Buffer card: borderTop using stStress.cf < 0 ? '#EF4444' : '#F59E0B'
+BMV strip: fixed green colours
+Freehold chip: fixed teal colours
+Leasehold chip: fixed amber colours
+Market commentary italic text: color: '#64748B'
+Premium/Discount card: borderTop using diffColor (green/red semantic)
+
+Cover page — leave entirely unchanged:
+
+All coverBg, coverBgText, coverMuted usages
+isProPlus ? accent : brand rule lines on cover pages
+readableBrand used on the clean cover deal type label
+
+Listing links:
+
+color: getReadableBrandColour(accent) — this is accent colour on white for links, leave as-is
+
+The readableBrand variable and getReadableBrandColour function:
+
+Keep both — they are still used by the cover page and listing links
+
+
+STEP 7 — Confirm on completion
+After all changes are made, confirm the following:
+
+getStructureColour helper function added after darkenColour
+All 5 colour variables (panelBg, panelText, structureColour, structureBg, headerBg, headerText) added in the correct location inside DealScorePDF
+SH component updated to use structureColour for both text and rule
+Every readableBrand structural usage replaced with structureColour — none missed
+All 7 hardcoded #1B3A6B panel/header backgroundColor values replaced with panelBg or headerBg
+All color: '#FFFFFF' on the 3 replaced table headers updated to headerText
+All fixed data text colours (#1E2B3C, #333333, #1B3A6B as text colour) untouched
+All semantic colours (green/amber/red, score colours, BMV, tenure chips) untouched
+Cover page colour logic entirely untouched
+npx tsc --noEmit passes with zero errors
