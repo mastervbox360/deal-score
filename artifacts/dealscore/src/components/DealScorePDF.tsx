@@ -1306,6 +1306,32 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             </View>
           </>
         )}
+
+        {props.dealType === 'BRRR' && (
+          <>
+            <SH title="Cash Invested" />
+            <View style={{ marginBottom: 14 }}>
+              <View style={[base.tableRow, base.tableRowAlt]}>
+                <Text style={base.tableLabel}>Initial Cash Out</Text>
+                <Text style={base.tableValue}>{fc(props.brrrResults.totalCostIn)}</Text>
+              </View>
+              <View style={base.tableRow}>
+                <Text style={base.tableLabel}>Refinance Proceeds</Text>
+                <Text style={base.tableValue}>{`(${fc(props.brrrResults.refinanceLoan)})`}</Text>
+              </View>
+              <View style={[base.tableRow, { borderTop: `1pt solid ${readableBrand}` }]}>
+                <Text style={[base.tableLabel, { fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }]}>
+                  {props.brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'}
+                </Text>
+                <Text style={[base.tableValue, { fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }]}>
+                  {props.brrrResults.moneyOut
+                    ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT`
+                    : fc(props.brrrResults.cashLeftInDeal)}
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </Page>
 
       {/* ── Page 3: Financial Analysis ─────────────────────────────────────── */}
