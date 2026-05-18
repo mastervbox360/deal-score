@@ -541,8 +541,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   // ── Sub-components ──────────────────────────────────────────────────────────
 
   // Section header: brand used for title text (on white) + underline rule
-  const SH = ({ title }: { title: string }) => (
-    <View style={{ marginBottom: 14 }}>
+  const SH = ({ title, mt, mb }: { title: string; mt?: number; mb?: number }) => (
+    <View style={{ marginBottom: mb ?? 14, marginTop: mt ?? 0 }}>
       <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: readableBrand, marginBottom: 4 }}>{title}</Text>
       <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}` }} />
     </View>
@@ -1275,9 +1275,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Table rows={inputRows} />
 
         {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'SOCIAL') && (
-          <>
-            <SH title="Cash Invested" />
-            <View wrap={false} style={{ marginBottom: 14 }}>
+          <View wrap={false}>
+            <SH title="Cash Invested" mt={8} mb={8} />
+            <View style={{ marginBottom: 8 }}>
               <View style={[base.tableRow, base.tableRowAlt]}>
                 <Text style={base.tableLabel}>{`Deposit (${props.depositPercent}% of ${fc(props.purchasePrice)})`}</Text>
                 <Text style={base.tableValue}>{fc(p2CiDeposit)}</Text>
@@ -1303,13 +1303,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={[base.tableValue, { fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }]}>{fc(p2CiTotal)}</Text>
               </View>
             </View>
-          </>
+          </View>
         )}
 
         {props.dealType === 'BRRR' && (
-          <>
-            <SH title="Cash Invested" />
-            <View wrap={false} style={{ marginBottom: 14 }}>
+          <View wrap={false}>
+            <SH title="Cash Invested" mt={8} mb={8} />
+            <View style={{ marginBottom: 8 }}>
               <View style={[base.tableRow, base.tableRowAlt]}>
                 <Text style={base.tableLabel}>Initial Cash Out</Text>
                 <Text style={base.tableValue}>{fc(props.brrrResults.totalCostIn)}</Text>
@@ -1329,7 +1329,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </Text>
               </View>
             </View>
-          </>
+          </View>
         )}
       </Page>
 
