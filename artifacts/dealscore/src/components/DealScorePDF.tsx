@@ -1985,7 +1985,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             const totalDuration = durations.reduce((a, b) => a + b, 0);
 
             return (
-              <View wrap={false} style={{ marginBottom: 10 }}>
+              <View wrap={false} style={{ marginBottom: 6 }}>
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Investment Timeline</Text>
                 <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 10 }} />
 
@@ -2022,7 +2022,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   ))}
                 </View>
 
-                {/* Stage name labels row — left / centre / right aligned */}
+                {/* Stage name labels row — left / centre / right aligned, overflow beyond node width */}
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 6 }}>
                   {filteredStages.map((stage, i) => {
                     const isFirst = i === 0;
@@ -2036,6 +2036,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                           <Text style={{
                             fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C',
                             textAlign: isFirst ? 'left' : isLast ? 'right' : 'center',
+                            width: 60,
+                            marginLeft: isFirst ? 0 : isLast ? -40 : -20,
                           }}>
                             {stage.label}
                           </Text>
@@ -2095,7 +2097,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               return ['Monthly rent', fc((props.btlInputs?.monthlyRent ?? props.brrrInputs?.monthlyRent ?? 0))];
             })();
             return (
-              <View wrap={false} style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
+              <View wrap={false} style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 7, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
                 <Text style={{ fontSize: 7.5, color: tintText, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Key Assumptions</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
