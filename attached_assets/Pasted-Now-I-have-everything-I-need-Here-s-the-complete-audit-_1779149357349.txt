@@ -1,0 +1,86 @@
+Now I have everything I need. Here's the complete audit:
+
+Full strategy mismatch audit
+Issue 1 — Risk Factors: Void bullet shown for R2R and FLIP
+The void bullet fdVoidPct is always rendered. For R2R there is no void allowance — the occupancy rate drives income, not a void %. For FLIP there are no tenants at all, so void is completely meaningless.
+Issue 2 — Risk Factors: Tenure bullet misleading for R2R
+"Tenure — freehold. No lease expiry..." implies the investor owns the property. For R2R the investor doesn't own it. The tenure risk for R2R is actually the landlord lease term — if the landlord terminates the agreement, the R2R income stops. This is a materially different risk.
+Issue 3 — Key Assumptions: LTT showing for R2R
+The props.taxLabel row renders unconditionally. For R2R there is no purchase, so LTT = £0 and showing it is misleading. It should be suppressed for R2R.
+Issue 4 — Key Assumptions: Deposit showing for FLIP
+Deposit is already gated with dealType !== 'R2R' && dealType !== 'FLIP' — already correct ✅
+Issue 5 — App: voidAllowancePercent passed to PDF for R2R
+The Monthly Costs section (including Void Allowance) is correctly hidden for R2R in the app — gated to ['BTL', 'HMO', 'SA', 'BRRR', 'SOCIAL']. So the user can't change it. But the prop is still passed at the default value of 5%, and the PDF uses it for the void bullet. This is the bug you spotted — the 5% void shouldn't be shown for R2R at all, not just hidden in the app.
+Issue 6 — App: voidAllowancePercent not editable for FLIP either
+Same situation — Monthly Costs hidden for FLIP, so void is fixed at 5%. But for FLIP the void bullet shouldn't show anyway since there's no tenancy.
+
+Here is the complete prompt:
+
+Read the full contents of DealScorePDF.tsx before making any changes. Plan all edits explicitly, then execute in parallel.
+TASK: Fix strategy-irrelevant content in Deal Rationale Risk Factors and Key Assumptions panels.
+
+FIX 1 — Risk Factors: strategy-aware bullets
+Find the Risk Factors bullet panel inside the Deal Rationale page. It currently renders three bullets unconditionally. Replace the entire three-bullet block with the following strategy-aware version:
+tsx{/* Bullet 1: Rate risk — only for strategies with stress test */}
+<View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+  <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+  <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+    {props.stressTest
+      ? (props.stressTest.rateUpCashFlow > 0
+          ? `Rate risk — at the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} and remains positive.`
+          : `Rate risk — at the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))}. Monitor rate movements carefully.`)
+      : props.dealType === 'R2R'
+        ? `Income risk — monthly profit depends on maintaining ${props.r2rInputs.occupancyRate}% occupancy across ${props.r2rInputs.rooms} rooms. A drop to ${Math.round(props.r2rInputs.occupancyRate * 0.85)}% occupancy reduces gross income by ${fc(props.r2rResults.grossMonthlyIncome * 0.15)}/mo.`
+        : props.dealType === 'FLIP'
+          ? `Cost overrun risk — project budgeted at ${fc(props.flipResults.totalCost)} over ${props.flipInputs.projectLengthMonths} months. A 10% cost overrun reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - props.flipResults.totalCost * 0.1)}.`
+          : 'Rate sensitivity: stress test not available for this strategy.'}
+  </Text>
+</View>
+
+{/* Bullet 2: Void/occupancy risk — suppressed for R2R and FLIP */}
+{props.dealType !== 'R2R' && props.dealType !== 'FLIP' && (
+  <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+    <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+    <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+      {`Void risk — a ${fdVoidPct}% void allowance has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
+    </Text>
+  </View>
+)}
+
+{/* Bullet 3: Tenure/lease risk — strategy-aware */}
+<View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+  <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+  <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+    {props.dealType === 'R2R'
+      ? `Landlord agreement risk — income depends on the lease agreement with the landlord. Ensure the agreement term, break clauses, and permitted subletting are clearly documented.`
+      : props.dealType === 'FLIP'
+        ? `Resale risk — target GDV of ${fc(props.flipInputs.expectedSalePrice)} is an estimate. Market conditions at point of sale may affect achievable price and selling timeline.`
+        : props.tenure === 'Leasehold'
+          ? 'Tenure risk — leasehold property. Review lease length, service charge, and ground rent terms carefully before proceeding.'
+          : 'Tenure — freehold. No lease expiry, service charge, or escalating ground rent risk.'}
+  </Text>
+</View>
+
+FIX 2 — Key Assumptions: suppress LTT row for R2R
+Find the props.taxLabel row in the Key Assumptions panel:
+tsx{props.taxLabel ? (
+  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+    <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
+    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+  </View>
+) : null}
+Replace with:
+tsx{props.taxLabel && props.dealType !== 'R2R' ? (
+  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+    <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
+    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+  </View>
+) : null}
+
+FIX 3 — Confirm on completion
+
+Risk Factors bullet 1: shows rate stress data for BTL/HMO/SA/BRRR/SOCIAL, occupancy risk text for R2R, cost overrun risk for FLIP
+Risk Factors bullet 2: void bullet completely absent for R2R and FLIP
+Risk Factors bullet 3: landlord agreement risk for R2R, resale risk for FLIP, tenure language for all others
+Key Assumptions: LTT row absent for R2R
+npx tsc --noEmit passes with zero errors

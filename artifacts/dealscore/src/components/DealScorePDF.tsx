@@ -2129,6 +2129,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Risk Factors</Text>
             <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
             <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, paddingVertical: 6, paddingHorizontal: 8 }}>
+              {/* Bullet 1: Rate risk — strategy-aware */}
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
                 <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
                 <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
@@ -2136,21 +2137,35 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                     ? (props.stressTest.rateUpCashFlow > 0
                         ? `Rate risk — at the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} and remains positive.`
                         : `Rate risk — at the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))}. Monitor rate movements carefully.`)
-                    : 'Rate sensitivity: stress test not available for this strategy.'}
+                    : props.dealType === 'R2R'
+                      ? `Income risk — monthly profit depends on maintaining ${props.r2rInputs.occupancyRate}% occupancy across ${props.r2rInputs.rooms} rooms. A drop to ${Math.round(props.r2rInputs.occupancyRate * 0.85)}% occupancy reduces gross income by ${fc(props.r2rResults.grossMonthlyIncome * 0.15)}/mo.`
+                      : props.dealType === 'FLIP'
+                        ? `Cost overrun risk — project budgeted at ${fc(props.flipResults.totalCost)} over ${props.flipInputs.projectLengthMonths} months. A 10% cost overrun reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - props.flipResults.totalCost * 0.1)}.`
+                        : 'Rate sensitivity: stress test not available for this strategy.'}
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
-                <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
-                <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
-                  {`Void risk — a ${fdVoidPct}% void allowance has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
-                </Text>
-              </View>
+
+              {/* Bullet 2: Void/occupancy risk — suppressed for R2R and FLIP */}
+              {props.dealType !== 'R2R' && props.dealType !== 'FLIP' && (
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+                  <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+                  <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+                    {`Void risk — a ${fdVoidPct}% void allowance has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
+                  </Text>
+                </View>
+              )}
+
+              {/* Bullet 3: Tenure/lease risk — strategy-aware */}
               <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                 <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
                 <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
-                  {props.tenure === 'Leasehold'
-                    ? 'Tenure risk — leasehold property. Review lease length, service charge, and ground rent terms carefully before proceeding.'
-                    : 'Tenure — freehold. No lease expiry, service charge, or escalating ground rent risk.'}
+                  {props.dealType === 'R2R'
+                    ? `Landlord agreement risk — income depends on the lease agreement with the landlord. Ensure the agreement term, break clauses, and permitted subletting are clearly documented.`
+                    : props.dealType === 'FLIP'
+                      ? `Resale risk — target GDV of ${fc(props.flipInputs.expectedSalePrice)} is an estimate. Market conditions at point of sale may affect achievable price and selling timeline.`
+                      : props.tenure === 'Leasehold'
+                        ? 'Tenure risk — leasehold property. Review lease length, service charge, and ground rent terms carefully before proceeding.'
+                        : 'Tenure — freehold. No lease expiry, service charge, or escalating ground rent risk.'}
                 </Text>
               </View>
             </View>
@@ -2186,7 +2201,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                     <Text style={{ fontSize: 8, color: tintText }}>{rentLabel}</Text>
                     <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{rentValue}</Text>
                   </View>
-                  {props.taxLabel ? (
+                  {props.taxLabel && props.dealType !== 'R2R' ? (
                     <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                       <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
                       <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
