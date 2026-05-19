@@ -1,0 +1,56 @@
+You are completing the DealScorePDFProPlus build. The component src/components/DealScorePDFProPlus.tsx is fully written. Your task in this prompt is to wire it up in Home.tsx and verify everything compiles.
+
+Do NOT modify src/components/DealScorePDF.tsx at any point.
+Do NOT modify DealScorePDFProPlus.tsx unless fixing a TypeScript error found during verification.
+
+────────────────────────────────────────
+STEP 1 — READ Home.tsx IN FULL
+────────────────────────────────────────
+
+Read src/components/Home.tsx (or wherever the PDF generation logic lives) in full before making any changes.
+
+────────────────────────────────────────
+STEP 2 — IMPORT DealScorePDFProPlus
+────────────────────────────────────────
+
+Add this import at the top of Home.tsx alongside the existing DealScorePDF import:
+
+  import DealScorePDFProPlus from '@/components/DealScorePDFProPlus';
+
+────────────────────────────────────────
+STEP 3 — SWITCH PRO PLUS TIER TO USE THE LANDSCAPE COMPONENT
+────────────────────────────────────────
+
+Find the PDF generation logic in Home.tsx. It will be in a pdf-lib or @react-pdf/renderer render call, likely inside a button handler or useMemo.
+
+The existing code renders <DealScorePDF {...pdfProps} /> for all tiers.
+
+Change it so that:
+  - When pdfProps.tierOverride === 'pro_plus', render <DealScorePDFProPlus {...pdfProps} />
+  - For all other tiers (free, pro), continue rendering <DealScorePDF {...pdfProps} />
+
+Do not change any pdfProps values. DealScorePDFProPlus uses the identical props interface — no prop changes are needed.
+
+The change should look like:
+
+  const PdfComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
+
+  Then use <PdfComponent {...pdfProps} /> wherever the component was previously used.
+
+────────────────────────────────────────
+STEP 4 — VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit. Fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx is untouched — run: git diff src/components/DealScorePDF.tsx and confirm no changes.
+3. Confirm DealScorePDFProPlus.tsx exists as a new file.
+4. Confirm Home.tsx now imports and conditionally uses DealScorePDFProPlus.
+
+────────────────────────────────────────
+STEP 5 — COMMIT AND PUSH
+────────────────────────────────────────
+
+Run:
+  git add -A && git commit -m "Add landscape Pro Plus PDF pack (DealScorePDFProPlus.tsx)" && git push origin stage-6
+
+Do NOT merge to main. All work stays on stage-6.

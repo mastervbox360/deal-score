@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Home, TrendingUp, Calculator, Download, ChevronDown, RotateCcw, Trash2, Plus, Sparkles, X } from 'lucide-react';
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import DealScorePDF, { type DealScorePDFProps } from '@/components/DealScorePDF';
+import DealScorePDFProPlus from '@/components/DealScorePDFProPlus';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,10 +48,11 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
   fileName: string;
 }) {
   const textColour = getContrastText(pdfProps.brandColour);
+  const PdfComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
   return (
     <PDFDownloadLink
       key={pdfProps.propertyAddress + '||' + pdfProps.coverStyle + '||' + pdfProps.currentScore + '||' + pdfProps.riskFlags.length}
-      document={<DealScorePDF {...pdfProps} />}
+      document={<PdfComponent {...pdfProps} />}
       fileName={fileName}
       style={{ flex: 1, textDecoration: 'none' }}
       data-testid="button-download-pdf"
@@ -887,7 +889,8 @@ export default function HomePage() {
     setIosGenerating(true);
     try {
       const { pdf } = await import('@react-pdf/renderer');
-      const blob = await pdf(<DealScorePDF {...pdfProps} />).toBlob();
+      const IosComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
+      const blob = await pdf(<IosComponent {...pdfProps} />).toBlob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       setTimeout(() => URL.revokeObjectURL(url), 10000);
@@ -3090,9 +3093,14 @@ export default function HomePage() {
           </div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <PDFViewer width="100%" height="100%" showToolbar={false}>
-            <DealScorePDF {...pdfProps} />
-          </PDFViewer>
+          {(() => {
+            const ViewerComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
+            return (
+              <PDFViewer width="100%" height="100%" showToolbar={false}>
+                <ViewerComponent {...pdfProps} />
+              </PDFViewer>
+            );
+          })()}
         </div>
       </div>,
       document.body
