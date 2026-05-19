@@ -1,0 +1,183 @@
+You are continuing to build src/components/DealScorePDFProPlus.tsx. Pages 1–6 are already written. Do NOT rewrite or replace them — append pages 7 onwards to the existing Document.
+
+Do NOT modify src/components/DealScorePDF.tsx at any point.
+
+All pages use size="A4" orientation="landscape" with the same base style already established in this file.
+All colour variables (structureColour, panelBg, tintBg, tintBorder, tintText, structureBg, scoreColor) are already derived at the top of the component — use them as-is.
+All derived values (fdGrossRent, fdVoidPct, fdMgmtPct, stBaseRate, stBreakEvenRent, stRentHeadroom, stStressCF, stStressRate, stLoanAmount, stEffectiveRent, stTotalOpCosts, activeResults, hasComparables, hasLinks, hasMarketEvidence, hasLegal, hasRationale, strategyNotesText, propertyDescText, vendorSituationText, photoPageSrcs, preparedLine, formatCompPrice) are already declared — use them directly.
+
+────────────────────────────────────────
+PAGE 7 — DEAL RATIONALE
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+Rendered if hasRationale (always true).
+SH title "Deal Rationale"
+
+Two-column layout:
+
+Left column:
+  Why This Strategy — if strategyNotesText exists:
+    fontSize 8.5, Helvetica-Bold, color structureColour, uppercase, letterSpacing 0.5, marginBottom 2
+    1pt rule (structureColour), marginBottom 6
+    Text: fontSize 8.5, color '#444444', lineHeight 1.55
+
+  Property Description — if propertyDescText exists:
+    Same header/rule/text pattern, marginTop 10
+
+  Refurb Scope — if props.refurbScope?.trim() exists:
+    Same header/rule/text pattern, marginTop 10
+
+  Vendor Situation — if vendorSituationText exists AND dealType !== 'R2R':
+    Same header/rule/text pattern, marginTop 10
+
+Right column:
+  Investment Timeline — if props.timelineStages exists and filteredStages.length >= 2:
+    Copy the exact timeline JSX from DealScorePDF.tsx — proportional concentric ring nodes with duration labels above and stage name labels below.
+    fontSize 8.5, Helvetica-Bold, color structureColour header. 1pt rule. Then the three-row timeline (duration labels / nodes+line / stage names).
+
+  Risk Factors bullet panel — wrap={false}, marginTop 14 (or marginBottom 10 if timeline renders above):
+    fontSize 8.5, Helvetica-Bold, color structureColour header. 1pt rule.
+    backgroundColor '#F8FAFC', borderRadius 3, paddingVertical 6, paddingHorizontal 8
+    Three bullets — copy exact strategy-aware logic from DealScorePDF.tsx:
+      Bullet 1: rate/income/cost overrun risk (strategy-aware — uses stressTest, R2R occupancy, FLIP cost overrun)
+      Bullet 2: void risk — suppressed for R2R and FLIP
+      Bullet 3: tenure/landlord agreement/resale risk (strategy-aware)
+    Bullet marker: 4×4 View, backgroundColor structureColour, marginTop 3, marginRight 6
+    Text: fontSize 8.5, color '#1E2B3C', flex 1, lineHeight 1.45
+
+  Key Assumptions tint panel — wrap={false}, marginTop 10:
+    Copy exact JSX from DealScorePDF.tsx:
+      backgroundColor tintBg, borderRadius 4, paddingVertical 7, paddingHorizontal 10, borderTop '2pt solid structureColour'
+      Label "Key Assumptions" — fontSize 7.5, color tintText, uppercase, letterSpacing 0.5, marginBottom 8
+      Two-column grid of assumption rows — same strategy-gating:
+        Deposit row: suppressed for R2R and FLIP
+        Mortgage Rate row: suppressed for R2R and FLIP
+        Rent/income label row: strategy-aware label and value
+        Tax label row: suppressed for R2R
+
+────────────────────────────────────────
+PAGE 8 — MARKET EVIDENCE
+Only rendered if hasMarketEvidence.
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+SH title "Market Evidence"
+
+Two-column layout:
+
+Left column:
+  Comparable Properties table — if hasComparables:
+    Copy exact JSX from DealScorePDF.tsx — notePanel wrapper, structureColour header row with 1.5pt bottom border, columns: Address / Beds-Type / Date Sold / Price, alternating row backgrounds.
+
+  Market Commentary — copy exact logic from DealScorePDF.tsx:
+    Requires validPrices.length >= 2 AND dealType !== 'R2R'
+    Compute avgPrice, priceDiffPct, render commentary sentence in fontSize 8, Helvetica-Oblique, color '#64748B', marginTop 8.
+
+Right column:
+  Area Yield Context — if props.areaAverageYield > 0 AND dealType !== 'R2R' AND dealType !== 'FLIP':
+    Copy exact JSX from DealScorePDF.tsx — three hero cards (Area Average / This Deal / Premium-Discount with diffColor semantic border) + bar visualisation panel.
+
+  Property Listing links — if hasLinks:
+    Copy exact JSX from DealScorePDF.tsx — notePanel, structureColour label, Link components with getReadableBrandColour(accent) text colour.
+
+────────────────────────────────────────
+PHOTO PAGES
+────────────────────────────────────────
+
+2-up grid layout — 2 photos per row, up to 6 photos per page.
+Use photoPageSrcs array. Hero photo first.
+
+Chunk photoPageSrcs into groups of 6. For each group render one Page.
+
+Inside each page:
+  Footer included.
+  SH title: first group → "Property Photos", subsequent groups → "Property Photos (continued)"
+  Photo grid: View style flexDirection 'row' flexWrap 'wrap', gap 6
+  Each photo: View style width '48%', height 200, then Image src style width '100%' height '100%' objectFit 'cover' borderRadius 3
+
+────────────────────────────────────────
+GLOSSARY PAGE (second to last)
+────────────────────────────────────────
+
+Always rendered. Page size A4 landscape. Footer included.
+SH title "Glossary"
+
+Two-column layout with a 0.5pt vertical rule between columns:
+  <View style={{ flexDirection: 'row', gap: 0 }}>
+    <View style={{ flex: 1, paddingRight: 16 }}> {/* left column */} </View>
+    <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
+    <View style={{ flex: 1, paddingLeft: 16 }}> {/* right column */} </View>
+  </View>
+
+Category section pattern — reuse for all 4 sections:
+  Category label: fontSize 7.5, Helvetica-Bold, color structureColour, textTransform 'uppercase', letterSpacing 0.8, paddingBottom 3, borderBottom '0.5pt solid structureColour', marginBottom 6
+  Each term:
+    Term name: fontSize 9, Helvetica-Bold, color '#1E2B3C', marginBottom 1
+    Definition: fontSize 8, color '#6B7280', lineHeight 1.45, marginBottom 1
+    Formula (where applicable): fontSize 8, Helvetica-Oblique, color '#3B82F6', marginBottom 6
+
+Left column:
+
+  Section 1 — "Yield & Return":
+    Gross Yield — Annual rent divided by purchase price. Formula: (Annual Rent / Purchase Price) × 100
+    Net Yield — Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).
+    Cash-on-Cash ROI — Annual cash flow divided by total cash invested. Includes mortgage payment. Formula: (Annual Cash Flow / Cash Invested) × 100
+    Payback Period — Years to recover invested capital from cash flow. Formula: Cash Invested / Annual Cash Flow
+    Equity on Day One — Immediate equity if property purchased below market value. Formula: Market Value − Purchase Price
+    BMV — Below Market Value. The discount between purchase price and estimated market value.
+
+  Section 2 — "Cash Flow & Expenses" (marginTop 12):
+    Gross Rent — Total rental income before any deductions or void allowance.
+    Void Allowance — Estimated cost of vacancy — periods with no rental income.
+    Effective Rent — Gross rent after void allowance deducted. Formula: Gross Rent × (1 − Void %)
+    Net Operating Income (NOI) — Effective rent minus all operating costs, excluding mortgage.
+    Net Cash Flow — Monthly surplus after all costs including mortgage. Formula: NOI − Mortgage Payment
+    Break-Even Rent — Minimum rent to cover all costs at the current mortgage rate.
+    Rent Headroom — Buffer between contracted rent and break-even rent. Formula: Gross Rent − Break-Even Rent
+
+Right column:
+
+  Section 3 — "Stress Testing & Resilience":
+    Break-Even Rent — The rent level at which monthly cash flow reaches exactly zero.
+    Rent Headroom — How far rent can fall before the deal becomes cash-flow negative.
+    Stress Test — Analysis of deal performance under higher mortgage rates and lower rent scenarios.
+    Break-Even Rate — The mortgage rate at which monthly cash flow reaches zero.
+    Sensitivity Analysis — Impact on returns of a 10% rent reduction and a 1.5% rate increase applied independently.
+
+  Section 4 — "Mortgage, Tax & Structure" (marginTop 12):
+    Interest-Only Mortgage — Monthly payment covers interest only. Capital balance remains unchanged throughout the term.
+    LTV — Loan to Value. Mortgage amount expressed as a percentage of property value. Formula: Mortgage / Property Value × 100
+    LTT / SDLT — Land Transaction Tax (Wales) or Stamp Duty Land Tax (England & NI). Government purchase tax on property transactions.
+    Cash Invested — Total capital deployed into the deal. Formula: Deposit + Tax + Refurb + Other Costs
+    Deal Score — Weighted composite score from 1 to 10 across six dimensions of deal quality.
+    Sourcing Fee — Fee payable to the deal sourcer on legal completion.
+    Cash-on-Cash ROI — The annual return on actual cash invested, after all costs including mortgage.
+
+────────────────────────────────────────
+LEGAL PAGE (last)
+Only rendered if hasLegal.
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+SH title "Legal & Disclosure"
+
+Two-column layout:
+
+Left column:
+  Next Steps panel — if props.preparedBy.name or props.preparedBy.email:
+    Copy exact JSX from DealScorePDF.tsx — notePanel style, structureColour label, contact rows (Email, Phone, Company, Offer Deadline, Viewing Available), same conditional rendering per field.
+
+Right column:
+  Sourcing Fee panel — if props.sourcingFee > 0:
+    Copy exact JSX from DealScorePDF.tsx — notePanel style, fc(sourcingFee) in fontSize 13 Helvetica-Bold, "Payable on completion.", sourcingFeeDisclaimer if non-empty.
+
+────────────────────────────────────────
+AFTER WRITING ALL PAGES
+────────────────────────────────────────
+
+1. Run tsc --noEmit and fix any TypeScript errors before stopping.
+2. Confirm pages 1–6 are untouched.
+3. Confirm DealScorePDF.tsx is untouched.
+4. Do not wire up Home.tsx yet — that is the next prompt.
+5. Do not push to git yet.

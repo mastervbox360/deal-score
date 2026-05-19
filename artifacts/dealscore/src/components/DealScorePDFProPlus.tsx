@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, Image, Svg, Rect, Circle, Line, Polyline } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, Link, Svg, Rect, Circle, Line, Polyline } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import type { DealScorePDFProps } from './DealScorePDF';
 
@@ -572,6 +572,16 @@ function generateWhatThisMeans(props: DealScorePDFProps): string {
   return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy.`;
 }
 
+// ── SVG Text typed alias (fontSize + fill direct props, not via style) ────────
+const SvgText = Text as React.ComponentType<{
+  x: number | string;
+  y: number | string;
+  fontSize?: number;
+  fill?: string;
+  textAnchor?: 'start' | 'middle' | 'end';
+  children?: React.ReactNode;
+}>;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -732,6 +742,44 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
   const structureBg = '#F8FAFC';
   const verdictSummary = generateVerdictSummary(props);
   const whatThisMeans = generateWhatThisMeans(props);
+
+  // ── Rationale / Market / Photo / Legal derived values ─────────────────────
+  const strategyNotesText = props.strategyNotes.trim();
+  const propertyDescText = props.propertyDescription.trim();
+  const vendorSituationText = props.vendorSituation.trim();
+  const hasRationale = true;
+  const hasComparables = props.comparables.some(r => r.address.trim());
+  const hasLinks = props.listingLinks.some(r => r.url.trim());
+  const hasMarketEvidence = hasComparables || hasLinks;
+  const hasLegal = !!(props.sourcingFee > 0 || props.preparedBy.name || props.preparedBy.email);
+
+  const formatCompPrice = (price: string): string => {
+    const trimmed = price.trim();
+    if (!trimmed) return '';
+    const cleaned = trimmed.replace(/[£,\s]/g, '');
+    const num = parseFloat(cleaned);
+    if (!isNaN(num)) return '\u00A3' + Math.round(num).toLocaleString('en-GB');
+    return trimmed.startsWith('\u00A3') ? trimmed : '\u00A3' + trimmed;
+  };
+
+  const gridPhotos = validPhotos.filter((_, i) => i !== heroIdx);
+  const validGridPhotos = gridPhotos.filter((s) => s.startsWith('data:image/'));
+  const photoPageSrcs: string[] = [
+    ...(heroPhoto ? [heroPhoto] : []),
+    ...validGridPhotos,
+  ].filter((src): src is string => Boolean(src) && src.startsWith('data:image/'));
+
+  const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+    return chunks;
+  };
+  const photoChunks = chunkArray(photoPageSrcs, 6);
+
+  // ── Shared panel styles ────────────────────────────────────────────────────
+  const notePanel = { backgroundColor: '#f5f7fa', borderRadius: 3, padding: 10, marginBottom: 8 };
+  const notePanelLabel = { fontSize: 9, fontFamily: 'Helvetica-Bold' as const, marginBottom: 4 };
+  const notePanelText = { fontSize: 9, color: '#444444', lineHeight: 1.5 };
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -1343,6 +1391,965 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
         </View>
       </Page>
+
+
+      {/* ── Page 4: Deal Score Verdict ──────────────────────────────────────── */}
+      <Page size="A4" orientation="landscape" style={landscapePage}>
+        <PageHeader />
+        <Footer />
+        <SH title="Deal Score Verdict" />
+
+        <View style={{ flexDirection: 'row', gap: 24, flex: 1 }}>
+
+          {/* Left — Score badge + dims table + verdict sentence */}
+          <View style={{ flex: 1 }}>
+
+            {/* Verdict badge */}
+            <View style={{ backgroundColor: scoreColor, borderRadius: 6, paddingVertical: 14, paddingHorizontal: 18, marginBottom: 14, alignItems: 'center' }}>
+              <Text style={{ fontSize: 38, fontFamily: 'Helvetica-Bold', color: '#ffffff', lineHeight: 1 }}>
+                {dealScoreOverall.toFixed(1)}
+              </Text>
+              <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 }}>
+                {VERDICT_LABELS[props.currentScore] ?? props.currentScore}
+              </Text>
+            </View>
+
+            {/* Score dimensions table */}
+            <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: structureColour, paddingVertical: 4, paddingHorizontal: 8 }}>
+                <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>DIMENSION</Text>
+                <Text style={{ width: 40, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>SCORE</Text>
+                <Text style={{ width: 44, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>WEIGHT</Text>
+                <Text style={{ width: 50, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>CONTRIB</Text>
+              </View>
+              {dealScoreDims.map((d, i) => (
+                <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: i % 2 === 0 ? '#ffffff' : '#F9FAFB', alignItems: 'center' }}>
+                  <Text style={{ flex: 1, fontSize: 8, color: '#555555' }}>{d.name}</Text>
+                  <View style={{ width: 40, alignItems: 'flex-end' }}>
+                    <View style={{ backgroundColor: d.score >= 7 ? '#D1FAE5' : d.score >= 4 ? '#FEF9C3' : '#FEE2E2', borderRadius: 2, paddingHorizontal: 4, paddingVertical: 1 }}>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: d.score >= 7 ? '#166534' : d.score >= 4 ? '#854D0E' : '#991B1B' }}>{d.score.toFixed(0)}</Text>
+                    </View>
+                  </View>
+                  <Text style={{ width: 44, fontSize: 8, color: '#6B7280', textAlign: 'right' }}>{`${(d.weight * 100).toFixed(0)}%`}</Text>
+                  <Text style={{ width: 50, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>{(d.score * d.weight).toFixed(2)}</Text>
+                </View>
+              ))}
+              <View style={{ flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 8, backgroundColor: '#F0F4FF', borderTop: `1pt solid ${structureColour}` }}>
+                <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Overall DealScore</Text>
+                <Text style={{ width: 40, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: scoreColor, textAlign: 'right' }}>{dealScoreOverall.toFixed(1)}</Text>
+                <Text style={{ width: 44, fontSize: 8, color: '#9ca3af', textAlign: 'right' }}>/ 10</Text>
+                <Text style={{ width: 50 }} />
+              </View>
+            </View>
+
+            {/* Verdict summary sentence */}
+            {verdictSummary ? (
+              <View style={{ backgroundColor: structureBg, borderLeft: `2pt solid ${scoreColor}`, borderRadius: 3, paddingVertical: 8, paddingHorizontal: 10 }}>
+                <Text style={{ fontSize: 8.5, color: '#1E2B3C', lineHeight: 1.5 }}>{verdictSummary}</Text>
+              </View>
+            ) : null}
+
+          </View>
+
+          {/* Right — What This Means + risk flags + callout metric cards */}
+          <View style={{ flex: 1 }}>
+
+            {/* What This Means */}
+            {whatThisMeans ? (
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>What This Means</Text>
+                <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 8 }} />
+                <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{whatThisMeans}</Text>
+              </View>
+            ) : null}
+
+            {/* Risk flags */}
+            {props.riskFlags.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                {props.riskFlags.map((flag, i) => (
+                  <View key={i} style={{ backgroundColor: '#fef3c7', border: '0.5pt solid #fbbf24', borderRadius: 3, paddingVertical: 5, paddingHorizontal: 6, marginBottom: 3 }}>
+                    <Text style={{ fontSize: 7.5, color: '#92400e', lineHeight: 1.4 }}>
+                      {'⚠ ' + flag.replace(/[^\u0020-\u00FF]/g, '').trim()}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Callout metric cards */}
+            <View style={{ gap: 8 }}>
+              {calloutMetrics3.map((m, i) => (
+                <View key={i} style={{ backgroundColor: '#ffffff', border: `0.5pt solid #E5E7EB`, borderLeft: `3pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14 }}>
+                  <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>{m.label}</Text>
+                  <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{m.value}</Text>
+                </View>
+              ))}
+            </View>
+
+          </View>
+        </View>
+      </Page>
+
+      {/* ── Page 5: Financial Detail + Income Waterfall ───────────────────────── */}
+      {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'BRRR' || props.dealType === 'SOCIAL') && (
+        <Page size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title="Financial Detail" />
+
+          <View style={{ flexDirection: 'row', gap: 24, flex: 1 }}>
+
+            {/* Left — P&L waterfall table + sensitivity */}
+            <View style={{ flex: 1 }}>
+
+              {/* P&L table */}
+              <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', backgroundColor: structureColour, paddingVertical: 4, paddingHorizontal: 8 }}>
+                  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>P&L BREAKDOWN</Text>
+                  <Text style={{ width: 70, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>MONTHLY</Text>
+                </View>
+                {[
+                  { label: 'Gross Rent', value: fdGrossRent, bold: false, indent: 0 },
+                  { label: `  Void Allowance (${fdVoidPct}%)`, value: -(fdGrossRent * fdVoidPct / 100), bold: false, indent: 1 },
+                  { label: 'Effective Rent', value: fdGrossRent * (1 - fdVoidPct / 100), bold: true, indent: 0 },
+                  { label: `  Management Fee (${fdMgmtPct}%)`, value: -(fdGrossRent * (1 - fdVoidPct / 100) * fdMgmtPct / 100), bold: false, indent: 1 },
+                  { label: '  Maintenance Reserve', value: -fdMaintenance, bold: false, indent: 1 },
+                  { label: '  Buildings Insurance', value: -fdInsurance, bold: false, indent: 1 },
+                  ...(fdSc > 0 ? [{ label: '  Service Charge', value: -fdSc, bold: false, indent: 1 }] : []),
+                  ...(fdGrMonthly > 0 ? [{ label: '  Ground Rent', value: -fdGrMonthly, bold: false, indent: 1 }] : []),
+                  { label: 'Net Operating Income', value: fdGrossRent * (1 - fdVoidPct / 100) - fdGrossRent * (1 - fdVoidPct / 100) * fdMgmtPct / 100 - fdMaintenance - fdInsurance - fdSc - fdGrMonthly, bold: true, indent: 0 },
+                  { label: '  Mortgage Payment', value: -fdMortgagePayment, bold: false, indent: 1 },
+                  { label: 'Net Cash Flow', value: activeResults.monthlyCashFlow, bold: true, indent: 0 },
+                ].map(({ label, value, bold, indent }, i) => (
+                  <View key={i} style={{ flexDirection: 'row', paddingVertical: 3.5, paddingHorizontal: 8, backgroundColor: bold ? '#F0F4FF' : i % 2 === 0 ? '#ffffff' : '#F9FAFB', borderTop: bold ? `0.5pt solid ${structureColour}` : undefined }}>
+                    <Text style={{ flex: 1, fontSize: 8, color: bold ? structureColour : indent ? '#6B7280' : '#333333', fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica' }}>{label}</Text>
+                    <Text style={{ width: 70, fontSize: 8, fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica', color: value < 0 ? '#DC2626' : bold ? structureColour : '#333333', textAlign: 'right' }}>{fc(value)}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Payback period callout */}
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Payback Period</Text>
+                  <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fdPaybackDisplay}</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Annual Cash Flow</Text>
+                  <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: activeResults.monthlyCashFlow >= 0 ? '#166534' : '#991B1B' }}>{fc(activeResults.monthlyCashFlow * 12)}</Text>
+                </View>
+              </View>
+
+              {/* Sensitivity Analysis */}
+              {props.stressTest && (
+                <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden' }}>
+                  <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
+                    <Text style={{ flex: 1.8, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour }}>SENSITIVITY</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#ffffff', borderBottom: '0.5pt solid #E5E7EB' }}>
+                    <Text style={{ flex: 1.8, fontSize: 8, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
+                    {([props.stressTest.baseCashFlow, props.stressTest.rentDownCashFlow, props.stressTest.rateUpCashFlow] as number[]).map((v, i) => (
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{fc(v)}</Text>
+                    ))}
+                  </View>
+                  <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#F9FAFB' }}>
+                    <Text style={{ flex: 1.8, fontSize: 8, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
+                    {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{isFinite(v) ? fp(v) : '\u221E'}</Text>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+            </View>
+
+            {/* Right — Income Waterfall SVG + key metric cards */}
+            <View style={{ flex: 1 }}>
+
+              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Income Waterfall</Text>
+              <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 8 }} />
+
+              {(() => {
+                const grossRent = fdGrossRent;
+                if (grossRent <= 0) return <Text style={{ fontSize: 8, color: '#9ca3af' }}>Chart not available.</Text>;
+                const effectiveRent = grossRent * (1 - fdVoidPct / 100);
+                const voidAmt = grossRent * fdVoidPct / 100;
+                const mgmtFee = effectiveRent * fdMgmtPct / 100;
+                const totalOpCosts = mgmtFee + fdMaintenance + fdInsurance + fdSc + fdGrMonthly;
+                const noi = effectiveRent - totalOpCosts;
+                const netCF = activeResults.monthlyCashFlow;
+                const chartW = 270;
+                const leftM = 42;
+                const topM = 8;
+                const barMaxH = 155;
+                const barW = 26;
+                const gap = 7;
+                const yC = (v: number) => topM + barMaxH * (1 - Math.max(0, v) / grossRent);
+                const bars = [
+                  { label: 'Gross', value: grossRent, floor: 0, barH: barMaxH, color: '#2D7A4F' },
+                  { label: 'Void', value: voidAmt, floor: (effectiveRent / grossRent) * barMaxH, barH: (voidAmt / grossRent) * barMaxH, color: '#DC2626' },
+                  { label: 'Eff.Rent', value: effectiveRent, floor: 0, barH: (effectiveRent / grossRent) * barMaxH, color: '#1B3A6B' },
+                  { label: 'Costs', value: totalOpCosts, floor: Math.max(0, noi / grossRent) * barMaxH, barH: (totalOpCosts / grossRent) * barMaxH, color: '#DC2626' },
+                  { label: 'NOI', value: noi, floor: 0, barH: Math.max(0, (noi / grossRent) * barMaxH), color: '#2D7A4F' },
+                  { label: 'Mortgage', value: fdMortgagePayment, floor: Math.max(0, netCF / grossRent) * barMaxH, barH: (fdMortgagePayment / grossRent) * barMaxH, color: '#6B7280' },
+                  { label: 'Net CF', value: netCF, floor: 0, barH: Math.abs((netCF / grossRent) * barMaxH), color: netCF >= 0 ? '#2D7A4F' : '#DC2626' },
+                ];
+                const gridFracs = [0.25, 0.5, 0.75, 1.0];
+                return (
+                  <Svg width={chartW} height={195}>
+                    {gridFracs.map((frac, i) => {
+                      const gy = topM + barMaxH * (1 - frac);
+                      return <Line key={i} x1={leftM} y1={gy} x2={chartW} y2={gy} stroke="#E5E7EB" strokeWidth={0.5} />;
+                    })}
+                    {gridFracs.map((frac, i) => {
+                      const gy = topM + barMaxH * (1 - frac);
+                      return <SvgText key={i} x={leftM - 3} y={gy + 2.5} fontSize={5.5} fill="#9ca3af" textAnchor="end">{fc(grossRent * frac)}</SvgText>;
+                    })}
+                    {bars.map((bar, i) => (
+                      <Rect key={i} x={leftM + i * (barW + gap)} y={topM + bar.floor} width={barW} height={Math.max(0, bar.barH)} fill={bar.color} rx={1} />
+                    ))}
+                    {bars.map((bar, i) => {
+                      const bx = leftM + i * (barW + gap) + barW / 2;
+                      const by = Math.max(topM + 8, topM + bar.floor - 2);
+                      return <SvgText key={i} x={bx} y={by} fontSize={6} fill="#1E2B3C" textAnchor="middle">{fc(Math.abs(bar.value))}</SvgText>;
+                    })}
+                    {bars.map((bar, i) => (
+                      <SvgText key={i} x={leftM + i * (barW + gap) + barW / 2} y={topM + barMaxH + 12} fontSize={6} fill="#6B7280" textAnchor="middle">{bar.label}</SvgText>
+                    ))}
+                  </Svg>
+                );
+              })()}
+
+              {/* Key metric cards 2×2 */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                {([
+                  { label: 'Gross Rent / mo', value: fc(fdGrossRent) },
+                  { label: 'Mortgage / mo', value: fc(fdMortgagePayment) },
+                  { label: 'Payback Period', value: fdPaybackDisplay },
+                  { label: 'Net CF / mo', value: fc(activeResults.monthlyCashFlow) },
+                ] as { label: string; value: string }[]).map((m, i) => (
+                  <View key={i} style={{ width: '47%', backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
+                    <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>{m.label}</Text>
+                    <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{m.value}</Text>
+                  </View>
+                ))}
+              </View>
+
+            </View>
+          </View>
+        </Page>
+      )}
+
+      {/* ── Page 6: Stress Testing ───────────────────────────────────────────── */}
+      {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'BRRR' || props.dealType === 'SOCIAL') && (
+        <Page size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title="Stress Testing" />
+
+          <View style={{ flexDirection: 'row', gap: 24, flex: 1 }}>
+
+            {/* Left — Scenario table + rent buffer cards + what this means */}
+            <View style={{ flex: 1 }}>
+
+              {/* 3-scenario stress table */}
+              <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: structureColour }}>
+                  <Text style={{ flex: 1.5, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>METRIC</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>OPTIMISTIC</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>BASE CASE</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>STRESS</Text>
+                </View>
+                <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 8, backgroundColor: '#F8FAFC', borderBottom: '0.5pt solid #E5E7EB' }}>
+                  <Text style={{ flex: 1.5, fontSize: 7.5, color: '#6B7280' }}>Rate</Text>
+                  {[stOpt, stBase, stStress].map((s, i) => (
+                    <Text key={i} style={{ flex: 1, fontSize: 7.5, color: '#1E2B3C', textAlign: 'right' }}>{s.rate.toFixed(2)}%</Text>
+                  ))}
+                </View>
+                {[
+                  { label: 'Mortgage / mo', fn: (s: typeof stBase) => fc(s.mortgage) },
+                  { label: 'Cash Flow / mo', fn: (s: typeof stBase) => fc(s.cf), colored: true },
+                  { label: 'Cash-on-Cash ROI', fn: (s: typeof stBase) => isFinite(s.roi) ? fp(s.roi) : 'N/A', colored: true },
+                  { label: 'Payback Period', fn: (s: typeof stBase) => stPaybackDisplay(s) },
+                ].map(({ label, fn, colored }, i) => (
+                  <View key={i} style={{ flexDirection: 'row', paddingVertical: 3.5, paddingHorizontal: 8, backgroundColor: i % 2 === 0 ? '#ffffff' : '#F9FAFB', borderBottom: i < 3 ? '0.5pt solid #E5E7EB' : undefined }}>
+                    <Text style={{ flex: 1.5, fontSize: 8, color: '#555555' }}>{label}</Text>
+                    {[stOpt, stBase, stStress].map((s, j) => {
+                      const val = fn(s);
+                      const isNeg = colored && s.cf < 0;
+                      return (
+                        <Text key={j} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: colored ? stCfColor(s.cf) : '#333333', textAlign: 'right' }}>{val}</Text>
+                      );
+                    })}
+                  </View>
+                ))}
+              </View>
+
+              {/* Rent buffer callout cards */}
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Break-Even Rent</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(stBreakEvenRent)}</Text>
+                  <Text style={{ fontSize: 7, color: '#9ca3af', marginTop: 1 }}>/mo minimum</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${stRentHeadroom >= 0 ? '#16A34A' : '#DC2626'}` }}>
+                  <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Rent Headroom</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: stRentHeadroom >= 0 ? '#166534' : '#991B1B' }}>{fc(stRentHeadroom)}</Text>
+                  <Text style={{ fontSize: 7, color: '#9ca3af', marginTop: 1 }}>buffer before loss</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${stStressCF >= 0 ? '#16A34A' : '#DC2626'}` }}>
+                  <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Stress CF ({stStressRate.toFixed(2)}%)</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: stCfColor(stStressCF) }}>{fc(stStressCF)}</Text>
+                  <Text style={{ fontSize: 7, color: '#9ca3af', marginTop: 1 }}>at peak rate</Text>
+                </View>
+              </View>
+
+              {/* What This Means tint panel */}
+              <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
+                <Text style={{ fontSize: 7.5, color: tintText, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Rate Resilience Summary</Text>
+                <Text style={{ fontSize: 8, color: '#1E2B3C', lineHeight: 1.5 }}>
+                  {stRentHeadroom > 0
+                    ? `At the base rate of ${stBaseRate.toFixed(2)}%, rent must fall by ${fc(stRentHeadroom)} (to ${fc(stBreakEvenRent)}/mo) before this deal turns cash-flow negative. At the stress rate of ${stStressRate.toFixed(2)}%, monthly cash flow ${stStressCF >= 0 ? `remains positive at ${fc(stStressCF)}` : `moves to ${fc(stStressCF)}`}.`
+                    : `At the base rate of ${stBaseRate.toFixed(2)}%, the break-even rent of ${fc(stBreakEvenRent)}/mo exceeds the contracted rent by ${fc(Math.abs(stRentHeadroom))}. Rate increases will widen this gap. Review costs or renegotiate terms.`}
+                </Text>
+              </View>
+
+            </View>
+
+            {/* Right — Cash Flow Rate Curve SVG */}
+            <View style={{ flex: 1 }}>
+
+              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Cash Flow vs. Mortgage Rate</Text>
+              <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 8 }} />
+
+              {(() => {
+                const chartW = 270;
+                const leftM = 50;
+                const topM = 10;
+                const chartH = 180;
+                const rateMin = Math.max(0.5, stBaseRate - 1.5);
+                const rateMax = stStressRate + 0.5;
+                const rateRange = rateMax - rateMin;
+                const points: { r: number; cf: number }[] = [];
+                for (let step = 0; step <= 20; step++) {
+                  const r = rateMin + (step / 20) * rateRange;
+                  const mortgage = stLoanAmount * (r / 100) / 12;
+                  const cf = stEffectiveRent - stTotalOpCosts - mortgage;
+                  points.push({ r, cf });
+                }
+                const cfMin = Math.min(...points.map(p => p.cf));
+                const cfMax = Math.max(...points.map(p => p.cf));
+                const cfRange = cfMax - cfMin || 1;
+                const px = (r: number) => leftM + ((r - rateMin) / rateRange) * (chartW - leftM - 8);
+                const py = (cf: number) => topM + (1 - (cf - cfMin) / cfRange) * chartH;
+                const zeroY = py(0);
+                const polylinePoints = points.map(p => `${px(p.r)},${py(p.cf)}`).join(' ');
+                const gridYVals = [cfMin, cfMin + cfRange * 0.5, cfMax];
+                return (
+                  <Svg width={chartW} height={chartH + topM + 30}>
+                    {/* horizontal grid */}
+                    {gridYVals.map((v, i) => (
+                      <Line key={i} x1={leftM} y1={py(v)} x2={chartW - 8} y2={py(v)} stroke="#E5E7EB" strokeWidth={0.5} />
+                    ))}
+                    {/* zero line */}
+                    {zeroY >= topM && zeroY <= topM + chartH && (
+                      <Line x1={leftM} y1={zeroY} x2={chartW - 8} y2={zeroY} stroke="#DC2626" strokeWidth={0.75} />
+                    )}
+                    {/* Y-axis labels */}
+                    {gridYVals.map((v, i) => (
+                      <SvgText key={i} x={leftM - 3} y={py(v) + 3} fontSize={5.5} fill="#9ca3af" textAnchor="end">{fc(v)}</SvgText>
+                    ))}
+                    {/* Curve */}
+                    <Polyline points={polylinePoints} stroke={structureColour} strokeWidth={1.5} fill="none" />
+                    {/* Scenario markers */}
+                    {[
+                      { s: stOpt, label: `${stOpt.rate.toFixed(1)}%`, color: '#16A34A' },
+                      { s: stBase, label: `${stBase.rate.toFixed(1)}%`, color: structureColour },
+                      { s: stStress, label: `${stStress.rate.toFixed(1)}%`, color: '#DC2626' },
+                    ].map((m, i) => (
+                      <React.Fragment key={i}>
+                        <Circle cx={px(m.s.rate)} cy={py(m.s.cf)} r={3} fill={m.color} />
+                        <SvgText x={px(m.s.rate)} y={py(m.s.cf) - 5} fontSize={6} fill={m.color} textAnchor="middle">{m.label}</SvgText>
+                      </React.Fragment>
+                    ))}
+                    {/* X-axis labels */}
+                    {[rateMin, stBaseRate, rateMax].map((r, i) => (
+                      <SvgText key={i} x={px(r)} y={topM + chartH + 14} fontSize={5.5} fill="#6B7280" textAnchor="middle">{r.toFixed(1)}%</SvgText>
+                    ))}
+                    <SvgText x={(leftM + chartW - 8) / 2} y={topM + chartH + 24} fontSize={6} fill="#9ca3af" textAnchor="middle">Mortgage Rate</SvgText>
+                  </Svg>
+                );
+              })()}
+
+              {/* Rate resilience metric cards */}
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                {[
+                  { label: 'Optimistic CF', value: fc(stOpt.cf), color: '#16A34A' },
+                  { label: 'Base CF', value: fc(stBase.cf), color: structureColour },
+                  { label: 'Stress CF', value: fc(stStress.cf), color: stStressCF >= 0 ? '#16A34A' : '#DC2626' },
+                ].map((m, i) => (
+                  <View key={i} style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${m.color}` }}>
+                    <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>{m.label}</Text>
+                    <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: m.color }}>{m.value}</Text>
+                  </View>
+                ))}
+              </View>
+
+            </View>
+          </View>
+        </Page>
+      )}
+
+      {/* ── Page 7: Deal Rationale ──────────────────────────────────────────── */}
+      {hasRationale && (
+        <Page size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title="Deal Rationale" />
+
+          <View style={{ flexDirection: 'row', gap: 24, flex: 1 }}>
+
+            {/* Left column */}
+            <View style={{ flex: 1 }}>
+
+              {strategyNotesText ? (
+                <View wrap={false} style={{ marginBottom: 10 }}>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Why This Strategy?</Text>
+                  <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
+                  <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{strategyNotesText}</Text>
+                </View>
+              ) : null}
+
+              {propertyDescText ? (
+                <View wrap={false} style={{ marginBottom: 10, marginTop: strategyNotesText ? 10 : 0 }}>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Property Description</Text>
+                  <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
+                  <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{propertyDescText}</Text>
+                </View>
+              ) : null}
+
+              {props.refurbScope?.trim() ? (
+                <View wrap={false} style={{ marginBottom: 10, marginTop: 10 }}>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Refurb Scope</Text>
+                  <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
+                  <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{props.refurbScope}</Text>
+                </View>
+              ) : null}
+
+              {vendorSituationText && props.dealType !== 'R2R' ? (
+                <View wrap={false} style={{ marginBottom: 10, marginTop: 10 }}>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Vendor Situation</Text>
+                  <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
+                  <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{vendorSituationText}</Text>
+                </View>
+              ) : null}
+
+            </View>
+
+            {/* Right column */}
+            <View style={{ flex: 1 }}>
+
+              {/* Investment Timeline */}
+              {(() => {
+                if (!props.timelineStages) return null;
+                const filteredStages = props.timelineStages.filter(s => s.label.trim());
+                if (filteredStages.length < 2) return null;
+                const durations: number[] = [];
+                for (let i = 0; i < filteredStages.length - 1; i++) {
+                  durations.push(Math.max(1, filteredStages[i + 1].month - filteredStages[i].month));
+                }
+                return (
+                  <View wrap={false} style={{ marginBottom: 6 }}>
+                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Investment Timeline</Text>
+                    <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 10 }} />
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, paddingHorizontal: 14 }}>
+                      <View style={{ width: 16, flexShrink: 0 }} />
+                      {durations.map((dur, i) => (
+                        <View key={i} style={{ flex: dur, alignItems: 'center' }}>
+                          <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>
+                            {dur === 1 ? '1 month' : `${dur} months`}
+                          </Text>
+                        </View>
+                      ))}
+                      <View style={{ width: 16, flexShrink: 0 }} />
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      {filteredStages.map((stage, i) => (
+                        <React.Fragment key={i}>
+                          <View style={{
+                            width: 20, height: 20, borderRadius: 10,
+                            border: `2pt solid ${structureColour}`,
+                            backgroundColor: '#ffffff',
+                            flexShrink: 0,
+                            alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: structureColour }} />
+                          </View>
+                          {i < filteredStages.length - 1 && (
+                            <View style={{ flex: durations[i], height: 1.5, backgroundColor: structureColour }} />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 6 }}>
+                      {filteredStages.map((stage, i) => {
+                        const isFirst = i === 0;
+                        const isLast = i === filteredStages.length - 1;
+                        return (
+                          <React.Fragment key={i}>
+                            <View style={{ width: 20, flexShrink: 0, alignItems: isFirst ? 'flex-start' : isLast ? 'flex-end' : 'center' }}>
+                              <Text style={{
+                                fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C',
+                                textAlign: isFirst ? 'left' : isLast ? 'right' : 'center',
+                                width: 60,
+                                marginLeft: isFirst ? 0 : isLast ? -40 : -20,
+                              }}>
+                                {stage.label}
+                              </Text>
+                            </View>
+                            {i < filteredStages.length - 1 && (
+                              <View style={{ flex: durations[i] }} />
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </View>
+                  </View>
+                );
+              })()}
+
+              {/* Risk Factors */}
+              <View wrap={false} style={{ marginBottom: 10, marginTop: 14 }}>
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Risk Factors</Text>
+                <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
+                <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, paddingVertical: 6, paddingHorizontal: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+                    <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+                    <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+                      {props.stressTest
+                        ? (props.stressTest.rateUpCashFlow > 0
+                            ? `Rate risk — at the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, monthly cash flow reduces to ${fc(props.stressTest.rateUpCashFlow)} and remains positive.`
+                            : `Rate risk — at the stress rate of ${(stBaseRate + 1.5).toFixed(2)}%, this deal moves to negative cash flow of ${fc(Math.abs(props.stressTest.rateUpCashFlow))}. Monitor rate movements carefully.`)
+                        : props.dealType === 'R2R'
+                          ? `Income risk — monthly profit depends on maintaining ${props.r2rInputs.occupancyRate}% occupancy across ${props.r2rInputs.rooms} rooms. A drop to ${Math.round(props.r2rInputs.occupancyRate * 0.85)}% occupancy reduces gross income by ${fc(props.r2rResults.grossMonthlyIncome * 0.15)}/mo.`
+                          : props.dealType === 'FLIP'
+                            ? `Cost overrun risk — project budgeted at ${fc(props.flipResults.totalCost)} over ${props.flipInputs.projectLengthMonths} months. A 10% cost overrun reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - props.flipResults.totalCost * 0.1)}.`
+                            : 'Rate sensitivity: stress test not available for this strategy.'}
+                    </Text>
+                  </View>
+
+                  {props.dealType !== 'R2R' && props.dealType !== 'FLIP' && (
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+                      <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+                      <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+                        {`Void risk — a ${fdVoidPct}% void allowance has been applied, equivalent to approximately ${Math.round(fdVoidPct / 100 * 52)} weeks vacant per year.`}
+                      </Text>
+                    </View>
+                  )}
+
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                    <View style={{ width: 4, height: 4, backgroundColor: structureColour, marginTop: 3, marginRight: 6 }} />
+                    <Text style={{ fontSize: 8.5, color: '#1E2B3C', flex: 1, lineHeight: 1.45 }}>
+                      {props.dealType === 'R2R'
+                        ? `Landlord agreement risk — income depends on the lease agreement with the landlord. Ensure the agreement term, break clauses, and permitted subletting are clearly documented.`
+                        : props.dealType === 'FLIP'
+                          ? `Resale risk — target GDV of ${fc(props.flipInputs.expectedSalePrice)} is an estimate. Market conditions at point of sale may affect achievable price and selling timeline.`
+                          : props.tenure === 'Leasehold'
+                            ? 'Tenure risk — leasehold property. Review lease length, service charge, and ground rent terms carefully before proceeding.'
+                            : 'Tenure — freehold. No lease expiry, service charge, or escalating ground rent risk.'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Key Assumptions */}
+              {(() => {
+                const [rentLabel, rentValue] = (() => {
+                  if (props.dealType === 'HMO') return ['Rent per room', fc(props.hmoInputs.rentPerRoom)];
+                  if (props.dealType === 'SA') return ['Nightly rate', fc(props.saInputs.nightlyRate)];
+                  if (props.dealType === 'FLIP') return ['Target GDV', fc(props.flipInputs.expectedSalePrice)];
+                  if (props.dealType === 'R2R') return ['Rent per room', fc(props.r2rInputs.rentPerRoom)];
+                  if (props.dealType === 'SOCIAL') return ['Lease income', fc(props.socialInputs.leaseIncomePerMonth)];
+                  return ['Monthly rent', fc((props.btlInputs?.monthlyRent ?? props.brrrInputs?.monthlyRent ?? 0))];
+                })();
+                return (
+                  <View wrap={false} style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 7, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}`, marginTop: 10 }}>
+                    <Text style={{ fontSize: 7.5, color: tintText, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Key Assumptions</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                      {props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
+                        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                          <Text style={{ fontSize: 8, color: tintText }}>Deposit</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.depositPercent}%`}</Text>
+                        </View>
+                      ) : null}
+                      {props.mortgageRate > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
+                        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                          <Text style={{ fontSize: 8, color: tintText }}>Mortgage Rate</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.mortgageRate}%`}</Text>
+                        </View>
+                      ) : null}
+                      <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                        <Text style={{ fontSize: 8, color: tintText }}>{rentLabel}</Text>
+                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{rentValue}</Text>
+                      </View>
+                      {props.taxLabel && props.dealType !== 'R2R' ? (
+                        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                          <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+                );
+              })()}
+
+            </View>
+          </View>
+        </Page>
+      )}
+
+      {/* ── Page 8: Market Evidence ──────────────────────────────────────────── */}
+      {hasMarketEvidence && (
+        <Page size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title="Market Evidence" />
+
+          <View style={{ flexDirection: 'row', gap: 24, flex: 1 }}>
+
+            {/* Left column */}
+            <View style={{ flex: 1 }}>
+
+              {hasComparables && (
+                <View style={{ ...notePanel, padding: 0, overflow: 'hidden' }}>
+                  <Text style={{ ...notePanelLabel, color: structureColour, padding: 10, paddingBottom: 6 }}>Comparable Properties</Text>
+                  <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+                    <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
+                    <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds / Type</Text>
+                    <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Date Sold</Text>
+                    <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Price</Text>
+                  </View>
+                  {props.comparables
+                    .filter(r => r.address.trim())
+                    .map((row, i) => (
+                      <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
+                        <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
+                        <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.bedsType}</Text>
+                        <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.dateSold}</Text>
+                        <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
+                      </View>
+                    ))}
+                </View>
+              )}
+
+              {(() => {
+                const validPrices = props.comparables
+                  .filter(r => r.address.trim())
+                  .map(r => parseFloat(r.price.replace(/[£,\s]/g, '')))
+                  .filter(n => !isNaN(n) && n > 0);
+                if (validPrices.length < 2) return null;
+                if (props.dealType === 'R2R') return null;
+                const avgPrice = validPrices.reduce((s, n) => s + n, 0) / validPrices.length;
+                const priceDiffPct = ((props.purchasePrice - avgPrice) / avgPrice) * 100;
+                let commentary: string;
+                if (priceDiffPct < -2) {
+                  commentary = `The purchase price of ${fc(props.purchasePrice)} sits ${Math.abs(priceDiffPct).toFixed(1)}% below the average of ${validPrices.length} recent comparable sales (avg ${fc(avgPrice)}), indicating a below-market acquisition with immediate equity on completion.`;
+                } else if (priceDiffPct > 2) {
+                  commentary = `The purchase price of ${fc(props.purchasePrice)} sits ${priceDiffPct.toFixed(1)}% above the average of ${validPrices.length} recent comparable sales (avg ${fc(avgPrice)}).`;
+                } else {
+                  commentary = `The purchase price of ${fc(props.purchasePrice)} is broadly in line with ${validPrices.length} recent comparable sales averaging ${fc(avgPrice)}, suggesting fair market pricing and a credible entry point.`;
+                }
+                return (
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#64748B', marginTop: 8 }}>
+                    {commentary}
+                  </Text>
+                );
+              })()}
+
+            </View>
+
+            {/* Right column */}
+            <View style={{ flex: 1 }}>
+
+              {props.areaAverageYield != null && props.areaAverageYield > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' && (() => {
+                const activeGrossYield = activeResults.grossYield;
+                const yieldDiff = activeGrossYield - props.areaAverageYield!;
+                const areaBar = Math.min(100, props.areaAverageYield! * 8);
+                const dealBar = Math.min(100, activeGrossYield * 8);
+                const diffColor = yieldDiff >= 0 ? '#16A34A' : '#DC2626';
+                return (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Area Yield Context</Text>
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                      <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: '2.5pt solid #9ca3af', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
+                        <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>Area Average Yield</Text>
+                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(props.areaAverageYield!)}</Text>
+                      </View>
+                      <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
+                        <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>This Deal (Gross)</Text>
+                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeGrossYield)}</Text>
+                      </View>
+                      <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${diffColor}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
+                        <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>Premium / Discount</Text>
+                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: diffColor }}>{`${yieldDiff >= 0 ? '+' : ''}${fp(Math.abs(yieldDiff))}`}</Text>
+                      </View>
+                    </View>
+                    <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, paddingVertical: 8, paddingHorizontal: 10 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                        <Text style={{ fontSize: 7.5, color: '#6B7280', width: 90 }}>Area average</Text>
+                        <View style={{ flex: 1, height: 6, backgroundColor: '#E5E7EB', borderRadius: 2 }}>
+                          <View style={{ width: `${areaBar}%`, height: 6, backgroundColor: '#9ca3af', borderRadius: 2 }} />
+                        </View>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', width: 36, textAlign: 'right' }}>{fp(props.areaAverageYield!)}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 7.5, color: '#6B7280', width: 90 }}>This deal</Text>
+                        <View style={{ flex: 1, height: 6, backgroundColor: '#E5E7EB', borderRadius: 2 }}>
+                          <View style={{ width: `${dealBar}%`, height: 6, backgroundColor: structureColour, borderRadius: 2 }} />
+                        </View>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', width: 36, textAlign: 'right' }}>{fp(activeGrossYield)}</Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })()}
+
+              {hasLinks && (
+                <View style={{ ...notePanel, marginTop: hasComparables ? 8 : 0 }}>
+                  <Text style={{ ...notePanelLabel, color: structureColour, marginBottom: 6 }}>
+                    {props.listingLinks.filter(r => r.url.trim()).length === 1 ? 'Property Listing' : 'Property Listings'}
+                  </Text>
+                  {props.listingLinks
+                    .filter(r => r.url.trim())
+                    .map((row, i, arr) => (
+                      <View key={i} style={{ marginBottom: i < arr.length - 1 ? 4 : 0 }}>
+                        <Link src={row.url.trim()} style={{ fontSize: 8.5, color: getReadableBrandColour(accent), textDecoration: 'underline' }}>
+                          {row.label.trim() ? 'View on ' + row.label.trim() + ' >' : 'View Listing >'}
+                        </Link>
+                      </View>
+                    ))}
+                </View>
+              )}
+
+            </View>
+          </View>
+        </Page>
+      )}
+
+      {/* ── Photo Pages — 2-up grid, 6 per page ─────────────────────────────── */}
+      {photoChunks.map((chunk, chunkIdx) => (
+        <Page key={`photos-${chunkIdx}`} size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title={chunkIdx === 0 ? 'Property Photos' : 'Property Photos (continued)'} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {chunk.map((src, i) => (
+              <View key={i} style={{ width: '48%', height: 200 }}>
+                <Image src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }} />
+              </View>
+            ))}
+          </View>
+        </Page>
+      ))}
+
+      {/* ── Glossary Page ────────────────────────────────────────────────────── */}
+      <Page size="A4" orientation="landscape" style={landscapePage}>
+        <PageHeader />
+        <Footer />
+        <SH title="Glossary" />
+
+        <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
+
+          {/* Left column */}
+          <View style={{ flex: 1, paddingRight: 16 }}>
+
+            {/* Section 1 — Yield & Return */}
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Yield & Return</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Gross Yield</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual rent divided by purchase price.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent / Purchase Price) × 100</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Net Yield</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Income − Operating Costs) / Purchase Price × 100</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Cash-on-Cash ROI</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual cash flow divided by total cash invested. Includes mortgage payment.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Cash Flow / Cash Invested) × 100</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Payback Period</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Years to recover invested capital from cash flow.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Cash Invested / Annual Cash Flow</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Equity on Day One</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Immediate equity if property purchased below market value.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Market Value − Purchase Price</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>BMV</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Below Market Value. The discount between purchase price and estimated market value.</Text>
+
+            {/* Section 2 — Cash Flow & Expenses */}
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Cash Flow & Expenses</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Gross Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Total rental income before any deductions or void allowance.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Void Allowance</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Estimated cost of vacancy — periods with no rental income.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Effective Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Gross rent after void allowance deducted.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Rent × (1 − Void %)</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Net Operating Income (NOI)</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Net Cash Flow</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly surplus after all costs including mortgage.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>NOI − Mortgage Payment</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Break-Even Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Minimum rent to cover all costs at the current mortgage rate.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Rent Headroom</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Buffer between contracted rent and break-even rent.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Rent − Break-Even Rent</Text>
+
+          </View>
+
+          {/* Vertical rule */}
+          <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
+
+          {/* Right column */}
+          <View style={{ flex: 1, paddingLeft: 16 }}>
+
+            {/* Section 3 — Stress Testing & Resilience */}
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Stress Testing & Resilience</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Break-Even Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>The rent level at which monthly cash flow reaches exactly zero.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Rent Headroom</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>How far rent can fall before the deal becomes cash-flow negative.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Stress Test</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Analysis of deal performance under higher mortgage rates and lower rent scenarios.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Break-Even Rate</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>The mortgage rate at which monthly cash flow reaches zero.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sensitivity Analysis</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Impact on returns of a 10% rent reduction and a 1.5% rate increase applied independently.</Text>
+
+            {/* Section 4 — Mortgage, Tax & Structure */}
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Mortgage, Tax & Structure</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Interest-Only Mortgage</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>LTV</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Mortgage / Property Value × 100</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>LTT / SDLT</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England & NI). Government purchase tax on property transactions.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Cash Invested</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total capital deployed into the deal.</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Deposit + Tax + Refurb + Other Costs</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Deal Score</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Weighted composite score from 1 to 10 across six dimensions of deal quality.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sourcing Fee</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Fee payable to the deal sourcer on legal completion.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Cash-on-Cash ROI</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>The annual return on actual cash invested, after all costs including mortgage.</Text>
+
+          </View>
+        </View>
+      </Page>
+
+      {/* ── Legal Page (last) ────────────────────────────────────────────────── */}
+      {hasLegal && (
+        <Page size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title="Legal & Disclosure" />
+
+          <View style={{ flexDirection: 'row', gap: 24, flex: 1 }}>
+
+            {/* Left column — Next Steps */}
+            <View style={{ flex: 1 }}>
+              {(props.preparedBy.name || props.preparedBy.email) && (
+                <View style={{ ...notePanel, marginBottom: 8 }}>
+                  <Text style={{ ...notePanelLabel, color: structureColour }}>Next Steps</Text>
+                  <Text style={{ ...notePanelText, marginBottom: 6 }}>
+                    {`To discuss this opportunity or proceed with an offer, contact ${props.preparedBy.name || 'the deal sourcer'} directly:`}
+                  </Text>
+                  {props.preparedBy.email ? (
+                    <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Email</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
+                    </View>
+                  ) : null}
+                  {props.preparedBy.phone ? (
+                    <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Phone</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
+                    </View>
+                  ) : null}
+                  {props.companyName ? (
+                    <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Company</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.companyName}</Text>
+                    </View>
+                  ) : null}
+                  {props.offerDeadline ? (
+                    <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Offer Deadline</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.offerDeadline}</Text>
+                    </View>
+                  ) : null}
+                  {props.viewingAvailable !== undefined && (
+                    <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                      <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Viewing Available</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.viewingAvailable ? 'Yes' : 'No'}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Right column — Sourcing Fee */}
+            <View style={{ flex: 1 }}>
+              {props.sourcingFee > 0 && (
+                <View style={notePanel}>
+                  <Text style={{ ...notePanelLabel, color: '#1B2B4B' }}>Sourcing Fee</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', marginBottom: 4 }}>
+                    {fc(props.sourcingFee)}
+                  </Text>
+                  <Text style={notePanelText}>Payable on completion.</Text>
+                  {props.sourcingFeeDisclaimer.trim().length > 0 && (
+                    <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Oblique', color: '#888888', marginTop: 6, lineHeight: 1.5 }}>
+                      {props.sourcingFeeDisclaimer.trim()}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+
+          </View>
+        </Page>
+      )}
 
     </Document>
   );
