@@ -1746,17 +1746,19 @@ export default function HomePage() {
                   </div>
 
                   {/* Vendor Situation */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
-                    <Textarea
-                      id="vendor-situation"
-                      placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
-                      value={vendorSituation}
-                      onChange={(e) => setVendorSituation(e.target.value)}
-                      rows={3}
-                      data-testid="input-vendor-situation"
-                    />
-                  </div>
+                  {dealType !== 'R2R' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
+                      <Textarea
+                        id="vendor-situation"
+                        placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
+                        value={vendorSituation}
+                        onChange={(e) => setVendorSituation(e.target.value)}
+                        rows={3}
+                        data-testid="input-vendor-situation"
+                      />
+                    </div>
+                  )}
 
                   {/* Refurb Scope */}
                   <div className="space-y-2">
@@ -1817,6 +1819,7 @@ export default function HomePage() {
                   </div>
 
                   {/* Comparable Properties — dynamic table */}
+                  {dealType !== 'R2R' && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
                       <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Comparable Properties</Label>
@@ -1899,10 +1902,11 @@ export default function HomePage() {
                       <Plus className="w-3.5 h-3.5" /> Add Row
                     </button>
                   </div>
+                  )}
 
                   {/* Listing Links */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Listing Links</Label>
+                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Listing Links</Label><InfoIcon id="shared-listing-links" text="Link to the property listing for investor due diligence. Only include if the deal is already under offer or exchanged — sharing an active listing may allow investors to approach the agent directly and bypass the sourcing fee." /></div>
                     <div className="border border-border rounded-lg overflow-hidden">
                       <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-muted-foreground px-3 py-2" style={{ gridTemplateColumns: '1fr 2fr auto' }}>
                         <span>Label</span>
@@ -2711,17 +2715,19 @@ export default function HomePage() {
           </div>
 
           {/* Viewing Available */}
-          <div className="mt-4">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={viewingAvailable}
-                onChange={(e) => setViewingAvailable(e.target.checked)}
-                className="w-3.5 h-3.5 accent-[#1B3A6B]"
-              />
-              <span className="text-xs text-slate-600">Viewing available — include on investor pack</span>
-            </label>
-          </div>
+          {dealType !== 'FLIP' && (
+            <div className="mt-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={viewingAvailable}
+                  onChange={(e) => setViewingAvailable(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-[#1B3A6B]"
+                />
+                <span className="text-xs text-slate-600">Viewing available — include on investor pack</span>
+              </label>
+            </div>
+          )}
 
           {/* Dev Tier Testing */}
           <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">

@@ -1,0 +1,43 @@
+Here is the complete prompt — four fixes:
+
+Read Home.tsx in full before making any changes. Plan all edits explicitly then execute in parallel.
+TASK: Three strategy-relevance gates in Deal Notes + one tooltip warning.
+
+FIX 1 — Hide Vendor Situation for R2R
+Find the comment {/* Vendor Situation */}. Wrap the entire <div className="space-y-2"> block immediately following it in:
+tsx{dealType !== 'R2R' && (
+  <div className="space-y-2">
+    {/* existing Vendor Situation content unchanged */}
+  </div>
+)}
+
+FIX 2 — Hide Comparable Properties for R2R
+Find the comment {/* Comparable Properties — dynamic table */}. Wrap the entire <div className="space-y-2"> block immediately following it in:
+tsx{dealType !== 'R2R' && (
+  <div className="space-y-2">
+    {/* existing Comparable Properties content unchanged */}
+  </div>
+)}
+
+FIX 3 — Hide Viewing Available for FLIP
+Find the comment {/* Viewing Available */}. Wrap the entire block immediately following it in:
+tsx{dealType !== 'FLIP' && (
+  {/* existing Viewing Available content unchanged */}
+)}
+
+FIX 4 — Update Listing Links tooltip warning
+Find the Listing Links InfoIcon. It currently has a tooltip text referencing listing links. Replace whatever the current tooltip text is with:
+"Link to the property listing for investor due diligence. Only include if the deal is already under offer or exchanged — sharing an active listing may allow investors to approach the agent directly and bypass the sourcing fee."
+The InfoIcon for Listing Links will look something like:
+tsx<InfoIcon id="..." text={TT.listingLinks} />
+or inline text. Find whichever form it takes and update the text to the above.
+
+FIX 5 — Confirm on completion
+
+Vendor Situation hidden when dealType === 'R2R' — R2R has no vendor or purchase negotiation
+Comparable Properties hidden when dealType === 'R2R' — no purchase price to compare against sold prices
+Listing Links visible for all strategies including R2R ✓ — investor needs property link for due diligence
+Listing Links tooltip updated with sourcing fee bypass warning ✓
+Viewing Available hidden when dealType === 'FLIP' — a flip under development is not available for viewing as a rental prospect
+All other Deal Notes fields unchanged across all strategies
+npx tsc --noEmit passes with zero errors
