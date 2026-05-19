@@ -1,0 +1,36 @@
+Read src/components/Home.tsx in full before making any changes.
+
+The cover style thumbnails already reflect the live brandColour. Now make them also reflect the live accentColour on the specific elements where accent colour appears in the real PDF covers. Do not modify DealScorePDF.tsx, DealScorePDFProPlus.tsx, or any PDF generation logic.
+
+────────────────────────────────────────
+ADD ACCENT COLOUR TO THUMBNAILS
+────────────────────────────────────────
+
+Find the three cover style thumbnail SVGs (Classic, Clean, Bold) — both portrait and landscape variants for each.
+
+Add a small accent element to each thumbnail that mirrors where accentColour actually appears on the real cover page. Use the live accentColour state variable (same variable used for the Accent Colour picker).
+
+CLASSIC — portrait and landscape:
+  Add a thin horizontal rule near the bottom of the SVG, above the bottom edge.
+  Portrait: <rect x="8" y="88" width="64" height="2" rx="1" fill={accentColour} />
+  Landscape: <rect x="8" y="72" width="104" height="2" rx="1" fill={accentColour} />
+
+CLEAN — portrait and landscape:
+  Add a thin horizontal rule near the bottom of the SVG, matching the bottom rule on the real Clean cover.
+  Portrait: <rect x="8" y="84" width="64" height="1.5" rx="0.75" fill={accentColour} />
+  Landscape: <rect x="8" y="70" width="104" height="1.5" rx="0.75" fill={accentColour} />
+
+BOLD — portrait and landscape:
+  Add a short horizontal accent rule in the right panel area, matching the accent rule on the real Bold cover.
+  Portrait: <rect x="36" y="44" width="20" height="2" rx="1" fill={accentColour} />
+  Landscape: <rect x="52" y="32" width="28" height="2" rx="1" fill={accentColour} />
+  Replace the existing hardcoded opacity rule in the Bold thumbnail right panel (if one exists at those coordinates) rather than adding a duplicate.
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx is untouched.
+3. Confirm DealScorePDFProPlus.tsx is untouched.
+4. git add -A && git commit -m "Cover style thumbnails reflect live accent colour" && git push origin stage-6
