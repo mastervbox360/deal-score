@@ -2830,32 +2830,26 @@ export default function HomePage() {
               <Label className="text-xs">Pack Format</Label>
               <InfoIcon id="pack-format" text="Portrait (A4) — 8-page investor pack optimised for email and print. Landscape (A4) — 10-page Pro Plus pack with SVG charts and glossary, optimised for screen sharing and presentations." />
             </div>
-            <div className="flex gap-4">
+            <div className="inline-flex w-full p-1 rounded-lg bg-muted border border-border" role="radiogroup" aria-label="Pack format">
               <button
                 type="button"
+                role="radio"
+                aria-checked={pdfOrientation === 'portrait'}
                 onClick={() => setPdfOrientation('portrait')}
-                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${pdfOrientation === 'portrait' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${pdfOrientation === 'portrait' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               >
-                <div className="w-[60px] h-[80px] rounded bg-white border border-slate-200 flex flex-col items-center justify-center gap-1.5 px-3">
-                  <div className="w-full h-1 bg-slate-300 rounded" />
-                  <div className="w-full h-1 bg-slate-300 rounded" />
-                  <div className="w-4/5 h-1 bg-slate-200 rounded" />
-                </div>
-                <span className="text-[10px] text-slate-600 font-medium">Portrait</span>
-                <span className="text-[9px] text-slate-400">8 pages · Print &amp; email</span>
+                <div>Portrait</div>
+                <div className="text-[10px] font-normal text-muted-foreground">8 pages · Print &amp; email</div>
               </button>
               <button
                 type="button"
+                role="radio"
+                aria-checked={pdfOrientation === 'landscape'}
                 onClick={() => setPdfOrientation('landscape')}
-                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${pdfOrientation === 'landscape' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${pdfOrientation === 'landscape' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               >
-                <div className="w-[80px] h-[60px] rounded bg-white border border-slate-200 flex flex-col items-center justify-center gap-1.5 px-3">
-                  <div className="w-full h-1 bg-slate-300 rounded" />
-                  <div className="w-full h-1 bg-slate-300 rounded" />
-                  <div className="w-4/5 h-1 bg-slate-200 rounded" />
-                </div>
-                <span className="text-[10px] text-slate-600 font-medium">Landscape</span>
-                <span className="text-[9px] text-slate-400">10 pages · Charts &amp; glossary</span>
+                <div>Landscape</div>
+                <div className="text-[10px] font-normal text-muted-foreground">10 pages · Charts &amp; glossary</div>
               </button>
             </div>
           </div>
