@@ -1,0 +1,186 @@
+You are continuing to build src/components/DealScorePDFProPlus.tsx. Pages 1–3 are already written. Do NOT rewrite or replace them — append pages 4–6 to the existing Document.
+
+Do NOT modify src/components/DealScorePDF.tsx at any point.
+
+All pages use size="A4" orientation="landscape" with the same base style already established in this file.
+All colour variables (structureColour, panelBg, tintBg, tintBorder, tintText, structureBg, scoreColor) are already derived at the top of the component — use them as-is.
+All derived values (activeResults, fdGrossRent, fdMortgagePayment, stOpt, stBase, stStress, stBreakEvenRent, stRentHeadroom, stStressCF, stBaseRate, stLoanAmount, stEffectiveRent, stTotalOpCosts, dealScoreDims, dealScoreOverall, verdictSummary, calloutMetrics3, whatThisMeans, stCfColor, stPaybackDisplay, fdPaybackDisplay, fdVoidPct, fdMgmtPct, fdMaintenance, fdInsurance, fdSc, fdGr, fdGrMonthly) are already declared — use them directly.
+
+────────────────────────────────────────
+PAGE 4 — DEAL SCORE ANALYSIS
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+SH title "Deal Score Analysis"
+
+Two-column layout:
+
+Left column:
+  Verdict badge (if currentScore !== 'Incomplete'):
+    backgroundColor: SCORE_TINT[currentScore], borderLeft: '4pt solid scoreColor', paddingVertical 8, paddingHorizontal 14, borderRadius 3, flexDirection 'row', justifyContent 'space-between', alignItems 'center', marginBottom 10
+    Left text: VERDICT_LABELS[currentScore] — fontSize 13, Helvetica-Bold, color '#1B2B4B'
+    Right: dealScoreOverall.toFixed(1) fontSize 28, Helvetica-Bold, color '#1B2B4B', lineHeight 1 + " / 10" fontSize 13, color '#9ca3af'
+
+  Risk flags (if riskFlags.length > 0) — same amber panel style as portrait, marginBottom 8
+
+  6-dimension score table (if currentScore !== 'Incomplete'):
+    Same table as portrait — border 0.5pt #E5E7EB, borderRadius 4
+    Header row: backgroundColor '#F9FAFB', columns DIMENSION / SCORE / (bar)
+    Data rows: dim.name, dim.score + " / 10", progress bar (green ≥7, amber ≥4, red <4)
+    Alternating row backgrounds #FFFFFF / #F9FAFB
+
+  Verdict summary sentence — fontSize 9.5, color '#1E2B3C', marginTop 8, lineHeight 1.45
+
+Right column:
+  "What This Means" — SH title, then whatThisMeans text fontSize 9, color '#1E2B3C', lineHeight 1.5
+
+  Three callout metric cards (calloutMetrics3) — same style as portrait:
+    flex 1, border '0.5pt solid #d4dae8', borderTop '2.5pt solid structureColour', borderRadius 4, paddingVertical 9, paddingHorizontal 10, marginTop 14
+    Label: fontSize 7.5, color '#6B7280', textTransform 'uppercase', letterSpacing 0.3, marginBottom 4
+    Value: fontSize 16, Helvetica-Bold, color '#1E2B3C'
+    Arrange as a column (flexDirection 'column', gap 8)
+
+────────────────────────────────────────
+PAGE 5 — FINANCIAL DETAIL + SENSITIVITY
+Only rendered for BTL, HMO, SA, BRRR, SOCIAL. Absent for R2R and FLIP.
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+SH title "Financial Detail"
+
+Two-column layout:
+
+Left column:
+  NET CASH FLOW hero panel — identical to portrait Financial Detail page:
+    backgroundColor panelBg, borderRadius 4, paddingVertical 12, paddingHorizontal 16, marginBottom 14, flexDirection 'row', justifyContent 'space-between', alignItems 'center'
+    Left: label "Net Cash Flow" fontSize 7.5 rgba(255,255,255,0.55) uppercase + value fc(activeResults.monthlyCashFlow) fontSize 24 Helvetica-Bold white + annual fc(activeResults.monthlyCashFlow * 12) fontSize 9 rgba(255,255,255,0.55)
+    Right: NOI label + value, Mortgage Payment label + value — same as portrait
+
+  P&L waterfall table — identical to portrait Financial Detail page:
+    All rows: Gross Rent, Void Allowance, Effective Rent, Management Fee, Maintenance Reserve, Buildings Insurance, Service Charge (if fdSc > 0), Ground Rent (if fdGr > 0), Net Operating Income, Mortgage Payment, NET CASH FLOW
+    Same border container, same structureColour separator rows, same Monthly/Annual columns
+
+  Sensitivity Analysis table — same 3-column table as portrait Page 4:
+    Header: structureColour bottom border, columns METRIC / BASE CASE / RENT −10% / RATE +1.5%
+    Rows: Monthly Cash Flow (colour-coded green/red), Cash-on-Cash ROI (colour-coded)
+    Use props.stressTest values if available
+
+Right column:
+  Income Waterfall SVG chart — build using react-pdf Svg, Rect, Line, Text primitives (import from @react-pdf/renderer).
+
+  Chart dimensions: width 280, height 200.
+
+  Data points (compute inside the chart):
+    const grossRent = fdGrossRent;
+    const voidAmt = activeResults.voidAllowanceAmount;
+    const effectiveRent = activeResults.effectiveRent;
+    const totalOpCosts = activeResults.managementFeeAmount + fdMaintenance + fdInsurance + fdSc + fdGrMonthly;
+    const noi = activeResults.netOperatingIncome;
+    const mortgage = fdMortgagePayment;
+    const netCF = activeResults.monthlyCashFlow;
+
+  If grossRent <= 0, render: <Text style={{ fontSize: 8, color: '#9ca3af', marginTop: 20 }}>Chart not available for this strategy.</Text>
+
+  Otherwise render the SVG waterfall:
+    7 bars total. Bar width 28, gap 8. Chart area: left margin 40 (for y-axis labels), top margin 10, bottom margin 40 (for x-axis labels).
+    Y axis: 0 to grossRent. Scale: chartHeight = 160, barMaxH = chartHeight.
+    Bar positions (running total tracks the "floor" of each floating bar):
+      Bar 1 Gross Rent: floor=0, height = (grossRent/grossRent)*barMaxH. Color #2D7A4F.
+      Bar 2 Void (deduction): floor = effectiveRent/grossRent*barMaxH, height = (voidAmt/grossRent)*barMaxH. Color #A32D2D.
+      Bar 3 Effective Rent: floor=0, height = (effectiveRent/grossRent)*barMaxH. Color #1B3A6B.
+      Bar 4 Op Costs (deduction): floor = noi/grossRent*barMaxH, height = (totalOpCosts/grossRent)*barMaxH. Color #A32D2D.
+      Bar 5 NOI: floor=0, height = (noi/grossRent)*barMaxH. Color #2D7A4F.
+      Bar 6 Mortgage (deduction): floor = Math.max(0, netCF/grossRent*barMaxH), height = (mortgage/grossRent)*barMaxH. Color #888780.
+      Bar 7 Net Cash Flow: floor=0, height = Math.abs(netCF/grossRent*barMaxH). Color: netCF >= 0 ? '#2D7A4F' : '#A32D2D'.
+    Value label above each bar: fc() value, fontSize 6.5, textAnchor 'middle', fill '#1E2B3C'.
+    X-axis label below each bar: short name (Gross, Void, Eff.Rent, Costs, NOI, Mortgage, Net CF), fontSize 6, textAnchor 'middle', fill '#6B7280'.
+    Y-axis: light horizontal grid lines at 25%, 50%, 75%, 100% of grossRent. Labels: fc() at each gridline, fontSize 6, fill '#9ca3af'.
+    Chart title above: "Income Waterfall" — fontSize 8, Helvetica-Bold, color structureColour, marginBottom 4.
+
+  Key Metrics 2×2 cards below chart — marginTop 14:
+    Row 1: Cash-on-Cash ROI + Gross Yield
+    Row 2: Net Yield + Payback Period
+    Same card style: border '0.5pt solid #d4dae8', borderTop '2pt solid structureColour', borderRadius 4, paddingVertical 8, paddingHorizontal 10
+    Value fontSize 14, Helvetica-Bold, color '#1E2B3C'. Label fontSize 7.5, color '#6B7280'.
+
+────────────────────────────────────────
+PAGE 6 — STRESS TESTING
+Only rendered for BTL, HMO, SA, BRRR, SOCIAL. Absent for R2R and FLIP.
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+SH title "Stress Testing"
+
+Italic subtitle: "Analysis based on interest rate movements. Rent held constant across all scenarios." — fontSize 8, color '#64748B', Helvetica-Oblique, marginBottom 14, marginTop -8.
+
+Two-column layout:
+
+Left column:
+  Stress test table — identical to portrait Stress Testing page:
+    Header row: structureColour bottom border 1.5pt, columns: (blank) / OPTIMISTIC Rate -0.5% / BASE CASE Current Rate / STRESS Rate +1.5%
+    Rows: Mortgage Rate, Monthly Mortgage, Monthly Cash Flow (colour-coded), Cash-on-Cash ROI (colour-coded), (light divider row), Break-Even Rent, Rent Headroom, (light divider row), Payback Period
+    BASE CASE column: borderLeft 2pt structureColour on each data cell
+    Use stOpt, stBase, stStress, stBreakEvenRent, stRentHeadroom, stCfColor, stPaybackDisplay
+
+  Three Rent Buffer callout cards — same as portrait, marginTop 14:
+    Compute beOpt, beBase, beStress from stBreakEvenRent, fdGrossRent, stStress.mortgage, stBase.mortgage
+    Card 1 Optimistic: borderTop '2.5pt solid #22C55E'
+    Card 2 Base: borderTop '2.5pt solid #3B82F6'
+    Card 3 Stress: borderTop '2.5pt solid (stStress.cf < 0 ? #EF4444 : #F59E0B)'
+    Each: flex 1, border '0.5pt solid #d4dae8', borderRadius 4, paddingVertical 8, paddingHorizontal 10
+    Label fontSize 7.5, color '#6B7280', uppercase, letterSpacing 0.3, marginBottom 4
+    Value: beXxx.toFixed(1) + '%', fontSize 16, Helvetica-Bold, color '#1E2B3C'
+
+  "What This Means" panel — same as portrait, marginTop 14:
+    backgroundColor '#F8FAFC', borderRadius 3, paddingVertical 8, paddingHorizontal 10, borderLeft '2pt solid structureColour'
+    Same conditional logic: stStressCF > 0 → positive message, else → negative message with monitoring note
+
+Right column:
+  Cash Flow Rate Curve SVG chart — build using react-pdf Svg, Polyline, Circle, Line, Text primitives.
+
+  If stLoanAmount <= 0, render: <Text style={{ fontSize: 8, color: '#9ca3af', marginTop: 20 }}>Chart not available for this strategy.</Text>
+
+  Chart dimensions: width 280, height 180.
+  Chart area: leftMargin 44 (y-axis labels), topMargin 10, bottomMargin 36 (x-axis labels), rightMargin 8.
+  chartW = 280 - leftMargin - rightMargin. chartH = 180 - topMargin - bottomMargin.
+
+  Compute 9 data points for rates 0% to 8% in 1% steps:
+    const rates = [0,1,2,3,4,5,6,7,8];
+    const cfs = rates.map(r => stEffectiveRent - stTotalOpCosts - (stLoanAmount * r / 100 / 12));
+
+  Y axis scale:
+    const minCF = Math.min(...cfs) * 1.1;
+    const maxCF = Math.max(...cfs) * 1.1;
+    const cfRange = maxCF - minCF;
+    const toY = (cf: number) => topMargin + ((maxCF - cf) / cfRange) * chartH;
+
+  X axis scale:
+    const toX = (i: number) => leftMargin + (i / 8) * chartW;
+
+  Render:
+    Light horizontal grid lines at 25%, 50%, 75% of chart height — stroke '#E5E7EB', strokeWidth 0.5.
+    Y-axis labels at each grid line: fc(value) — fontSize 6, fill '#9ca3af', textAnchor 'end', x = leftMargin - 4.
+    X-axis labels: rate + '%' at each of the 9 points — fontSize 6.5, fill '#6B7280', textAnchor 'middle', y = topMargin + chartH + 14.
+    "Mortgage Rate" x-axis title: fontSize 7, fill '#6B7280', textAnchor 'middle', x = leftMargin + chartW/2, y = topMargin + chartH + 28.
+    Zero line (CF=0): if minCF < 0 && maxCF > 0, render horizontal Line at y=toY(0), stroke '#EF4444', strokeWidth 1, strokeDasharray "3,2". Label "Break-even" fontSize 6.5, fill '#EF4444', x = leftMargin + chartW + 2, y = toY(0) + 3.
+    Polyline connecting all 9 points: points={cfs.map((cf,i) => `${toX(i)},${toY(cf)}`).join(' ')}, stroke structureColour, strokeWidth 1.5, fill 'none'.
+    Data point circles: for each rate, Circle cx=toX(i) cy=toY(cf) r=3.5. Fill: cf > 200 ? '#22C55E' : cf > 0 ? '#F59E0B' : '#EF4444'.
+    Current rate dot: larger Circle r=5.5 at toX(stBaseRate) toY(stBase.cf), fill structureColour, stroke white strokeWidth 1.
+
+  Chart title above SVG: "Cash Flow Rate Curve" — fontSize 8, Helvetica-Bold, color structureColour, marginBottom 4.
+
+  Rate Resilience summary below chart — marginTop 10, backgroundColor '#F8FAFC', borderRadius 3, paddingVertical 6, paddingHorizontal 8:
+    Compute breakEvenRate: first rate in 0–8% range where CF goes negative (interpolate between last positive and first negative point). If always positive show ">8%". If always negative show "N/A".
+    Three rows: Break-even Rate / Current Rate / Headroom (breakEvenRate - stBaseRate, formatted to 2dp + '%', or 'N/A')
+    Each row: flexDirection 'row', justifyContent 'space-between', paddingVertical 3, borderBottom '0.5pt solid #E5E7EB'
+    Label: fontSize 7.5, color '#6B7280'. Value: fontSize 7.5, Helvetica-Bold, color '#1E2B3C'.
+
+────────────────────────────────────────
+AFTER WRITING PAGES 4–6
+────────────────────────────────────────
+
+1. Run tsc --noEmit and fix any TypeScript errors before stopping.
+2. Confirm pages 1–3 are untouched.
+3. Do not write pages 7 onwards yet — stop here.
+4. Do not modify DealScorePDF.tsx.
+5. Do not wire up Home.tsx yet.

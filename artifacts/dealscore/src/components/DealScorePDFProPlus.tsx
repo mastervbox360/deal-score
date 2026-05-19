@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, Svg, Rect, Circle, Line, Polyline } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import type { DealScorePDFProps } from './DealScorePDF';
 
@@ -470,6 +470,108 @@ function computeInputRows(props: DealScorePDFProps): RowData[] {
   return rows;
 }
 
+// ── Verdict summary sentence ──────────────────────────────────────────────────
+
+function generateVerdictSummary(props: DealScorePDFProps): string {
+  const dt = props.dealType;
+  if (props.currentScore === 'Incomplete') return '';
+  const vl = VERDICT_LABELS[props.currentScore] ?? '';
+  const sn = DEAL_LABELS[dt].replace(' Analysis', '');
+  if (dt === 'FLIP') {
+    const r = props.flipResults;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} based on a net profit of ${fc(r.netProfit)}, ROI of ${fp(r.roi)}, and annualised ROI of ${fp(r.annualisedROI)} — all above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — net profit of ${fc(r.netProfit)} is achievable, though ROI of ${fp(r.roi)} is below the 12% benchmark for ${sn}.`;
+    return `This deal scores ${vl} — net profit of ${fc(r.netProfit)} and ROI of ${fp(r.roi)} fall below the minimum thresholds for ${sn}.`;
+  }
+  if (dt === 'R2R') {
+    const r = props.r2rResults;
+    const spread = r.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} based on monthly profit of ${fc(r.monthlyProfit)} and monthly spread of ${fc(spread)} — above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — monthly spread of ${fc(spread)} is positive, though monthly profit of ${fc(r.monthlyProfit)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — monthly profit of ${fc(r.monthlyProfit)} falls below the minimum thresholds for ${sn}.`;
+  }
+  if (dt === 'SA') {
+    const r = props.saResults;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} based on a net yield of ${fp(r.netYield)}, strong monthly cash flow of ${fc(r.monthlyCashFlow)}, and ${props.saInputs.occupancyPercent}% occupancy — all above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — net yield of ${fp(r.netYield)} meets threshold, though monthly cash flow of ${fc(r.monthlyCashFlow)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — net yield of ${fp(r.netYield)} and monthly cash flow of ${fc(r.monthlyCashFlow)} fall below the minimum thresholds for ${sn}.`;
+  }
+  if (dt === 'BRRR') {
+    const r = props.brrrResults;
+    const moneyOut = r.moneyOut && props.purchasePrice > 0;
+    if (props.currentScore === 'Strong')
+      return `This deal scores ${vl} — ${moneyOut ? 'money out on refinance' : `cash left in of ${fc(r.cashLeftInDeal)}`}, monthly cash flow of ${fc(r.monthlyCashFlow)}, and equity of ${fc(r.equityCreated)} created — all above threshold for ${sn}.`;
+    if (props.currentScore === 'Average')
+      return `This deal scores ${vl} — refinance recovers most capital, though monthly cash flow of ${fc(r.monthlyCashFlow)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — cash left in deal and monthly cash flow of ${fc(r.monthlyCashFlow)} fall below the minimum thresholds for ${sn}.`;
+  }
+  const r = dt === 'BTL' ? props.btlResults : dt === 'HMO' ? props.hmoResults : props.socialResults;
+  const gy = r.grossYield;
+  const cf2 = r.monthlyCashFlow;
+  const roi = r.cashOnCashROI;
+  if (props.currentScore === 'Strong') {
+    const cfWord = cf2 >= 500 ? 'strong' : 'positive';
+    return `This deal scores ${vl} based on a gross yield of ${fp(gy)}, ${cfWord} monthly cash flow of ${fc(cf2)}, and a cash-on-cash ROI of ${fp(roi)} — all above threshold for ${sn}.`;
+  }
+  if (props.currentScore === 'Average') {
+    if (gy >= 6) return `This deal scores ${vl} — gross yield meets threshold at ${fp(gy)}, though monthly cash flow of ${fc(cf2)} is below the benchmark for ${sn}.`;
+    return `This deal scores ${vl} — monthly cash flow of ${fc(cf2)} is achievable, though gross yield of ${fp(gy)} falls below the 6% benchmark for ${sn}.`;
+  }
+  return `This deal scores ${vl} — gross yield of ${fp(gy)} and monthly cash flow of ${fc(cf2)} fall below the minimum thresholds for ${sn}.`;
+}
+
+// ── "What This Means" narrative ───────────────────────────────────────────────
+
+function generateWhatThisMeans(props: DealScorePDFProps): string {
+  const dt = props.dealType;
+  if (dt === 'BTL') {
+    const r = props.btlResults;
+    const monthlyMortgage = Math.max(0, props.btlInputs.monthlyRent - r.monthlyCashFlow - props.btlInputs.monthlyExpenses);
+    const mortgageTypeStr = props.mortgageType === 'IO' ? 'interest-only' : 'repayment';
+    const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. The ${mortgageTypeStr} mortgage at ${props.mortgageRate}% produces a monthly payment of ${fc(monthlyMortgage)}, leaving ${fc(r.monthlyCashFlow)} net cash flow after expenses. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for this market.`;
+  }
+  if (dt === 'HMO') {
+    const r = props.hmoResults;
+    const yieldVs = r.grossYield >= 8 ? 'exceeds' : 'falls short of';
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, ${props.hmoInputs.rooms} rooms at ${fc(props.hmoInputs.rentPerRoom)}/mo generate gross monthly income of ${fc(r.grossMonthlyRent)} at ${props.hmoInputs.occupancyRate}% occupancy. After mortgage and expenses, net cash flow is ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 8% benchmark typically required for HMO.`;
+  }
+  if (dt === 'FLIP') {
+    const r = props.flipResults;
+    const roiVs = r.roi >= 12 ? 'exceeds' : 'falls short of';
+    return `Total project cost of ${fc(r.totalCost)} against a sale price of ${fc(props.flipInputs.expectedSalePrice)} produces a net profit of ${fc(r.netProfit)} over ${props.flipInputs.projectLengthMonths} months. ROI of ${fp(r.roi)} ${roiVs} the 12% minimum threshold. Annualised ROI of ${fp(r.annualisedROI)}.`;
+  }
+  if (dt === 'SA') {
+    const r = props.saResults;
+    const yieldVs = r.netYield >= 10 ? 'exceeds' : 'falls short of';
+    return `At ${props.saInputs.occupancyPercent}% occupancy and ${fc(props.saInputs.nightlyRate)}/night, gross monthly revenue is ${fc(r.grossMonthlyRevenue)}. After platform fees and running costs, net monthly cash flow is ${fc(r.monthlyCashFlow)}. Net yield of ${fp(r.netYield)} ${yieldVs} the 10% benchmark for serviced accommodation.`;
+  }
+  if (dt === 'BRRR') {
+    const r = props.brrrResults;
+    const moneyOut = r.moneyOut && props.purchasePrice > 0;
+    const cashStr = moneyOut
+      ? `This deal is money out — all capital returned plus ${fc(Math.abs(r.cashLeftInDeal))} surplus.`
+      : `Cash left in deal is ${fc(r.cashLeftInDeal)}.`;
+    return `Total cash in is ${fc(r.totalCostIn)}, refinanced at ${props.brrrInputs.refinancePercent}% of GDV (${fc(props.brrrInputs.postRefurbValue)}), releasing ${fc(r.refinanceLoan)}. ${cashStr} Monthly cash flow after the refinance mortgage is ${fc(r.monthlyCashFlow)}.`;
+  }
+  if (dt === 'R2R') {
+    const r = props.r2rResults;
+    const spread = r.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
+    const paybackMonths = r.monthlyProfit > 0 ? Math.ceil(props.r2rInputs.setupCosts / r.monthlyProfit) : 0;
+    const paybackStr = paybackMonths > 0 ? `${paybackMonths} months` : 'not applicable at current profit';
+    return `Monthly rent to landlord of ${fc(props.r2rInputs.monthlyRentPaid)}, sub-let for ${fc(r.grossMonthlyIncome)}, generating a monthly spread of ${fc(spread)}. After management fees and running costs, monthly profit is ${fc(r.monthlyProfit)}. Setup costs of ${fc(props.r2rInputs.setupCosts)} recover in ${paybackStr}.`;
+  }
+  const r = props.socialResults;
+  const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+  return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy.`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -530,6 +632,106 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
   const p2CiDeposit = props.purchasePrice * props.depositPercent / 100;
   const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts;
+
+  // ── Financial Detail derived values ───────────────────────────────────────
+  const activeResults =
+    props.dealType === 'BTL' ? props.btlResults :
+    props.dealType === 'HMO' ? props.hmoResults :
+    props.dealType === 'SA' ? props.saResults :
+    props.dealType === 'BRRR' ? props.brrrResults :
+    props.socialResults;
+
+  const fdGrossRent =
+    props.dealType === 'BTL' ? props.btlInputs.monthlyRent :
+    props.dealType === 'HMO' ? props.hmoResults.grossMonthlyRent :
+    props.dealType === 'SA' ? props.saResults.netMonthlyRevenue :
+    props.dealType === 'BRRR' ? props.brrrInputs.monthlyRent :
+    props.socialInputs.leaseIncomePerMonth;
+
+  const fdMortgagePayment =
+    props.dealType === 'BTL' ? props.btlResults.monthlyMortgageInterest :
+    props.dealType === 'HMO' ? props.hmoResults.monthlyMortgageInterest :
+    props.dealType === 'SA' ? props.saResults.monthlyMortgage :
+    props.dealType === 'BRRR' ? props.brrrResults.monthlyMortgage :
+    props.socialResults.monthlyMortgage;
+
+  const fdVoidPct = props.voidAllowancePercent ?? 5;
+  const fdMgmtPct = props.managementFeePercent ?? 10;
+  const fdMaintenance = props.maintenanceReserve ?? 75;
+  const fdInsurance = props.buildingsInsurance ?? 30;
+  const fdSc = props.serviceCharge ?? 0;
+  const fdGr = props.groundRentAnnual ?? 0;
+  const fdGrMonthly = fdGr / 12;
+
+  const fdRawPayback = activeResults.paybackPeriod;
+  const fdPayback = fdRawPayback ?? 0;
+  const fdPaybackDisplay = (!isFinite(fdPayback) || fdPayback > 25 || fdPayback <= 0)
+    ? 'N/A'
+    : fdPayback.toFixed(1) + ' years';
+
+  // ── Stress Testing derived values ──────────────────────────────────────────
+  const stVoidPct = (props.voidAllowancePercent ?? 5) / 100;
+  const stMgmtPct = (props.managementFeePercent ?? 10) / 100;
+  const stMaintenance = props.maintenanceReserve ?? 75;
+  const stInsurance = props.buildingsInsurance ?? 30;
+  const stSc = props.serviceCharge ?? 0;
+  const stGr = (props.groundRentAnnual ?? 0) / 12;
+  const stTotalFixedOpCosts = stMaintenance + stInsurance + stSc + stGr;
+
+  const stGrossRent =
+    props.dealType === 'BTL' ? props.btlInputs.monthlyRent :
+    props.dealType === 'HMO' ? props.hmoResults.grossMonthlyRent :
+    props.dealType === 'SA' ? props.saResults.netMonthlyRevenue :
+    props.dealType === 'BRRR' ? props.brrrInputs.monthlyRent :
+    props.socialInputs.leaseIncomePerMonth;
+
+  const stCashInvested =
+    props.dealType === 'BRRR' ? props.brrrResults.cashLeftInDeal :
+    props.dealType === 'BTL' ? props.btlResults.totalCashInvested :
+    props.dealType === 'HMO' ? props.hmoResults.totalCashInvested :
+    props.dealType === 'SA' ? props.saResults.totalCashInvested :
+    props.socialResults.totalCashInvested;
+
+  const stLoanAmount =
+    props.dealType === 'BRRR' ? props.brrrResults.refinanceLoan :
+    props.dealType === 'BTL' ? props.btlResults.mortgageAmount :
+    props.dealType === 'HMO' ? props.hmoResults.mortgageAmount :
+    props.dealType === 'SA' ? props.saResults.mortgageAmount :
+    props.socialResults.mortgageAmount;
+
+  const stBaseRate =
+    props.dealType === 'BRRR' ? props.brrrInputs.newMortgageRate : props.mortgageRate;
+
+  const stEffectiveRent = stGrossRent * (1 - stVoidPct);
+  const stMgmtFee = stEffectiveRent * stMgmtPct;
+  const stTotalOpCosts = stMgmtFee + stTotalFixedOpCosts;
+
+  const computeStScenario = (offset: number) => {
+    const rate = stBaseRate + offset;
+    const mortgage = stLoanAmount * (rate / 100) / 12;
+    const cf = stEffectiveRent - stTotalOpCosts - mortgage;
+    const roi = stCashInvested > 0 ? (cf * 12 / stCashInvested) * 100 : 0;
+    const payback = (stCashInvested > 0 && cf > 0) ? stCashInvested / (cf * 12) : Infinity;
+    return { rate, mortgage, cf, roi, payback };
+  };
+
+  const stOpt = computeStScenario(-0.5);
+  const stBase = computeStScenario(0);
+  const stStress = computeStScenario(1.5);
+
+  const stBreakEvenRent = (stBase.mortgage + stTotalOpCosts) / (1 - stVoidPct);
+  const stRentHeadroom = stGrossRent - stBreakEvenRent;
+  const stStressCF = stStress.cf;
+  const stStressRate = stStress.rate;
+
+  const stPaybackDisplay = (p: { payback: number }) =>
+    (p.payback <= 0 || !isFinite(p.payback) || p.payback > 25) ? 'N/A' : `${p.payback.toFixed(1)} yrs`;
+  const stCfColor = (v: number) => v > 0 ? '#16A34A' : v < 0 ? '#DC2626' : '#1E2B3C';
+
+  const calloutMetrics3 = calloutMetrics;
+  const structureBg = '#F8FAFC';
+  const verdictSummary = generateVerdictSummary(props);
+  const whatThisMeans = generateWhatThisMeans(props);
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
