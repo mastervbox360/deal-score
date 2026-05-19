@@ -2928,6 +2928,7 @@ export default function HomePage() {
                     <rect width="80" height="104" rx="3" fill="#F3F4F6" />
                     <rect x="0" y="0" width="30" height="104" fill={brandColour} />
                     <rect x="45" y="46" width="20" height="2" rx="1" fill={accentColour} opacity="0.9" />
+                    <rect x="4" y="94" width="22" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
                     <rect x="36" y="52" width="32" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="36" y="62" width="24" height="3" rx="1.5" fill="#CBD5E1" />
                   </svg>
@@ -2936,6 +2937,7 @@ export default function HomePage() {
                     <rect width="120" height="88" rx="3" fill="#F3F4F6" />
                     <rect x="0" y="0" width="42" height="88" fill={brandColour} />
                     <rect x="67" y="34" width="28" height="2" rx="1" fill={accentColour} opacity="0.9" />
+                    <rect x="4" y="80" width="34" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
                     <rect x="52" y="40" width="52" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="52" y="50" width="40" height="3" rx="1.5" fill="#CBD5E1" />
                   </svg>
