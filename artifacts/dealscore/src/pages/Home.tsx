@@ -2823,76 +2823,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Cover Style */}
-          {tierOverride === 'pro_plus' && (
-          <div className="mt-4 space-y-1.5">
-            <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your investor pack cover page layout)</span></Label>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setCoverStyle('classic')}
-                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'classic' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
-              >
-                <div className="w-[60px] h-[80px] rounded overflow-hidden flex flex-col" style={{ backgroundColor: brandColourDraft }}>
-                  <div className="flex-1 flex flex-col items-center justify-center gap-1 px-2">
-                    <div className="w-6 h-2 bg-white/80 rounded" />
-                    <div className="w-9 h-1.5 bg-white/90 rounded" />
-                    <div className="w-7 h-1 bg-white/60 rounded" />
-                  </div>
-                  <div className="px-2 pb-2">
-                    <div className="border-t border-white/30 pt-1">
-                      <div className="w-8 h-1 bg-white/50 rounded mx-auto" />
-                    </div>
-                  </div>
-                </div>
-                <span className="text-[10px] text-slate-600 font-medium">Classic</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCoverStyle('clean')}
-                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'clean' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
-              >
-                <div className="w-[60px] h-[80px] rounded overflow-hidden bg-white flex flex-col" style={{ borderLeft: `3px solid ${brandColourDraft}` }}>
-                  <div className="h-1.5 w-full" style={{ backgroundColor: brandColourDraft }} />
-                  <div className="flex-1 flex flex-col justify-between p-2">
-                    <div className="w-4 h-1.5 bg-slate-200 rounded" />
-                    <div>
-                      <div className="w-9 h-2 bg-slate-700 rounded mb-1" />
-                      <div className="w-7 h-1 rounded mb-0.5" style={{ backgroundColor: brandColourDraft, opacity: 0.8 }} />
-                      <div className="w-5 h-1 bg-slate-300 rounded" />
-                    </div>
-                    <div className="border-t pt-1" style={{ borderColor: brandColourDraft }}>
-                      <div className="w-7 h-1 bg-slate-200 rounded mx-auto" />
-                    </div>
-                  </div>
-                </div>
-                <span className="text-[10px] text-slate-600 font-medium">Clean</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCoverStyle('bold')}
-                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'bold' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
-              >
-                <div className="w-[60px] h-[80px] rounded overflow-hidden flex">
-                  <div className="w-[45%] h-full flex flex-col justify-between p-1.5" style={{ backgroundColor: brandColourDraft }}>
-                    <div className="w-4 h-1.5 bg-white/70 rounded" />
-                    <div>
-                      <div className="w-3 h-1 bg-white/80 rounded mb-0.5" />
-                      <div className="w-2 h-0.5 bg-white/50 rounded" />
-                    </div>
-                  </div>
-                  <div className="w-[55%] h-full bg-white flex flex-col justify-center p-1.5">
-                    <div className="w-6 h-2 bg-slate-700 rounded mb-1" />
-                    <div className="w-5 h-1 bg-slate-400 rounded mb-1" />
-                    <div className="w-3 h-1 bg-slate-200 rounded" />
-                  </div>
-                </div>
-                <span className="text-[10px] text-slate-600 font-medium">Bold</span>
-              </button>
-            </div>
-          </div>
-          )}
-
           {/* Pack Format (Portrait / Landscape) */}
           {tierOverride === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
@@ -2927,6 +2857,94 @@ export default function HomePage() {
                 <span className="text-[10px] text-slate-600 font-medium">Landscape</span>
                 <span className="text-[9px] text-slate-400">10 pages · Charts &amp; glossary</span>
               </button>
+            </div>
+          </div>
+          )}
+
+          {/* Cover Style */}
+          {tierOverride === 'pro_plus' && (
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your {pdfOrientation} pack cover style)</span></Label>
+            <div className="flex flex-wrap gap-4">
+
+              {/* Classic */}
+              <button
+                type="button"
+                onClick={() => setCoverStyle('classic')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'classic' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                {pdfOrientation === 'portrait' ? (
+                  <svg width="60" height="80" viewBox="0 0 80 104" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="80" height="104" rx="3" fill="#1B3A6B" />
+                    <rect x="18" y="46" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
+                    <rect x="22" y="54" width="36" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
+                    <rect x="20" y="62" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
+                  </svg>
+                ) : (
+                  <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="120" height="88" rx="3" fill="#1B3A6B" />
+                    <rect x="28" y="36" width="64" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
+                    <rect x="34" y="44" width="52" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
+                    <rect x="31" y="52" width="58" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
+                  </svg>
+                )}
+                <span className="text-[10px] text-slate-600 font-medium">Classic</span>
+              </button>
+
+              {/* Clean */}
+              <button
+                type="button"
+                onClick={() => setCoverStyle('clean')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'clean' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                {pdfOrientation === 'portrait' ? (
+                  <svg width="60" height="80" viewBox="0 0 80 104" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="80" height="104" rx="3" fill="#F3F4F6" />
+                    <rect x="0" y="0" width="4" height="104" fill="#1B3A6B" />
+                    <rect x="12" y="44" width="44" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="12" y="52" width="36" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="12" y="60" width="40" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="12" y="88" width="56" height="1" fill="#1B3A6B" fillOpacity="0.4" />
+                  </svg>
+                ) : (
+                  <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="120" height="88" rx="3" fill="#F3F4F6" />
+                    <rect x="0" y="0" width="5" height="88" fill="#1B3A6B" />
+                    <rect x="14" y="34" width="68" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="14" y="42" width="56" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="14" y="50" width="62" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="14" y="74" width="92" height="1" fill="#1B3A6B" fillOpacity="0.4" />
+                  </svg>
+                )}
+                <span className="text-[10px] text-slate-600 font-medium">Clean</span>
+              </button>
+
+              {/* Bold */}
+              <button
+                type="button"
+                onClick={() => setCoverStyle('bold')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${coverStyle === 'bold' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                {pdfOrientation === 'portrait' ? (
+                  <svg width="60" height="80" viewBox="0 0 80 104" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="80" height="104" rx="3" fill="#F3F4F6" />
+                    <rect x="0" y="0" width="30" height="104" fill="#1B3A6B" />
+                    <rect x="36" y="44" width="16" height="2" rx="1" fill="#1B3A6B" fillOpacity="0.6" />
+                    <rect x="36" y="52" width="32" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="36" y="62" width="24" height="3" rx="1.5" fill="#CBD5E1" />
+                  </svg>
+                ) : (
+                  <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="120" height="88" rx="3" fill="#F3F4F6" />
+                    <rect x="0" y="0" width="42" height="88" fill="#1B3A6B" />
+                    <rect x="52" y="32" width="24" height="2" rx="1" fill="#1B3A6B" fillOpacity="0.6" />
+                    <rect x="52" y="40" width="52" height="3" rx="1.5" fill="#CBD5E1" />
+                    <rect x="52" y="50" width="40" height="3" rx="1.5" fill="#CBD5E1" />
+                  </svg>
+                )}
+                <span className="text-[10px] text-slate-600 font-medium">Bold</span>
+              </button>
+
             </div>
           </div>
           )}

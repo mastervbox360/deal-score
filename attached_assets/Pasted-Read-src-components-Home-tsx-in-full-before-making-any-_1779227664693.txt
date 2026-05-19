@@ -1,0 +1,90 @@
+Read src/components/Home.tsx in full before making any changes.
+
+You are reorganising the Pro Plus branding section and updating the cover style thumbnails to be orientation-aware. No changes to PDF generation logic, state variables, or DealScorePDF.tsx / DealScorePDFProPlus.tsx.
+
+────────────────────────────────────────
+STEP 1 — REORDER THE SECTIONS
+────────────────────────────────────────
+
+In the Pro Plus branding UI, reorder the sections so Pack Format comes first, above Cover Style:
+
+New order:
+1. Pack Format (segmented toggle — Portrait / Landscape)
+2. Cover Style (thumbnail cards — updates based on selected format)
+3. Brand Colour
+4. Accent Colour
+5. Your Logo
+
+────────────────────────────────────────
+STEP 2 — UPDATE COVER STYLE LABEL
+────────────────────────────────────────
+
+Update the Cover Style label line from:
+  "choose your investor pack cover page layout"
+To:
+  "choose your {orientation} pack cover style"
+Where {orientation} is "portrait" when pdfOrientation === 'portrait' and "landscape" when pdfOrientation === 'landscape'. This updates live as the user switches format.
+
+────────────────────────────────────────
+STEP 3 — REPLACE COVER STYLE THUMBNAILS WITH ORIENTATION-AWARE VERSIONS
+────────────────────────────────────────
+
+The three cover style thumbnail cards (Classic, Clean, Bold) currently show portrait-proportioned illustrations. Replace all three thumbnail illustrations with inline SVG that renders the correct proportion and layout based on pdfOrientation.
+
+Each thumbnail card:
+- When pdfOrientation === 'portrait': render a tall portrait-proportioned SVG (viewBox "0 0 80 104")
+- When pdfOrientation === 'landscape': render a wide landscape-proportioned SVG (viewBox "0 0 120 88")
+- The card container itself does not change size — only the SVG inside switches viewBox and internal layout
+- Keep all existing card selection logic, selected border/highlight state, onClick handlers, and label text exactly as-is
+
+Thumbnail SVG specs — use #1B3A6B for the brand fill colour in all thumbnails (it is a static illustration, not the user's live brand colour):
+
+CLASSIC thumbnail:
+  Portrait (80×104):
+    Full bleed rectangle fill #1B3A6B, rx 3
+    Three centred horizontal lines at y 46, 54, 62 — widths 44, 36, 40, height 3, fill rgba(255,255,255,0.5), rx 1.5
+  Landscape (120×88):
+    Full bleed rectangle fill #1B3A6B, rx 3
+    Three centred horizontal lines at y 36, 44, 52 — widths 64, 52, 58, height 3, fill rgba(255,255,255,0.5), rx 1.5
+
+CLEAN thumbnail:
+  Portrait (80×104):
+    Background rectangle fill #F3F4F6, rx 3
+    Left accent strip: x 0, y 0, width 4, height 104, fill #1B3A6B, rx 0
+    Three horizontal lines at x 12, y 44, 52, 60 — widths 44, 36, 40, height 3, fill #CBD5E1, rx 1.5
+    Bottom rule: y 88, x 12, width 56, height 1, fill #1B3A6B, opacity 0.4
+  Landscape (120×88):
+    Background rectangle fill #F3F4F6, rx 3
+    Left accent strip: x 0, y 0, width 5, height 88, fill #1B3A6B, rx 0
+    Three horizontal lines at x 14, y 34, 42, 50 — widths 68, 56, 62, height 3, fill #CBD5E1, rx 1.5
+    Bottom rule: y 74, x 14, width 92, height 1, fill #1B3A6B, opacity 0.4
+
+BOLD thumbnail:
+  Portrait (80×104):
+    Background rectangle fill #F3F4F6, rx 3
+    Left panel: x 0, y 0, width 30, height 104, fill #1B3A6B, rx 0 (left corners only — use clipPath or just overlap with the background rx)
+    Two horizontal lines in right panel at x 36, y 52, 62 — widths 32, 24, height 3, fill #CBD5E1, rx 1.5
+    Short accent rule in right panel: x 36, y 44, width 16, height 2, fill #1B3A6B, opacity 0.6
+  Landscape (120×88):
+    Background rectangle fill #F3F4F6, rx 3
+    Left panel: x 0, y 0, width 42, height 88, fill #1B3A6B
+    Two horizontal lines in right panel at x 52, y 40, 50 — widths 52, 40, height 3, fill #CBD5E1, rx 1.5
+    Short accent rule in right panel: x 52, y 32, width 24, height 2, fill #1B3A6B, opacity 0.6
+
+All three thumbnails switch instantly when pdfOrientation changes — no animation needed.
+
+────────────────────────────────────────
+STEP 4 — FUTURE-PROOF THE THUMBNAIL ROW
+────────────────────────────────────────
+
+Ensure the cover style thumbnail row uses a flex row with flex-wrap: wrap and gap so that additional thumbnails added in future sessions simply flow to the right of the existing three without any layout changes needed. Do not hard-code a fixed grid or fixed width container that would clip a 4th or 5th card.
+
+────────────────────────────────────────
+STEP 5 — VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx is untouched.
+3. Confirm DealScorePDFProPlus.tsx is untouched.
+4. Confirm PDF generation logic is untouched — pdfOrientation conditional unchanged.
+5. git add -A && git commit -m "Pro Plus: pack format first, orientation-aware cover style thumbnails" && git push origin stage-6
