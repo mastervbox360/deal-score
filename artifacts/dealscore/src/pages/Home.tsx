@@ -2869,14 +2869,14 @@ export default function HomePage() {
               >
                 {pdfOrientation === 'portrait' ? (
                   <svg width="60" height="80" viewBox="0 0 80 104" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="80" height="104" rx="3" fill="#1B3A6B" />
+                    <rect width="80" height="104" rx="3" fill={brandColour} />
                     <rect x="18" y="46" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
                     <rect x="22" y="54" width="36" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
                     <rect x="20" y="62" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
                   </svg>
                 ) : (
                   <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="120" height="88" rx="3" fill="#1B3A6B" />
+                    <rect width="120" height="88" rx="3" fill={brandColour} />
                     <rect x="28" y="36" width="64" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
                     <rect x="34" y="44" width="52" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
                     <rect x="31" y="52" width="58" height="3" rx="1.5" fill="rgba(255,255,255,0.5)" />
@@ -2894,20 +2894,20 @@ export default function HomePage() {
                 {pdfOrientation === 'portrait' ? (
                   <svg width="60" height="80" viewBox="0 0 80 104" xmlns="http://www.w3.org/2000/svg">
                     <rect width="80" height="104" rx="3" fill="#F3F4F6" />
-                    <rect x="0" y="0" width="4" height="104" fill="#1B3A6B" />
+                    <rect x="0" y="0" width="4" height="104" fill={brandColour} />
                     <rect x="12" y="44" width="44" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="12" y="52" width="36" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="12" y="60" width="40" height="3" rx="1.5" fill="#CBD5E1" />
-                    <rect x="12" y="88" width="56" height="1" fill="#1B3A6B" fillOpacity="0.4" />
+                    <rect x="12" y="88" width="56" height="1" fill={brandColour} fillOpacity="0.4" />
                   </svg>
                 ) : (
                   <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
                     <rect width="120" height="88" rx="3" fill="#F3F4F6" />
-                    <rect x="0" y="0" width="5" height="88" fill="#1B3A6B" />
+                    <rect x="0" y="0" width="5" height="88" fill={brandColour} />
                     <rect x="14" y="34" width="68" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="14" y="42" width="56" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="14" y="50" width="62" height="3" rx="1.5" fill="#CBD5E1" />
-                    <rect x="14" y="74" width="92" height="1" fill="#1B3A6B" fillOpacity="0.4" />
+                    <rect x="14" y="74" width="92" height="1" fill={brandColour} fillOpacity="0.4" />
                   </svg>
                 )}
                 <span className="text-[10px] text-slate-600 font-medium">Clean</span>
@@ -2922,16 +2922,16 @@ export default function HomePage() {
                 {pdfOrientation === 'portrait' ? (
                   <svg width="60" height="80" viewBox="0 0 80 104" xmlns="http://www.w3.org/2000/svg">
                     <rect width="80" height="104" rx="3" fill="#F3F4F6" />
-                    <rect x="0" y="0" width="30" height="104" fill="#1B3A6B" />
-                    <rect x="36" y="44" width="16" height="2" rx="1" fill="#1B3A6B" fillOpacity="0.6" />
+                    <rect x="0" y="0" width="30" height="104" fill={brandColour} />
+                    <rect x="36" y="44" width="16" height="2" rx="1" fill={brandColour} fillOpacity="0.6" />
                     <rect x="36" y="52" width="32" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="36" y="62" width="24" height="3" rx="1.5" fill="#CBD5E1" />
                   </svg>
                 ) : (
                   <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
                     <rect width="120" height="88" rx="3" fill="#F3F4F6" />
-                    <rect x="0" y="0" width="42" height="88" fill="#1B3A6B" />
-                    <rect x="52" y="32" width="24" height="2" rx="1" fill="#1B3A6B" fillOpacity="0.6" />
+                    <rect x="0" y="0" width="42" height="88" fill={brandColour} />
+                    <rect x="52" y="32" width="24" height="2" rx="1" fill={brandColour} fillOpacity="0.6" />
                     <rect x="52" y="40" width="52" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="52" y="50" width="40" height="3" rx="1.5" fill="#CBD5E1" />
                   </svg>
