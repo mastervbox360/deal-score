@@ -1,0 +1,48 @@
+Read src/components/Home.tsx in full before making any changes.
+
+Fix the Clean and Bold cover style thumbnail SVGs only — both portrait and landscape variants of each. Do not touch Classic. Do not modify DealScorePDF.tsx or DealScorePDFProPlus.tsx.
+
+────────────────────────────────────────
+CLEAN — fix both variants
+────────────────────────────────────────
+
+The real Clean cover has ONE accent element only: a full-width horizontal rule near the very bottom of the page, just above the "Confidential" footer text. There is NO short rule above the address.
+
+Remove both existing accent rects from the Clean portrait and landscape SVGs.
+
+Replace with a single accent rect in each:
+
+Portrait (viewBox 0 0 80 104):
+  <rect x="10" y="94" width="62" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
+
+Landscape (viewBox 0 0 120 88):
+  <rect x="11" y="80" width="101" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
+
+────────────────────────────────────────
+BOLD — fix both variants
+────────────────────────────────────────
+
+The real Bold cover has ONE accent element: a short horizontal rule on the RIGHT white panel, directly above the address text — centred horizontally in the right panel. It is NOT on the left dark panel.
+
+Remove both existing accent rects from the Bold portrait and landscape SVGs.
+
+Replace with a single accent rect in the right white panel of each:
+
+Portrait (viewBox 0 0 80 104) — right panel starts at x=30, total width 80:
+  Centre of right panel x = 30 + (50/2) = 55. Rule width 20, so x = 45.
+  Address sits at roughly y=52 in the thumbnail. Place rule just above it:
+  <rect x="45" y="46" width="20" height="2" rx="1" fill={accentColour} opacity="0.9" />
+
+Landscape (viewBox 0 0 120 88) — right panel starts at x=42, total width 120:
+  Centre of right panel x = 42 + (78/2) = 81. Rule width 28, so x = 67.
+  Address sits at roughly y=40 in the thumbnail. Place rule just above it:
+  <rect x="67" y="34" width="28" height="2" rx="1" fill={accentColour} opacity="0.9" />
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx is untouched.
+3. Confirm DealScorePDFProPlus.tsx is untouched.
+4. git add -A && git commit -m "Clean and Bold thumbnails: accent positions corrected to match real covers" && git push origin stage-6
