@@ -1,0 +1,63 @@
+Read Home.tsx in full before making any changes. Plan all edits explicitly then execute in parallel.
+TASK: Fix PDF preview on iOS and iPadOS — replace PDFViewer iframe with blob URL approach.
+The problem: PDFViewer renders the PDF inside an <iframe> using a blob URL. On iOS Safari and iPadOS, iframes containing PDFs only show the first page and cannot be scrolled. This is a known WebKit limitation with no workaround using iframes.
+The fix: Detect whether the user is on iOS/iPadOS and open the PDF as a native blob URL in a new tab instead, which triggers Safari's native PDF viewer and supports full scrolling. On desktop, keep the existing modal with PDFViewer.
+
+FIX 1 — Add iOS detection utility
+Near the top of the component (after imports, before or near other utility hooks), add:
+tsxconst isIOS = typeof navigator !== 'undefined' && (
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+);
+The second condition catches iPadOS 13+ which reports as MacIntel but has touch points.
+
+FIX 2 — Add state for iOS blob URL generation
+Add a new state variable near pdfPreviewOpen:
+tsxconst [iosGenerating, setIosGenerating] = useState(false);
+
+FIX 3 — Add iOS-specific preview handler
+Add a new async function near the other handlers:
+tsxconst handlePreviewIOS = async () => {
+  setIosGenerating(true);
+  try {
+    const { pdf } = await import('@react-pdf/renderer');
+    const blob = await pdf(<DealScorePDF {...pdfProps} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    // Revoke after delay to allow tab to load
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (e) {
+    console.error('PDF generation error:', e);
+  } finally {
+    setIosGenerating(false);
+  }
+};
+
+FIX 4 — Update the Preview PDF button to use iOS handler
+Find the Preview PDF button:
+tsx<button
+  type="button"
+  onClick={() => setPdfPreviewOpen(true)}
+  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm border-2 border-[#1B3A6B] text-[#1B3A6B] bg-white hover:bg-[#1B3A6B]/5 active:scale-[0.99] transition w-full"
+  data-testid="button-preview-pdf"
+>
+  Preview PDF
+</button>
+Replace with:
+tsx<button
+  type="button"
+  onClick={isIOS ? handlePreviewIOS : () => setPdfPreviewOpen(true)}
+  disabled={iosGenerating}
+  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm border-2 border-[#1B3A6B] text-[#1B3A6B] bg-white hover:bg-[#1B3A6B]/5 active:scale-[0.99] transition w-full disabled:opacity-60"
+  data-testid="button-preview-pdf"
+>
+  {iosGenerating ? 'Generating…' : 'Preview PDF'}
+</button>
+
+FIX 5 — Confirm on completion
+
+isIOS correctly detects iPhone, iPad (pre-iOS 13), and iPadOS 13+ (MacIntel + touch points)
+On iOS/iPadOS — tapping Preview PDF generates the blob and opens it in a new Safari tab where native PDF viewer handles multi-page scrolling
+On desktop — Preview PDF opens the existing modal with PDFViewer unchanged
+Button shows "Generating…" and is disabled while the blob is being created on iOS
+npx tsc --noEmit passes with zero errors

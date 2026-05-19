@@ -93,6 +93,11 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
+const isIOS = typeof navigator !== 'undefined' && (
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+);
+
 const DEFAULT_TIMELINE_STAGES: Record<string, Array<{ label: string; month: number }>> = {
   BTL:    [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 3 }, { label: 'Tenant In', month: 4 }],
   HMO:    [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Conversion Complete', month: 4 }, { label: 'Tenants In', month: 5 }],
@@ -179,6 +184,7 @@ export default function HomePage() {
   const [accentColour, setAccentColour] = useState<string>('#00C896');
   const [accentColourDraft, setAccentColourDraft] = useState<string>('#00C896');
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState<boolean>(false);
+  const [iosGenerating, setIosGenerating] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
@@ -876,6 +882,21 @@ export default function HomePage() {
     }
     return flags.filter(Boolean) as string[];
   })();
+
+  const handlePreviewIOS = async () => {
+    setIosGenerating(true);
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const blob = await pdf(<DealScorePDF {...pdfProps} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (e) {
+      console.error('PDF generation error:', e);
+    } finally {
+      setIosGenerating(false);
+    }
+  };
 
   const pdfProps = useMemo<DealScorePDFProps>(() => {
     const _effectiveTax = taxOverrideActive
@@ -2984,11 +3005,12 @@ export default function HomePage() {
             {tierOverride !== 'free' && (
               <button
                 type="button"
-                onClick={() => setPdfPreviewOpen(true)}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm border-2 border-[#1B3A6B] text-[#1B3A6B] bg-white hover:bg-[#1B3A6B]/5 active:scale-[0.99] transition w-full"
+                onClick={isIOS ? handlePreviewIOS : () => setPdfPreviewOpen(true)}
+                disabled={iosGenerating}
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm border-2 border-[#1B3A6B] text-[#1B3A6B] bg-white hover:bg-[#1B3A6B]/5 active:scale-[0.99] transition w-full disabled:opacity-60"
                 data-testid="button-preview-pdf"
               >
-                Preview PDF
+                {iosGenerating ? 'Generating…' : 'Preview PDF'}
               </button>
             )}
             {tierOverride !== 'free' && (
