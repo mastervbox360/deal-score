@@ -93,6 +93,16 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
+const DEFAULT_TIMELINE_STAGES: Record<string, Array<{ label: string; month: number }>> = {
+  BTL:    [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 3 }, { label: 'Tenant In', month: 4 }],
+  HMO:    [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Conversion Complete', month: 4 }, { label: 'Tenants In', month: 5 }],
+  SA:     [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Furnishing Complete', month: 3 }, { label: 'First Booking', month: 4 }],
+  BRRR:   [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 4 }, { label: 'Refinance', month: 5 }, { label: 'Tenant In', month: 6 }],
+  FLIP:   [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 4 }, { label: 'Listed', month: 5 }, { label: 'Sold', month: 7 }],
+  R2R:    [{ label: 'Agreement Signed', month: 0 }, { label: 'Keys Received', month: 1 }, { label: 'Setup Complete', month: 2 }, { label: 'Tenants In', month: 3 }],
+  SOCIAL: [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Handover to Provider', month: 2 }, { label: 'Lease Start', month: 3 }],
+};
+
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
 
@@ -131,12 +141,7 @@ export default function HomePage() {
   const [propertyDescription, setPropertyDescription] = useState<string>('');
   const [vendorSituation, setVendorSituation] = useState<string>('');
   const [areaAverageYield, setAreaAverageYield] = useState(0);
-  const [timelineStages, setTimelineStages] = useState([
-    { label: 'Exchange', month: 0 },
-    { label: 'Completion', month: 1 },
-    { label: 'Refurb Complete', month: 3 },
-    { label: 'Tenant In', month: 4 },
-  ]);
+  const [timelineStages, setTimelineStages] = useState(DEFAULT_TIMELINE_STAGES['BTL']);
   const [offerDeadline, setOfferDeadline] = useState('');
   const [viewingAvailable, setViewingAvailable] = useState(false);
   const [refurbScope, setRefurbScope] = useState('');
@@ -428,6 +433,15 @@ export default function HomePage() {
     document.head.appendChild(script);
   }, []);
 
+  useEffect(() => {
+    const allDefaults = Object.values(DEFAULT_TIMELINE_STAGES);
+    const currentJSON = JSON.stringify(timelineStages);
+    const isStillDefault = allDefaults.some(def => JSON.stringify(def) === currentJSON);
+    if (isStillDefault) {
+      setTimelineStages(DEFAULT_TIMELINE_STAGES[dealType] ?? DEFAULT_TIMELINE_STAGES['BTL']);
+    }
+  }, [dealType]);
+
   const fetchAddressSuggestions = async (input: string) => {
     if (!input || input.length < 3 || !window.google?.maps?.places) {
       setAddressSuggestions([]);
@@ -540,12 +554,7 @@ export default function HomePage() {
     setShowWorkingsOpen(false);
     setIncludeWorkingsInPDF(false);
     setAreaAverageYield(0);
-    setTimelineStages([
-      { label: 'Exchange', month: 0 },
-      { label: 'Completion', month: 1 },
-      { label: 'Refurb Complete', month: 3 },
-      { label: 'Tenant In', month: 4 },
-    ]);
+    setTimelineStages(DEFAULT_TIMELINE_STAGES[dealType] ?? DEFAULT_TIMELINE_STAGES['BTL']);
     setOfferDeadline('');
     setViewingAvailable(false);
     setRefurbScope('');

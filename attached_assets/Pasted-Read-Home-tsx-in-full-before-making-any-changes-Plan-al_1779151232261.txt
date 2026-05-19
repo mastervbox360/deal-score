@@ -1,0 +1,44 @@
+Read Home.tsx in full before making any changes. Plan all edits explicitly then execute in parallel.
+TASK: Strategy-aware default timeline stages — update on strategy tab switch.
+
+FIX 1 — Define default stages per strategy
+Add a constant above the component (or near the top of the component before useState declarations) defining default stages for each strategy:
+tsxconst DEFAULT_TIMELINE_STAGES: Record<string, Array<{ label: string; month: number }>> = {
+  BTL:    [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 3 }, { label: 'Tenant In', month: 4 }],
+  HMO:    [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Conversion Complete', month: 4 }, { label: 'Tenants In', month: 5 }],
+  SA:     [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Furnishing Complete', month: 3 }, { label: 'First Booking', month: 4 }],
+  BRRR:   [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 4 }, { label: 'Refinance', month: 5 }, { label: 'Tenant In', month: 6 }],
+  FLIP:   [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Refurb Complete', month: 4 }, { label: 'Listed', month: 5 }, { label: 'Sold', month: 7 }],
+  R2R:    [{ label: 'Agreement Signed', month: 0 }, { label: 'Keys Received', month: 1 }, { label: 'Setup Complete', month: 2 }, { label: 'Tenants In', month: 3 }],
+  SOCIAL: [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Handover to Provider', month: 2 }, { label: 'Lease Start', month: 3 }],
+};
+
+FIX 2 — Update useState initialisation
+Change the initial timelineStages useState to use the BTL default from the constant:
+tsxconst [timelineStages, setTimelineStages] = useState(DEFAULT_TIMELINE_STAGES['BTL']);
+
+FIX 3 — Add useEffect to update stages on strategy change
+Add a useEffect that fires when dealType changes. It should only update stages if the user hasn't customised them — i.e., the current stages still match any strategy's default set. If the user has edited any label or month, leave the stages alone.
+Add this after the existing useEffects:
+tsxuseEffect(() => {
+  const allDefaults = Object.values(DEFAULT_TIMELINE_STAGES);
+  const currentJSON = JSON.stringify(timelineStages);
+  const isStillDefault = allDefaults.some(def => JSON.stringify(def) === currentJSON);
+  if (isStillDefault) {
+    setTimelineStages(DEFAULT_TIMELINE_STAGES[dealType] ?? DEFAULT_TIMELINE_STAGES['BTL']);
+  }
+}, [dealType]);
+
+FIX 4 — Update handleReset to use strategy-aware defaults
+Find the handleReset function (or wherever setTimelineStages is called with hardcoded BTL stages). Replace the hardcoded array with:
+tsxsetTimelineStages(DEFAULT_TIMELINE_STAGES[dealType] ?? DEFAULT_TIMELINE_STAGES['BTL']);
+
+FIX 5 — Confirm on completion
+
+Switching to R2R tab shows: Agreement Signed, Keys Received, Setup Complete, Tenants In
+Switching to FLIP shows: Exchange, Completion, Refurb Complete, Listed, Sold
+Switching to BRRR shows 5 stages including Refinance
+Switching to SA shows: Exchange, Completion, Furnishing Complete, First Booking
+If user edits any stage label or month then switches strategy — stages are NOT overwritten
+Reset button restores the correct default for the current strategy
+npx tsc --noEmit passes with zero errors
