@@ -2901,7 +2901,8 @@ export default function HomePage() {
                     <rect x="12" y="52" width="36" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="12" y="60" width="40" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="12" y="88" width="56" height="1" fill={brandColour} fillOpacity="0.4" />
-                    <rect x="10" y="86" width="62" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
+                    <rect x="28" y="52" width="24" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
+                    <rect x="10" y="90" width="62" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
                   </svg>
                 ) : (
                   <svg width="80" height="60" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg">
@@ -2911,7 +2912,8 @@ export default function HomePage() {
                     <rect x="14" y="42" width="56" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="14" y="50" width="62" height="3" rx="1.5" fill="#CBD5E1" />
                     <rect x="14" y="74" width="92" height="1" fill={brandColour} fillOpacity="0.4" />
-                    <rect x="11" y="72" width="101" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
+                    <rect x="40" y="38" width="40" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
+                    <rect x="11" y="76" width="101" height="1.5" rx="0.75" fill={accentColour} opacity="0.9" />
                   </svg>
                 )}
                 <span className="text-[10px] text-slate-600 font-medium">Clean</span>
