@@ -1,0 +1,80 @@
+Read src/components/Home.tsx in full before making any changes.
+
+You are adding a Portrait / Landscape orientation toggle for Pro Plus tier only. This sits below the cover style selector in the Pro Plus branding section. Do not change any behaviour for Free or Pro tier. Do not modify DealScorePDF.tsx or DealScorePDFProPlus.tsx.
+
+────────────────────────────────────────
+STEP 1 — ADD ORIENTATION STATE
+────────────────────────────────────────
+
+Add a new state variable near the other branding state variables:
+
+  const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
+
+────────────────────────────────────────
+STEP 2 — ADD THE TOGGLE UI
+────────────────────────────────────────
+
+Find the cover style selector section in the Pro Plus branding UI. It shows the Classic / Clean / Bold thumbnail cards. Directly below that block, and only when tierOverride === 'pro_plus', add the following UI:
+
+  A label row: "Pack Format" on the left in the same style as "Cover Style" label. To the right of the label, add an info icon (ⓘ) with a tooltip on hover.
+
+  Tooltip text: "Portrait (A4) — 8-page investor pack optimised for email and print. Landscape (A4) — 10-page Pro Plus pack with SVG charts and glossary, optimised for screen sharing and presentations."
+
+  Match the tooltip style exactly to any existing tooltips already used in the app — same component, same positioning, same font size.
+
+  Below the label row, two selectable option cards side by side, matching the visual style of the cover style thumbnail cards already in the app:
+
+  Card 1 — Portrait:
+    Small icon representing a portrait page (a tall thin rectangle with 3 short horizontal lines inside, drawn with a bordered div)
+    Label below: "Portrait"
+    Subtext below label: "8 pages · Print & email"
+
+  Card 2 — Landscape:
+    Small icon representing a landscape page (a wide short rectangle with 3 short horizontal lines inside, drawn with a bordered div)
+    Label below: "Landscape"
+    Subtext below label: "10 pages · Charts & glossary"
+
+  Selected state: match exactly how the selected cover style card is highlighted in the app already (same border, same background, same selected indicator).
+
+  On click of each card: setPdfOrientation('portrait') or setPdfOrientation('landscape').
+
+────────────────────────────────────────
+STEP 3 — WIRE ORIENTATION INTO PDF GENERATION
+────────────────────────────────────────
+
+Find all three PDF render paths in Home.tsx:
+  1. The download button / pdf().toBlob() call
+  2. The iOS preview handler  
+  3. The PDFViewer / preview modal
+
+In each location, the current logic selects DealScorePDFProPlus when tierOverride === 'pro_plus'.
+
+Update each location to:
+
+  const PdfComponent =
+    tierOverride === 'pro_plus' && pdfOrientation === 'landscape'
+      ? DealScorePDFProPlus
+      : DealScorePDF;
+
+This means:
+  - Pro Plus + portrait selected → DealScorePDF (branded portrait with logo and accent colour)
+  - Pro Plus + landscape selected → DealScorePDFProPlus (landscape pack)
+  - Pro → DealScorePDF (DealScore branded portrait, unchanged)
+  - Free → DealScorePDF (no PDF output, unchanged)
+
+────────────────────────────────────────
+STEP 4 — RESET BEHAVIOUR
+────────────────────────────────────────
+
+Find the reset handler in Home.tsx. Add pdfOrientation reset:
+
+  setPdfOrientation('portrait');
+
+────────────────────────────────────────
+STEP 5 — VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx is untouched.
+3. Confirm DealScorePDFProPlus.tsx is untouched.
+4. git add -A && git commit -m "Pro Plus: portrait/landscape orientation toggle" && git push origin stage-6

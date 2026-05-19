@@ -43,12 +43,14 @@ function getContrastText(bgHex: string): string {
 const PdfDownloadButton = React.memo(function PdfDownloadButton({
   pdfProps,
   fileName,
+  orientation,
 }: {
   pdfProps: DealScorePDFProps;
   fileName: string;
+  orientation: 'portrait' | 'landscape';
 }) {
   const textColour = getContrastText(pdfProps.brandColour);
-  const PdfComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
+  const PdfComponent = pdfProps.tierOverride === 'pro_plus' && orientation === 'landscape' ? DealScorePDFProPlus : DealScorePDF;
   return (
     <PDFDownloadLink
       key={pdfProps.propertyAddress + '||' + pdfProps.coverStyle + '||' + pdfProps.currentScore + '||' + pdfProps.riskFlags.length}
@@ -180,6 +182,7 @@ export default function HomePage() {
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   const [logoSize, setLogoSize] = useState<'S' | 'M' | 'L'>('M');
   const [coverStyle, setCoverStyle] = useState<'classic' | 'clean' | 'bold'>('classic');
+  const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
   const [tierOverride, setTierOverride] = useState<'free' | 'pro' | 'pro_plus'>('pro_plus');
   const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
@@ -591,6 +594,7 @@ export default function HomePage() {
     setPropertyData(null);
     setPropertyDataLoading(false);
     setPropertyDataOpen(true);
+    setPdfOrientation('portrait');
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
@@ -889,7 +893,7 @@ export default function HomePage() {
     setIosGenerating(true);
     try {
       const { pdf } = await import('@react-pdf/renderer');
-      const IosComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
+      const IosComponent = pdfProps.tierOverride === 'pro_plus' && pdfOrientation === 'landscape' ? DealScorePDFProPlus : DealScorePDF;
       const blob = await pdf(<IosComponent {...pdfProps} />).toBlob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -2889,6 +2893,44 @@ export default function HomePage() {
           </div>
           )}
 
+          {/* Pack Format (Portrait / Landscape) */}
+          {tierOverride === 'pro_plus' && (
+          <div className="mt-4 space-y-1.5">
+            <div className="flex items-center gap-1">
+              <Label className="text-xs">Pack Format</Label>
+              <InfoIcon id="pack-format" text="Portrait (A4) — 8-page investor pack optimised for email and print. Landscape (A4) — 10-page Pro Plus pack with SVG charts and glossary, optimised for screen sharing and presentations." />
+            </div>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setPdfOrientation('portrait')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${pdfOrientation === 'portrait' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                <div className="w-[60px] h-[80px] rounded bg-white border border-slate-200 flex flex-col items-center justify-center gap-1.5 px-3">
+                  <div className="w-full h-1 bg-slate-300 rounded" />
+                  <div className="w-full h-1 bg-slate-300 rounded" />
+                  <div className="w-4/5 h-1 bg-slate-200 rounded" />
+                </div>
+                <span className="text-[10px] text-slate-600 font-medium">Portrait</span>
+                <span className="text-[9px] text-slate-400">8 pages · Print &amp; email</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPdfOrientation('landscape')}
+                className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border-2 transition ${pdfOrientation === 'landscape' ? 'border-[#1B3A6B]' : 'border-slate-200 hover:border-slate-300'}`}
+              >
+                <div className="w-[80px] h-[60px] rounded bg-white border border-slate-200 flex flex-col items-center justify-center gap-1.5 px-3">
+                  <div className="w-full h-1 bg-slate-300 rounded" />
+                  <div className="w-full h-1 bg-slate-300 rounded" />
+                  <div className="w-4/5 h-1 bg-slate-200 rounded" />
+                </div>
+                <span className="text-[10px] text-slate-600 font-medium">Landscape</span>
+                <span className="text-[9px] text-slate-400">10 pages · Charts &amp; glossary</span>
+              </button>
+            </div>
+          </div>
+          )}
+
           {/* Brand Colour */}
           {tierOverride === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
@@ -3056,6 +3098,7 @@ export default function HomePage() {
               <PdfDownloadButton
                 pdfProps={pdfProps}
                 fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
+                orientation={pdfOrientation}
               />
             )}
             <button
@@ -3081,6 +3124,7 @@ export default function HomePage() {
             <PdfDownloadButton
               pdfProps={pdfProps}
               fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
+              orientation={pdfOrientation}
             />
             <button
               type="button"
@@ -3094,7 +3138,7 @@ export default function HomePage() {
         </div>
         <div className="flex-1 overflow-hidden">
           {(() => {
-            const ViewerComponent = pdfProps.tierOverride === 'pro_plus' ? DealScorePDFProPlus : DealScorePDF;
+            const ViewerComponent = pdfProps.tierOverride === 'pro_plus' && pdfOrientation === 'landscape' ? DealScorePDFProPlus : DealScorePDF;
             return (
               <PDFViewer width="100%" height="100%" showToolbar={false}>
                 <ViewerComponent {...pdfProps} />
