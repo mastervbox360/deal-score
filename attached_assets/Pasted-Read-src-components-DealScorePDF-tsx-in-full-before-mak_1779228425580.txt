@@ -1,0 +1,72 @@
+Read src/components/DealScorePDF.tsx in full before making any changes.
+
+Add a Glossary page to the portrait PDF pack. Do not modify DealScorePDFProPlus.tsx or Home.tsx.
+
+────────────────────────────────────────
+ADD GLOSSARY PAGE TO DealScorePDF.tsx
+────────────────────────────────────────
+
+Add a new Page immediately before the Legal & Disclosure page (the hasLegal page). The glossary renders on every PDF regardless of strategy — it is always present.
+
+Page setup: size A4, same base.page style as all other pages. Footer included.
+SH title "Glossary"
+
+Two-column layout with a 0.5pt vertical rule between columns:
+  <View style={{ flexDirection: 'row', gap: 0 }}>
+    <View style={{ flex: 1, paddingRight: 12 }}> left column </View>
+    <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
+    <View style={{ flex: 1, paddingLeft: 12 }}> right column </View>
+  </View>
+
+Category section pattern — reuse for all 4 sections:
+  Category label: fontSize 7.5, Helvetica-Bold, color structureColour, textTransform 'uppercase', letterSpacing 0.8, paddingBottom 3, borderBottom '0.5pt solid structureColour', marginBottom 6
+  Each term:
+    Term name: fontSize 8.5, Helvetica-Bold, color '#1E2B3C', marginBottom 1
+    Definition: fontSize 8, color '#6B7280', lineHeight 1.45, marginBottom 1
+    Formula (where applicable): fontSize 7.5, Helvetica-Oblique, color '#3B82F6', marginBottom 5
+
+Left column:
+
+  Section 1 — "Yield & Return":
+    Gross Yield — Annual rent divided by purchase price. Formula: (Annual Rent / Purchase Price) × 100
+    Net Yield — Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).
+    Cash-on-Cash ROI — Annual cash flow divided by total cash invested. Includes mortgage payment. Formula: (Annual Cash Flow / Cash Invested) × 100
+    Payback Period — Years to recover invested capital from cash flow. Formula: Cash Invested / Annual Cash Flow
+    Equity on Day One — Immediate equity if property purchased below market value. Formula: Market Value − Purchase Price
+    BMV — Below Market Value. The discount between purchase price and estimated market value.
+
+  Section 2 — "Cash Flow & Expenses" (marginTop 10):
+    Gross Rent — Total rental income before any deductions or void allowance.
+    Void Allowance — Estimated cost of vacancy — periods with no rental income.
+    Effective Rent — Gross rent after void allowance deducted. Formula: Gross Rent × (1 − Void %)
+    Net Operating Income (NOI) — Effective rent minus all operating costs, excluding mortgage.
+    Net Cash Flow — Monthly surplus after all costs including mortgage. Formula: NOI − Mortgage Payment
+    Break-Even Rent — Minimum rent to cover all costs at the current mortgage rate.
+    Rent Headroom — Buffer between contracted rent and break-even rent. Formula: Gross Rent − Break-Even Rent
+
+Right column:
+
+  Section 3 — "Stress Testing & Resilience":
+    Break-Even Rent — The rent level at which monthly cash flow reaches exactly zero.
+    Rent Headroom — How far rent can fall before the deal becomes cash-flow negative.
+    Stress Test — Analysis of deal performance under higher mortgage rates and lower rent scenarios.
+    Break-Even Rate — The mortgage rate at which monthly cash flow reaches zero.
+    Sensitivity Analysis — Impact on returns of a 10% rent reduction and a 1.5% rate increase applied independently.
+
+  Section 4 — "Mortgage, Tax & Structure" (marginTop 10):
+    Interest-Only Mortgage — Monthly payment covers interest only. Capital balance remains unchanged throughout the term.
+    LTV — Loan to Value. Mortgage amount expressed as a percentage of property value. Formula: Mortgage / Property Value × 100
+    LTT / SDLT — Land Transaction Tax (Wales) or Stamp Duty Land Tax (England & NI). Government purchase tax on property transactions.
+    Cash Invested — Total capital deployed into the deal. Formula: Deposit + Tax + Refurb + Other Costs
+    Deal Score — Weighted composite score from 1 to 10 across six dimensions of deal quality.
+    Sourcing Fee — Fee payable to the deal sourcer on legal completion.
+    Cash-on-Cash ROI — The annual return on actual cash invested, after all costs including mortgage.
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDFProPlus.tsx is untouched.
+3. Confirm Home.tsx is untouched.
+4. git add -A && git commit -m "Portrait pack: glossary page added before legal" && git push origin stage-6
