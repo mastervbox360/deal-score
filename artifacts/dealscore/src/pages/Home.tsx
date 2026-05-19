@@ -1340,12 +1340,48 @@ export default function HomePage() {
                             setHighlightedIndex(-1);
                           }
                         }}
-                        onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                        onBlur={(e) => {
+                          const related = e.relatedTarget as HTMLElement | null;
+                          if (related && related.closest('[data-suggestions]')) return;
+                          setTimeout(() => setShowSuggestions(false), 200);
+                        }}
                         data-testid="input-property-address"
                         autoComplete="off"
+                        style={{ paddingRight: propertyAddress ? '32px' : undefined }}
                       />
+                      {propertyAddress && (
+                        <button
+                          type="button"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            setPropertyAddress('');
+                            setAddressSuggestions([]);
+                            setShowSuggestions(false);
+                          }}
+                          style={{
+                            position: 'absolute',
+                            right: 10,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: '#94a3b8',
+                            fontSize: 16,
+                            lineHeight: 1,
+                            zIndex: 10,
+                          }}
+                          aria-label="Clear address"
+                        >
+                          ×
+                        </button>
+                      )}
                       {showSuggestions && addressSuggestions.length > 0 && (
-                        <div style={{
+                        <div
+                          data-suggestions=""
+                          tabIndex={-1}
+                          style={{
                           position: 'absolute',
                           zIndex: 1000,
                           background: '#fff',
@@ -1359,7 +1395,7 @@ export default function HomePage() {
                           {addressSuggestions.map((suggestion, i) => (
                             <div
                               key={i}
-                              onMouseDown={() => selectSuggestion(suggestion)}
+                              onPointerDown={(e) => { e.preventDefault(); selectSuggestion(suggestion); }}
                               style={{
                                 padding: '10px 12px',
                                 fontSize: 13,

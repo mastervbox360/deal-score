@@ -1,0 +1,84 @@
+Read Home.tsx in full before making any changes. Plan all edits explicitly then execute in parallel.
+TASK: Fix address dropdown on iOS + add clear button to address field. Two precise edits.
+
+FIX 1 — iOS dropdown fix
+Find the address suggestions dropdown. Each suggestion item is currently a <div> with onMouseDown. The iOS bug is:
+
+User taps a suggestion
+touchstart fires on the suggestion
+blur fires on the input → setTimeout(() => setShowSuggestions(false), 150) starts
+click fires on the suggestion — but 150ms is not enough time on iOS; the dropdown is already gone
+
+Replace the existing onBlur on the Input with a version that checks if the related target is inside the suggestions dropdown:
+Find:
+tsxonBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+Replace with:
+tsxonBlur={(e) => {
+  const related = e.relatedTarget as HTMLElement | null;
+  if (related && related.closest('[data-suggestions]')) return;
+  setTimeout(() => setShowSuggestions(false), 200);
+}}
+Then find the suggestions container <div> (the one with position: 'absolute', zIndex: 1000) and add data-suggestions="" and tabIndex={-1} to it:
+Find:
+tsx<div style={{
+  position: 'absolute',
+  zIndex: 1000,
+  background: '#fff',
+Replace with:
+tsx<div
+  data-suggestions=""
+  tabIndex={-1}
+  style={{
+    position: 'absolute',
+    zIndex: 1000,
+    background: '#fff',
+Then for each suggestion item <div>, replace onMouseDown with onPointerDown and add a onTouchStart handler that prevents the default blur:
+Find:
+tsxonMouseDown={() => selectSuggestion(suggestion)}
+Replace with:
+tsxonPointerDown={(e) => { e.preventDefault(); selectSuggestion(suggestion); }}
+The e.preventDefault() on pointerdown stops the input from losing focus before the selection fires, which fixes the iOS tap-to-select behaviour.
+
+FIX 2 — Clear button on address field
+Find the address Input element. It currently sits inside <div style={{ position: 'relative' }}>. Add a clear button overlaid on the right side of the input, visible only when propertyAddress is non-empty.
+After the <Input ... /> element (and before the suggestions dropdown div), add:
+tsx{propertyAddress && (
+  <button
+    type="button"
+    onPointerDown={(e) => {
+      e.preventDefault();
+      setPropertyAddress('');
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }}
+    style={{
+      position: 'absolute',
+      right: 10,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: '4px',
+      color: '#94a3b8',
+      fontSize: 16,
+      lineHeight: 1,
+      zIndex: 10,
+    }}
+    aria-label="Clear address"
+  >
+    ×
+  </button>
+)}
+Also add style={{ paddingRight: propertyAddress ? '32px' : undefined }} to the <Input> element so text doesn't overlap the × button when the field is full. Find the Input and add this prop:
+tsxstyle={{ paddingRight: propertyAddress ? '32px' : undefined }}
+
+FIX 3 — Confirm on completion
+
+On iOS/iPadOS — tapping a suggestion now selects it correctly without the dropdown disappearing first
+On desktop — mouse click on suggestion still works (pointerdown fires before blur on desktop too)
+Keyboard navigation (ArrowUp/Down/Enter/Escape) unchanged
+Clear × button appears on the right of the address field whenever there is text
+Tapping × clears the address, suggestions, and closes the dropdown
+Input text does not overlap the × button
+npx tsc --noEmit passes with zero errors
