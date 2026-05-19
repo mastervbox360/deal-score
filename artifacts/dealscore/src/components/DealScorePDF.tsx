@@ -1440,7 +1440,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           return (
             <View style={{ flexDirection: 'row', gap: 14, marginBottom: 16 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>Purchase & Mortgage</Text>
+                <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
+                  {props.dealType === 'R2R' ? 'Rental Agreement' : props.dealType === 'FLIP' ? 'Purchase & Project' : props.dealType === 'BRRR' ? 'Purchase & Refinance' : 'Purchase & Mortgage'}
+                </Text>
                 {leftRows.map(([label, value, bold], i) => (
                   <View key={i} style={[base.tableRow, i % 2 === 0 ? base.tableRowAlt : {}]}>
                     <Text style={[base.tableLabel, { fontSize: 8.5 }]}>{label}</Text>
@@ -1449,7 +1451,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ))}
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>Income & Costs</Text>
+                <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
+                  {props.dealType === 'FLIP' ? 'Sale & Returns' : 'Income & Costs'}
+                </Text>
                 {rightRows.map(([label, value, bold], i) => (
                   <View key={i} style={[base.tableRow, i % 2 === 0 ? base.tableRowAlt : {}]}>
                     <Text style={[base.tableLabel, { fontSize: 8.5 }]}>{label}</Text>
@@ -2248,6 +2252,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               .map(r => parseFloat(r.price.replace(/[£,\s]/g, '')))
               .filter(n => !isNaN(n) && n > 0);
             if (validPrices.length < 2) return null;
+            if (props.dealType === 'R2R') return null;
             const avgPrice = validPrices.reduce((s, n) => s + n, 0) / validPrices.length;
             const priceDiffPct = ((props.purchasePrice - avgPrice) / avgPrice) * 100;
             let commentary: string;
@@ -2265,7 +2270,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             );
           })()}
 
-          {props.areaAverageYield != null && props.areaAverageYield > 0 && (() => {
+          {props.areaAverageYield != null && props.areaAverageYield > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' && (() => {
             const activeGrossYield = activeResults.grossYield;
             const yieldDiff = activeGrossYield - props.areaAverageYield!;
             const areaBar = Math.min(100, props.areaAverageYield! * 8);

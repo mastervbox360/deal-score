@@ -1770,15 +1770,17 @@ export default function HomePage() {
                   </div>
 
                   {/* Area Average Yield */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Area Average Yield (%)</Label><InfoIcon id="shared-area-yield" text="Average gross yield for comparable BTL properties in this area. Used for market context in the investor pack. Leave blank to omit." /></div>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 5.8"
-                      value={areaAverageYield || ''}
-                      onChange={(e) => setAreaAverageYield(parseFloat(e.target.value) || 0)}
-                    />
-                  </div>
+                  {dealType !== 'R2R' && dealType !== 'FLIP' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Area Average Yield (%)</Label><InfoIcon id="shared-area-yield" text="Average gross yield for comparable BTL properties in this area. Used for market context in the investor pack. Leave blank to omit." /></div>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 5.8"
+                        value={areaAverageYield || ''}
+                        onChange={(e) => setAreaAverageYield(parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  )}
 
                   {/* Investment Timeline */}
                   <div className="space-y-2">

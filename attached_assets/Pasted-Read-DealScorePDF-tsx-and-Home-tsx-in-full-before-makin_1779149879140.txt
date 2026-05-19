@@ -1,0 +1,53 @@
+Read DealScorePDF.tsx and Home.tsx in full before making any changes. Plan all edits explicitly then execute in parallel.
+TASK: Five targeted fixes — Deal Inputs column headers, Market Evidence strategy gating, app Area Average Yield field gating.
+
+FIX 1 — DealScorePDF.tsx: Strategy-aware Deal Inputs column headers
+Find the two-column Deal Inputs section on Page 3. It currently hardcodes both column header texts. Replace both header Text elements with strategy-aware versions:
+Find:
+tsx<Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>Purchase & Mortgage</Text>
+Replace with:
+tsx<Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
+  {props.dealType === 'R2R' ? 'Rental Agreement' : props.dealType === 'FLIP' ? 'Purchase & Project' : props.dealType === 'BRRR' ? 'Purchase & Refinance' : 'Purchase & Mortgage'}
+</Text>
+Find:
+tsx<Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>Income & Costs</Text>
+Replace with:
+tsx<Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
+  {props.dealType === 'FLIP' ? 'Sale & Returns' : 'Income & Costs'}
+</Text>
+
+FIX 2 — DealScorePDF.tsx: Suppress Area Yield Context for R2R and FLIP
+Find the Area Yield Context section on the Market Evidence page. It currently renders when props.areaAverageYield != null && props.areaAverageYield > 0. Add strategy gating:
+Find:
+tsx{props.areaAverageYield != null && props.areaAverageYield > 0 && (() => {
+Replace with:
+tsx{props.areaAverageYield != null && props.areaAverageYield > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' && (() => {
+
+FIX 3 — DealScorePDF.tsx: Suppress market commentary for R2R
+The market commentary paragraph (auto-generated from comparable prices vs purchase price) currently renders for all strategies with 2+ priced comparables. For R2R there is no purchase price so the text is meaningless. Gate it:
+Find the market commentary block — it starts with:
+tsx{(() => {
+  const validPrices = props.comparables
+    .filter(r => r.address.trim())
+    .map(r => parseFloat(r.price.replace(/[£,\s]/g, '')))
+    .filter(n => !isNaN(n) && n > 0);
+  if (validPrices.length < 2) return null;
+Add an early return for R2R immediately after the validPrices.length < 2 check:
+tsx  if (validPrices.length < 2) return null;
+  if (props.dealType === 'R2R') return null;
+
+FIX 4 — Home.tsx: Gate Area Average Yield field for R2R and FLIP
+Find the Area Average Yield input field in Home.tsx. It currently renders unconditionally in the Deal Notes section. Wrap it so it only shows for strategies where yield is meaningful:
+Find the Area Average Yield field — it will have a label containing "Area Average Yield" and an input with value={areaAverageYield. Wrap the entire <div className="space-y-2"> block containing it in:
+tsx{dealType !== 'R2R' && dealType !== 'FLIP' && (
+  // existing Area Average Yield div here
+)}
+
+FIX 5 — Confirm on completion
+
+Deal Inputs left column header shows "Rental Agreement" for R2R, "Purchase & Project" for FLIP, "Purchase & Refinance" for BRRR, "Purchase & Mortgage" for all others
+Deal Inputs right column header shows "Sale & Returns" for FLIP, "Income & Costs" for all others
+Area Yield Context section absent for R2R and FLIP on Market Evidence page
+Market commentary paragraph absent for R2R on Market Evidence page
+Area Average Yield input field hidden for R2R and FLIP in Home.tsx
+npx tsc --noEmit passes with zero errors
