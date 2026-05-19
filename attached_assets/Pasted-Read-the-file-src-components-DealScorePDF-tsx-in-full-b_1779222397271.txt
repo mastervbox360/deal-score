@@ -1,0 +1,199 @@
+Read the file src/components/DealScorePDF.tsx in full before writing a single line of code.
+
+Your task is to create a new file: src/components/DealScorePDFProPlus.tsx
+
+This is the landscape Pro Plus PDF pack. It is a separate component — do NOT modify DealScorePDF.tsx at any point during this or any subsequent prompt.
+
+────────────────────────────────────────
+COPY EXACTLY FROM DealScorePDF.tsx
+────────────────────────────────────────
+
+Copy these verbatim into DealScorePDFProPlus.tsx (no changes):
+- All imports
+- All type aliases (BTLResults, HMOResults, FlipResults, SAResults, BRRRResults, R2RResults, SocialResults, DealScore)
+- The full DealScorePDFProps interface — identical, same name
+- Helper functions: fc, fp, SCORE_COLOR, SCORE_TINT, VERDICT_LABELS, DEAL_LABELS
+- All colour helpers: getLuminance, getContrastText, getReadableBrandColour, coverMuted, darkenColour, getStructureColour, getPanelBg
+- Address helpers: noBreakHyphens, expandAddress, splitAddressThreeLines
+- sanitizePdfText, formatComparables
+- All page helpers: computeDealScoreBreakdown, generateVerdictSummary, computeCalloutMetrics, generateWhatThisMeans
+- The base StyleSheet — copy as-is
+
+The component export must be named: export default function DealScorePDFProPlus
+
+────────────────────────────────────────
+COLOUR SYSTEM — DERIVE INSIDE THE COMPONENT
+────────────────────────────────────────
+
+Inside DealScorePDFProPlus, derive these variables exactly as in DealScorePDF.tsx:
+
+const isProPlus = props.tierOverride === 'pro_plus';
+const brand = props.brandColour;
+const accent = props.accentColour;
+const coverBg = darkenColour(brand, 0.4);
+const readableBrand = getReadableBrandColour(brand);
+const coverBgText = getContrastText(coverBg);
+
+const structureColour = (() => {
+  if (isProPlus && accent && getLuminance(accent) < 0.85) {
+    return getStructureColour(accent);
+  }
+  return getStructureColour(brand);
+})();
+
+const panelBg = getPanelBg(brand);
+const panelText = getContrastText(panelBg);
+
+const tintBgRgb = (() => {
+  const c = structureColour.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return `${r},${g},${b}`;
+})();
+const tintBg = `rgba(${tintBgRgb},0.07)`;
+const tintBorder = `rgba(${tintBgRgb},0.15)`;
+const tintText = structureColour;
+const structureBg = '#F8FAFC';
+
+Also copy from DealScorePDF.tsx these derived values that are needed for later pages:
+- LOGO_H, LOGO_MAX_W, logoHeight, logoMaxWidth
+- addressPlain, address, addressForCover, addressLine1, addressLine2, boldLine1, boldLine2, boldLine3
+- SH sub-component (section header)
+- Footer sub-component
+- Table sub-component
+- WPdfRow, WPdfSec sub-components
+- footerCentreText
+- tenureRows
+- inputRows (full strategy-aware block)
+- heroMetrics
+- resultsRows
+- dealScoreDims, dealScoreOverall, verdictSummary, calloutMetrics3, whatThisMeans
+- execSummaryText, strategyNotesText, propertyDescText, vendorSituationText
+- hasRationale, hasComparables, hasLinks, hasMarketEvidence, hasLegal
+- formatCompPrice
+- validPhotos, heroIdx, heroPhoto, gridPhotos, validGridPhotos, photoPageSrcs
+- scoreColor
+- preparedLine
+- p2CiDeposit, p2CiTotal
+- activeResults, fdGrossRent, fdMortgagePayment, fdVoidPct, fdMgmtPct, fdMaintenance, fdInsurance, fdSc, fdGr, fdGrMonthly, fdRawPayback, fdPayback, fdPaybackDisplay
+- stVoidPct, stMgmtPct, stMaintenance, stInsurance, stSc, stGr, stTotalFixedOpCosts, stGrossRent, stCashInvested, stLoanAmount, stBaseRate, stEffectiveRent, stMgmtFee, stTotalOpCosts, computeStScenario, stOpt, stBase, stStress, stBreakEvenRent, stRentHeadroom, stStressCF, stStressRate, stPaybackDisplay, stCfColor
+
+────────────────────────────────────────
+PAGE ORIENTATION AND BASE STYLE
+────────────────────────────────────────
+
+All pages use:
+  size="A4"
+  orientation="landscape"
+  style={{ fontFamily: 'Helvetica', backgroundColor: '#ffffff', paddingTop: 32, paddingBottom: 56, paddingHorizontal: 36, fontSize: 10, color: '#333333' }}
+
+Two-column layout used on most pages:
+  <View style={{ flexDirection: 'row', gap: 20 }}>
+    <View style={{ flex: 1 }}> {/* left column */} </View>
+    <View style={{ flex: 1 }}> {/* right column */} </View>
+  </View>
+
+────────────────────────────────────────
+PAGE 1 — COVER
+────────────────────────────────────────
+
+Single Page, size A4, orientation landscape.
+Two-panel layout using flexDirection: 'row':
+
+Left panel — width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between':
+  Top: logo (if logoBase64) centred, maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain'. If no logo and companyName exists, show companyName in small caps, white, letterSpacing 1.8.
+  Centre (absolute positioned, top 0 bottom 0 left 40 right 0, justifyContent centre, alignItems centre):
+    - DEAL_LABELS[dealType] — fontSize 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12
+    - addressLine1 — fontSize 20, Helvetica-Bold, color: coverBgText, textAlign: 'center', lineHeight 1.3
+    - addressLine2 (if exists) — same style
+    - "Date Prepared: {dateStr}" — fontSize 10, color: '#AAAAAA', textAlign: 'center', marginTop 12
+  Bottom:
+    - Horizontal rule: borderBottom 1pt solid accent (if isProPlus) else 'rgba(255,255,255,0.2)', marginBottom 16
+    - preparedLine (if exists) — fontSize 9, color: '#CCCCCC', textAlign: 'center', marginBottom 8
+    - "Confidential — Prepared for investor review only" — fontSize 8, color: '#AAAAAA', textAlign: 'center'
+
+Right panel — width: '55%', backgroundColor: '#ffffff', padding: 40, position: 'relative':
+  Top right: "Confidential — Prepared for investor review only" — fontSize 8, color: '#999999', textAlign: 'right'
+  Centre (absolute, top 80, left 40, right 40):
+    Three metric cards stacked vertically, gap 10:
+      Card style: backgroundColor: '#F8FAFC', border: '0.5pt solid #d4dae8', borderLeft: '3pt solid structureColour, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
+      Card 1 — Deal Score:
+        Left: label "Deal Score" fontSize 8, color '#6B7280'
+        Right: dealScoreOverall.toFixed(1) + " / 10" fontSize 20, Helvetica-Bold, color '#1E2B3C'
+      Card 2 — primary metric per strategy:
+        BTL/HMO/SOCIAL: label "Gross Yield", value fp(activeResults.grossYield)
+        SA: label "Net Yield", value fp(saResults.netYield)
+        FLIP: label "Net Profit", value fc(flipResults.netProfit)
+        R2R: label "Monthly Profit", value fc(r2rResults.monthlyProfit)
+        BRRR: label "Cash Left In", value (brrrResults.moneyOut && purchasePrice > 0) ? 'Money Out' : fc(brrrResults.cashLeftInDeal)
+      Card 3 — Monthly Cash Flow:
+        FLIP: label "Annualised ROI", value fp(flipResults.annualisedROI)
+        R2R: label "Annual Profit", value fc(r2rResults.annualProfit)
+        All others: label "Monthly Cash Flow", value fc(activeResults.monthlyCashFlow)
+    Score verdict badge below cards, marginTop 16:
+      backgroundColor: SCORE_TINT[currentScore], borderLeft: '4pt solid scoreColor', paddingVertical 8, paddingHorizontal 14, borderRadius 3
+      Text: VERDICT_LABELS[currentScore] — fontSize 13, Helvetica-Bold, color '#1B2B4B'
+
+────────────────────────────────────────
+PAGE 2 — DEAL AT A GLANCE
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+
+Hero photo — full width, height 160, objectFit: 'cover', borderRadius 3, marginBottom 5 (if heroPhoto exists).
+Address caption below photo — fontSize 8.5, color '#9ca3af', textAlign 'center', marginBottom 8 (if heroPhoto exists).
+
+Attribute chips row — flexDirection 'row', flexWrap 'wrap', gap 6, marginBottom 10:
+  Same chips as portrait: property type, tenure (Freehold green / Leasehold amber), EPC, flood risk, deal type pill (structureColour border and text).
+
+Two-column layout below chips:
+Left column:
+  SH title "Executive Summary"
+  execSummaryText — fontSize 8.5, color '#444444', lineHeight 1.55
+
+Right column:
+  Three hero metric cards (heroMetrics array) — same style as portrait Page 2:
+    flex 1 each, backgroundColor 'white', border '0.5pt solid #d4dae8', borderTop '2.5pt solid structureColour', borderRadius 4, padding 10
+    Value: fontSize 18, Helvetica-Bold, color '#1E2B3C'
+    Label: fontSize 7.5, color '#6B7280', textTransform 'uppercase', letterSpacing 0.4
+
+────────────────────────────────────────
+PAGE 3 — PROPERTY & NUMBERS
+────────────────────────────────────────
+
+Page size A4 landscape. Footer included.
+
+Two-column layout:
+
+Left column:
+  SH title "Property Details"
+  Property details table — same rows as portrait Page 2 property details block:
+    Address (bold), Property Type, Tenure, Remaining Lease (if leasehold), Floor Area (if exists), Construction Date (if exists)
+    Use base.tableRow / base.tableRowAlt / base.tableLabel / base.tableValue styles, fontSize 8
+
+  SH title "Deal Inputs" marginTop 10
+  Strategy-aware column subheader above inputs:
+    fontSize 8, Helvetica-Bold, color structureColour, textTransform 'uppercase', letterSpacing 0.5, marginBottom 3, paddingBottom 3, borderBottom '1pt solid structureColour'
+    Text: R2R → 'Rental Agreement', FLIP → 'Purchase & Project', BRRR → 'Purchase & Refinance', else → 'Purchase & Mortgage'
+  inputRows table — all rows, fontSize 8.5, same alternating row style
+
+Right column:
+  Cash Invested / Setup Costs / Project Cost panel — copy exact panel JSX from portrait Page 3 for all strategies (BTL/HMO/SA/SOCIAL panel, BRRR panel, R2R Setup Costs panel, FLIP Project Cost Summary panel). Use identical tintBg styling.
+
+  SH title "Financial Summary" marginTop 10
+  resultsRows table — same as portrait, fontSize 8
+
+  Deal Insights paragraph — same auto-generated logic as portrait, at bottom of right column:
+    backgroundColor structureBg, borderRadius 3, paddingVertical 8, paddingHorizontal 10, marginTop 10, borderLeft '2pt solid structureColour'
+    Label "Deal Insights" — fontSize 7.5, Helvetica-Bold, color structureColour, textTransform 'uppercase', marginBottom 4
+    Text — fontSize 8.5, color '#1E2B3C', lineHeight 1.55
+
+────────────────────────────────────────
+AFTER WRITING PAGES 1–3
+────────────────────────────────────────
+
+1. Run tsc --noEmit and fix any TypeScript errors before stopping.
+2. Do not write pages 4 onwards yet — stop here and confirm the file compiles cleanly.
+3. Do not modify DealScorePDF.tsx.
+4. Do not wire up Home.tsx yet.
