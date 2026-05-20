@@ -1,0 +1,50 @@
+Read src/components/DealScorePDFProPlus.tsx and src/components/Home.tsx in full before making any changes.
+
+Bug: the landscape PDF always renders the same cover page regardless of which cover style (Classic / Clean / Bold) is selected in the app. The coverStyle prop is not being used inside DealScorePDFProPlus.tsx.
+
+────────────────────────────────────────
+STEP 1 — CONFIRM THE ISSUE
+────────────────────────────────────────
+
+In DealScorePDFProPlus.tsx, find the Page 1 (Cover) component. Check whether the cover page JSX uses a conditional based on props.coverStyle (or coverStyle). If it renders one fixed layout regardless of coverStyle, that is the bug.
+
+Also confirm that coverStyle is included in the props being passed from Home.tsx to DealScorePDFProPlus. It should be passed as part of pdfProps — the same pdfProps object used for DealScorePDF.
+
+────────────────────────────────────────
+STEP 2 — FIX
+────────────────────────────────────────
+
+The landscape cover page must render three distinct layouts based on coverStyle, matching the same logic used in DealScorePDF.tsx for the portrait cover.
+
+Read the portrait cover page JSX in DealScorePDF.tsx — specifically the three cover style variants (Classic, Clean, Bold). Copy that same three-way conditional logic into DealScorePDFProPlus.tsx Page 1, adapting for landscape orientation (size="A4" orientation="landscape") and the two-panel layout already established in the landscape cover.
+
+The three cover styles for landscape:
+
+CLASSIC:
+  Full-bleed single page. backgroundColor: coverBg (darkenColour(brand, 0.4)). No two-panel split.
+  Logo top-centre (if logoBase64). Address large bold centred vertically. Strategy label above address. Date below.
+  Accent rule above footer area.
+  Right side: three metric cards floating over the dark background (white card bg, structureColour top border).
+  Match the portrait Classic cover logic — adapt proportions for landscape A4.
+
+CLEAN:
+  White background, single page. Narrow left brand colour strip (full height, ~4pt wide).
+  Content centred: logo (if logoBase64) or company name top. Strategy label. Address large bold. Date.
+  Accent rule near bottom above "Confidential" line.
+  Three metric cards in a row below the address block.
+  Match the portrait Clean cover logic — adapt for landscape.
+
+BOLD:
+  Two-panel split — left panel (~42% width) in coverBg, right panel (~58%) white.
+  Left: logo top, strategy label + accent rule + address large bold centred vertically, date + prepared-by bottom.
+  Right: "Confidential" top right, three metric cards centred vertically, score verdict badge below cards.
+  This is the current default landscape cover — keep this layout for Bold exactly as-is.
+
+────────────────────────────────────────
+STEP 3 — VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx is untouched.
+3. Confirm Home.tsx is untouched (unless coverStyle was missing from pdfProps — fix that only if needed).
+4. git add -A && git commit -m "Landscape PDF: cover style selector applied correctly" && git push origin stage-6
