@@ -139,6 +139,12 @@ export default function HomePage() {
   const [userSetTenure, setUserSetTenure] = useState(false);
   const [userSetLeaseLength, setUserSetLeaseLength] = useState(false);
   const [leaseLengthYears, setLeaseLengthYears] = useState<number>(0);
+  const [bedrooms, setBedrooms] = useState<number | ''>('');
+  const [bathrooms, setBathrooms] = useState<number | ''>('');
+  const [remainingLeaseYears, setRemainingLeaseYears] = useState<number | ''>('');
+  const [leaseExtensionCost, setLeaseExtensionCost] = useState<number | ''>('');
+  const [isCashBuyer, setIsCashBuyer] = useState<boolean>(false);
+  const [isUninhabitable, setIsUninhabitable] = useState<boolean>(false);
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [sourcingFeeDisclaimer, setSourcingFeeDisclaimer] = useState<string | null>(null);
   const disclaimerName = companyName.trim() || preparedBy.name || '[Sourcer Name]';
@@ -200,6 +206,14 @@ export default function HomePage() {
     const timer = setTimeout(() => setAccentColour(accentColourDraft), 500);
     return () => clearTimeout(timer);
   }, [accentColourDraft]);
+
+  useEffect(() => {
+    if (isUninhabitable) {
+      setIsCashBuyer(true);
+    } else {
+      setIsCashBuyer(false);
+    }
+  }, [isUninhabitable]);
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -595,6 +609,12 @@ export default function HomePage() {
     setPropertyDataLoading(false);
     setPropertyDataOpen(true);
     setPdfOrientation('portrait');
+    setBedrooms('');
+    setBathrooms('');
+    setRemainingLeaseYears('');
+    setLeaseExtensionCost('');
+    setIsCashBuyer(false);
+    setIsUninhabitable(false);
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
@@ -1156,6 +1176,12 @@ export default function HomePage() {
       buildingsInsurance,
       serviceCharge,
       groundRentAnnual,
+      bedrooms: bedrooms === '' ? undefined : bedrooms as number,
+      bathrooms: bathrooms === '' ? undefined : bathrooms as number,
+      remainingLeaseYears: remainingLeaseYears === '' ? undefined : remainingLeaseYears as number,
+      leaseExtensionCost: leaseExtensionCost === '' ? 0 : leaseExtensionCost as number,
+      isCashBuyer,
+      isUninhabitable,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1171,6 +1197,7 @@ export default function HomePage() {
     managementFeePercent, voidAllowancePercent, maintenanceReserve,
     buildingsInsurance, serviceCharge, groundRentAnnual,
     areaAverageYield, timelineStages, offerDeadline, viewingAvailable, refurbScope,
+    bedrooms, bathrooms, remainingLeaseYears, leaseExtensionCost, isCashBuyer, isUninhabitable,
   ]);
 
   const hasMinimumData =
@@ -1432,7 +1459,42 @@ export default function HomePage() {
                     <PropertyTypeSelect value={propertyType} onChange={(v) => { setPropertyType(v); setAutoFilledPropertyType(false); }} />
                     {autoFilledPropertyType && <p className="text-xs text-slate-400 mt-1">Auto-suggested — please verify</p>}
                   </div>
+                  <div className="space-y-2">
+                    <Label>Bedrooms</Label>
+                    <Input type="number" min={0} max={20} step={1} placeholder="e.g. 3" value={bedrooms === '' ? '' : bedrooms} onChange={(e) => setBedrooms(e.target.value === '' ? '' : Number(e.target.value))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Bathrooms</Label>
+                    <Input type="number" min={0} max={10} step={1} placeholder="e.g. 1" value={bathrooms === '' ? '' : bathrooms} onChange={(e) => setBathrooms(e.target.value === '' ? '' : Number(e.target.value))} />
+                  </div>
                   <TenureSection tenure={tenure} onChange={(v) => { setTenure(v); setAutoFilledTenure(false); setUserSetTenure(true); }} leaseLength={leaseLengthYears} onLeaseLength={(v) => { setLeaseLengthYears(v); setUserSetLeaseLength(true); }} hint={autoFilledTenure ? 'Auto-suggested — please verify' : undefined} />
+                  {tenure === 'Leasehold' && (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <Label>Remaining Lease (years)</Label>
+                          <InfoIcon id="remaining-lease" text="Leases under 80 years attract additional extension costs and may affect mortgage eligibility. Under 70 years, many lenders will decline entirely." />
+                        </div>
+                        <Input type="number" min={1} max={999} step={1} placeholder="e.g. 75" value={remainingLeaseYears === '' ? '' : remainingLeaseYears} onChange={(e) => setRemainingLeaseYears(e.target.value === '' ? '' : Number(e.target.value))} />
+                        {remainingLeaseYears !== '' && (remainingLeaseYears as number) < 80 && (
+                          <p className={`text-xs mt-1 ${(remainingLeaseYears as number) < 70 ? 'text-red-600' : 'text-amber-600'}`}>
+                            {(remainingLeaseYears as number) < 70
+                              ? 'Lease below 70 years — most lenders will decline. Specialist finance or cash purchase required. Extension costs will be significant — obtain a formal valuation before proceeding.'
+                              : 'Lease below 80 years — extension costs apply. Marriage value currently applies but is expected to be abolished under the Leasehold and Freehold Reform Act 2024 (implementation expected late 2026 or later).'}
+                          </p>
+                        )}
+                      </div>
+                      {remainingLeaseYears !== '' && (remainingLeaseYears as number) < 999 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1">
+                            <Label>Est. Extension Cost (£)</Label>
+                            <InfoIcon id="lease-ext-cost" text="Obtain a formal quote from a solicitor or surveyor. This cost is added to your Cash Invested and reduces your ROI and yield figures accordingly. Typical ranges: 90+ years £1,000–£3,000 | 80–90 years £3,000–£8,000 | 70–80 years £8,000–£20,000 | under 70 years — obtain formal valuation." />
+                          </div>
+                          <Input type="number" min={0} placeholder="Enter solicitor estimate" value={leaseExtensionCost === '' ? '' : leaseExtensionCost} onChange={(e) => setLeaseExtensionCost(e.target.value === '' ? '' : Number(e.target.value))} />
+                        </div>
+                      )}
+                    </>
+                  )}
                   {dealType !== 'R2R' && (
                     <>
                       <div className="space-y-2">
@@ -1464,19 +1526,56 @@ export default function HomePage() {
                   )}
                   {(['BTL', 'HMO', 'SA', 'SOCIAL'] as const).includes(dealType as 'BTL' | 'HMO' | 'SA' | 'SOCIAL') && (
                     <>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="shared-dep" text={TT.deposit} /></div>
-                        <Input type="number" value={sharedInputs.depositPercent} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                      <div className="md:col-span-2 space-y-3 pt-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="cash-buyer"
+                            checked={isCashBuyer}
+                            onChange={(e) => { if (!isUninhabitable) setIsCashBuyer(e.target.checked); }}
+                            disabled={isUninhabitable}
+                            className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer disabled:cursor-not-allowed"
+                          />
+                          <label htmlFor="cash-buyer" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
+                            Cash purchase (no mortgage)
+                            <InfoIcon id="cash-buyer-info" text="Cash purchases use the full purchase price as capital deployed. ROI is calculated on total cash invested including purchase price, tax, and all costs." />
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="uninhabitable"
+                            checked={isUninhabitable}
+                            onChange={(e) => setIsUninhabitable(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+                          />
+                          <label htmlFor="uninhabitable" className="text-sm font-medium text-slate-700 cursor-pointer">
+                            Uninhabitable property
+                          </label>
+                        </div>
+                        {isUninhabitable && (
+                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
+                            Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
+                          </p>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="shared-mr" text={TT.mortgageRate} /></div>
-                        <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
-                        <MortgageTypeToggle
-                          value={sharedInputs.mortgageType}
-                          onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
-                        />
-                      </div>
-                      {sharedInputs.mortgageType === 'REPAYMENT' && (
+                      {!isCashBuyer && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="shared-dep" text={TT.deposit} /></div>
+                          <Input type="number" value={sharedInputs.depositPercent} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                      )}
+                      {!isCashBuyer && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="shared-mr" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                      )}
+                      {!isCashBuyer && sharedInputs.mortgageType === 'REPAYMENT' && (
                         <div className="space-y-2">
                           <Label>Mortgage Term (years)</Label>
                           <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
@@ -2541,7 +2640,8 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested)} bold />
+                      {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Rental Income" value={formatCurrency(btlInputs.monthlyRent)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(btlResults.voidAllowanceAmount)})`} />
@@ -2568,7 +2668,8 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested)} bold />
+                      {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Total Room Income" value={formatCurrency(hmoResults.grossMonthlyRent)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(hmoResults.voidAllowanceAmount)})`} />
@@ -2616,7 +2717,8 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(saResults.totalCashInvested)} bold />
+                      {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(saResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label={`Monthly Revenue  ${formatCurrency(saInputs.nightlyRate)} nightly × ${saInputs.occupancyPercent}% occupancy`} value={formatCurrency(saResults.grossMonthlyRevenue)} />
                       <WRow label="Less: Platform Fees" value={`(${formatCurrency(saResults.platformFees)})`} />
@@ -2691,7 +2793,8 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       {sharedInputs.refurbCost > 0 && <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested)} bold />
+                      {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Lease Income" value={formatCurrency(socialInputs.leaseIncomePerMonth)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(socialResults.voidAllowanceAmount)})`} />

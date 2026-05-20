@@ -1,0 +1,106 @@
+Read src/components/Home.tsx in full before making any changes.
+
+You are adding five new universal property input fields to DealScore. These fields appear in the universal inputs section (above the strategy tabs), alongside existing fields like Property Type and Tenure. They apply to all 7 strategies.
+
+Do not modify any calculation logic, PDF components, or strategy-specific files in this prompt.
+
+────────────────────────────────────────
+FIELD 1 — BEDROOMS
+────────────────────────────────────────
+
+Add a "Bedrooms" number input to the universal property fields section.
+- Label: "Bedrooms"
+- Input: number, min 0, max 20, step 1, default empty
+- Placeholder: "e.g. 3"
+- State variable: bedrooms (number | '')
+- Position: after Property Type, before Tenure
+
+────────────────────────────────────────
+FIELD 2 — BATHROOMS
+────────────────────────────────────────
+
+Add a "Bathrooms" number input directly after Bedrooms.
+- Label: "Bathrooms"
+- Input: number, min 0, max 10, step 1, default empty
+- Placeholder: "e.g. 1"
+- State variable: bathrooms (number | '')
+
+────────────────────────────────────────
+FIELD 3 — REMAINING LEASE YEARS
+────────────────────────────────────────
+
+Add a "Remaining Lease (years)" number input that appears ONLY when Tenure === 'Leasehold'.
+- Label: "Remaining Lease"
+- Input: number, min 1, max 999, step 1
+- Placeholder: "e.g. 75"
+- State variable: remainingLeaseYears (number | '')
+- Info icon tooltip: "Leases under 80 years attract additional extension costs and may affect mortgage eligibility. Under 70 years, many lenders will decline entirely."
+- When remainingLeaseYears < 80 and value is entered: show an amber warning below the field reading "Lease below 80 years — extension costs apply. Marriage value currently applies but is expected to be abolished under the Leasehold and Freehold Reform Act 2024 (implementation expected late 2026 or later)."
+- When remainingLeaseYears < 70: change warning to red and read "Lease below 70 years — most lenders will decline. Specialist finance or cash purchase required. Extension costs will be significant — obtain a formal valuation before proceeding."
+
+────────────────────────────────────────
+FIELD 4 — LEASEHOLD EXTENSION COST
+────────────────────────────────────────
+
+Add an "Est. Extension Cost (£)" input that appears ONLY when Tenure === 'Leasehold' AND remainingLeaseYears is entered AND remainingLeaseYears < 999.
+- Label: "Est. Extension Cost"
+- Input: currency number, min 0
+- Placeholder: "Enter solicitor estimate"
+- State variable: leaseExtensionCost (number | '')
+- Info icon tooltip: "Obtain a formal quote from a solicitor or surveyor. This cost is added to your Cash Invested and reduces your ROI and yield figures accordingly. Typical ranges: 90+ years £1,000–£3,000 | 80–90 years £3,000–£8,000 | 70–80 years £8,000–£20,000 | under 70 years — obtain formal valuation."
+- Wire leaseExtensionCost into Cash Invested calculation: add to the existing cashInvested total across all strategies. It should appear as a line item in the Show Workings panel alongside Deposit, SDLT, Refurb, Other Costs.
+
+────────────────────────────────────────
+FIELD 5 — CASH BUYER TOGGLE
+────────────────────────────────────────
+
+Add a "Cash Purchase" toggle/checkbox to the universal financial inputs section, near the Deposit % field.
+- Label: "Cash purchase (no mortgage)"
+- State variable: isCashBuyer (boolean, default false)
+- When isCashBuyer is true:
+  - Hide Deposit % field
+  - Hide Mortgage Rate field
+  - Hide Mortgage Term field
+  - Hide Mortgage Type toggle
+  - Cash Invested = Purchase Price + SDLT + Refurb + Other Costs + leaseExtensionCost (full purchase price, no deposit split)
+  - Monthly mortgage payment = £0 across all calculation functions
+  - Monthly Cash Flow = Monthly Income − Monthly Operating Costs (no mortgage deduction)
+  - ROI = (Annual Cash Flow ÷ Cash Invested) × 100 as normal — but Cash Invested now includes full purchase price
+  - Show info icon tooltip: "Cash purchases use the full purchase price as capital deployed. ROI is calculated on total cash invested including purchase price, tax, and all costs."
+- When isCashBuyer is false: all fields behave as normal
+
+────────────────────────────────────────
+FIELD 6 — UNINHABITABLE PROPERTY FLAG
+────────────────────────────────────────
+
+Add an "Uninhabitable property" checkbox below Cash Purchase.
+- Label: "Uninhabitable property"
+- State variable: isUninhabitable (boolean, default false)
+- When isUninhabitable is true:
+  - Show amber info banner below the checkbox: "Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice."
+  - Automatically set isCashBuyer to true (uninhabitable = cash or bridging, not standard mortgage)
+  - The Cash Purchase toggle should reflect this and be non-editable while isUninhabitable is true
+- When isUninhabitable is false: revert isCashBuyer to false (unless user had manually set it)
+
+────────────────────────────────────────
+STATE + RESET
+────────────────────────────────────────
+
+Add all new state variables to the existing handleReset function, resetting to their defaults:
+  bedrooms: ''
+  bathrooms: ''
+  remainingLeaseYears: ''
+  leaseExtensionCost: ''
+  isCashBuyer: false
+  isUninhabitable: false
+
+Pass all new state variables into pdfProps so they are available for PDF generation in a future prompt. Do not build any PDF rendering in this prompt.
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx and DealScorePDFProPlus.tsx are untouched.
+3. Confirm all 7 strategy calculation functions still produce correct output.
+4. git add -A && git commit -m "Stage 8B: universal property inputs — bedrooms, bathrooms, lease, cash buyer, uninhabitable" && git push origin stage-6

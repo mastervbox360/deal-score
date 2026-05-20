@@ -104,6 +104,12 @@ export interface DealScorePDFProps {
   offerDeadline?: string;
   viewingAvailable?: boolean;
   refurbScope?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  remainingLeaseYears?: number;
+  leaseExtensionCost?: number;
+  isCashBuyer?: boolean;
+  isUninhabitable?: boolean;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
