@@ -662,7 +662,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const addressPlain = expandAddress(props.propertyAddress || '') || props.propertyAddress || 'Property Address Not Entered';
   const address = addressPlain;
-  const addressForCover = address;
+  const displayAddress = (props.protectAddress && props.protectedAddressDescription)
+    ? props.protectedAddressDescription
+    : addressPlain;
+  const addressForCover = displayAddress;
   const postcodeMatch = addressForCover.match(/\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b/);
   const addressLine1 = postcodeMatch
     ? addressForCover.replace(postcodeMatch[0], '').replace(/,\s*$/, '').trim()
@@ -1008,7 +1011,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   // ── Page 2: Cash Invested breakdown ──────────────────────────────────────
   const p2CiDeposit = props.purchasePrice * props.depositPercent / 100;
-  const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts;
+  const p2CiAuctionFees = (props.isAuctionPurchase ? (props.buyersPremiumValue ?? 0) : 0) + (props.auctionReservationFeeValue ?? 0);
+  const p2CiLeaseExt = props.leaseExtensionCost ?? 0;
+  const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts + p2CiAuctionFees + p2CiLeaseExt;
 
   // ── Financial Detail page derived values ──────────────────────────────────
   const activeResults =
@@ -1342,8 +1347,21 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         ) : null}
         {heroPhoto ? (
-          <Text style={{ fontSize: 8.5, color: '#9ca3af', textAlign: 'center', marginBottom: 10 }}>{addressPlain}</Text>
+          <Text style={{ fontSize: 8.5, color: '#9ca3af', textAlign: 'center', marginBottom: 10 }}>{displayAddress}</Text>
         ) : null}
+
+        {/* Auction callout */}
+        {props.isAuctionPurchase && props.auctionDate && (
+          <View style={{ backgroundColor: '#FEF3CD', borderLeft: '3pt solid #E29839', borderRadius: 3, paddingVertical: 8, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#E29839', textTransform: 'uppercase', letterSpacing: 0.6 }}>AUCTION</Text>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{'Auction Date: ' + props.auctionDate}</Text>
+              {props.auctionCompletionDate ? (
+                <Text style={{ fontSize: 8, color: '#6B7280' }}>{'Completion: ' + props.auctionCompletionDate}</Text>
+              ) : null}
+            </View>
+          </View>
+        )}
 
         {/* Attribute chips */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
@@ -1385,8 +1403,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, marginBottom: 2 }}>Property Details</Text>
             <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
             {([
-              ...(props.propertyAddress ? [['Address', addressPlain, true] as RowData] : []),
+              ...(props.propertyAddress ? [['Address', displayAddress, true] as RowData] : []),
               ['Property Type', props.propertyType] as RowData,
+              ...(props.bedrooms && props.bedrooms > 0 ? [['Bedrooms', `${props.bedrooms}`] as RowData] : []),
+              ...(props.bathrooms && props.bathrooms > 0 ? [['Bathrooms', `${props.bathrooms}`] as RowData] : []),
               ['Tenure', props.tenure] as RowData,
               ...(props.tenure === 'Leasehold' && props.leaseLengthYears > 0
                 ? [['Remaining Lease', `${props.leaseLengthYears} years`] as RowData] : []),
@@ -1398,6 +1418,19 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={[bold ? base.tableValueHighlight : base.tableValue, { fontSize: 8 }]}>{value}</Text>
               </View>
             ))}
+            {props.tenure === 'Leasehold' && props.remainingLeaseYears != null && props.remainingLeaseYears > 0 && (() => {
+              const yrs = props.remainingLeaseYears!;
+              const leaseColor = yrs < 70 ? '#A32D2D' : yrs < 80 ? '#E29839' : '#1E2B3C';
+              const leaseWarning = yrs < 70 ? ' — Mortgage risk' : yrs < 80 ? ' — Below lender threshold' : '';
+              const leaseBg = yrs < 70 ? '#FEE2E2' : yrs < 80 ? '#FEF3CD' : undefined;
+              return (
+                <View style={[base.tableRow, leaseBg ? { backgroundColor: leaseBg } : {}]}>
+                  <Text style={[base.tableLabel, { fontSize: 8, color: leaseColor }]}>Remaining Lease</Text>
+                  <Text style={[base.tableValue, { fontSize: 8, color: leaseColor, fontFamily: 'Helvetica-Bold' }]}>{`${yrs} years${leaseWarning}`}</Text>
+                </View>
+              );
+            })()
+            }
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, marginBottom: 2 }}>Executive Summary</Text>
@@ -1507,6 +1540,24 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                     <Text style={{ fontSize: 8, color: tintText }}>Other Costs</Text>
                     <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.otherCosts)}</Text>
+                  </View>
+                )}
+                {props.isAuctionPurchase && (props.buyersPremiumValue ?? 0) > 0 && (
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>{"Buyer's Premium"}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.buyersPremiumValue!)}</Text>
+                  </View>
+                )}
+                {(props.auctionReservationFeeValue ?? 0) > 0 && (
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Reservation Fee</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.auctionReservationFeeValue!)}</Text>
+                  </View>
+                )}
+                {(props.leaseExtensionCost ?? 0) > 0 && (
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Lease Extension</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.leaseExtensionCost!)}</Text>
                   </View>
                 )}
               </View>
@@ -2539,6 +2590,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   {props.sourcingFeeDisclaimer.trim()}
                 </Text>
               )}
+            </View>
+          )}
+          {props.paymentTerms && props.paymentTerms.trim().length > 0 && (
+            <View style={base.notePanel}>
+              <Text style={[base.notePanelLabel, { fontSize: 8, color: structureColour }]}>Payment Terms & Cooling Off Period</Text>
+              <Text style={{ fontSize: 8.5, color: '#1E2B3C', lineHeight: 1.55 }}>{props.paymentTerms.trim()}</Text>
             </View>
           )}
         </Page>

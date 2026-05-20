@@ -1,0 +1,81 @@
+Read src/components/DealScorePDF.tsx and src/components/DealScorePDFProPlus.tsx in full before making any changes.
+
+Also read src/components/Home.tsx to confirm the new pdfProps fields added in Prompts 1–3.
+
+You are flowing the new Stage 8B fields through to both PDF packs. Do not change any existing page layouts beyond the specific additions below.
+
+────────────────────────────────────────
+CHANGE 1 — BEDROOMS AND BATHROOMS (both packs)
+────────────────────────────────────────
+
+In the Property Details table on Page 2 (portrait) and Page 3 (landscape), add two new rows after Property Type:
+
+  Bedrooms    | [bedrooms] bed  (only if bedrooms > 0)
+  Bathrooms   | [bathrooms] bath  (only if bathrooms > 0)
+
+Same table row style as existing rows. Show neither row if both values are empty/0.
+
+────────────────────────────────────────
+CHANGE 2 — ADDRESS PROTECTION (both packs)
+────────────────────────────────────────
+
+In both DealScorePDF.tsx and DealScorePDFProPlus.tsx, find every location where the property address is displayed (cover page, page headers, property details table, footer).
+
+Add a conditional:
+  const displayAddress = props.protectAddress && props.protectedAddressDescription
+    ? props.protectedAddressDescription
+    : addressPlain (or the existing address variable)
+
+Replace all address display instances with displayAddress. The full address should never appear anywhere in the PDF when protectAddress is true.
+
+────────────────────────────────────────
+CHANGE 3 — AUCTION DATE CALLOUT (both packs)
+────────────────────────────────────────
+
+On Page 2 / Deal at a Glance, when props.isAuctionPurchase is true and props.auctionDate is non-empty, add an amber callout panel above the hero photo (portrait) or above the attribute chips (landscape):
+
+  Amber background (backgroundColor '#FEF3CD'), borderLeft '3pt solid #E29839', borderRadius 3, paddingVertical 8, paddingHorizontal 12
+  Left: small bold label "AUCTION" in uppercase amber text
+  Right: "Auction date: [formatted auctionDate]" and if auctionCompletionDate: "Completion required: [formatted auctionCompletionDate]"
+  FontSize 8.5, Helvetica-Bold for labels, Helvetica for dates
+
+────────────────────────────────────────
+CHANGE 4 — LEASE WARNING (both packs)
+────────────────────────────────────────
+
+In the Property Details table, when props.remainingLeaseYears is entered and props.tenure === 'Leasehold':
+  Add row: "Remaining Lease | [remainingLeaseYears] years"
+  If remainingLeaseYears < 80: show the value in amber colour (#E29839) with a small amber warning text below the table: "Lease below 80 years — extension costs apply."
+  If remainingLeaseYears < 70: show in red (#A32D2D) with warning: "Lease below 70 years — specialist finance required."
+
+If props.leaseExtensionCost > 0:
+  Add to Cash Invested panel: "Est. Extension Cost | £[leaseExtensionCost]"
+  Same style as other Cash Invested line items.
+
+────────────────────────────────────────
+CHANGE 5 — PAYMENT TERMS ON LEGAL PAGE (both packs)
+────────────────────────────────────────
+
+On the Legal & Disclosure page, when props.paymentTerms is non-empty:
+  Add a new panel below the sourcing fee disclosure and above the legal disclaimer.
+  Panel style: same notePanel style as existing legal page panels.
+  Label: "Payment Terms & Cooling Off Period" — fontSize 8, Helvetica-Bold, structureColour, uppercase, letterSpacing 0.5, marginBottom 6
+  Body: props.paymentTerms — fontSize 8.5, color '#1E2B3C', lineHeight 1.55
+
+────────────────────────────────────────
+CHANGE 6 — BUYER'S PREMIUM IN CASH INVESTED PANEL (both packs)
+────────────────────────────────────────
+
+When props.isAuctionPurchase is true and props.buyersPremiumValue > 0:
+  Add to Cash Invested panel: "Buyer's Premium | £[buyersPremiumValue]"
+When props.auctionReservationFee > 0:
+  Add: "Reservation Fee | £[auctionReservationFee]"
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors.
+2. Generate a test PDF for BTL with all new fields populated — confirm all 6 changes render correctly.
+3. Confirm no existing page layouts are disrupted.
+4. git add -A && git commit -m "Stage 8B: PDF updates — bedrooms, address protection, auction, lease, payment terms" && git push origin stage-6
