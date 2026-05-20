@@ -119,6 +119,9 @@ export interface DealScorePDFProps {
   auctionReservationFee?: number;
   buyersPremiumValue?: number;
   auctionReservationFeeValue?: number;
+  protectAddress?: boolean;
+  protectedAddressDescription?: string;
+  paymentTerms?: string;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');

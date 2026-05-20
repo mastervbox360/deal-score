@@ -154,6 +154,10 @@ export default function HomePage() {
   const [auctionReservationFee, setAuctionReservationFee] = useState<number | ''>('');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [sourcingFeeDisclaimer, setSourcingFeeDisclaimer] = useState<string | null>(null);
+  const [protectAddress, setProtectAddress] = useState<boolean>(false);
+  const [protectedAddressDescription, setProtectedAddressDescription] = useState<string>('');
+  const [paymentTermsExpanded, setPaymentTermsExpanded] = useState<boolean>(false);
+  const [paymentTerms, setPaymentTerms] = useState<string>('');
   const disclaimerName = companyName.trim() || preparedBy.name || '[Sourcer Name]';
   const effectiveDisclaimer = sourcingFeeDisclaimer !== null
     ? sourcingFeeDisclaimer
@@ -580,6 +584,10 @@ export default function HomePage() {
     setLeaseLengthYears(0);
     setSourcingFee(0);
     setSourcingFeeDisclaimer(null);
+    setProtectAddress(false);
+    setProtectedAddressDescription('');
+    setPaymentTermsExpanded(false);
+    setPaymentTerms('');
     setMarketValue(0);
     setStrategyNotes({});
     setPropertyDescription('');
@@ -1220,6 +1228,9 @@ export default function HomePage() {
       leaseExtensionCost: leaseExtensionCost === '' ? 0 : leaseExtensionCost as number,
       isCashBuyer,
       isUninhabitable,
+      protectAddress,
+      protectedAddressDescription,
+      paymentTerms,
       isAuctionPurchase,
       auctionDate,
       auctionCompletionDate,
@@ -1247,6 +1258,7 @@ export default function HomePage() {
     bedrooms, bathrooms, remainingLeaseYears, leaseExtensionCost, isCashBuyer, isUninhabitable,
     isAuctionPurchase, auctionDate, auctionCompletionDate, buyersPremiumPct, buyersPremiumAmount,
     buyersPremiumMode, auctionReservationFee, buyersPremiumValue, auctionReservationFeeValue,
+    protectAddress, protectedAddressDescription, paymentTerms,
   ]);
 
   const hasMinimumData =
@@ -1936,6 +1948,43 @@ export default function HomePage() {
                       />
                     </div>
                   )}
+                  {/* Payment terms collapsible */}
+                  <div className="mt-4 w-full border-t border-border pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const opening = !paymentTermsExpanded;
+                        setPaymentTermsExpanded(opening);
+                        if (opening && paymentTerms === '') {
+                          const feeStr = sourcingFee > 0 ? `£${sourcingFee.toLocaleString('en-GB')}` : '[sourcing fee]';
+                          setPaymentTerms(
+                            `A sourcing fee of ${feeStr} is payable upon exchange of contracts. Payment is required in full prior to release of the full property address and vendor contact details. A 14-day cooling off period applies from the date of this investor pack. Should you choose not to proceed within this period, no fee will be charged. After 14 days, the reservation fee of [50% of sourcing fee or a fixed amount — edit as required] becomes non-refundable. Full terms available on request.`
+                          );
+                        }
+                      }}
+                      className="w-full flex items-center justify-between py-2 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-slate-700">Payment terms &amp; cooling off period</span>
+                        <InfoIcon id="payment-terms-info" text="Payment terms are shown on the legal page of your investor pack. The 14-day cooling off period is standard practice recommended by the Property Ombudsman for deal sourcers." />
+                      </div>
+                      <ChevronDown
+                        size={16}
+                        style={{ color: '#1B3A6B', transform: paymentTermsExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                      />
+                    </button>
+                    {paymentTermsExpanded && (
+                      <div className="space-y-2 mt-3">
+                        <Label className="text-xs">Payment terms (shown on legal page of investor pack)</Label>
+                        <Textarea
+                          rows={4}
+                          placeholder="Enter payment terms..."
+                          value={paymentTerms}
+                          onChange={(e) => setPaymentTerms(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-6 w-full pb-0 mb-0">
@@ -3028,6 +3077,50 @@ export default function HomePage() {
             </div>
           </div>
 
+          {/* Address Protection */}
+          <div className="mt-4 space-y-2 pt-4 border-t border-border">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="protect-address"
+                checked={protectAddress}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setProtectAddress(on);
+                  if (on && protectedAddressDescription === '') {
+                    const parts = propertyAddress.split(',').map(p => p.trim()).filter(Boolean);
+                    const town = parts.length >= 2 ? parts[parts.length - 2] : '';
+                    const stratLabels: Record<string, string> = {
+                      BTL: 'BTL', HMO: 'HMO', SA: 'Serviced Accommodation',
+                      BRRR: 'BRRR', FLIP: 'Flip', R2R: 'Rent-to-Rent', SOCIAL: 'Social Housing Lease',
+                    };
+                    if (town) setProtectedAddressDescription(`${town} — ${propertyType} ${stratLabels[dealType] ?? dealType}`);
+                  }
+                }}
+                className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+              />
+              <label htmlFor="protect-address" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
+                Protect address on investor pack
+                <InfoIcon id="protect-address-info" text="Protects you from investors approaching the vendor directly. The full address is replaced with an area description on the investor pack. Share the full address only after the sourcing fee is paid." />
+              </label>
+            </div>
+            <p className="text-xs text-slate-400 pl-6">
+              {protectAddress ? 'Address hidden — area description shown instead' : 'Full address shown on PDF'}
+            </p>
+            {protectAddress && (
+              <div className="space-y-1.5 pl-0">
+                <Label className="text-xs">Area description (shown on PDF instead of address)</Label>
+                <input
+                  type="text"
+                  placeholder="e.g. Birmingham — 3-bed HMO, city centre"
+                  value={protectedAddressDescription}
+                  onChange={(e) => setProtectedAddressDescription(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Offer Deadline */}
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Offer Deadline</Label>
@@ -3734,7 +3827,7 @@ const TT = {
   marketValue: 'The true open market value of the property — used to calculate BMV (Below Market Value) and equity on day one.',
   propDescription: 'Pre-filled with basic property details from the address lookup. Edit this to add condition, specification, and any details relevant to the investor.',
   comparables: 'Recent sold prices near this property, fetched from HM Land Registry. Data typically lags 2–6 months. Review and edit before including in the investor pack.',
-  sourcingFee: 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.',
+  sourcingFee: 'The fee you are charging the investor for finding and packaging this deal. Appears prominently on the PDF.\n\nCommon benchmarks:\n• 2–3% of purchase price\n• 3–6 months of the investor\'s projected net monthly profit\n\nExample: On a £150,000 purchase at 2.5%, fee = £3,750. On a deal producing £350/mo net profit, 6 months = £2,100.\n\nAlways ask: would I happily pay this fee for this deal if I were the investor?',
   photoUpload: 'Upload up to 11 photos. The hero photo (★) appears as a preview on the executive summary page alongside your deal figures. All 11 photos — including the hero — then appear full-page in the Property Photos section of the investor pack, one photo per page.\n\nTo set a hero photo: click the ★ icon on any thumbnail. The hero defaults to your first uploaded photo.',
   monthlyRent: 'The monthly rental income you expect to receive from the tenant or tenants.',
   monthlyExpenses: 'All monthly running costs — insurance, maintenance reserve, letting agent fees, and any other regular costs. Do not include the mortgage payment.',

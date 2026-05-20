@@ -1,0 +1,76 @@
+Read src/components/Home.tsx in full before making any changes.
+
+Three UI-only additions in this prompt. No calculation logic changes. No PDF components touched yet.
+
+────────────────────────────────────────
+CHANGE 1 — ADDRESS PROTECTION TOGGLE
+────────────────────────────────────────
+
+Add an "Address protection" toggle to the Prepared By section, near the property address display.
+
+- Label: "Protect address on investor pack"
+- State variable: protectAddress (boolean, default false)
+- Sub-label when off: "Full address shown on PDF"
+- Sub-label when on: "Address hidden — area description shown instead"
+- Info icon tooltip: "Protects you from investors approaching the vendor directly. The full address is replaced with an area description on the investor pack. Share the full address only after the sourcing fee is paid."
+
+When protectAddress is true, show a text input below the toggle:
+- Label: "Area description (shown on PDF instead of address)"
+- Placeholder: "e.g. Birmingham — 3-bed HMO, city centre"
+- State variable: protectedAddressDescription (string, default '')
+- Auto-populate with a sensible default when protectAddress is toggled on: "[Town/City from address] — [Property Type] [Strategy Label]" — extract town from the propertyAddress string (take the penultimate comma-separated segment as an approximation). If extraction fails, leave blank for user to fill.
+
+State + reset:
+  protectAddress: false
+  protectedAddressDescription: ''
+
+Pass both into pdfProps.
+
+────────────────────────────────────────
+CHANGE 2 — PAYMENT TERMS / COOLING OFF PERIOD
+────────────────────────────────────────
+
+In the Prepared By / legal section of the app, add a new collapsible panel below the sourcing fee disclosure section.
+
+Panel label: "Payment terms & cooling off period"
+Default state: collapsed
+Toggle: clicking the label expands/collapses (same pattern as other collapsible sections in the app)
+
+When expanded, show:
+- A textarea for payment terms
+- Label: "Payment terms (shown on legal page of investor pack)"
+- State variable: paymentTerms (string, default '')
+- Rows: 4
+- Pre-fill with this gold-standard default text when the panel is first expanded AND paymentTerms is empty:
+  "A sourcing fee of £[sourcingFee] is payable upon exchange of contracts. Payment is required in full prior to release of the full property address and vendor contact details. A 14-day cooling off period applies from the date of this investor pack. Should you choose not to proceed within this period, no fee will be charged. After 14 days, the reservation fee of [50% of sourcing fee or a fixed amount — edit as required] becomes non-refundable. Full terms available on request."
+- The textarea is fully editable — the default is a starting point only.
+- Info icon next to the panel label: "Payment terms are shown on the legal page of your investor pack. The 14-day cooling off period is standard practice recommended by the Property Ombudsman for deal sourcers."
+
+State + reset:
+  paymentTermsExpanded: false
+  paymentTerms: ''
+
+Pass paymentTerms into pdfProps.
+
+────────────────────────────────────────
+CHANGE 3 — SOURCING FEE BENCHMARK TOOLTIP
+────────────────────────────────────────
+
+Find the existing Sourcing Fee input field in the app. Add or update its info icon tooltip to include:
+
+"The sourcing fee is paid by the investor for finding and packaging the deal. Common benchmarks:
+- 2–3% of purchase price
+- 3–6 months of the investor's projected net monthly profit
+
+Example: On a £150,000 purchase at 2.5%, fee = £3,750. On a deal producing £350/mo net profit, 6 months = £2,100.
+
+Always ask: would I happily pay this fee for this deal if I were the investor?"
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx and DealScorePDFProPlus.tsx are untouched.
+3. Confirm no calculation functions are affected.
+4. git add -A && git commit -m "Stage 8B: address protection, payment terms, sourcing fee tooltip" && git push origin stage-6
