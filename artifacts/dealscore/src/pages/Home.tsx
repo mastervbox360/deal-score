@@ -112,6 +112,22 @@ const DEFAULT_TIMELINE_STAGES: Record<string, Array<{ label: string; month: numb
   SOCIAL: [{ label: 'Exchange', month: 0 }, { label: 'Completion', month: 1 }, { label: 'Handover to Provider', month: 2 }, { label: 'Lease Start', month: 3 }],
 };
 
+function iterativeSolve(
+  startPrice: number,
+  check: (price: number) => boolean,
+  step = 1000,
+  maxIter = 10000
+): number | null {
+  if (startPrice <= 0) return null;
+  let price = Math.round(startPrice / step) * step;
+  for (let i = 0; i < maxIter; i++) {
+    if (price <= 0) return null;
+    if (check(price)) return price;
+    price -= step;
+  }
+  return null;
+}
+
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
 
@@ -158,6 +174,26 @@ export default function HomePage() {
   const [protectedAddressDescription, setProtectedAddressDescription] = useState<string>('');
   const [paymentTermsExpanded, setPaymentTermsExpanded] = useState<boolean>(false);
   const [paymentTerms, setPaymentTerms] = useState<string>('');
+  const [resultsMode, setResultsMode] = useState<Record<string, 'analyse' | 'offer'>>({
+    BTL: 'analyse', HMO: 'analyse', FLIP: 'analyse', SA: 'analyse',
+    BRRR: 'analyse', R2R: 'analyse', SOCIAL: 'analyse',
+  });
+  const [btlOfferROI, setBtlOfferROI] = useState(8);
+  const [btlOfferCF, setBtlOfferCF] = useState(250);
+  const [hmoOfferROI, setHmoOfferROI] = useState(12);
+  const [hmoOfferCF, setHmoOfferCF] = useState(500);
+  const [hmoOfferYield, setHmoOfferYield] = useState(10);
+  const [flipOfferMargin, setFlipOfferMargin] = useState(18);
+  const [flipOfferMinProfit, setFlipOfferMinProfit] = useState(25000);
+  const [flipOfferWithPlanning, setFlipOfferWithPlanning] = useState(true);
+  const [brrrOfferCashLeft, setBrrrOfferCashLeft] = useState(10000);
+  const [saOfferROI, setSaOfferROI] = useState(15);
+  const [saOfferProfit, setSaOfferProfit] = useState(500);
+  const [saOfferOccupancy, setSaOfferOccupancy] = useState(75);
+  const [r2rOfferProfit, setR2rOfferProfit] = useState(500);
+  const [r2rOfferROI, setR2rOfferROI] = useState(50);
+  const [socialOfferROI, setSocialOfferROI] = useState(8);
+  const [socialOfferCF, setSocialOfferCF] = useState(250);
   const disclaimerName = companyName.trim() || preparedBy.name || '[Sourcer Name]';
   const effectiveDisclaimer = sourcingFeeDisclaimer !== null
     ? sourcingFeeDisclaimer
@@ -675,6 +711,169 @@ export default function HomePage() {
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, ...sharedCostInputs });
   const r2rResults = calculateR2R(r2rInputs);
   const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+
+  const optimalOffer = React.useMemo(() => {
+    if (resultsMode[dealType] !== 'offer') return null;
+    const extraCosts = (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue;
+    const getStampDuty = (p: number) => taxOverrideActive ? manualTaxValue : calculatePropertyTax(p, taxCountry, buyerType);
+
+    const solveBTLLike = (
+      calcFn: (p: number, tax: number) => { annualCashFlow: number; monthlyCashFlow: number; totalCashInvested: number; grossYield: number },
+      targetROI: number, targetCF: number, startP: number
+    ) => {
+      const maxFromROI = iterativeSolve(startP, p => {
+        const r = calcFn(p, getStampDuty(p));
+        const adj = r.totalCashInvested + extraCosts;
+        return adj > 0 && (r.annualCashFlow / adj) * 100 >= targetROI;
+      });
+      const maxFromCF = iterativeSolve(startP, p => calcFn(p, getStampDuty(p)).monthlyCashFlow >= targetCF);
+      let maxPrice: number | null = null;
+      let binding = '';
+      if (maxFromROI !== null && maxFromCF !== null) {
+        if (maxFromROI <= maxFromCF) { maxPrice = maxFromROI; binding = 'ROI constraint'; }
+        else { maxPrice = maxFromCF; binding = 'Cash flow constraint'; }
+      } else if (maxFromROI !== null) { maxPrice = maxFromROI; binding = 'ROI constraint'; }
+      else if (maxFromCF !== null) { maxPrice = maxFromCF; binding = 'Cash flow constraint'; }
+      return { maxPrice, binding };
+    };
+
+    if (dealType === 'BTL') {
+      const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 500000;
+      if (sharedInputs.purchasePrice > 0) {
+        const adjI = btlResults.totalCashInvested + extraCosts;
+        const adjROI = adjI > 0 ? (btlResults.annualCashFlow / adjI) * 100 : 0;
+        if (adjROI >= btlOfferROI && btlResults.monthlyCashFlow >= btlOfferCF)
+          return { type: 'already_meets' as const, currentROI: adjROI, currentCF: btlResults.monthlyCashFlow, currentYield: btlResults.grossYield };
+      }
+      const calcFn = (p: number, tax: number) => calculateBTL({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...btlInputs, ...sharedCostInputs });
+      const { maxPrice, binding } = solveBTLLike(calcFn, btlOfferROI, btlOfferCF, startP);
+      if (!maxPrice) return { type: 'no_solution' as const };
+      const r = calcFn(maxPrice, getStampDuty(maxPrice));
+      return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.grossYield, gap: sharedInputs.purchasePrice - maxPrice };
+    }
+
+    if (dealType === 'HMO') {
+      const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 600000;
+      const annualRent = hmoInputs.rooms * hmoInputs.rentPerRoom * (hmoInputs.occupancyRate / 100) * 12;
+      if (sharedInputs.purchasePrice > 0) {
+        const adjI = hmoResults.totalCashInvested + extraCosts;
+        const adjROI = adjI > 0 ? (hmoResults.annualCashFlow / adjI) * 100 : 0;
+        const yld = sharedInputs.purchasePrice > 0 ? annualRent / sharedInputs.purchasePrice * 100 : 0;
+        if (adjROI >= hmoOfferROI && hmoResults.monthlyCashFlow >= hmoOfferCF && yld >= hmoOfferYield)
+          return { type: 'already_meets' as const, currentROI: adjROI, currentCF: hmoResults.monthlyCashFlow, currentYield: yld };
+      }
+      const calcFn = (p: number, tax: number) => calculateHMO({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...hmoInputs, ...sharedCostInputs });
+      const { maxPrice: maxROICF, binding: b1 } = solveBTLLike(calcFn, hmoOfferROI, hmoOfferCF, startP);
+      const maxFromYield = hmoOfferYield > 0 ? Math.round(annualRent / (hmoOfferYield / 100) / 1000) * 1000 : null;
+      let maxPrice = maxROICF;
+      let binding = b1;
+      if (maxFromYield !== null && (maxPrice === null || maxFromYield < maxPrice)) { maxPrice = maxFromYield; binding = 'Gross yield constraint'; }
+      if (!maxPrice) return { type: 'no_solution' as const };
+      const r = calcFn(maxPrice, getStampDuty(maxPrice));
+      return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.grossYield, gap: sharedInputs.purchasePrice - maxPrice };
+    }
+
+    if (dealType === 'FLIP') {
+      const gdv = flipInputs.expectedSalePrice;
+      if (gdv <= 0) return { type: 'no_solution' as const };
+      const sellingCosts = gdv * (flipInputs.sellingCostsPercent / 100);
+      const holding = flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths;
+      const fixedCosts = sharedInputs.refurbCost + sharedInputs.otherCosts + holding + buyersPremiumValue + auctionReservationFeeValue;
+      const getMetrics = (p: number) => {
+        const tax = getStampDuty(p);
+        const totalCost = p + tax + fixedCosts;
+        const profit = gdv - sellingCosts - totalCost;
+        return { totalCost, profit, margin: totalCost > 0 ? (profit / totalCost) * 100 : 0 };
+      };
+      const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : Math.round(gdv * 0.7 / 1000) * 1000;
+      if (sharedInputs.purchasePrice > 0) {
+        const m = getMetrics(sharedInputs.purchasePrice);
+        if (m.margin >= flipOfferMargin && m.profit >= flipOfferMinProfit)
+          return { type: 'already_meets' as const, currentROI: m.margin, currentCF: m.profit / Math.max(flipInputs.projectLengthMonths, 1), currentYield: 0 };
+      }
+      const maxFromMargin = iterativeSolve(startP, p => getMetrics(p).margin >= flipOfferMargin);
+      const maxFromMinProfit = iterativeSolve(startP, p => getMetrics(p).profit >= flipOfferMinProfit);
+      let maxPrice: number | null = null;
+      let binding = '';
+      if (maxFromMargin !== null && maxFromMinProfit !== null) {
+        if (maxFromMargin <= maxFromMinProfit) { maxPrice = maxFromMargin; binding = 'Margin constraint'; }
+        else { maxPrice = maxFromMinProfit; binding = 'Minimum profit floor'; }
+      } else if (maxFromMargin !== null) { maxPrice = maxFromMargin; binding = 'Margin constraint'; }
+      else if (maxFromMinProfit !== null) { maxPrice = maxFromMinProfit; binding = 'Minimum profit floor'; }
+      if (!maxPrice) return { type: 'no_solution' as const };
+      const m = getMetrics(maxPrice);
+      return { type: 'found' as const, maxPrice, binding, achievedROI: m.margin, achievedCF: m.profit / Math.max(flipInputs.projectLengthMonths, 1), achievedYield: 0, gap: sharedInputs.purchasePrice - maxPrice };
+    }
+
+    if (dealType === 'BRRR') {
+      const prv = brrrInputs.postRefurbValue;
+      if (prv <= 0) return { type: 'no_solution' as const };
+      const refinanceLoan = prv * (brrrInputs.refinancePercent / 100);
+      const fixedCosts = sharedInputs.refurbCost + sharedInputs.otherCosts + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue;
+      const totalCostIn = (p: number) => p + getStampDuty(p) + fixedCosts;
+      const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : prv;
+      if (sharedInputs.purchasePrice > 0) {
+        const tc = totalCostIn(sharedInputs.purchasePrice);
+        if (tc <= refinanceLoan && tc - refinanceLoan <= brrrOfferCashLeft)
+          return { type: 'already_meets' as const, currentROI: brrrResults.cashOnCashROI, currentCF: brrrResults.monthlyCashFlow, currentYield: brrrResults.grossYield };
+      }
+      const maxFrom75 = iterativeSolve(startP, p => totalCostIn(p) <= refinanceLoan);
+      const maxFromCL = iterativeSolve(startP, p => (totalCostIn(p) - refinanceLoan) <= brrrOfferCashLeft);
+      let maxPrice: number | null = null;
+      let binding = '';
+      if (maxFrom75 !== null && maxFromCL !== null) {
+        if (maxFrom75 <= maxFromCL) { maxPrice = maxFrom75; binding = '75% refinance rule'; }
+        else { maxPrice = maxFromCL; binding = `Cash left in ≤ ${formatCurrency(brrrOfferCashLeft)}`; }
+      } else if (maxFrom75 !== null) { maxPrice = maxFrom75; binding = '75% refinance rule'; }
+      else if (maxFromCL !== null) { maxPrice = maxFromCL; binding = `Cash left in ≤ ${formatCurrency(brrrOfferCashLeft)}`; }
+      if (!maxPrice) return { type: 'no_solution' as const };
+      const cashLeft = totalCostIn(maxPrice) - refinanceLoan;
+      return { type: 'found' as const, maxPrice, binding, achievedROI: brrrResults.cashOnCashROI, achievedCF: brrrResults.monthlyCashFlow, achievedYield: brrrResults.grossYield, gap: sharedInputs.purchasePrice - maxPrice, brrrCashLeft: cashLeft };
+    }
+
+    if (dealType === 'SA') {
+      const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 400000;
+      if (sharedInputs.purchasePrice > 0) {
+        const adjI = saResults.totalCashInvested + extraCosts;
+        const adjROI = adjI > 0 ? (saResults.annualCashFlow / adjI) * 100 : 0;
+        if (adjROI >= saOfferROI && saResults.monthlyCashFlow >= saOfferProfit)
+          return { type: 'already_meets' as const, currentROI: adjROI, currentCF: saResults.monthlyCashFlow, currentYield: saResults.netYield };
+      }
+      const calcFn = (p: number, tax: number) => calculateSA({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...saInputs, occupancyPercent: saOfferOccupancy, ...sharedCostInputs });
+      const { maxPrice, binding } = solveBTLLike(calcFn, saOfferROI, saOfferProfit, startP);
+      if (!maxPrice) return { type: 'no_solution' as const };
+      const r = calcFn(maxPrice, getStampDuty(maxPrice));
+      return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.netYield, gap: sharedInputs.purchasePrice - maxPrice };
+    }
+
+    if (dealType === 'R2R') {
+      const gross = r2rInputs.rooms * r2rInputs.rentPerRoom * (r2rInputs.occupancyRate / 100);
+      const mgmt = gross * (r2rInputs.managementFeesPercent / 100);
+      const net = gross - mgmt;
+      const maxLandlordRent = net - r2rOfferProfit - r2rInputs.monthlyRunningCosts;
+      const maxSetupCosts = r2rOfferROI > 0 ? (r2rOfferProfit * 12) / (r2rOfferROI / 100) : 0;
+      if (r2rResults.monthlyProfit >= r2rOfferProfit && (r2rInputs.setupCosts <= 0 || r2rResults.roi >= r2rOfferROI))
+        return { type: 'already_meets' as const, currentROI: r2rResults.roi, currentCF: r2rResults.monthlyProfit, currentYield: r2rResults.grossYield };
+      return { type: 'r2r' as const, maxLandlordRent, maxSetupCosts, currentLandlordRent: r2rInputs.monthlyRentPaid };
+    }
+
+    if (dealType === 'SOCIAL') {
+      const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 300000;
+      if (sharedInputs.purchasePrice > 0) {
+        const adjI = socialResults.totalCashInvested + extraCosts;
+        const adjROI = adjI > 0 ? (socialResults.annualCashFlow / adjI) * 100 : 0;
+        if (adjROI >= socialOfferROI && socialResults.monthlyCashFlow >= socialOfferCF)
+          return { type: 'already_meets' as const, currentROI: adjROI, currentCF: socialResults.monthlyCashFlow, currentYield: socialResults.grossYield };
+      }
+      const calcFn = (p: number, tax: number) => calculateSocialHousing({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...socialInputs, ...sharedCostInputs });
+      const { maxPrice, binding } = solveBTLLike(calcFn, socialOfferROI, socialOfferCF, startP);
+      if (!maxPrice) return { type: 'no_solution' as const };
+      const r = calcFn(maxPrice, getStampDuty(maxPrice));
+      return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.grossYield, gap: sharedInputs.purchasePrice - maxPrice };
+    }
+
+    return null;
+  }, [dealType, resultsMode, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, sharedCostInputs, taxCountry, taxOverrideActive, manualTaxValue, buyerType, btlResults, hmoResults, saResults, brrrResults, r2rResults, socialResults, leaseExtensionCost, buyersPremiumValue, auctionReservationFeeValue, btlOfferROI, btlOfferCF, hmoOfferROI, hmoOfferCF, hmoOfferYield, flipOfferMargin, flipOfferMinProfit, brrrOfferCashLeft, saOfferROI, saOfferProfit, saOfferOccupancy, r2rOfferProfit, r2rOfferROI, socialOfferROI, socialOfferCF]);
 
   const stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
 
@@ -2468,7 +2667,15 @@ export default function HomePage() {
                 )}
               </div>
               
+              <div className="px-6 pb-3">
+                <ResultsModeToggle
+                  value={resultsMode[dealType]}
+                  onChange={(v) => setResultsMode(prev => ({ ...prev, [dealType]: v }))}
+                />
+              </div>
+
               <div className="px-6 pb-4">
+                {resultsMode[dealType] === 'analyse' ? (<>
                 {dealType === 'BTL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
@@ -2733,7 +2940,180 @@ export default function HomePage() {
                     </div>
                   </div>
                 )}
+                </>) : (
+                  <div className="space-y-4">
+                    {dealType === 'BTL' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 8% CoC ROI · £250/mo cash flow</p>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={btlOfferROI} onChange={e => setBtlOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={5000} step={50} value={btlOfferCF} onChange={e => setBtlOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        </div>
+                      </div>
+                    )}
+                    {dealType === 'HMO' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 12% CoC ROI · £500/mo · 10% gross yield</p>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={hmoOfferROI} onChange={e => setHmoOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={10000} step={50} value={hmoOfferCF} onChange={e => setHmoOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min gross yield %</p><Input type="number" min={1} max={30} step={0.5} value={hmoOfferYield} onChange={e => setHmoOfferYield(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        </div>
+                      </div>
+                    )}
+                    {dealType === 'FLIP' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 18%+ margin on cost · £25,000+ minimum profit</p>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div><p className="text-xs font-medium mb-1">Min margin on cost %</p><Input type="number" min={1} max={50} step={1} value={flipOfferMargin} onChange={e => setFlipOfferMargin(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min profit £</p><Input type="number" min={0} max={500000} step={1000} value={flipOfferMinProfit} onChange={e => setFlipOfferMinProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        </div>
+                      </div>
+                    )}
+                    {dealType === 'SA' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 15%+ CoC ROI · £500/mo profit · 75% occupancy</p>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={100} step={0.5} value={saOfferROI} onChange={e => setSaOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min profit £/mo</p><Input type="number" min={0} max={10000} step={50} value={saOfferProfit} onChange={e => setSaOfferProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Modelled occupancy %</p><Input type="number" min={1} max={100} step={5} value={saOfferOccupancy} onChange={e => setSaOfferOccupancy(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        </div>
+                      </div>
+                    )}
+                    {dealType === 'BRRR' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmark: recycle all capital (£0 left in). Set a buffer for comfort.</p>
+                        <div className="pt-1">
+                          <p className="text-xs font-medium mb-1">Max cash left in deal £</p>
+                          <Input type="number" min={0} max={200000} step={1000} value={brrrOfferCashLeft} onChange={e => setBrrrOfferCashLeft(Number(e.target.value))} className="h-8 text-sm" />
+                        </div>
+                      </div>
+                    )}
+                    {dealType === 'R2R' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmarks: £500/mo profit · 50%+ ROI on setup costs</p>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div><p className="text-xs font-medium mb-1">Min profit £/mo</p><Input type="number" min={0} max={5000} step={50} value={r2rOfferProfit} onChange={e => setR2rOfferProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min ROI on setup %</p><Input type="number" min={0} max={500} step={5} value={r2rOfferROI} onChange={e => setR2rOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        </div>
+                      </div>
+                    )}
+                    {dealType === 'SOCIAL' && (
+                      <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
+                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 8% CoC ROI · £250/mo cash flow</p>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={socialOfferROI} onChange={e => setSocialOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
+                          <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={5000} step={50} value={socialOfferCF} onChange={e => setSocialOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        </div>
+                      </div>
+                    )}
 
+                    {dealType !== 'R2R' && sharedInputs.purchasePrice === 0 ? (
+                      <p className="text-sm text-center text-muted-foreground py-3">Enter a purchase price above to calculate your maximum offer.</p>
+                    ) : optimalOffer?.type === 'already_meets' ? (
+                      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+                        <p className="text-sm font-semibold text-emerald-700">✓ Current price already meets all targets</p>
+                        <p className="text-xs text-emerald-600">This deal stacks at {formatCurrency(sharedInputs.purchasePrice)}.</p>
+                        <div className="pt-1 space-y-1">
+                          <Row label="Cash-on-Cash ROI" value={formatPercent(optimalOffer.currentROI)} isBold />
+                          <Row label={dealType === 'FLIP' ? 'Net Profit' : 'Monthly Cash Flow'} value={formatCurrency(optimalOffer.currentCF)} isBold />
+                        </div>
+                      </div>
+                    ) : optimalOffer?.type === 'found' ? (
+                      <div className="space-y-3">
+                        <div className="p-4 rounded-xl border-2" style={{ borderColor: '#1B3A6B', background: 'rgba(27,58,107,0.04)' }}>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            {isAuctionPurchase ? "Maximum bid (excl. buyer's premium)" : 'Maximum purchase price'}
+                          </p>
+                          {isAuctionPurchase && (
+                            <p className="text-xs text-amber-700 mt-1">Do not exceed this bid at auction — factor in buyer's premium separately.</p>
+                          )}
+                          <p className="text-3xl font-extrabold mt-1" style={{ color: '#1B3A6B' }}>{formatCurrency(optimalOffer.maxPrice)}</p>
+                          <div className="mt-3 grid grid-cols-3 gap-1 text-center">
+                            {dealType !== 'BRRR' && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground">{dealType === 'FLIP' ? 'Margin on cost' : 'Achieved ROI'}</p>
+                                <p className="text-sm font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(optimalOffer.achievedROI)}</p>
+                              </div>
+                            )}
+                            {dealType !== 'BRRR' && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground">{dealType === 'FLIP' ? 'Net profit' : 'Monthly CF'}</p>
+                                <p className="text-sm font-bold" style={{ color: '#1B3A6B' }}>
+                                  {dealType === 'FLIP'
+                                    ? formatCurrency(optimalOffer.achievedCF * Math.max(flipInputs.projectLengthMonths, 1))
+                                    : formatCurrency(optimalOffer.achievedCF)}
+                                </p>
+                              </div>
+                            )}
+                            {dealType === 'BRRR' && 'brrrCashLeft' in optimalOffer && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground">Cash left in</p>
+                                <p className="text-sm font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(optimalOffer.brrrCashLeft as number)}</p>
+                              </div>
+                            )}
+                            {dealType !== 'FLIP' && dealType !== 'BRRR' && (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground">Gross yield</p>
+                                <p className="text-sm font-bold">{formatPercent(optimalOffer.achievedYield)}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {sharedInputs.purchasePrice > 0 && optimalOffer.gap !== 0 && (
+                          <div className="p-3 bg-slate-50 rounded-xl border border-border space-y-1">
+                            <Row label="Current price" value={formatCurrency(sharedInputs.purchasePrice)} />
+                            <Row
+                              label={optimalOffer.gap > 0 ? 'Negotiate down by' : 'Current price headroom'}
+                              value={formatCurrency(Math.abs(optimalOffer.gap))}
+                              isBold
+                            />
+                            <p className="text-[10px] text-muted-foreground pt-0.5">
+                              {optimalOffer.gap > 0
+                                ? 'Vendor needs to accept a reduction for this deal to stack at your targets.'
+                                : 'Current price is already at or below your maximum offer.'}
+                            </p>
+                          </div>
+                        )}
+                        <p className="text-[10px] text-muted-foreground">Limited by: {optimalOffer.binding}</p>
+                      </div>
+                    ) : optimalOffer?.type === 'r2r' ? (
+                      <div className="space-y-3">
+                        <div className="p-4 rounded-xl border-2" style={{ borderColor: '#1B3A6B', background: 'rgba(27,58,107,0.04)' }}>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Max landlord rent</p>
+                          <p className="text-3xl font-extrabold mt-1" style={{ color: '#1B3A6B' }}>{formatCurrency(Math.max(optimalOffer.maxLandlordRent, 0))}/mo</p>
+                          {optimalOffer.maxLandlordRent < 0 && (
+                            <p className="text-xs text-red-600 mt-1">Income is too low to hit this profit target. Increase room rates or reduce running costs.</p>
+                          )}
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-border space-y-1">
+                          <Row label="Your current landlord rent" value={formatCurrency(optimalOffer.currentLandlordRent)} />
+                          <Row
+                            label={optimalOffer.currentLandlordRent > optimalOffer.maxLandlordRent ? 'Negotiate down by' : 'Rent headroom'}
+                            value={formatCurrency(Math.abs(optimalOffer.currentLandlordRent - optimalOffer.maxLandlordRent))}
+                            isBold
+                          />
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-border">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Max setup costs (from ROI target)</p>
+                          <p className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(optimalOffer.maxSetupCosts)}</p>
+                        </div>
+                      </div>
+                    ) : optimalOffer?.type === 'no_solution' ? (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                        <p className="text-sm font-semibold text-amber-800">No viable price found</p>
+                        <p className="text-xs text-amber-700 mt-1">No purchase price satisfies your targets with these numbers. Try reducing your ROI or cash flow targets, or increasing income.</p>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -3765,6 +4145,24 @@ function TaxSection({
       {country === 'WALES' && (
         <p className="text-xs text-muted-foreground italic">Wales has no first-time buyer relief</p>
       )}
+    </div>
+  );
+}
+
+function ResultsModeToggle({ value, onChange }: { value: 'analyse' | 'offer', onChange: (v: 'analyse' | 'offer') => void }) {
+  const baseBtn = 'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors';
+  const active = 'bg-white shadow-sm text-foreground';
+  const inactive = 'text-muted-foreground hover:text-foreground';
+  return (
+    <div className="inline-flex w-full p-1 rounded-lg bg-muted border border-border" role="radiogroup" aria-label="Results mode">
+      <button type="button" role="radio" aria-checked={value === 'analyse'} onClick={() => onChange('analyse')}
+        className={`${baseBtn} ${value === 'analyse' ? active : inactive}`}>
+        Deal analyser
+      </button>
+      <button type="button" role="radio" aria-checked={value === 'offer'} onClick={() => onChange('offer')}
+        className={`${baseBtn} ${value === 'offer' ? active : inactive}`}>
+        Optimal offer
+      </button>
     </div>
   );
 }

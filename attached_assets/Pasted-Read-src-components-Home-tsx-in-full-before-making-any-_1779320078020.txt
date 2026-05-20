@@ -1,0 +1,150 @@
+Read src/components/Home.tsx in full before making any changes.
+
+You are adding an "Optimal Offer" mode to DealScore — a back-calculation engine that tells the user the maximum purchase price they should pay to hit their target returns. This sits in the results panel for each strategy tab.
+
+Do not modify any PDF components, calculation functions, or other strategy tabs beyond what is specified. Do not change Mode 1 (current) behaviour in any way.
+
+────────────────────────────────────────
+STEP 1 — MODE TOGGLE
+────────────────────────────────────────
+
+At the top of the results panel for each strategy tab, add a compact segmented toggle — same pattern as the Interest Only / Repayment mortgage toggle:
+
+Option 1: "Deal analyser" (current mode — default)
+Option 2: "Optimal offer"
+
+State variable: resultsMode ('analyse' | 'offer', default 'analyse', per-tab)
+
+When 'analyse': existing results panel renders exactly as-is. No changes.
+When 'offer': render the Optimal Offer panel (Steps 2–5) instead of the existing results.
+
+────────────────────────────────────────
+STEP 2 — TARGET INPUTS (per strategy)
+────────────────────────────────────────
+
+In Optimal Offer mode, show a compact inputs section with pre-filled Samuel Leeds defaults. All inputs are editable. Each has a small "SL benchmark" label showing the default value.
+
+BTL:
+  Target ROI %: default 8 (range 1–30, step 0.5)
+  Target Monthly CF £: default 250 (range 0–2000, step 50)
+  Info: "Samuel Leeds minimum: 8% ROI and £250/mo cash flow for a single let to be worth the hassle."
+
+HMO:
+  Target ROI %: default 12 (range 1–40, step 0.5)
+  Target Monthly CF £: default 500 (range 0–5000, step 50)
+  Target Gross Yield %: default 10 (range 1–25, step 0.5)
+  Info: "Samuel Leeds HMO benchmarks: 10%+ gross yield, 12%+ ROI, £500+/mo cash flow."
+
+FLIP:
+  Target Profit Margin on Cost %: default 18 (range 5–50, step 1)
+  Minimum Profit £: default 25000 (range 0–200000, step 1000)
+  Toggle: "With planning permission" (default on) / "Without planning" — changes margin default to 25% when off
+  Info: "Samuel Leeds: 18% profit on cost with planning permission, 25% without. Always set a minimum profit floor."
+
+BRRR:
+  Target Cash Left In £: default 10000 (range 0–100000, step 1000) — lower is better
+  Uses 75% refinance rule as primary constraint
+  Info: "Samuel Leeds: ideally leave no money in the deal. Maximum £10,000 left in for a strong BRRR."
+
+SA:
+  Target ROI %: default 15 (range 1–50, step 0.5)
+  Target Monthly Profit £: default 500 (range 0–5000, step 50)
+  Occupancy assumption %: default 75 (range 50–95, step 5)
+  Info: "Samuel Leeds SA minimum: £500/mo profit. Use 70–75% occupancy for conservative underwriting."
+
+R2R:
+  Target Monthly Profit £: default 500 (range 0–5000, step 50)
+  Target ROI on Setup Costs %: default 50 (range 10–200, step 5)
+  Info: "Samuel Leeds R2R minimum: £500/mo profit and 50%+ ROI on setup costs."
+
+SOCIAL:
+  Target ROI %: default 8 (range 1–30, step 0.5)
+  Target Monthly CF £: default 250 (range 0–2000, step 50)
+  Info: "Samuel Leeds social housing benchmarks mirror single let: 8%+ ROI, £250+/mo cash flow."
+
+────────────────────────────────────────
+STEP 3 — BACK-CALCULATION LOGIC
+────────────────────────────────────────
+
+All calculations use the existing cost inputs (refurb, other costs, SDLT, deposit %, mortgage rate, monthly expenses etc.) already entered by the user. Only purchase price is the unknown being solved for.
+
+Use these formulas per strategy. Solve for maxPurchasePrice:
+
+BTL / HMO / SOCIAL:
+  From ROI constraint:
+    annualProfit = targetROI/100 × cashInvested
+    cashInvested = depositPct/100 × maxPrice + SDLT(maxPrice) + refurb + otherCosts + leaseExtensionCost + buyersPremium
+    annualProfit = annualRent - annualOpCosts - annualMortgage(maxPrice)
+    Solve iteratively: start at currentPurchasePrice, step down £1,000 until ROI ≥ targetROI
+  From CF constraint:
+    monthlyCF = monthlyIncome - monthlyMortgage(maxPrice) - monthlyOpCosts ≥ targetMonthlyCF
+    Solve iteratively in same way
+  maxPurchasePrice = minimum of the two constraints (whichever is binding)
+  
+  For HMO also solve from yield constraint:
+    maxPriceFromYield = annualRent / (targetGrossYield/100)
+    maxPurchasePrice = minimum of all three constraints
+
+FLIP:
+  maxPrice = GDV - (targetMarginPct/100 × totalCosts) - refurb - sellingCosts - otherCosts - buyersPremium
+  Where totalCosts = maxPrice + refurb + sellingCosts + otherCosts + buyersPremium (solve algebraically)
+  Also enforce: GDV - maxPrice - allCosts ≥ minimumProfit
+  maxPurchasePrice = minimum of both constraints
+
+BRRR:
+  From 75% rule: maxPrice = (0.75 × postRefurbValue) - refurb - otherCosts - leaseExtensionCost - buyersPremium
+  From cash left in: maxPrice = postRefurbValue × 0.75 - refurb - otherCosts - targetCashLeftIn
+  maxPurchasePrice = minimum of both constraints
+
+SA:
+  Same iterative approach as BTL using SA income formula (nightly × 30.4167 × occupancy/100)
+
+R2R:
+  maxLandlordRent = monthlyIncome - targetMonthlyProfit - monthlyOpCosts
+  Display as "Maximum rent to landlord: £X/mo" — not a purchase price
+  Also show: maxSetupCosts = (annualProfit / (targetROI/100))
+
+────────────────────────────────────────
+STEP 4 — OUTPUT DISPLAY
+────────────────────────────────────────
+
+Show the results in a clean card panel below the target inputs:
+
+Primary output card (structureColour top border, tintBg background):
+  Large: "Maximum purchase price: £187,500" (or "Maximum landlord rent: £X/mo" for R2R)
+  Below in a row: target ROI achieved | target CF achieved | gross yield at max price
+
+Gap card (shown only if purchasePrice is entered):
+  "Current asking/entered price: £210,000"
+  "Negotiation target: £22,500 below asking" (red if gap is positive — need to negotiate down, green if current price already works)
+
+Binding constraint label:
+  Small muted text: "Limited by: ROI constraint" or "Limited by: Cash flow constraint" or "Limited by: 75% rule" — whichever produced the lower max price
+
+If current purchase price already meets all targets:
+  Show green panel: "Current price of £210,000 already meets all targets. Deal stacks at this price."
+  Show what the actual ROI/CF/yield is at the current price.
+
+If no solution found (targets too aggressive for the income/cost inputs):
+  Show: "No viable purchase price found at these targets. Consider reducing targets or increasing income."
+
+────────────────────────────────────────
+STEP 5 — AUCTION MODE INTEGRATION
+────────────────────────────────────────
+
+When isAuctionPurchase is true, change the primary output label from:
+  "Maximum purchase price"
+to:
+  "Maximum bid (auction)"
+
+And add below: "This is your maximum bid before the hammer falls. Do not exceed this figure."
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm Mode 1 (Deal analyser) is completely unchanged — all existing results panels render identically.
+3. Confirm all 7 strategies have a working Optimal Offer panel.
+4. Confirm iterative solver does not cause infinite loops — add a maximum iteration count of 10,000 steps.
+5. git add -A && git commit -m "Stage 8B: Optimal Offer calculator (Mode 2)" && git push origin stage-6
