@@ -1,0 +1,101 @@
+Read src/components/Home.tsx in full before making any changes.
+
+You are adding an auction purchase mode to DealScore. This is a universal toggle that applies to all 7 strategies and affects the purchase cost stack and investment timeline. Do not modify any PDF components in this prompt.
+
+────────────────────────────────────────
+STEP 1 — AUCTION TOGGLE
+────────────────────────────────────────
+
+Add an "Auction purchase" toggle to the universal financial inputs section, near the existing isCashBuyer toggle.
+
+- Label: "Auction purchase"
+- State variable: isAuctionPurchase (boolean, default false)
+- When true: show the auction fields below (Steps 2–5)
+- When false: all auction fields hidden, no effect on calculations
+
+────────────────────────────────────────
+STEP 2 — AUCTION DATE
+────────────────────────────────────────
+
+Show when isAuctionPurchase is true:
+- Label: "Auction date"
+- Input: date picker (same pattern as Offer Deadline already in the app)
+- State variable: auctionDate (string, default '')
+- Placeholder: dd/mm/yyyy
+
+────────────────────────────────────────
+STEP 3 — COMPLETION DEADLINE
+────────────────────────────────────────
+
+Show when isAuctionPurchase is true:
+- Label: "Completion deadline"
+- Input: date picker
+- State variable: auctionCompletionDate (string, default '')
+- Info icon tooltip: "Traditional auction: completion typically required within 28 days of the auction date. Modern Method of Auction (MMoA): typically 56 days. Exchange occurs on the fall of the hammer — ensure finance is pre-arranged before bidding."
+- Below the date input, show a helper text in muted grey: "Traditional auction: 28 days from auction date. Modern Method of Auction: 56 days."
+
+────────────────────────────────────────
+STEP 4 — BUYER'S PREMIUM
+────────────────────────────────────────
+
+Show when isAuctionPurchase is true:
+- Label: "Buyer's premium"
+- Two input options side by side — toggle between % and £ (same pattern as other dual-input fields in the app):
+  - % mode: number input, min 0, max 10, step 0.1, placeholder "e.g. 2.5"
+  - £ mode: currency input, min 0, placeholder "e.g. 4,500"
+- State variables: buyersPremiumPct (number | ''), buyersPremiumAmount (number | ''), buyersPremiumMode ('pct' | 'fixed', default 'pct')
+- Computed value: buyersPremiumValue = buyersPremiumMode === 'pct' ? (purchasePrice * buyersPremiumPct / 100) : buyersPremiumAmount
+- Info icon tooltip: "Auction houses charge the buyer a fee on top of the purchase price. Typically 1.5–3% + VAT for traditional auctions. Always check the legal pack before bidding — this cost is non-negotiable once the hammer falls."
+- Wire buyersPremiumValue into Cash Invested: add alongside SDLT, Refurb, Other Costs. Show as a line item "Buyer's Premium" in the Show Workings panel.
+
+────────────────────────────────────────
+STEP 5 — RESERVATION FEE (MMoA)
+────────────────────────────────────────
+
+Show when isAuctionPurchase is true:
+- Label: "Reservation fee (if MMoA)"
+- Input: currency number, min 0
+- Placeholder: "e.g. 5,000"
+- State variable: auctionReservationFee (number | '')
+- Info icon tooltip: "Modern Method of Auction charges a non-refundable reservation fee (typically £5,000–£6,000 inc VAT) payable on acceptance of the winning bid. This is in addition to any buyer's premium."
+- Wire auctionReservationFee into Cash Invested. Show as a line item "Reservation Fee" in the Show Workings panel.
+
+────────────────────────────────────────
+STEP 6 — INVESTMENT TIMELINE AUTO-POPULATE
+────────────────────────────────────────
+
+When isAuctionPurchase is true AND auctionDate is entered:
+- Automatically set the first investment timeline stage label to "Auction" with the auction date month/year
+- Automatically set the second investment timeline stage label to "Completion" with the completion date month/year (if auctionCompletionDate is entered)
+- Only pre-populate if the user has not manually customised the timeline (use the same JSON comparison logic already in the app for strategy-aware defaults)
+
+────────────────────────────────────────
+STEP 7 — AMBER WARNING BANNER
+────────────────────────────────────────
+
+When isAuctionPurchase is true, show an amber info banner directly below the auction toggle:
+"Auction purchases require exchange on the fall of the hammer. Ensure bridging finance or cash funds are pre-arranged before bidding. You cannot renegotiate after the gavel falls."
+
+────────────────────────────────────────
+STATE + RESET
+────────────────────────────────────────
+
+Add all new state variables to handleReset:
+  isAuctionPurchase: false
+  auctionDate: ''
+  auctionCompletionDate: ''
+  buyersPremiumPct: ''
+  buyersPremiumAmount: ''
+  buyersPremiumMode: 'pct'
+  auctionReservationFee: ''
+
+Pass all new variables into pdfProps.
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx and DealScorePDFProPlus.tsx are untouched.
+3. Confirm Cash Invested correctly includes buyer's premium and reservation fee when auction mode is active.
+4. git add -A && git commit -m "Stage 8B: auction purchase mode" && git push origin stage-6

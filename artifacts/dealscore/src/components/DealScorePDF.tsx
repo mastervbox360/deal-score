@@ -110,6 +110,15 @@ export interface DealScorePDFProps {
   leaseExtensionCost?: number;
   isCashBuyer?: boolean;
   isUninhabitable?: boolean;
+  isAuctionPurchase?: boolean;
+  auctionDate?: string;
+  auctionCompletionDate?: string;
+  buyersPremiumPct?: number;
+  buyersPremiumAmount?: number;
+  buyersPremiumMode?: 'pct' | 'fixed';
+  auctionReservationFee?: number;
+  buyersPremiumValue?: number;
+  auctionReservationFeeValue?: number;
 }
 
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');

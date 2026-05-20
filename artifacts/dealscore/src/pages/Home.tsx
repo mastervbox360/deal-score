@@ -145,6 +145,13 @@ export default function HomePage() {
   const [leaseExtensionCost, setLeaseExtensionCost] = useState<number | ''>('');
   const [isCashBuyer, setIsCashBuyer] = useState<boolean>(false);
   const [isUninhabitable, setIsUninhabitable] = useState<boolean>(false);
+  const [isAuctionPurchase, setIsAuctionPurchase] = useState<boolean>(false);
+  const [auctionDate, setAuctionDate] = useState<string>('');
+  const [auctionCompletionDate, setAuctionCompletionDate] = useState<string>('');
+  const [buyersPremiumPct, setBuyersPremiumPct] = useState<number | ''>('');
+  const [buyersPremiumAmount, setBuyersPremiumAmount] = useState<number | ''>('');
+  const [buyersPremiumMode, setBuyersPremiumMode] = useState<'pct' | 'fixed'>('pct');
+  const [auctionReservationFee, setAuctionReservationFee] = useState<number | ''>('');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [sourcingFeeDisclaimer, setSourcingFeeDisclaimer] = useState<string | null>(null);
   const disclaimerName = companyName.trim() || preparedBy.name || '[Sourcer Name]';
@@ -214,6 +221,24 @@ export default function HomePage() {
       setIsCashBuyer(false);
     }
   }, [isUninhabitable]);
+
+  useEffect(() => {
+    if (!isAuctionPurchase || !auctionDate) return;
+    const allDefaults = Object.values(DEFAULT_TIMELINE_STAGES);
+    const currentJSON = JSON.stringify(timelineStages);
+    const isStillDefault = allDefaults.some(def => JSON.stringify(def) === currentJSON);
+    if (!isStillDefault) return;
+    const auctionLabel = `Auction (${new Date(auctionDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })})`;
+    const completionLabel = auctionCompletionDate
+      ? `Completion (${new Date(auctionCompletionDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })})`
+      : 'Completion';
+    setTimelineStages(prev => {
+      const updated = [...prev];
+      if (updated[0]) updated[0] = { ...updated[0], label: auctionLabel };
+      if (updated[1]) updated[1] = { ...updated[1], label: completionLabel };
+      return updated;
+    });
+  }, [isAuctionPurchase, auctionDate, auctionCompletionDate]);
 
   const [propertyData, setPropertyData] = useState<{
     detectedTenure: 'Freehold' | 'Leasehold' | null;
@@ -615,10 +640,23 @@ export default function HomePage() {
     setLeaseExtensionCost('');
     setIsCashBuyer(false);
     setIsUninhabitable(false);
+    setIsAuctionPurchase(false);
+    setAuctionDate('');
+    setAuctionCompletionDate('');
+    setBuyersPremiumPct('');
+    setBuyersPremiumAmount('');
+    setBuyersPremiumMode('pct');
+    setAuctionReservationFee('');
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
   const effectiveTax = taxOverrideActive ? manualTaxValue : sharedTax;
+  const buyersPremiumValue = isAuctionPurchase
+    ? (buyersPremiumMode === 'pct'
+        ? sharedInputs.purchasePrice * (Number(buyersPremiumPct) || 0) / 100
+        : Number(buyersPremiumAmount) || 0)
+    : 0;
+  const auctionReservationFeeValue = isAuctionPurchase ? (Number(auctionReservationFee) || 0) : 0;
 
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
@@ -1182,6 +1220,15 @@ export default function HomePage() {
       leaseExtensionCost: leaseExtensionCost === '' ? 0 : leaseExtensionCost as number,
       isCashBuyer,
       isUninhabitable,
+      isAuctionPurchase,
+      auctionDate,
+      auctionCompletionDate,
+      buyersPremiumPct: buyersPremiumPct === '' ? 0 : buyersPremiumPct as number,
+      buyersPremiumAmount: buyersPremiumAmount === '' ? 0 : buyersPremiumAmount as number,
+      buyersPremiumMode,
+      auctionReservationFee: auctionReservationFee === '' ? 0 : auctionReservationFee as number,
+      buyersPremiumValue,
+      auctionReservationFeeValue,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1198,6 +1245,8 @@ export default function HomePage() {
     buildingsInsurance, serviceCharge, groundRentAnnual,
     areaAverageYield, timelineStages, offerDeadline, viewingAvailable, refurbScope,
     bedrooms, bathrooms, remainingLeaseYears, leaseExtensionCost, isCashBuyer, isUninhabitable,
+    isAuctionPurchase, auctionDate, auctionCompletionDate, buyersPremiumPct, buyersPremiumAmount,
+    buyersPremiumMode, auctionReservationFee, buyersPremiumValue, auctionReservationFeeValue,
   ]);
 
   const hasMinimumData =
@@ -1583,6 +1632,98 @@ export default function HomePage() {
                       )}
                     </>
                   )}
+
+                  {/* Auction Purchase — universal across all strategies */}
+                  <div className="md:col-span-2 space-y-3 pt-3 border-t border-slate-100 mt-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="auction-purchase"
+                        checked={isAuctionPurchase}
+                        onChange={(e) => setIsAuctionPurchase(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+                      />
+                      <label htmlFor="auction-purchase" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Auction purchase
+                      </label>
+                    </div>
+                    {isAuctionPurchase && (
+                      <>
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
+                          Auction purchases require exchange on the fall of the hammer. Ensure bridging finance or cash funds are pre-arranged before bidding. You cannot renegotiate after the gavel falls.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-1">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Auction date</Label>
+                            <Input type="date" value={auctionDate} onChange={(e) => setAuctionDate(e.target.value)} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs">Completion deadline</Label>
+                              <InfoIcon id="auction-completion" text="Traditional auction: completion typically required within 28 days of the auction date. Modern Method of Auction (MMoA): typically 56 days. Exchange occurs on the fall of the hammer — ensure finance is pre-arranged before bidding." />
+                            </div>
+                            <Input type="date" value={auctionCompletionDate} onChange={(e) => setAuctionCompletionDate(e.target.value)} />
+                            <p className="text-xs text-slate-400">Traditional auction: 28 days from auction date. Modern Method of Auction: 56 days.</p>
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs">Buyer's premium</Label>
+                              <InfoIcon id="buyers-premium" text="Auction houses charge the buyer a fee on top of the purchase price. Typically 1.5–3% + VAT for traditional auctions. Always check the legal pack before bidding — this cost is non-negotiable once the hammer falls." />
+                            </div>
+                            <div className="flex gap-2 items-center">
+                              <button
+                                type="button"
+                                onClick={() => setBuyersPremiumMode('pct')}
+                                className={`px-2.5 py-1.5 text-xs rounded font-medium transition-colors ${buyersPremiumMode === 'pct' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                              >%</button>
+                              <button
+                                type="button"
+                                onClick={() => setBuyersPremiumMode('fixed')}
+                                className={`px-2.5 py-1.5 text-xs rounded font-medium transition-colors ${buyersPremiumMode === 'fixed' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                              >£</button>
+                              {buyersPremiumMode === 'pct' ? (
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={10}
+                                  step={0.1}
+                                  placeholder="e.g. 2.5"
+                                  value={buyersPremiumPct === '' ? '' : buyersPremiumPct}
+                                  onChange={(e) => setBuyersPremiumPct(e.target.value === '' ? '' : Number(e.target.value))}
+                                  className="flex-1"
+                                />
+                              ) : (
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  placeholder="e.g. 4500"
+                                  value={buyersPremiumAmount === '' ? '' : buyersPremiumAmount}
+                                  onChange={(e) => setBuyersPremiumAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                                  className="flex-1"
+                                />
+                              )}
+                            </div>
+                            {buyersPremiumValue > 0 && (
+                              <p className="text-xs text-slate-500">= {formatCurrency(buyersPremiumValue)}</p>
+                            )}
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs">Reservation fee (if MMoA)</Label>
+                              <InfoIcon id="reservation-fee" text="Modern Method of Auction charges a non-refundable reservation fee (typically £5,000–£6,000 inc VAT) payable on acceptance of the winning bid. This is in addition to any buyer's premium." />
+                            </div>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="e.g. 5000"
+                              value={auctionReservationFee === '' ? '' : auctionReservationFee}
+                              onChange={(e) => setAuctionReservationFee(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Tab-specific inputs */}
@@ -2641,7 +2782,9 @@ export default function HomePage() {
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
+                      {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
+                      {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Rental Income" value={formatCurrency(btlInputs.monthlyRent)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(btlResults.voidAllowanceAmount)})`} />
@@ -2669,7 +2812,9 @@ export default function HomePage() {
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
+                      {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
+                      {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Total Room Income" value={formatCurrency(hmoResults.grossMonthlyRent)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(hmoResults.voidAllowanceAmount)})`} />
@@ -2718,7 +2863,9 @@ export default function HomePage() {
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(saResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
+                      {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
+                      {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(saResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label={`Monthly Revenue  ${formatCurrency(saInputs.nightlyRate)} nightly × ${saInputs.occupancyPercent}% occupancy`} value={formatCurrency(saResults.grossMonthlyRevenue)} />
                       <WRow label="Less: Platform Fees" value={`(${formatCurrency(saResults.platformFees)})`} />
@@ -2794,7 +2941,9 @@ export default function HomePage() {
                       {sharedInputs.refurbCost > 0 && <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
-                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number))} bold />
+                      {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
+                      {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Lease Income" value={formatCurrency(socialInputs.leaseIncomePerMonth)} />
                       <WRow label={`Void Allowance (${voidAllowancePercent}%)`} value={`(${formatCurrency(socialResults.voidAllowanceAmount)})`} />
