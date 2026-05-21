@@ -2755,6 +2755,17 @@ export default function HomePage() {
                       <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} tooltip={TT.grossYield} />
                       <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} tooltip={TT.netYield} />
                       <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
+                      {hmoInputs.rooms > 0 && isFinite(hmoResults.monthlyCashFlow) && (
+                        <div className="flex justify-between items-center py-2 border-b border-border/40 last:border-0">
+                          <span className="text-sm text-muted-foreground flex items-center gap-0.5">
+                            Profit Per Room
+                            <InfoIcon id="row-ProfitPerRoom" text="Monthly profit divided by number of rooms. Useful for comparing HMOs of different sizes. Samuel Leeds benchmark: aim for £100–£150+ per room as a minimum." />
+                          </span>
+                          <span className={`text-sm font-medium ${hmoResults.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                            {formatCurrency(hmoResults.monthlyCashFlow / hmoInputs.rooms)}/room
+                          </span>
+                        </div>
+                      )}
                       {marketValue > 0 && (
                         <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}
@@ -2785,6 +2796,24 @@ export default function HomePage() {
                     <div className="space-y-3 pt-3">
                       <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold tooltip={TT.flipTotalROI} />
                       <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} tooltip={TT.annualisedROI} />
+                      {sharedInputs.purchasePrice > 0 && flipInputs.expectedSalePrice > 0 && (() => {
+                        const totalFlipCosts = sharedInputs.purchasePrice + sharedInputs.refurbCost + sharedInputs.otherCosts + flipResults.sellingCosts + buyersPremiumValue;
+                        const profitOnCost = totalFlipCosts > 0 ? (flipResults.netProfit / totalFlipCosts) * 100 : 0;
+                        const pocColor = profitOnCost >= 18 ? 'text-green-600' : profitOnCost >= 10 ? 'text-amber-500' : 'text-red-500';
+                        const pocBenchmark = profitOnCost >= 25 ? 'Exceeds no-planning benchmark (25%)' : profitOnCost >= 18 ? 'Meets planning benchmark (18%)' : 'Below minimum benchmark (18%)';
+                        return (
+                          <div className="flex justify-between items-start py-2 border-b border-border/40 last:border-0">
+                            <span className="text-sm text-muted-foreground flex items-center gap-0.5">
+                              Profit on Cost
+                              <InfoIcon id="row-ProfitOnCost" text="Net profit as a percentage of total costs invested. Developers use this metric rather than margin on GDV. Samuel Leeds benchmarks: 18%+ with planning permission, 25%+ without." />
+                            </span>
+                            <div className="text-right">
+                              <span className={`text-sm font-bold ${pocColor}`}>{formatPercent(profitOnCost)}</span>
+                              <p className="text-[9px] text-muted-foreground italic mt-0.5">{pocBenchmark}</p>
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {marketValue > 0 && (
                         <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
                       )}

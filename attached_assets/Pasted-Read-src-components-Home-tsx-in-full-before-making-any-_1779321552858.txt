@@ -1,0 +1,45 @@
+Read src/components/Home.tsx in full before making any changes.
+
+Two new results metrics. Small additions to existing results panels only. Do not change any other strategy tabs or PDF components.
+
+────────────────────────────────────────
+CHANGE 1 — HMO PROFIT PER ROOM
+────────────────────────────────────────
+
+In the HMO results panel, add a new metric row after Monthly Cash Flow:
+
+  Label: "Profit Per Room"
+  Value: hmoResults.monthlyCashFlow / rooms (where rooms is the HMO rooms input)
+  Format: fc() — display as £X/room
+  Info icon tooltip: "Monthly profit divided by number of rooms. Useful for comparing HMOs of different sizes. Samuel Leeds benchmark: aim for £100–£150+ per room as a minimum."
+  Only show when rooms > 0 and monthlyCashFlow is a valid number.
+  Colour: same semantic colour as Monthly Cash Flow (green if positive, red if negative)
+
+────────────────────────────────────────
+CHANGE 2 — FLIP MARGIN ON COST
+────────────────────────────────────────
+
+In the FLIP results panel, add a new metric row after Net Margin (which is currently profit ÷ GDV):
+
+  Label: "Profit on Cost"
+  Value: (flipResults.netProfit / totalFlipCosts) × 100
+  Where totalFlipCosts = purchasePrice + refurb + otherCosts + sellingCostsAmount + buyersPremiumValue (if auction)
+  Format: fp() — display as X.X%
+  Info icon tooltip: "Net profit as a percentage of total costs invested. Developers use this metric rather than margin on GDV. Samuel Leeds benchmarks: 18%+ with planning permission, 25%+ without."
+  Colour: green if ≥ 18%, amber if 10–17.9%, red if < 10%
+
+Also add a small benchmark indicator below the value:
+  If ≥ 25%: "Exceeds no-planning benchmark (25%)"
+  If ≥ 18%: "Meets planning benchmark (18%)"
+  If < 18%: "Below minimum benchmark (18%)"
+  FontSize 9, muted grey, italic
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors.
+2. Confirm HMO tab shows Profit Per Room correctly with various room counts.
+3. Confirm FLIP tab shows Profit on Cost with correct benchmark colour coding.
+4. Confirm all other strategy tabs are completely untouched.
+5. git add -A && git commit -m "Stage 8B: HMO profit per room, FLIP profit on cost metric" && git push origin stage-6
