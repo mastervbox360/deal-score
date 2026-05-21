@@ -3497,13 +3497,21 @@ export default function HomePage() {
                   const on = e.target.checked;
                   setProtectAddress(on);
                   if (on && protectedAddressDescription === '') {
-                    const parts = propertyAddress.split(',').map(p => p.trim()).filter(Boolean);
-                    const town = parts.length >= 2 ? parts[parts.length - 2] : '';
+                    const ukPostcode = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
+                    const segments = propertyAddress.split(',').map(s => s.trim()).filter(Boolean);
+                    const nonPostcode = segments.filter(s => !ukPostcode.test(s));
+                    const city = nonPostcode.length > 0 ? nonPostcode[nonPostcode.length - 1] : '';
                     const stratLabels: Record<string, string> = {
-                      BTL: 'BTL', HMO: 'HMO', SA: 'Serviced Accommodation',
-                      BRRR: 'BRRR', FLIP: 'Flip', R2R: 'Rent-to-Rent', SOCIAL: 'Social Housing Lease',
+                      BTL: 'Buy-to-Let', HMO: 'HMO', SA: 'Serviced Accommodation',
+                      BRRR: 'BRRR', FLIP: 'Flip / Refurb', R2R: 'Rent to Rent', SOCIAL: 'Social Housing',
                     };
-                    if (town) setProtectedAddressDescription(`${town} — ${propertyType} ${stratLabels[dealType] ?? dealType}`);
+                    const strategyLabel = stratLabels[dealType] ?? dealType;
+                    const descriptorParts: string[] = [];
+                    if (bedrooms && Number(bedrooms) > 0) descriptorParts.push(`${bedrooms}-bed`);
+                    if (propertyType) descriptorParts.push(propertyType);
+                    if (city) descriptorParts.push(city);
+                    const descriptor = descriptorParts.join(' ');
+                    setProtectedAddressDescription(descriptor ? `${descriptor} — ${strategyLabel}` : strategyLabel);
                   }
                 }}
                 className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"

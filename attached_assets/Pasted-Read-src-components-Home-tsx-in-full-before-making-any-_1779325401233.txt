@@ -1,0 +1,35 @@
+Read src/components/Home.tsx in full before making any changes.
+
+Find the address protection auto-populate logic — it runs when protectAddress is toggled on and protectedAddressDescription is empty. It currently generates a description from the address string.
+
+Replace the auto-populate logic entirely with this new format:
+
+  "[bedrooms]-bed [propertyType] [city] — [strategyLabel]"
+
+Where:
+  - [bedrooms] = bedrooms state variable. If empty or 0, omit "[bedrooms]-bed " entirely.
+  - [propertyType] = propertyType state variable (e.g. "Terraced", "Semi-Detached", "Flat"). If empty, omit.
+  - [city] = extracted from propertyAddress — take the last non-postcode segment. Split propertyAddress by comma, strip whitespace from each segment, filter out segments that are purely a UK postcode pattern (letters+numbers, e.g. "B1 2AB"), take the last remaining segment. If no city can be extracted, omit.
+  - [strategyLabel] = the human-readable label for the active strategy tab (Buy-to-Let, HMO, Flip / Refurb, Serviced Accommodation, BRRR, Rent to Rent, Social Housing). Use the same label strings already used elsewhere in the app.
+
+Examples of correct output:
+  4-bed Terraced Birmingham — HMO
+  Semi-Detached Manchester — Buy-to-Let
+  Flat London — Serviced Accommodation
+  3-bed Terraced — BRRR  (if no city extracted)
+
+Assembly rules:
+  - Join the property descriptor parts (bedrooms + type + city) with spaces, no extra punctuation between them
+  - The strategy label follows " — " (space-dash-dash-space)
+  - If no property descriptor parts are available at all, fall back to just the strategy label: "HMO"
+  - Never produce leading or trailing spaces or dashes
+
+The auto-populate fires only when protectAddress is toggled from false to true AND protectedAddressDescription is empty. If the user has already typed a custom description, do not overwrite it.
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx and DealScorePDFProPlus.tsx are untouched.
+3. git add -A && git commit -m "Address protection: auto-populate format corrected to beds/type/city/strategy" && git push origin stage-6
