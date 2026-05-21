@@ -1,0 +1,51 @@
+Read src/components/Home.tsx in full before making any changes.
+
+Find the address protection auto-populate city extraction logic. It currently splits by comma, filters segments, and takes the last two. Fix two bugs:
+
+────────────────────────────────────────
+FIX 1 — STRIP POSTCODE FROM WITHIN A SEGMENT
+────────────────────────────────────────
+
+Before filtering segments, run a postcode strip on each segment individually:
+
+  const postcodeRegex = /\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/i;
+  const cleaned = segment.replace(postcodeRegex, '').trim();
+
+Use the cleaned version for filtering and for the final output. This handles cases where the postcode is appended to the city in the same segment (e.g. "Cardiff CF24 2LY" → "Cardiff").
+
+────────────────────────────────────────
+FIX 2 — FILTER ALPHANUMERIC HOUSE NUMBERS
+────────────────────────────────────────
+
+Update the street number filter to also catch alphanumeric house numbers like "65a", "12b", "Flat 3":
+
+  Drop any segment (after postcode stripping) that matches: /^\d+[a-zA-Z]?$/ (pure number or number+letter)
+  Drop any segment that starts with "Flat ", "Apartment ", "Unit ", "Suite " followed by a number (case-insensitive)
+  Keep the existing under-3-characters filter
+
+────────────────────────────────────────
+EXPECTED OUTPUT FOR THIS ADDRESS
+────────────────────────────────────────
+
+Input: "65a Horwood Cl, Cardiff CF24 2LY"
+After postcode strip per segment: ["65a Horwood Cl", "Cardiff"]
+After filtering (65a Horwood Cl contains a street — filter it? No — keep it as fallback if needed, but Cardiff is the better result)
+
+Actually the better approach: after postcode stripping and filtering pure numbers/flats, run one more filter — drop any segment that contains a digit followed by letters that looks like a street (e.g. "65a Horwood Cl"). A segment "looks like a street" if it matches /\d/ AND contains a common street suffix (Cl, Close, Rd, Road, St, Street, Ave, Avenue, Dr, Drive, Lane, Ln, Way, Terrace, Ter, Place, Pl, Crescent, Cres, Grove, Gv, Court, Ct).
+
+Street suffix list to match (case-insensitive, as whole word):
+Cl, Close, Rd, Road, St, Street, Ave, Avenue, Dr, Drive, Lane, Ln, Way, Terrace, Ter, Place, Pl, Crescent, Cres, Grove, Gv, Court, Ct, Row, Hill, View, Gardens, Gdns
+
+So "65a Horwood Cl" matches (contains digit + "Cl" suffix) → filtered out.
+"Cardiff" has no digit + suffix → kept.
+
+Final output for "65a Horwood Cl, Cardiff CF24 2LY":
+  Terraced Cardiff — Buy-to-Let
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+
+1. Run tsc --noEmit — fix all TypeScript errors before stopping.
+2. Confirm DealScorePDF.tsx and DealScorePDFProPlus.tsx are untouched.
+3. git add -A && git commit -m "Address protection: fix postcode-in-segment and street number extraction" && git push origin stage-6

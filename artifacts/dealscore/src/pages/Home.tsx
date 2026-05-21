@@ -3497,9 +3497,17 @@ export default function HomePage() {
                   const on = e.target.checked;
                   setProtectAddress(on);
                   if (on && protectedAddressDescription === '') {
-                    const ukPostcode = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
-                    const segments = propertyAddress.split(',').map(s => s.trim()).filter(Boolean);
-                    const nonPostcode = segments.filter(s => !ukPostcode.test(s) && s.length >= 3 && !/^\d+[A-Z]?$/.test(s));
+                    const inlinePostcode = /\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b/i;
+                    const streetSuffix = /\b(Cl|Close|Rd|Road|St|Street|Ave|Avenue|Dr|Drive|Lane|Ln|Way|Terrace|Ter|Place|Pl|Crescent|Cres|Grove|Gv|Court|Ct|Row|Hill|View|Gardens|Gdns)\b/i;
+                    const flatPrefix = /^(flat|apartment|unit|suite)\s+\d/i;
+                    const cleaned = propertyAddress.split(',').map(s => s.trim()).filter(Boolean)
+                      .map(s => s.replace(inlinePostcode, '').trim());
+                    const nonPostcode = cleaned.filter(s =>
+                      s.length >= 3 &&
+                      !/^\d+[a-zA-Z]?$/.test(s) &&
+                      !flatPrefix.test(s) &&
+                      !((/\d/).test(s) && streetSuffix.test(s))
+                    );
                     const cityParts = nonPostcode.slice(-2);
                     const city = cityParts.join(', ');
                     const stratLabels: Record<string, string> = {
