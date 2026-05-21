@@ -3499,8 +3499,9 @@ export default function HomePage() {
                   if (on && protectedAddressDescription === '') {
                     const ukPostcode = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/i;
                     const segments = propertyAddress.split(',').map(s => s.trim()).filter(Boolean);
-                    const nonPostcode = segments.filter(s => !ukPostcode.test(s));
-                    const city = nonPostcode.length > 0 ? nonPostcode[nonPostcode.length - 1] : '';
+                    const nonPostcode = segments.filter(s => !ukPostcode.test(s) && s.length >= 3 && !/^\d+[A-Z]?$/.test(s));
+                    const cityParts = nonPostcode.slice(-2);
+                    const city = cityParts.join(', ');
                     const stratLabels: Record<string, string> = {
                       BTL: 'Buy-to-Let', HMO: 'HMO', SA: 'Serviced Accommodation',
                       BRRR: 'BRRR', FLIP: 'Flip / Refurb', R2R: 'Rent to Rent', SOCIAL: 'Social Housing',
