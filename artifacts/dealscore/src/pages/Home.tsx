@@ -3304,6 +3304,9 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      {hmoInputs.licenceCost > 0 && (
+                        <WRow label="HMO Licence Cost" value={formatCurrency(hmoInputs.licenceCost)} />
+                      )}
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
                       {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
