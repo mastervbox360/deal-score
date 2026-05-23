@@ -2801,13 +2801,13 @@ export default function HomePage() {
                     <TrendingUp className="w-4 h-4" style={{ color: '#1B3A6B' }} />Deal Score
                   </h2>
                 </div>
-                {dealType === 'BTL' && renderScoreBadge(btlResults.score)}
-                {dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
-                {dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
-                {dealType === 'SA' && renderScoreBadge(saResults.score)}
-                {dealType === 'BRRR' && renderScoreBadge(brrrResults.score)}
-                {dealType === 'R2R' && renderScoreBadge(r2rResults.score)}
-                {dealType === 'SOCIAL' && renderScoreBadge(socialResults.score)}
+                {missingFields.length === 0 && dealType === 'BTL' && renderScoreBadge(btlResults.score)}
+                {missingFields.length === 0 && dealType === 'HMO' && renderScoreBadge(hmoResults.score)}
+                {missingFields.length === 0 && dealType === 'FLIP' && renderScoreBadge(flipResults.score)}
+                {missingFields.length === 0 && dealType === 'SA' && renderScoreBadge(saResults.score)}
+                {missingFields.length === 0 && dealType === 'BRRR' && renderScoreBadge(brrrResults.score)}
+                {missingFields.length === 0 && dealType === 'R2R' && renderScoreBadge(r2rResults.score)}
+                {missingFields.length === 0 && dealType === 'SOCIAL' && renderScoreBadge(socialResults.score)}
 
 
                 {marketValue > 0 && dealType !== 'R2R' && (
@@ -2848,7 +2848,7 @@ export default function HomePage() {
 
               <div className="px-6 pb-4">
                 {resultsMode[dealType] === 'analyse' ? (<>
-                {dealType === 'BTL' && (
+                {missingFields.length === 0 && dealType === 'BTL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
@@ -2892,7 +2892,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {dealType === 'HMO' && (
+                {missingFields.length === 0 && dealType === 'HMO' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
@@ -2945,7 +2945,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {dealType === 'FLIP' && (
+                {missingFields.length === 0 && dealType === 'FLIP' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0
@@ -2993,7 +2993,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {dealType === 'SA' && (
+                {missingFields.length === 0 && dealType === 'SA' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
@@ -3031,7 +3031,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {dealType === 'BRRR' && (
+                {missingFields.length === 0 && dealType === 'BRRR' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
@@ -3081,7 +3081,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {dealType === 'R2R' && (
+                {missingFields.length === 0 && dealType === 'R2R' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
@@ -3109,7 +3109,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {dealType === 'SOCIAL' && (
+                {missingFields.length === 0 && dealType === 'SOCIAL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
