@@ -3393,6 +3393,12 @@ export default function HomePage() {
                       <WRow label="Purchase Price" value={formatCurrency(sharedInputs.purchasePrice)} />
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      {flipInputs.contingencyPercent > 0 && (
+                        <WRow label={`Contingency (${flipInputs.contingencyPercent}%)`} value={formatCurrency(sharedInputs.refurbCost * flipInputs.contingencyPercent / 100)} />
+                      )}
+                      {flipInputs.contingencyPercent > 0 && (
+                        <WRow label="Adjusted Refurb Cost" value={formatCurrency(sharedInputs.refurbCost * (1 + flipInputs.contingencyPercent / 100))} bold />
+                      )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {flipInputs.financingMethod === 'Bridging' && flipInputs.flipBridgingRate > 0 && flipInputs.flipBridgingTermMonths > 0 && (
                         <WRow label={`Bridging Interest (${flipInputs.flipBridgingLTV}% LTV × ${flipInputs.flipBridgingRate}%/mo × ${flipInputs.flipBridgingTermMonths} months)`} value={formatCurrency((sharedInputs.purchasePrice * (flipInputs.flipBridgingLTV / 100)) * (flipInputs.flipBridgingRate / 100) * flipInputs.flipBridgingTermMonths)} />
@@ -4386,7 +4392,7 @@ const TT = {
   postRefurbValue: 'The estimated market value of the property after the refurbishment is complete. Get this from a local estate agent or RICS surveyor.',
   refinancePct: 'The loan-to-value percentage your mortgage lender will offer against the post-refurb value. Most BTL lenders offer 75%.',
   newMortgageRate: 'The interest rate on the refinance mortgage you take out after the refurbishment.',
-  holdingCosts: 'Monthly costs while you own the property during the refurbishment — utilities, council tax, insurance, and any other ongoing monthly costs. Do not include bridging loan interest here — if you are using bridging finance, enter the rate, term and LTV in the Bridging Finance section above and it will be calculated automatically.',
+  holdingCosts: 'Monthly costs while you own the property during the refurbishment — utilities, council tax, insurance, and any other ongoing monthly costs.',
   projectLength: 'How many months from purchase to sale completion. Be realistic — most flips take longer than expected.',
   salePrice: 'The price you expect to achieve when selling the refurbished property. Base this on comparable sold prices nearby.',
   sellingCosts: 'Estate agent fees plus legal costs on the sale. Typically 1.5–2.5% of the sale price.',
