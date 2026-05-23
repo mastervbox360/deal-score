@@ -1032,6 +1032,7 @@ export default function HomePage() {
       if (!(r2rInputs.monthlyRentPaid > 0)) missing.push('Rent to Landlord');
       if (!(r2rInputs.rooms > 0)) missing.push('Number of Rooms');
       if (!(r2rInputs.rentPerRoom > 0)) missing.push('Rent Per Room');
+      if (!(r2rInputs.setupCosts > 0)) missing.push('Setup Costs');
     } else {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(socialInputs.leaseIncomePerMonth > 0)) missing.push('Lease Income');
@@ -1601,7 +1602,7 @@ export default function HomePage() {
           const incomplete = missingFields.length > 0;
           const cfValue = currentMonthlyCF;
           const cfSignal = getCFSignal(cfValue, incomplete);
-          const dsSignal = getDealScoreSignal(currentScore);
+          const dsSignal = getDealScoreSignal(incomplete ? 'Incomplete' : currentScore);
           return (
             <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[48px] w-full gap-3">
 
