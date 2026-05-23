@@ -1601,29 +1601,33 @@ export default function HomePage() {
           const incomplete = missingFields.length > 0;
           const cfValue = currentMonthlyCF;
           const cfSignal = getCFSignal(cfValue, incomplete);
-          const roiSignal = getROISignal(currentScore, incomplete);
           const dsSignal = getDealScoreSignal(currentScore);
-          void roiSignal;
           return (
             <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[48px] w-full gap-3">
 
-              {/* Three traffic light signals */}
-              <div className="flex items-center gap-4 sm:gap-6">
+              {/* Left side — Strategy + signals */}
+              <div className="flex items-center gap-0">
+
+                {/* Strategy — always first, no dot, navy label */}
+                <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
+                  <span className="text-[11px] font-bold text-[#1B3A6B]">{dealLabel}</span>
+                </div>
 
                 {/* Cash Flow signal */}
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
+                <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-4">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
                   <div className="flex flex-col leading-none">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                     <span className="text-[11px] font-bold" style={{ color: cfSignal.colour }}>
-                      {incomplete ? cfSignal.label : formatCurrency(cfValue) + '/mo'}
+                      {incomplete ? 'INCOMPLETE' : formatCurrency(cfValue) + '/mo'}
                     </span>
                   </div>
                 </div>
 
                 {/* Deal Score signal */}
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
                   <div className="flex flex-col leading-none">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
                     <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>
@@ -1632,22 +1636,22 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Strategy label */}
-                <div className="hidden sm:flex flex-col leading-none">
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
-                  <span className="text-[11px] font-bold text-[#1B3A6B]">{dealLabel}</span>
-                </div>
-
               </div>
 
-              {/* Missing fields warning */}
+              {/* Right side — missing fields warning as pill */}
               {missingFields.length > 0 && (
-                <div className="flex items-center gap-1.5 min-w-0">
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
+                  style={{
+                    backgroundColor: missingFields.length >= 3 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
+                    border: missingFields.length >= 3 ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(245,158,11,0.25)',
+                  }}
+                >
                   <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingFields.length >= 3 ? 'bg-red-500' : 'bg-amber-500'}`} />
-                  <span className={`text-[10px] font-medium truncate ${missingFields.length >= 3 ? 'text-red-600' : 'text-amber-600'}`}>
+                  <span className={`text-[10px] font-medium ${missingFields.length >= 3 ? 'text-red-600' : 'text-amber-600'}`}>
                     {missingFields.length >= 3
-                      ? `Key inputs missing — figures are estimates only`
-                      : `For accurate figures: enter ${missingFields.join(', ')}`}
+                      ? 'Key inputs missing'
+                      : `Enter: ${missingFields.join(', ')}`}
                   </span>
                 </div>
               )}
