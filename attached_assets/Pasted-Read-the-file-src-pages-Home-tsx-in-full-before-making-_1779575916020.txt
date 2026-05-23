@@ -1,0 +1,216 @@
+Read the file src/pages/Home.tsx in full before making any changes.
+Plan all edits explicitly, then execute them all in parallel.
+
+TASK: Repurpose the sticky live metrics bar into a Deal Health 
+Indicator showing three traffic-light signals plus a missing fields 
+warning on the right side.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BACKGROUND — CURRENT STATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The current live bar sits between the header and main content.
+It shows raw metric values (Cash Flow £X/mo, Gross Yield X%, 
+CoC ROI X%, Cash In £X) when hasAnalysed is true, or a placeholder
+message when false. The bar is inside a sticky div at top-[100px].
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — Essential fields detection per strategy
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a new computed value `missingFields` using useMemo that returns
+an array of string labels for missing essential fields.
+
+Essential fields per strategy:
+- BTL: purchasePrice > 0, btlInputs.monthlyRent > 0, 
+       !isCashBuyer && sharedInputs.mortgageRate > 0,
+       !isCashBuyer && sharedInputs.depositPercent > 0
+  Labels: 'Purchase Price', 'Monthly Rent', 'Mortgage Rate', 'Deposit %'
+
+- HMO: purchasePrice > 0, hmoInputs.rooms > 0, 
+       hmoInputs.rentPerRoom > 0,
+       !isCashBuyer && sharedInputs.mortgageRate > 0,
+       !isCashBuyer && sharedInputs.depositPercent > 0
+  Labels: 'Purchase Price', 'Number of Rooms', 'Rent Per Room', 
+          'Mortgage Rate', 'Deposit %'
+
+- FLIP: purchasePrice > 0, flipInputs.expectedSalePrice > 0,
+        sharedInputs.refurbCost > 0
+  Labels: 'Purchase Price', 'Expected Sale Price', 'Refurb Cost'
+
+- SA: purchasePrice > 0, saInputs.nightlyRate > 0,
+      saInputs.occupancyPercent > 0,
+      !isCashBuyer && sharedInputs.mortgageRate > 0,
+      !isCashBuyer && sharedInputs.depositPercent > 0
+  Labels: 'Purchase Price', 'Nightly Rate', 'Occupancy %',
+          'Mortgage Rate', 'Deposit %'
+
+- BRRR: purchasePrice > 0, brrrInputs.postRefurbValue > 0,
+        brrrInputs.refinancePercent > 0, brrrInputs.monthlyRent > 0,
+        brrrInputs.newMortgageRate > 0
+  Labels: 'Purchase Price', 'Post-Refurb Value', 'Refinance %',
+          'Monthly Rent', 'New Mortgage Rate'
+
+- R2R: r2rInputs.monthlyRentPaid > 0, r2rInputs.rooms > 0,
+       r2rInputs.rentPerRoom > 0
+  Labels: 'Rent to Landlord', 'Number of Rooms', 'Rent Per Room'
+
+- SOCIAL: purchasePrice > 0, socialInputs.leaseIncomePerMonth > 0,
+          !isCashBuyer && sharedInputs.mortgageRate > 0,
+          !isCashBuyer && sharedInputs.depositPercent > 0
+  Labels: 'Purchase Price', 'Lease Income', 'Mortgage Rate', 'Deposit %'
+
+The missingFields useMemo depends on: dealType, sharedInputs, 
+btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs,
+socialInputs, isCashBuyer, purchasePrice.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — Traffic light colour helpers
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add three small helper functions near the top of the component
+(after the existing state declarations):
+
+function getCFSignal(cf: number, incomplete: boolean) {
+  if (incomplete) return { colour: '#94A3B8', label: 'INCOMPLETE' };
+  if (cf > 0) return { colour: '#10B981', label: 'POSITIVE' };
+  if (cf < 0) return { colour: '#EF4444', label: 'NEGATIVE' };
+  return { colour: '#94A3B8', label: 'INCOMPLETE' };
+}
+
+function getROISignal(score: string, incomplete: boolean) {
+  if (incomplete || score === 'Incomplete') 
+    return { colour: '#94A3B8', label: 'INCOMPLETE' };
+  if (score === 'Strong') return { colour: '#10B981', label: 'STRONG' };
+  if (score === 'Average') return { colour: '#F59E0B', label: 'AVERAGE' };
+  return { colour: '#EF4444', label: 'WEAK' };
+}
+
+function getDealScoreSignal(score: string) {
+  if (score === 'Incomplete') return { colour: '#94A3B8', label: 'INCOMPLETE' };
+  if (score === 'Strong') return { colour: '#10B981', label: 'STRONG' };
+  if (score === 'Average') return { colour: '#F59E0B', label: 'AVERAGE' };
+  return { colour: '#EF4444', label: 'WEAK' };
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — Replace the live bar JSX entirely
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Find the entire live bar div inside the sticky div. It currently
+contains the hasAnalysed conditional with raw metric values.
+Replace the ENTIRE inner content of the 
+"bg-white border-b border-border shadow-sm w-full" div with:
+
+{(() => {
+  const incomplete = missingFields.length > 0;
+  const cfValue = currentMonthlyCF;
+  const cfSignal = getCFSignal(cfValue, incomplete);
+  const roiSignal = getROISignal(currentScore, incomplete);
+  const dsSignal = getDealScoreSignal(currentScore);
+
+  return (
+    <div className="max-w-[1024px] mx-auto px-4 sm:px-6 
+                    flex items-center justify-between 
+                    min-h-[48px] w-full gap-3">
+      
+      {/* Three traffic light signals */}
+      <div className="flex items-center gap-4 sm:gap-6">
+        
+        {/* Cash Flow signal */}
+        <div className="flex items-center gap-1.5">
+          <div 
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: cfSignal.colour }}
+          />
+          <div className="flex flex-col leading-none">
+            <span className="text-[9px] font-semibold uppercase 
+                           tracking-wider text-muted-foreground">
+              Cash Flow
+            </span>
+            <span className="text-[11px] font-bold"
+                  style={{ color: cfSignal.colour }}>
+              {incomplete ? cfSignal.label : formatCurrency(cfValue) + '/mo'}
+            </span>
+          </div>
+        </div>
+
+        {/* Deal Score signal */}
+        <div className="flex items-center gap-1.5">
+          <div 
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ backgroundColor: dsSignal.colour }}
+          />
+          <div className="flex flex-col leading-none">
+            <span className="text-[9px] font-semibold uppercase 
+                           tracking-wider text-muted-foreground">
+              Deal Score
+            </span>
+            <span className="text-[11px] font-bold"
+                  style={{ color: dsSignal.colour }}>
+              {dsSignal.label}
+            </span>
+          </div>
+        </div>
+
+        {/* Strategy label — always visible */}
+        <div className="hidden sm:flex flex-col leading-none">
+          <span className="text-[9px] font-semibold uppercase 
+                         tracking-wider text-muted-foreground">
+            Strategy
+          </span>
+          <span className="text-[11px] font-bold text-[#1B3A6B]">
+            {dealLabel}
+          </span>
+        </div>
+
+      </div>
+
+      {/* Missing fields warning — right side */}
+      {missingFields.length > 0 && (
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className={`w-1.5 h-1.5 rounded-full shrink-0 
+            ${missingFields.length >= 3 
+              ? 'bg-red-500' 
+              : 'bg-amber-500'}`} 
+          />
+          <span className={`text-[10px] font-medium truncate
+            ${missingFields.length >= 3 
+              ? 'text-red-600' 
+              : 'text-amber-600'}`}>
+            {missingFields.length >= 3
+              ? `Key inputs missing — figures are estimates only`
+              : `For accurate figures: enter ${missingFields.join(', ')}`}
+          </span>
+        </div>
+      )}
+
+    </div>
+  );
+})()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 4 — Add missingFields to useMemo deps
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure the missingFields useMemo is defined BEFORE the live bar
+JSX in the component body (it is computed state, not JSX, so it 
+goes with the other useMemo/computed values near currentScore etc.)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DO NOT TOUCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Do not modify DealScorePDF.tsx or DealScorePDFProPlus.tsx
+- Do not modify any calculation functions
+- Do not change the results panel below the live bar
+- Do not remove the sticky positioning or the outer div structure
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER ALL EDITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run: npx tsc --noEmit
+
+Fix any TypeScript errors before finishing. Do not push to main.
+All changes stay on the stage-6 branch only.

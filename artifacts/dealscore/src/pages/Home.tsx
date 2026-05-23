@@ -949,6 +949,25 @@ export default function HomePage() {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
+  function getCFSignal(cf: number, incomplete: boolean) {
+    if (incomplete) return { colour: '#94A3B8', label: 'INCOMPLETE' };
+    if (cf > 0) return { colour: '#10B981', label: 'POSITIVE' };
+    if (cf < 0) return { colour: '#EF4444', label: 'NEGATIVE' };
+    return { colour: '#94A3B8', label: 'INCOMPLETE' };
+  }
+  function getROISignal(score: string, incomplete: boolean) {
+    if (incomplete || score === 'Incomplete') return { colour: '#94A3B8', label: 'INCOMPLETE' };
+    if (score === 'Strong') return { colour: '#10B981', label: 'STRONG' };
+    if (score === 'Average') return { colour: '#F59E0B', label: 'AVERAGE' };
+    return { colour: '#EF4444', label: 'WEAK' };
+  }
+  function getDealScoreSignal(score: string) {
+    if (score === 'Incomplete') return { colour: '#94A3B8', label: 'INCOMPLETE' };
+    if (score === 'Strong') return { colour: '#10B981', label: 'STRONG' };
+    if (score === 'Average') return { colour: '#F59E0B', label: 'AVERAGE' };
+    return { colour: '#EF4444', label: 'WEAK' };
+  }
+
   const dealLabel =
     dealType === 'BTL' ? 'Buy-to-Let' :
     dealType === 'HMO' ? 'HMO' :
@@ -979,6 +998,48 @@ export default function HomePage() {
     dealType === 'SOCIAL' ? socialResults.monthlyCashFlow :
     dealType === 'FLIP' ? flipResults.profitPerMonth :
     r2rResults.monthlyProfit;
+
+  const missingFields = React.useMemo(() => {
+    const missing: string[] = [];
+    if (dealType === 'BTL') {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(btlInputs.monthlyRent > 0)) missing.push('Monthly Rent');
+      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+    } else if (dealType === 'HMO') {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(hmoInputs.rooms > 0)) missing.push('Number of Rooms');
+      if (!(hmoInputs.rentPerRoom > 0)) missing.push('Rent Per Room');
+      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+    } else if (dealType === 'FLIP') {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(flipInputs.expectedSalePrice > 0)) missing.push('Expected Sale Price');
+      if (!(sharedInputs.refurbCost > 0)) missing.push('Refurb Cost');
+    } else if (dealType === 'SA') {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(saInputs.nightlyRate > 0)) missing.push('Nightly Rate');
+      if (!(saInputs.occupancyPercent > 0)) missing.push('Occupancy %');
+      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+    } else if (dealType === 'BRRR') {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(brrrInputs.postRefurbValue > 0)) missing.push('Post-Refurb Value');
+      if (!(brrrInputs.refinancePercent > 0)) missing.push('Refinance %');
+      if (!(brrrInputs.monthlyRent > 0)) missing.push('Monthly Rent');
+      if (!(brrrInputs.newMortgageRate > 0)) missing.push('New Mortgage Rate');
+    } else if (dealType === 'R2R') {
+      if (!(r2rInputs.monthlyRentPaid > 0)) missing.push('Rent to Landlord');
+      if (!(r2rInputs.rooms > 0)) missing.push('Number of Rooms');
+      if (!(r2rInputs.rentPerRoom > 0)) missing.push('Rent Per Room');
+    } else {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(socialInputs.leaseIncomePerMonth > 0)) missing.push('Lease Income');
+      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+    }
+    return missing;
+  }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice]);
 
   const currentYieldLabel: string =
     dealType === 'FLIP' ? 'Net Margin' :
@@ -1536,50 +1597,64 @@ export default function HomePage() {
 
       {/* Sticky Deal Score Bar */}
       <div className="bg-white border-b border-border shadow-sm w-full">
-        <div className="max-w-[1024px] mx-auto px-6 flex items-center min-h-[44px] w-full">
-          {hasAnalysed ? (
-            <div className="flex items-center justify-between w-full">
+        {(() => {
+          const incomplete = missingFields.length > 0;
+          const cfValue = currentMonthlyCF;
+          const cfSignal = getCFSignal(cfValue, incomplete);
+          const roiSignal = getROISignal(currentScore, incomplete);
+          const dsSignal = getDealScoreSignal(currentScore);
+          void roiSignal;
+          return (
+            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[48px] w-full gap-3">
 
-              <span className="text-[11px] font-bold text-[#1B3A6B] uppercase tracking-wide shrink-0">
-                {dealLabel}
-              </span>
+              {/* Three traffic light signals */}
+              <div className="flex items-center gap-4 sm:gap-6">
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[11px] text-muted-foreground">{currentCFLabel}</span>
-                <span className="text-[11px] font-semibold text-foreground">
-                  {formatCurrency(currentMonthlyCF)}/mo
-                </span>
+                {/* Cash Flow signal */}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
+                    <span className="text-[11px] font-bold" style={{ color: cfSignal.colour }}>
+                      {incomplete ? cfSignal.label : formatCurrency(cfValue) + '/mo'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Deal Score signal */}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
+                    <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>
+                      {dsSignal.label}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Strategy label */}
+                <div className="hidden sm:flex flex-col leading-none">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
+                  <span className="text-[11px] font-bold text-[#1B3A6B]">{dealLabel}</span>
+                </div>
+
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0 hidden sm:flex">
-                <span className="text-[11px] text-muted-foreground">{currentYieldLabel}</span>
-                <span className="text-[11px] font-semibold text-foreground">{currentYieldValue}</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0 hidden sm:flex">
-                <span className="text-[11px] text-muted-foreground">{currentROILabel}</span>
-                <span className="text-[11px] font-semibold text-foreground">{currentROIValue}</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0 hidden md:flex">
-                <span className="text-[11px] text-muted-foreground">{currentCashInLabel}</span>
-                <span className="text-[11px] font-semibold text-foreground">
-                  {formatCurrency(currentCashInValue)}
-                </span>
-              </div>
+              {/* Missing fields warning */}
+              {missingFields.length > 0 && (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingFields.length >= 3 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                  <span className={`text-[10px] font-medium truncate ${missingFields.length >= 3 ? 'text-red-600' : 'text-amber-600'}`}>
+                    {missingFields.length >= 3
+                      ? `Key inputs missing — figures are estimates only`
+                      : `For accurate figures: enter ${missingFields.join(', ')}`}
+                  </span>
+                </div>
+              )}
 
             </div>
-          ) : (
-            <div className="flex items-center justify-between w-full">
-              <span className="text-[11px] font-bold text-[#1B3A6B] uppercase tracking-wide shrink-0">
-                {dealLabel}
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                Enter deal numbers to see live metrics
-              </span>
-            </div>
-          )}
-        </div>
+          );
+        })()}
       </div>
       </div>
 
