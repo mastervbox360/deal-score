@@ -299,7 +299,7 @@ export default function HomePage() {
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
 
-  const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0 });
+  const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
 
   const [r2rInputs, setR2rInputs] = useState<R2RInputs>({
     monthlyRentPaid: 0,
@@ -666,7 +666,7 @@ export default function HomePage() {
     } else if (dealType === 'SA') {
       setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
-      setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0 });
+      setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
     } else if (dealType === 'R2R') {
       setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
     } else {
@@ -714,7 +714,11 @@ export default function HomePage() {
   const { financingMethod: _flipFM, contingencyPercent: _flipCP, ...flipCalcInputs } = flipInputs;
   const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + flipInputs.contingencyPercent / 100), otherCosts, stampDuty: effectiveTax, ...flipCalcInputs });
   const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
-  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, ...sharedCostInputs });
+  const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
+  const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
+    ? (purchasePrice * (brrBridgingLTV / 100)) * (brrBridgingRate / 100) * brrBridgingTerm
+    : 0;
+  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrBridgingInterest, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs });
   const r2rResults = calculateR2R(r2rInputs);
   const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs });
 
@@ -1196,12 +1200,16 @@ export default function HomePage() {
       ...pdfFlipCalcInputs,
     });
     const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const { bridgingRate: _brrBridgingRate, bridgingTermMonths: _brrBridgingTerm, bridgingLTV: _brrBridgingLTV, ...brrrInputsForPdfCalc } = brrrInputs;
+    const _brrrBridgingInterest = sharedInputs.purchasePrice > 0 && _brrBridgingRate > 0 && _brrBridgingTerm > 0
+      ? (sharedInputs.purchasePrice * (_brrBridgingLTV / 100)) * (_brrBridgingRate / 100) * _brrBridgingTerm
+      : 0;
     const _brrrResults = calculateBRRR({
       purchasePrice: sharedInputs.purchasePrice,
       refurbCost: sharedInputs.refurbCost,
-      otherCosts: sharedInputs.otherCosts,
+      otherCosts: sharedInputs.otherCosts + _brrrBridgingInterest,
       stampDuty: _effectiveTax,
-      ...brrrInputs,
+      ...brrrInputsForPdfCalc,
       ..._sharedCostInputs,
     });
     const _r2rResults = calculateR2R(r2rInputs);
@@ -2048,6 +2056,24 @@ export default function HomePage() {
 
                 {dealType === 'BRRR' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    <div className="md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Phase 1 — Bridging Finance</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Bridging Rate (% per month)</Label><InfoIcon id="brrr-bridge-rate" text="The monthly interest rate charged by your bridging lender during the acquisition and refurbishment period. Typical UK bridging rates: 0.5–1.5% per month. Interest is charged on the loan amount for the full bridging term." /></div>
+                      <Input type="number" step="0.1" placeholder="e.g. 0.85" value={brrrInputs.bridgingRate || ''} onChange={(e) => handleBrrrChange('bridgingRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Bridging Term (months)</Label><InfoIcon id="brrr-bridge-term" text="How long you will hold the bridging loan before refinancing onto a standard BTL mortgage. Should cover your full refurbishment period plus time to arrange the refinance. Typical range: 3–12 months." /></div>
+                      <Input type="number" step="1" placeholder="e.g. 6" value={brrrInputs.bridgingTermMonths || ''} onChange={(e) => handleBrrrChange('bridgingTermMonths', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Bridging LTV (%)</Label><InfoIcon id="brrr-bridge-ltv" text="The loan-to-value your bridging lender will advance against the purchase price. Typically 65–75% for standard residential bridging. The remaining percentage is your cash deposit for phase 1." /></div>
+                      <Input type="number" step="1" value={brrrInputs.bridgingLTV} onChange={(e) => handleBrrrChange('bridgingLTV', e.target.value)} />
+                    </div>
+                    <div className="md:col-span-2 pt-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Phase 2 — Refinance &amp; Rental</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Post-Refurb Value / GDV (£)</Label><InfoIcon id="brrr-gdv" text={TT.postRefurbValue} /></div>
                       <Input type="number" placeholder="Enter post-refurb value" value={brrrInputs.postRefurbValue || ''} onChange={(e) => handleBrrrChange('postRefurbValue', e.target.value)} data-testid="input-brrr-gdv" />
@@ -3395,6 +3421,9 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      {brrrInputs.bridgingRate > 0 && brrrInputs.bridgingTermMonths > 0 && (
+                        <WRow label={`Bridging Interest (${brrrInputs.bridgingLTV}% LTV × ${brrrInputs.bridgingRate}%/mo × ${brrrInputs.bridgingTermMonths} months)`} value={formatCurrency((sharedInputs.purchasePrice * (brrrInputs.bridgingLTV / 100)) * (brrrInputs.bridgingRate / 100) * brrrInputs.bridgingTermMonths)} />
+                      )}
                       <WRow label="TOTAL COST IN" value={formatCurrency(brrrResults.totalCostIn)} bold />
                       <WSec title="B  REFINANCE" />
                       <WRow label="Post-Refurb Value (GDV)" value={formatCurrency(brrrInputs.postRefurbValue)} />

@@ -1,0 +1,162 @@
+Read the file src/pages/Home.tsx in full before making any changes.
+Plan all edits explicitly, then execute them all in parallel.
+
+TASK: Add bridging finance inputs for BRRR phase 1 (the acquisition 
+and refurb period before refinancing onto a BTL mortgage).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — Add bridging fields to brrrInputs state
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the brrrInputs useState, add three new fields:
+  bridgingRate: 0,
+  bridgingTermMonths: 0,
+  bridgingLTV: 70
+
+Full state becomes:
+  { 
+    postRefurbValue: 0, 
+    refinancePercent: 75, 
+    newMortgageRate: 0, 
+    monthlyRent: 0,
+    bridgingRate: 0,
+    bridgingTermMonths: 0,
+    bridgingLTV: 70
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — Add bridging fields to BRRR inputs JSX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the BRRR inputs JSX section (inside the dealType === 'BRRR' block),
+restructure the section with two labelled phases.
+
+Add BEFORE the existing "Post-Refurb Value / GDV" field:
+
+  <div className="md:col-span-2">
+    <p className="text-xs font-semibold uppercase tracking-widest 
+    text-muted-foreground">Phase 1 — Bridging Finance</p>
+  </div>
+
+Then three new fields:
+
+Field 1 — Bridging Rate:
+  Label: "Bridging Rate (% per month)"
+  InfoIcon tooltip: "The monthly interest rate charged by your bridging 
+  lender during the acquisition and refurbishment period. Typical UK 
+  bridging rates: 0.5–1.5% per month. Interest is charged on the loan 
+  amount for the full bridging term."
+  Input: type number, step 0.1, placeholder "e.g. 0.85",
+  value={brrrInputs.bridgingRate || ''},
+  onChange: handleBrrrChange('bridgingRate', e.target.value)
+
+Field 2 — Bridging Term:
+  Label: "Bridging Term (months)"
+  InfoIcon tooltip: "How long you will hold the bridging loan before 
+  refinancing onto a standard BTL mortgage. Should cover your full 
+  refurbishment period plus time to arrange the refinance. 
+  Typical range: 3–12 months."
+  Input: type number, step 1, placeholder "e.g. 6",
+  value={brrrInputs.bridgingTermMonths || ''},
+  onChange: handleBrrrChange('bridgingTermMonths', e.target.value)
+
+Field 3 — Bridging LTV:
+  Label: "Bridging LTV (%)"
+  InfoIcon tooltip: "The loan-to-value your bridging lender will advance 
+  against the purchase price. Typically 65–75% for standard residential 
+  bridging. The remaining percentage is your cash deposit for phase 1."
+  Input: type number, step 1,
+  value={brrrInputs.bridgingLTV},
+  onChange: handleBrrrChange('bridgingLTV', e.target.value)
+
+Then add a phase 2 divider label immediately before the existing 
+"Post-Refurb Value / GDV" field:
+
+  <div className="md:col-span-2 pt-2">
+    <p className="text-xs font-semibold uppercase tracking-widest 
+    text-muted-foreground">Phase 2 — Refinance & Rental</p>
+  </div>
+
+The existing four fields (Post-Refurb Value, Refinance %, New Mortgage 
+Rate, Monthly Rental Income) remain unchanged after the divider.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — Calculate bridging interest and add to Cash Invested
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Bridging interest formula:
+  (purchasePrice × bridgingLTV/100) × (bridgingRate/100) × bridgingTermMonths
+
+In BOTH the main brrrResults calculateBRRR call AND the _brrrResults 
+call inside pdfProps useMemo, do the following:
+
+1. Destructure new fields out of brrrInputs before spreading:
+   const { 
+     bridgingRate, 
+     bridgingTermMonths, 
+     bridgingLTV,
+     ...brrrInputsForCalc 
+   } = brrrInputs;
+
+2. Calculate bridging interest cost:
+   const bridgingInterest = sharedInputs.purchasePrice > 0 
+     && bridgingRate > 0 
+     && bridgingTermMonths > 0
+     ? (sharedInputs.purchasePrice * (bridgingLTV / 100)) 
+       * (bridgingRate / 100) 
+       * bridgingTermMonths
+     : 0;
+
+3. Pass to calculateBRRR with bridgingInterest added to otherCosts:
+   calculateBRRR({ 
+     purchasePrice: sharedInputs.purchasePrice, 
+     refurbCost: sharedInputs.refurbCost, 
+     otherCosts: sharedInputs.otherCosts + bridgingInterest, 
+     stampDuty: effectiveTax, 
+     ...brrrInputsForCalc, 
+     ...sharedCostInputs 
+   })
+
+Do this at BOTH call sites — main results and pdfProps useMemo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 4 — Show Workings update for BRRR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the BRRR Show Workings block, in Section A (Cash In), after the 
+"Other Costs" WRow and before the "TOTAL COST IN" WRow, add:
+
+{brrrInputs.bridgingRate > 0 && brrrInputs.bridgingTermMonths > 0 && (
+  <WRow 
+    label={`Bridging Interest (${brrrInputs.bridgingLTV}% LTV × ${brrrInputs.bridgingRate}%/mo × ${brrrInputs.bridgingTermMonths} months)`}
+    value={formatCurrency(
+      (sharedInputs.purchasePrice * (brrrInputs.bridgingLTV / 100)) 
+      * (brrrInputs.bridgingRate / 100) 
+      * brrrInputs.bridgingTermMonths
+    )} 
+  />
+)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 5 — handleReset update
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In handleReset, update the BRRR reset block to:
+setBrrrInputs({ 
+  postRefurbValue: 0, 
+  refinancePercent: 75, 
+  newMortgageRate: 0, 
+  monthlyRent: 0,
+  bridgingRate: 0,
+  bridgingTermMonths: 0,
+  bridgingLTV: 70
+})
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER ALL EDITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run: npx tsc --noEmit
+
+Fix any TypeScript errors before finishing. Do not push to main.
+All changes stay on the stage-6 branch only.
