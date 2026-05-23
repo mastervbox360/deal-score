@@ -1642,26 +1642,30 @@ export default function HomePage() {
                 )}
 
                 {/* Cash Flow signal */}
-                <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-4 shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
-                  <div className="flex flex-col leading-none">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                    <span className="text-[11px] font-bold" style={{ color: cfSignal.colour }}>
-                      {incomplete ? 'INCOMPLETE' : formatCurrency(cfValue) + '/mo'}
-                    </span>
+                {!incomplete && (
+                  <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-4 shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
+                    <div className="flex flex-col leading-none">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
+                      <span className="text-[11px] font-bold" style={{ color: cfSignal.colour }}>
+                        {formatCurrency(cfValue) + '/mo'}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Deal Score signal */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
-                  <div className="flex flex-col leading-none">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
-                    <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>
-                      {dsSignal.label}
-                    </span>
+                {!incomplete && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
+                    <div className="flex flex-col leading-none">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
+                      <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>
+                        {dsSignal.label}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
               </div>
 
