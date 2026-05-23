@@ -3315,9 +3315,6 @@ export default function HomePage() {
                       <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(hmoResults.managementFeeAmount)})`} />
                       <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
                       <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
-                      {hmoInputs.licenceCost > 0 && (
-                        <WRow label="HMO Licence (amortised /mo)" value={`(${formatCurrency(hmoInputs.licenceCost / 60)})`} />
-                      )}
                       {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
                       {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
                       <WRow label="Total Operating Costs" value={`(${formatCurrency(hmoResults.totalOperatingCosts)})`} bold />
