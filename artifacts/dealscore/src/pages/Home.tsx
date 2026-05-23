@@ -295,7 +295,7 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
+  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10 });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
 
@@ -333,7 +333,11 @@ export default function HomePage() {
   };
 
   const handleFlipChange = (field: keyof typeof flipInputs, value: string) => {
-    setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+    if (field === 'financingMethod') {
+      setFlipInputs(prev => ({ ...prev, financingMethod: value as 'Cash' | 'Bridging' | 'Mortgage' }));
+    } else {
+      setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
+    }
   };
 
   const handleSaChange = (field: keyof typeof saInputs, value: string) => {
@@ -658,7 +662,7 @@ export default function HomePage() {
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90 });
     } else if (dealType === 'FLIP') {
-      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2 });
+      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10 });
     } else if (dealType === 'SA') {
       setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
@@ -706,7 +710,8 @@ export default function HomePage() {
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: effectiveTax, ...sharedCostInputs });
-  const flipResults = calculateFlip({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...flipInputs });
+  const { financingMethod: _flipFM, contingencyPercent: _flipCP, ...flipCalcInputs } = flipInputs;
+  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + flipInputs.contingencyPercent / 100), otherCosts, stampDuty: effectiveTax, ...flipCalcInputs });
   const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, ...sharedCostInputs });
   const r2rResults = calculateR2R(r2rInputs);
@@ -1180,12 +1185,13 @@ export default function HomePage() {
     const _sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, ...pdfFlipCalcInputs } = flipInputs;
     const _flipResults = calculateFlip({
       purchasePrice: sharedInputs.purchasePrice,
-      refurbCost: sharedInputs.refurbCost,
+      refurbCost: sharedInputs.refurbCost * (1 + flipInputs.contingencyPercent / 100),
       otherCosts: sharedInputs.otherCosts,
       stampDuty: _effectiveTax,
-      ...flipInputs,
+      ...pdfFlipCalcInputs,
     });
     const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const _brrrResults = calculateBRRR({
@@ -1966,6 +1972,25 @@ export default function HomePage() {
 
                 {dealType === 'FLIP' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['Cash', 'Bridging', 'Mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setFlipInputs(prev => ({ ...prev, financingMethod: m }))}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              flipInputs.financingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Holding Costs/mo (£)</Label><InfoIcon id="flip-hold" text={TT.holdingCosts} /></div>
                       <Input type="number" placeholder="Enter monthly holding costs" value={flipInputs.holdingCostsPerMonth || ''} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
@@ -1984,6 +2009,10 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Selling Costs (%)</Label><InfoIcon id="flip-sell" text={TT.sellingCosts} /></div>
                       <Input type="number" step="0.1" value={flipInputs.sellingCostsPercent} onChange={(e) => handleFlipChange('sellingCostsPercent', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>Contingency (%)</Label><InfoIcon id="flip-contingency" text="A buffer added to your refurb cost to account for unexpected works. 10% is a standard minimum — experienced developers often use 15–20% on older or larger properties." /></div>
+                      <Input type="number" step="1" value={flipInputs.contingencyPercent} onChange={(e) => handleFlipChange('contingencyPercent', e.target.value)} />
                     </div>
                   </div>
                 )}

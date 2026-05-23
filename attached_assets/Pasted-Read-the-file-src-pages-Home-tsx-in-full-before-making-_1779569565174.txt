@@ -1,0 +1,89 @@
+Read the file src/pages/Home.tsx in full before making any changes.
+Plan all edits explicitly, then execute them all in parallel.
+
+TASK: Add two new input fields to the FLIP strategy section in Home.tsx.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — FLIP financing method selector
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a new field `financingMethod` to flipInputs state with type 'Cash' | 'Bridging' | 'Mortgage'.
+
+1. In the flipInputs useState, add:
+   financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage'
+
+2. In the handleFlipChange function, this field is a string not a number,
+   so add a special case — when field === 'financingMethod', set the value
+   directly as a string without Number() conversion. The cleanest way is
+   to add a separate handler or use a type guard:
+   
+   setFlipInputs(prev => ({ ...prev, financingMethod: value as 'Cash' | 'Bridging' | 'Mortgage' }))
+
+3. In the FLIP inputs JSX section (inside the dealType === 'FLIP' block),
+   add a new field ABOVE the "Holding Costs/mo" field:
+
+   Label: "Financing Method"
+   Render as three pill toggle buttons (same pattern as MortgageTypeToggle):
+   - Cash
+   - Bridging (default, selected)
+   - Mortgage
+   
+   Use inline buttons styled consistently with the existing toggle pattern
+   in the file (bg-[#1B3A6B] text-white when selected, bg-white text-gray-600
+   border-gray-200 when unselected). Full width, flex row, three equal buttons.
+
+4. Pass financingMethod through to pdfProps.flipInputs so it is available
+   in the PDF (the PDF files will use it in a later session — just pass it
+   through for now).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — FLIP contingency % field
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a new numeric field `contingencyPercent` to flipInputs.
+
+1. In the flipInputs useState, add:
+   contingencyPercent: 10
+
+2. In the FLIP inputs JSX section, add a new field AFTER "Selling Costs (%)":
+
+   Label: "Contingency (%)"
+   InfoIcon tooltip: "A buffer added to your refurb cost to account for
+   unexpected works. 10% is a standard minimum — experienced developers
+   often use 15–20% on older or larger properties."
+   Input: type number, step 1, value={flipInputs.contingencyPercent},
+   onChange calls handleFlipChange('contingencyPercent', e.target.value)
+
+3. Pass contingencyPercent through to pdfProps.flipInputs.
+
+4. In the calculateFlip call (both in the main results calculation and
+   inside the pdfProps useMemo), add contingencyPercent to the costs:
+   The refurbCost passed to calculateFlip should become:
+   refurbCost: sharedInputs.refurbCost * (1 + flipInputs.contingencyPercent / 100)
+   
+   Do this substitution in BOTH places calculateFlip is called:
+   - The main flipResults line
+   - The _flipResults line inside pdfProps useMemo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — handleReset update
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In handleReset, update the FLIP reset block to include the new fields:
+setFlipInputs({ 
+  holdingCostsPerMonth: 0, 
+  projectLengthMonths: 0, 
+  expectedSalePrice: 0, 
+  sellingCostsPercent: 2,
+  financingMethod: 'Bridging',
+  contingencyPercent: 10
+})
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER ALL EDITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run: npx tsc --noEmit
+
+Fix any TypeScript errors before finishing. Do not push to main.
+All changes stay on the stage-6 branch only.
