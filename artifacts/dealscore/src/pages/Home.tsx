@@ -297,7 +297,7 @@ export default function HomePage() {
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70 });
 
-  const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
+  const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
 
   const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
 
@@ -664,7 +664,7 @@ export default function HomePage() {
     } else if (dealType === 'FLIP') {
       setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70 });
     } else if (dealType === 'SA') {
-      setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
+      setSaInputs({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
       setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
     } else if (dealType === 'R2R') {
