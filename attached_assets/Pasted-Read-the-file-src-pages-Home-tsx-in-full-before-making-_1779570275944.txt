@@ -1,0 +1,87 @@
+Read the file src/pages/Home.tsx in full before making any changes.
+Plan all edits explicitly, then execute them all in parallel.
+
+TASK: Add an HMO licence cost input field to the HMO strategy section.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — Add licenceCost to hmoInputs state
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the hmoInputs useState, add:
+  licenceCost: 0
+
+The full state becomes:
+  { rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — Add to HMO inputs JSX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the HMO inputs JSX section (inside the dealType === 'HMO' block),
+add a new field AFTER the Occupancy Rate field:
+
+  Label: "HMO Licence Cost (£)"
+  InfoIcon tooltip: "The cost of the mandatory HMO licence from your 
+  local council. Required for properties with 5 or more occupants forming 
+  2 or more households (mandatory licensing). Many councils also apply 
+  additional licensing schemes to smaller HMOs — check with your local 
+  authority. Typical range: £500–£1,500 for a 5-year licence. This cost 
+  is added to your total Cash Invested and spread across 60 months to 
+  give an accurate monthly cost impact."
+  Input: type number, placeholder "e.g. 800",
+  value={hmoInputs.licenceCost || ''},
+  onChange calls handleHmoChange('licenceCost', e.target.value)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — Factor licence cost into calculations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The licence cost affects two things:
+
+A) CASH INVESTED — add licenceCost to otherCosts when calling calculateHMO.
+   In BOTH the main hmoResults line and the _hmoResults line inside
+   pdfProps useMemo, change the calculateHMO call to pass:
+   otherCosts: sharedInputs.otherCosts + hmoInputs.licenceCost
+   
+   Note: destructure licenceCost out of hmoInputs before spreading to
+   avoid passing it as an unknown prop to calculateHMO, e.g.:
+   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
+   then use: { ...sharedInputs, ...hmoInputsForCalc, 
+               otherCosts: sharedInputs.otherCosts + hmoLicenceCost, 
+               stampDuty: effectiveTax, ...sharedCostInputs }
+
+B) MONTHLY COST — divide licenceCost by 60 (5-year licence amortised) 
+   and add to the monthly operating costs display in the Show Workings 
+   section for HMO. Find the HMO workings block and add a WRow line 
+   after the Buildings Insurance row:
+   {hmoInputs.licenceCost > 0 && (
+     <WRow 
+       label="HMO Licence (amortised /mo)" 
+       value={`(${formatCurrency(hmoInputs.licenceCost / 60)})`} 
+     />
+   )}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 4 — Pass through to pdfProps
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In pdfProps, hmoInputs is already spread in. Ensure licenceCost is 
+included in the spread so it is available to the PDF in a later session.
+No extra change needed if hmoInputs is spread directly — just confirm
+it flows through.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 5 — handleReset update
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In handleReset, update the HMO reset block:
+setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 })
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER ALL EDITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run: npx tsc --noEmit
+
+Fix any TypeScript errors before finishing. Do not push to main.
+All changes stay on the stage-6 branch only.

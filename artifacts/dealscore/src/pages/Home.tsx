@@ -143,7 +143,7 @@ export default function HomePage() {
 
   const [btlInputs, setBtlInputs] = useState({ monthlyRent: 0 });
 
-  const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90 });
+  const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
 
   const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
   const [companyName, setCompanyName] = useState<string>('');
@@ -660,7 +660,7 @@ export default function HomePage() {
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0 });
     } else if (dealType === 'HMO') {
-      setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90 });
+      setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
     } else if (dealType === 'FLIP') {
       setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10 });
     } else if (dealType === 'SA') {
@@ -709,7 +709,8 @@ export default function HomePage() {
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
-  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
+  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { financingMethod: _flipFM, contingencyPercent: _flipCP, ...flipCalcInputs } = flipInputs;
   const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + flipInputs.contingencyPercent / 100), otherCosts, stampDuty: effectiveTax, ...flipCalcInputs });
   const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
@@ -1184,7 +1185,8 @@ export default function HomePage() {
 
     const _sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
-    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
+    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, ...pdfFlipCalcInputs } = flipInputs;
     const _flipResults = calculateFlip({
       purchasePrice: sharedInputs.purchasePrice,
@@ -1966,6 +1968,10 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="hmo-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={hmoInputs.occupancyRate} onChange={(e) => handleHmoChange('occupancyRate', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>HMO Licence Cost (£)</Label><InfoIcon id="hmo-licence" text="The cost of the mandatory HMO licence from your local council. Required for properties with 5 or more occupants forming 2 or more households (mandatory licensing). Many councils also apply additional licensing schemes to smaller HMOs — check with your local authority. Typical range: £500–£1,500 for a 5-year licence. This cost is added to your total Cash Invested and spread across 60 months to give an accurate monthly cost impact." /></div>
+                      <Input type="number" placeholder="e.g. 800" value={hmoInputs.licenceCost || ''} onChange={(e) => handleHmoChange('licenceCost', e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -3309,6 +3315,9 @@ export default function HomePage() {
                       <WRow label={`Mgmt Fee (${managementFeePercent}%)`} value={`(${formatCurrency(hmoResults.managementFeeAmount)})`} />
                       <WRow label="Maintenance Reserve" value={`(${formatCurrency(maintenanceReserve)})`} />
                       <WRow label="Buildings Insurance" value={`(${formatCurrency(buildingsInsurance)})`} />
+                      {hmoInputs.licenceCost > 0 && (
+                        <WRow label="HMO Licence (amortised /mo)" value={`(${formatCurrency(hmoInputs.licenceCost / 60)})`} />
+                      )}
                       {serviceCharge > 0 && <WRow label="Service Charge" value={`(${formatCurrency(serviceCharge)})`} />}
                       {groundRentAnnual > 0 && <WRow label="Ground Rent (monthly)" value={`(${formatCurrency(groundRentAnnual / 12)})`} />}
                       <WRow label="Total Operating Costs" value={`(${formatCurrency(hmoResults.totalOperatingCosts)})`} bold />
