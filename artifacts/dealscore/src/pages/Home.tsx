@@ -1957,6 +1957,16 @@ export default function HomePage() {
 
                 {dealType === 'HMO' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    <div className="md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">One-off Costs</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label>HMO Licence Cost (£)</Label><InfoIcon id="hmo-licence" text="The cost of the mandatory HMO licence from your local council. Required for properties with 5 or more occupants forming 2 or more households (mandatory licensing). Many councils also apply additional licensing schemes to smaller HMOs — check with your local authority. Typical range: £500–£1,500 for a 5-year licence. This cost is added to your total Cash Invested and spread across 60 months to give an accurate monthly cost impact." /></div>
+                      <Input type="number" placeholder="e.g. 800" value={hmoInputs.licenceCost || ''} onChange={(e) => handleHmoChange('licenceCost', e.target.value)} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Room Income</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="hmo-rooms" text={TT.numRooms} /></div>
                       <Input type="number" placeholder="Enter number of rooms" value={hmoInputs.rooms || ''} onChange={(e) => handleHmoChange('rooms', e.target.value)} />
@@ -2124,12 +2134,6 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Buildings Insurance (£/mo)</Label><InfoIcon id="shared-bldg-ins" text="Monthly buildings insurance cost. Typical range £20–£50/mo." /></div>
                       <Input type="number" placeholder="e.g. 30" value={buildingsInsurance === 0 ? '' : buildingsInsurance} onChange={(e) => setBuildingsInsurance(parseFloat(e.target.value) || 0)} />
                     </div>
-                    {dealType === 'HMO' && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1"><Label>HMO Licence Cost (£)</Label><InfoIcon id="hmo-licence" text="The cost of the mandatory HMO licence from your local council. Required for properties with 5 or more occupants forming 2 or more households (mandatory licensing). Many councils also apply additional licensing schemes to smaller HMOs — check with your local authority. Typical range: £500–£1,500 for a 5-year licence. This cost is added to your total Cash Invested and spread across 60 months to give an accurate monthly cost impact." /></div>
-                        <Input type="number" placeholder="e.g. 800" value={hmoInputs.licenceCost || ''} onChange={(e) => handleHmoChange('licenceCost', e.target.value)} />
-                      </div>
-                    )}
                     {tenure === 'Leasehold' && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-1"><Label>Service Charge (£/mo)</Label><InfoIcon id="shared-svc-chg" text="Monthly service charge for leasehold properties. Enter 0 for freehold." /></div>
