@@ -1042,6 +1042,15 @@ export default function HomePage() {
     return missing;
   }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice]);
 
+  const totalEssentialFields: number =
+    dealType === 'BTL' ? 4 :
+    dealType === 'HMO' ? 5 :
+    dealType === 'FLIP' ? 3 :
+    dealType === 'SA' ? 5 :
+    dealType === 'BRRR' ? 5 :
+    dealType === 'R2R' ? 4 :
+    4; // SOCIAL
+
   const currentYieldLabel: string =
     dealType === 'FLIP' ? 'Net Margin' :
     dealType === 'SA' ? 'Net Yield' :
@@ -1674,13 +1683,13 @@ export default function HomePage() {
                 <div
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
                   style={{
-                    backgroundColor: missingFields.length >= 4 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
-                    border: missingFields.length >= 4 ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(245,158,11,0.25)',
+                    backgroundColor: missingFields.length >= totalEssentialFields ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
+                    border: missingFields.length >= totalEssentialFields ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(245,158,11,0.25)',
                   }}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingFields.length >= 4 ? 'bg-red-500' : 'bg-amber-500'}`} />
-                  <span className={`text-[10px] font-medium ${missingFields.length >= 4 ? 'text-red-600' : 'text-amber-600'}`}>
-                    {missingFields.length >= 4
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingFields.length >= totalEssentialFields ? 'bg-red-500' : 'bg-amber-500'}`} />
+                  <span className={`text-[10px] font-medium ${missingFields.length >= totalEssentialFields ? 'text-red-600' : 'text-amber-600'}`}>
+                    {missingFields.length >= totalEssentialFields
                       ? 'Key inputs missing'
                       : `Enter: ${missingFields.join(', ')}`}
                   </span>
