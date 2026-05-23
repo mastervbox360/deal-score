@@ -1,0 +1,181 @@
+Read the file src/pages/Home.tsx in full before making any changes.
+Plan all edits explicitly, then execute them all in parallel.
+
+TASK: When Financing Method is set to 'Bridging' on the FLIP tab, show
+bridging finance input fields and factor the interest cost into the 
+FLIP calculations.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — Add bridging fields to flipInputs state
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the flipInputs useState, add three new fields:
+  flipBridgingRate: 0,
+  flipBridgingTermMonths: 0,
+  flipBridgingLTV: 70
+
+Full state becomes:
+  { 
+    holdingCostsPerMonth: 0,
+    projectLengthMonths: 0,
+    expectedSalePrice: 0,
+    sellingCostsPercent: 2,
+    financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage',
+    contingencyPercent: 10,
+    flipBridgingRate: 0,
+    flipBridgingTermMonths: 0,
+    flipBridgingLTV: 70
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — Add conditional bridging fields to FLIP inputs JSX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the FLIP inputs JSX block, immediately after the Financing Method 
+toggle and before the Holding Costs/mo field, add:
+
+{flipInputs.financingMethod === 'Bridging' && (
+  <>
+    <div className="md:col-span-2">
+      <p className="text-xs font-semibold uppercase tracking-widest 
+      text-muted-foreground">Bridging Finance</p>
+    </div>
+    <div className="space-y-2">
+      <div className="flex items-center gap-1">
+        <Label>Bridging Rate (% per month)</Label>
+        <InfoIcon id="flip-bridge-rate" text="The monthly interest rate 
+        charged by your bridging lender. Typical UK bridging rates: 
+        0.5–1.5% per month. Interest is charged on the loan amount for 
+        the full bridging term." />
+      </div>
+      <Input
+        type="number"
+        step="0.1"
+        placeholder="e.g. 0.85"
+        value={flipInputs.flipBridgingRate || ''}
+        onChange={(e) => handleFlipChange('flipBridgingRate', e.target.value)}
+      />
+    </div>
+    <div className="space-y-2">
+      <div className="flex items-center gap-1">
+        <Label>Bridging Term (months)</Label>
+        <InfoIcon id="flip-bridge-term" text="How long you will hold 
+        the bridging loan — from purchase to sale completion. Should 
+        match your project length. Typical range: 3–12 months." />
+      </div>
+      <Input
+        type="number"
+        step="1"
+        placeholder="e.g. 6"
+        value={flipInputs.flipBridgingTermMonths || ''}
+        onChange={(e) => handleFlipChange('flipBridgingTermMonths', e.target.value)}
+      />
+    </div>
+    <div className="space-y-2">
+      <div className="flex items-center gap-1">
+        <Label>Bridging LTV (%)</Label>
+        <InfoIcon id="flip-bridge-ltv" text="The loan-to-value your 
+        bridging lender will advance against the purchase price. 
+        Typically 65–75% for standard residential bridging." />
+      </div>
+      <Input
+        type="number"
+        step="1"
+        value={flipInputs.flipBridgingLTV}
+        onChange={(e) => handleFlipChange('flipBridgingLTV', e.target.value)}
+      />
+    </div>
+  </>
+)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — Factor bridging interest into FLIP calculations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Bridging interest formula:
+  (purchasePrice × flipBridgingLTV/100) × (flipBridgingRate/100) 
+  × flipBridgingTermMonths
+
+In BOTH the main flipResults calculateFlip call AND the _flipResults 
+call inside pdfProps useMemo:
+
+1. Destructure the new fields out of flipInputs before spreading:
+   const {
+     financingMethod,
+     contingencyPercent,
+     flipBridgingRate,
+     flipBridgingTermMonths,
+     flipBridgingLTV,
+     ...flipInputsForCalc
+   } = flipInputs;
+
+2. Calculate bridging interest:
+   const flipBridgingInterest = financingMethod === 'Bridging'
+     && flipBridgingRate > 0
+     && flipBridgingTermMonths > 0
+     ? (sharedInputs.purchasePrice * (flipBridgingLTV / 100))
+       * (flipBridgingRate / 100)
+       * flipBridgingTermMonths
+     : 0;
+
+3. Pass to calculateFlip with bridging interest added to otherCosts
+   and contingency applied to refurbCost:
+   calculateFlip({
+     purchasePrice: sharedInputs.purchasePrice,
+     refurbCost: sharedInputs.refurbCost * (1 + contingencyPercent / 100),
+     otherCosts: sharedInputs.otherCosts + flipBridgingInterest,
+     stampDuty: effectiveTax,
+     ...flipInputsForCalc
+   })
+
+Note: this replaces the existing contingency calculation at both 
+call sites — make sure the old refurbCost * (1 + ...) inline is 
+removed and replaced with this destructured version.
+
+Do this at BOTH call sites.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 4 — Show Workings update for FLIP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In the FLIP Show Workings block, Section A (Total Costs), after the 
+"Other Costs" WRow and before "TOTAL COST IN", add:
+
+{flipInputs.financingMethod === 'Bridging' 
+  && flipInputs.flipBridgingRate > 0 
+  && flipInputs.flipBridgingTermMonths > 0 && (
+  <WRow
+    label={`Bridging Interest (${flipInputs.flipBridgingLTV}% LTV × ${flipInputs.flipBridgingRate}%/mo × ${flipInputs.flipBridgingTermMonths} months)`}
+    value={formatCurrency(
+      (sharedInputs.purchasePrice * (flipInputs.flipBridgingLTV / 100))
+      * (flipInputs.flipBridgingRate / 100)
+      * flipInputs.flipBridgingTermMonths
+    )}
+  />
+)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 5 — handleReset update
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In handleReset, update the FLIP reset block to:
+setFlipInputs({ 
+  holdingCostsPerMonth: 0,
+  projectLengthMonths: 0,
+  expectedSalePrice: 0,
+  sellingCostsPercent: 2,
+  financingMethod: 'Bridging',
+  contingencyPercent: 10,
+  flipBridgingRate: 0,
+  flipBridgingTermMonths: 0,
+  flipBridgingLTV: 70
+})
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER ALL EDITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run: npx tsc --noEmit
+
+Fix any TypeScript errors before finishing. Do not push to main.
+All changes stay on the stage-6 branch only.

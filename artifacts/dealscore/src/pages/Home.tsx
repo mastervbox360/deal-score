@@ -295,7 +295,7 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10 });
+  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70 });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
 
@@ -662,7 +662,7 @@ export default function HomePage() {
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
     } else if (dealType === 'FLIP') {
-      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10 });
+      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70 });
     } else if (dealType === 'SA') {
       setSaInputs({ nightlyRate: 0, occupancyPercent: 90, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
@@ -711,8 +711,11 @@ export default function HomePage() {
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
   const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs });
-  const { financingMethod: _flipFM, contingencyPercent: _flipCP, ...flipCalcInputs } = flipInputs;
-  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + flipInputs.contingencyPercent / 100), otherCosts, stampDuty: effectiveTax, ...flipCalcInputs });
+  const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, ...flipInputsForCalc } = flipInputs;
+  const flipBridgingInterest = financingMethod === 'Bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0
+    ? (purchasePrice * (flipBridgingLTV / 100)) * (flipBridgingRate / 100) * flipBridgingTermMonths
+    : 0;
+  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + contingencyPercent / 100), otherCosts: otherCosts + flipBridgingInterest, stampDuty: effectiveTax, ...flipInputsForCalc });
   const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
   const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
@@ -1191,11 +1194,14 @@ export default function HomePage() {
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
     const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
-    const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, ...pdfFlipCalcInputs } = flipInputs;
+    const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, flipBridgingRate: _pdfFlipBridgingRate, flipBridgingTermMonths: _pdfFlipBridgingTerm, flipBridgingLTV: _pdfFlipBridgingLTV, ...pdfFlipCalcInputs } = flipInputs;
+    const _flipBridgingInterest = _pdfFlipFM === 'Bridging' && _pdfFlipBridgingRate > 0 && _pdfFlipBridgingTerm > 0
+      ? (sharedInputs.purchasePrice * (_pdfFlipBridgingLTV / 100)) * (_pdfFlipBridgingRate / 100) * _pdfFlipBridgingTerm
+      : 0;
     const _flipResults = calculateFlip({
       purchasePrice: sharedInputs.purchasePrice,
-      refurbCost: sharedInputs.refurbCost * (1 + flipInputs.contingencyPercent / 100),
-      otherCosts: sharedInputs.otherCosts,
+      refurbCost: sharedInputs.refurbCost * (1 + _pdfFlipCP / 100),
+      otherCosts: sharedInputs.otherCosts + _flipBridgingInterest,
       stampDuty: _effectiveTax,
       ...pdfFlipCalcInputs,
     });
@@ -2011,6 +2017,25 @@ export default function HomePage() {
                         ))}
                       </div>
                     </div>
+                    {flipInputs.financingMethod === 'Bridging' && (
+                      <>
+                        <div className="md:col-span-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Bridging Finance</p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging Rate (% per month)</Label><InfoIcon id="flip-bridge-rate" text="The monthly interest rate charged by your bridging lender. Typical UK bridging rates: 0.5–1.5% per month. Interest is charged on the loan amount for the full bridging term." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 0.85" value={flipInputs.flipBridgingRate || ''} onChange={(e) => handleFlipChange('flipBridgingRate', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging Term (months)</Label><InfoIcon id="flip-bridge-term" text="How long you will hold the bridging loan — from purchase to sale completion. Should match your project length. Typical range: 3–12 months." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 6" value={flipInputs.flipBridgingTermMonths || ''} onChange={(e) => handleFlipChange('flipBridgingTermMonths', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging LTV (%)</Label><InfoIcon id="flip-bridge-ltv" text="The loan-to-value your bridging lender will advance against the purchase price. Typically 65–75% for standard residential bridging." /></div>
+                          <Input type="number" step="1" value={flipInputs.flipBridgingLTV} onChange={(e) => handleFlipChange('flipBridgingLTV', e.target.value)} />
+                        </div>
+                      </>
+                    )}
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Holding Costs/mo (£)</Label><InfoIcon id="flip-hold" text={TT.holdingCosts} /></div>
                       <Input type="number" placeholder="Enter monthly holding costs" value={flipInputs.holdingCostsPerMonth || ''} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
@@ -3369,6 +3394,9 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
+                      {flipInputs.financingMethod === 'Bridging' && flipInputs.flipBridgingRate > 0 && flipInputs.flipBridgingTermMonths > 0 && (
+                        <WRow label={`Bridging Interest (${flipInputs.flipBridgingLTV}% LTV × ${flipInputs.flipBridgingRate}%/mo × ${flipInputs.flipBridgingTermMonths} months)`} value={formatCurrency((sharedInputs.purchasePrice * (flipInputs.flipBridgingLTV / 100)) * (flipInputs.flipBridgingRate / 100) * flipInputs.flipBridgingTermMonths)} />
+                      )}
                       <WRow label={`Holding Costs (${flipInputs.projectLengthMonths} months × ${formatCurrency(flipInputs.holdingCostsPerMonth)})`} value={formatCurrency(flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths)} />
                       <WRow label="TOTAL COST IN" value={formatCurrency(flipResults.totalCost)} bold />
                       <WSec title="B  PROFIT CALCULATION" />
