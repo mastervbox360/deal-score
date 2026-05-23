@@ -1644,13 +1644,13 @@ export default function HomePage() {
                 <div
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
                   style={{
-                    backgroundColor: missingFields.length >= 3 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
-                    border: missingFields.length >= 3 ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(245,158,11,0.25)',
+                    backgroundColor: missingFields.length >= 4 ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
+                    border: missingFields.length >= 4 ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(245,158,11,0.25)',
                   }}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingFields.length >= 3 ? 'bg-red-500' : 'bg-amber-500'}`} />
-                  <span className={`text-[10px] font-medium ${missingFields.length >= 3 ? 'text-red-600' : 'text-amber-600'}`}>
-                    {missingFields.length >= 3
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${missingFields.length >= 4 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                  <span className={`text-[10px] font-medium ${missingFields.length >= 4 ? 'text-red-600' : 'text-amber-600'}`}>
+                    {missingFields.length >= 4
                       ? 'Key inputs missing'
                       : `Enter: ${missingFields.join(', ')}`}
                   </span>
