@@ -1075,6 +1075,11 @@ export default function HomePage() {
     dealType === 'R2R' ? 'Setup Costs' :
     'Cash In';
 
+  const liveBarCashInLabel: string =
+    dealType === 'FLIP' ? 'Total Cost' :
+    dealType === 'R2R' ? 'Setup Costs' :
+    'Cash In';
+
   const currentCashInValue: number =
     dealType === 'BTL' ? btlResults.totalCashInvested :
     dealType === 'HMO' ? hmoResults.totalCashInvested :
@@ -1603,20 +1608,41 @@ export default function HomePage() {
           const cfValue = currentMonthlyCF;
           const cfSignal = getCFSignal(cfValue, incomplete);
           const dsSignal = getDealScoreSignal(incomplete ? 'Incomplete' : currentScore);
+          const showBMV = marketValue > 0 && dealType !== 'R2R' && sharedInputs.purchasePrice > 0;
+          const bmvPct = showBMV ? bmvPercent : 0;
+          const showCashIn = currentCashInValue > 0;
           return (
-            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[48px] w-full gap-3">
+            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[48px] w-full gap-2">
 
-              {/* Left side — Strategy + signals */}
-              <div className="flex items-center gap-0">
+              {/* Left side — narrative signals */}
+              <div className="flex items-center">
 
-                {/* Strategy — always first, no dot, navy label */}
-                <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4">
+                {/* Strategy — always first */}
+                <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
                   <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
                   <span className="text-[11px] font-bold text-[#1B3A6B]">{dealLabel}</span>
                 </div>
 
+                {/* BMV % — only when market value entered */}
+                {showBMV && (
+                  <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">BMV</span>
+                    <span className="text-[11px] font-bold" style={{ color: bmvPct >= 0 ? '#10B981' : '#EF4444' }}>
+                      {bmvPct >= 0 ? '▼' : '▲'}{Math.abs(bmvPct).toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+
+                {/* Cash In — when value > 0 */}
+                {showCashIn && (
+                  <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{liveBarCashInLabel}</span>
+                    <span className="text-[11px] font-bold text-foreground">{formatCurrency(currentCashInValue)}</span>
+                  </div>
+                )}
+
                 {/* Cash Flow signal */}
-                <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-4">
+                <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-4 shrink-0">
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
                   <div className="flex flex-col leading-none">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
@@ -1627,7 +1653,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Deal Score signal */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
                   <div className="flex flex-col leading-none">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
@@ -1639,7 +1665,7 @@ export default function HomePage() {
 
               </div>
 
-              {/* Right side — missing fields warning as pill */}
+              {/* Right side — missing fields warning pill */}
               {missingFields.length > 0 && (
                 <div
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
