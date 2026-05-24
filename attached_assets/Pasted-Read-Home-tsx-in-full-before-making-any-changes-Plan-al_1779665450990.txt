@@ -1,0 +1,112 @@
+Read Home.tsx in full before making any changes. Plan all edits explicitly, 
+then execute in parallel. Confirm exactly what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, or calculations.ts.
+
+---
+
+TASK 1 — RENAME "OPTIMAL OFFER" TO "DEAL OPTIMISER"
+
+Find every instance of "Optimal offer", "Optimal Offer", "optimalOffer" (UI 
+label only — not the variable/function names which must stay unchanged) and 
+"Offer Mode" display text in Home.tsx.
+
+Replace all visible UI labels only:
+- Tab/toggle label "Optimal offer" → "Deal Optimiser"
+- Tab/toggle label "Deal analyser" → "Deal Analyser"
+- Any heading or button text referencing "Optimal Offer" → "Deal Optimiser"
+
+Do NOT rename any variable names, state names, function names, or prop names. 
+Only change what the user sees as rendered text.
+
+---
+
+TASK 2 — UPDATE THE LIVE BAR
+
+Find the sticky Deal Score Bar ({/* Sticky Deal Score Bar */}).
+
+Replace the current bar content with the following updated signal layout.
+Keep all existing helper functions (getCFSignal, getDealScoreSignal, 
+missingFields) unchanged.
+
+DESKTOP SIGNALS (visible at lg: and above) — left to right:
+
+1. STRATEGY — always shown. Bold navy label. Vertical divider after.
+
+2. PURCHASE PRICE — shown when purchasePrice > 0 AND dealType !== 'R2R'. 
+   Label: "PURCHASE PRICE". Value: formatCurrency(purchasePrice). 
+   Plain, no colour coding.
+
+3. GDV (FLIP only) — shown when dealType === 'FLIP' AND 
+   flipInputs.expectedSalePrice > 0.
+   Label: "GDV". Value: formatCurrency(flipInputs.expectedSalePrice).
+
+   POST-REFURB (BRRR only) — shown when dealType === 'BRRR' AND 
+   brrrInputs.postRefurbValue > 0.
+   Label: "POST-REFURB". Value: formatCurrency(brrrInputs.postRefurbValue).
+
+4. PROFIT — shown when missingFields.length === 0.
+   Label: "PROFIT".
+   FLIP: formatCurrency(flipResults.netProfit)
+   R2R: formatCurrency(r2rResults.annualProfit)
+   All others: formatCurrency of the active strategy's annualCashFlow
+   (btlResults / hmoResults / saResults / brrrResults / socialResults)
+   Plain navy, no colour coding.
+
+5. CASH FLOW — shown when missingFields.length === 0 AND dealType !== 'FLIP'.
+   Label: "CASH FLOW".
+   Value: bold monthly figure + muted annual figure inline.
+   Format: "£327/mo · £3,924/yr"
+   Monthly value coloured (green if positive, red if negative).
+   Annual value muted (text-muted-foreground), smaller text.
+
+6. DEAL SCORE — shown when missingFields.length === 0.
+   Label: "DEAL SCORE". 
+   Value: getDealScoreSignal(currentScore).label
+   Colour: getDealScoreSignal(currentScore).colour
+
+7. DEAL OPTIMISER PROMPT — shown when missingFields.length === 0 AND 
+   resultsMode[dealType] === 'analyse'.
+   Render a subtle clickable prompt on the right side of the bar:
+   "⚡ Deal Optimiser →"
+   Style: text-xs, muted colour, underline on hover, cursor-pointer.
+   On click: setResultsMode(prev => ({ ...prev, [dealType]: 'offer' }))
+   This prompt disappears when the user is already in Deal Optimiser mode.
+
+8. MAX OFFER — shown when missingFields.length === 0 AND 
+   resultsMode[dealType] === 'offer' AND optimalOffer exists AND 
+   optimalOffer.type === 'found'.
+   Label: "MAX OFFER".
+   Value: formatCurrency(optimalOffer.maxPrice) for all strategies except R2R.
+   For R2R: formatCurrency(optimalOffer.maxLandlordRent) + "/mo"
+   Colour: brand navy. Distinct — use a subtle outlined pill style to make 
+   it stand out from other signals.
+
+9. MISSING FIELDS PILL — always on the far right when missingFields.length > 0.
+   Unchanged from current implementation.
+
+MOBILE SIGNALS (below lg: — hidden on small screens):
+Hide signals 2, 3, 4, 7, 8 on mobile.
+Show on mobile: Strategy, Cash Flow (monthly only, no annual), 
+Deal Score, Missing Fields Pill.
+
+DIVIDER STYLE:
+Use grouped pills for the signal layout. Each signal (or related group) sits 
+in its own subtle rounded pill: bg-white/60 or bg-slate-100, rounded-full, 
+px-3 py-1, with a thin border (border border-border/40).
+Cash Flow and Profit can be grouped in one pill if they appear together.
+Deal Score pill uses its verdict colour as a left border accent or background tint.
+Max Offer pill uses a distinct outlined style: border-2 border-[#1B3A6B], 
+bg-white, text-[#1B3A6B].
+Remove the current vertical pipe dividers between signals.
+
+---
+
+TASK 3 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. All UI label changes made (Task 1)
+2. Full list of signal changes in the live bar (Task 2)
+3. TypeScript error count (must be 0)

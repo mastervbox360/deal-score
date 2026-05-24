@@ -1608,65 +1608,113 @@ export default function HomePage() {
       <div className="bg-white border-b border-border shadow-sm w-full">
         {(() => {
           const incomplete = missingFields.length > 0;
-          const cfValue = currentMonthlyCF;
-          const cfSignal = getCFSignal(cfValue, incomplete);
+          const cfMonthly = currentMonthlyCF;
+          const cfAnnual =
+            dealType === 'R2R'    ? r2rResults.annualProfit :
+            dealType === 'BTL'    ? btlResults.annualCashFlow :
+            dealType === 'HMO'    ? hmoResults.annualCashFlow :
+            dealType === 'SA'     ? saResults.annualCashFlow :
+            dealType === 'BRRR'   ? brrrResults.annualCashFlow :
+            dealType === 'SOCIAL' ? socialResults.annualCashFlow :
+            0;
+          const profit =
+            dealType === 'FLIP' ? flipResults.netProfit :
+            dealType === 'R2R'  ? r2rResults.annualProfit :
+            cfAnnual;
           const dsSignal = getDealScoreSignal(incomplete ? 'Incomplete' : currentScore);
-          const showBMV = marketValue > 0 && dealType !== 'R2R' && sharedInputs.purchasePrice > 0;
-          const bmvPct = showBMV ? bmvPercent : 0;
-          const showCashIn = currentCashInValue > 0;
+          const cfColour = cfMonthly > 0 ? '#10B981' : cfMonthly < 0 ? '#EF4444' : '#94A3B8';
+          const showPurchasePrice = purchasePrice > 0 && dealType !== 'R2R';
+          const showGDV = dealType === 'FLIP' && flipInputs.expectedSalePrice > 0;
+          const showPostRefurb = dealType === 'BRRR' && brrrInputs.postRefurbValue > 0;
+          const showOptimiserPrompt = !incomplete && resultsMode[dealType] === 'analyse';
+          const showMaxOffer = !incomplete && resultsMode[dealType] === 'offer' && !!optimalOffer && (optimalOffer.type === 'found' || optimalOffer.type === 'r2r');
+          const maxOfferValue =
+            optimalOffer?.type === 'r2r'   ? formatCurrency(Math.max(0, optimalOffer.maxLandlordRent)) + '/mo' :
+            optimalOffer?.type === 'found' ? formatCurrency(optimalOffer.maxPrice) :
+            '';
           return (
-            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[44px] w-full gap-2 overflow-hidden">
+            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[44px] w-full gap-2 overflow-hidden py-1.5">
 
-              {/* Left side — narrative signals */}
-              <div className="flex items-center flex-wrap gap-y-1">
+              {/* Left side signals */}
+              <div className="flex items-center gap-1.5 flex-wrap">
 
-                {/* Strategy — always first */}
-                <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
+                {/* 1. Strategy — always */}
+                <div className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                   <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
                   <span className="text-[11px] font-bold text-[#1B3A6B]">{dealLabel}</span>
                 </div>
 
-                {/* BMV % — only when market value entered */}
-                {showBMV && (
-                  <div className="hidden sm:flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">BMV</span>
-                    <span className="text-[11px] font-bold" style={{ color: bmvPct >= 0 ? '#10B981' : '#EF4444' }}>
-                      {bmvPct >= 0 ? '▼' : '▲'}{Math.abs(bmvPct).toFixed(1)}%
-                    </span>
+                {/* 2. Purchase Price — desktop, not R2R */}
+                {showPurchasePrice && (
+                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Purchase Price</span>
+                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
                   </div>
                 )}
 
-                {/* Cash In — when value > 0 */}
-                {showCashIn && (
-                  <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{liveBarCashInLabel}</span>
-                    <span className="text-[11px] font-bold text-foreground">{formatCurrency(currentCashInValue)}</span>
+                {/* 3. GDV (FLIP) or Post-Refurb (BRRR) — desktop only */}
+                {showGDV && (
+                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">GDV</span>
+                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
+                  </div>
+                )}
+                {showPostRefurb && (
+                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Post-Refurb</span>
+                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(brrrInputs.postRefurbValue)}</span>
                   </div>
                 )}
 
-                {/* Cash Flow signal */}
+                {/* 4. Profit — desktop, when complete */}
                 {!incomplete && (
-                  <div className="flex items-center gap-2 pr-4 border-r border-slate-200 mr-4 shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cfSignal.colour }} />
-                    <div className="flex flex-col leading-none">
-                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                      <span className="text-[11px] font-bold" style={{ color: cfSignal.colour }}>
-                        {formatCurrency(cfValue) + '/mo'}
-                      </span>
+                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
+                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(profit)}</span>
+                  </div>
+                )}
+
+                {/* 5. Cash Flow — hidden for FLIP; mobile shows monthly only */}
+                {!incomplete && dealType !== 'FLIP' && (
+                  <div className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[11px] font-bold" style={{ color: cfColour }}>{formatCurrency(cfMonthly)}/mo</span>
+                      <span className="hidden lg:inline text-[10px] text-muted-foreground">· {formatCurrency(cfAnnual)}/yr</span>
                     </div>
                   </div>
                 )}
 
-                {/* Deal Score signal */}
+                {/* 6. Deal Score — when complete */}
                 {!incomplete && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: dsSignal.colour }} />
-                    <div className="flex flex-col leading-none">
-                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
-                      <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>
-                        {dsSignal.label}
-                      </span>
-                    </div>
+                  <div
+                    className="flex flex-col leading-none rounded-full px-3 py-1 border border-border/40 shrink-0"
+                    style={{ backgroundColor: `${dsSignal.colour}18` }}
+                  >
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
+                    <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>{dsSignal.label}</span>
+                  </div>
+                )}
+
+                {/* 7. Deal Optimiser prompt — desktop, complete, in analyse mode */}
+                {showOptimiserPrompt && (
+                  <button
+                    type="button"
+                    className="hidden lg:inline-flex items-center text-xs text-muted-foreground hover:text-[#1B3A6B] hover:underline cursor-pointer shrink-0 ml-1"
+                    onClick={() => setResultsMode(prev => ({ ...prev, [dealType]: 'offer' }))}
+                  >
+                    ⚡ Deal Optimiser →
+                  </button>
+                )}
+
+                {/* 8. Max Offer — desktop, offer mode, result found */}
+                {showMaxOffer && (
+                  <div
+                    className="hidden lg:flex flex-col leading-none rounded-full px-3 py-1 shrink-0"
+                    style={{ border: '2px solid #1B3A6B', backgroundColor: '#fff' }}
+                  >
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Max Offer</span>
+                    <span className="text-[11px] font-bold text-[#1B3A6B]">{maxOfferValue}</span>
                   </div>
                 )}
 
@@ -4477,11 +4525,11 @@ function ResultsModeToggle({ value, onChange }: { value: 'analyse' | 'offer', on
     <div className="inline-flex w-full p-1 rounded-lg bg-muted border border-border" role="radiogroup" aria-label="Results mode">
       <button type="button" role="radio" aria-checked={value === 'analyse'} onClick={() => onChange('analyse')}
         className={`${baseBtn} ${value === 'analyse' ? active : inactive}`}>
-        Deal analyser
+        Deal Analyser
       </button>
       <button type="button" role="radio" aria-checked={value === 'offer'} onClick={() => onChange('offer')}
         className={`${baseBtn} ${value === 'offer' ? active : inactive}`}>
-        Optimal offer
+        Deal Optimiser
       </button>
     </div>
   );
