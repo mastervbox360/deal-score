@@ -1602,7 +1602,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div className="sticky top-[100px] z-40">
+      <div className="sticky top-[100px] z-40 w-full">
 
       {/* Sticky Deal Score Bar */}
       <div className="bg-white border-b border-border shadow-sm w-full">

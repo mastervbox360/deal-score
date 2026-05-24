@@ -1,0 +1,57 @@
+Read Home.tsx in full before making any changes. Plan all edits explicitly, then execute in parallel. Confirm exactly what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, or calculations.ts.
+
+---
+
+TASK 1 — FIX MISSING FOUR-CARD GRID (R2R and potentially other strategies)
+
+Find the four strategy-aware metric card grid added in the previous task (a 2×2 grid inside a bg-slate-50 rounded-xl container, inserted inside the resultsMode[dealType] === 'analyse' branch).
+
+Check exactly where it is positioned relative to the per-strategy blocks. It must be:
+
+- Inside the resultsMode[dealType] === 'analyse' branch (inside the <> fragment)
+
+- BEFORE the first {missingFields.length === 0 && dealType === 'BTL' && ...} block
+
+- Wrapped in {missingFields.length === 0 && (...)} so it only shows when fields are complete
+
+- NOT nested inside any per-strategy conditional
+
+If it is currently inside a per-strategy block (e.g. inside the BTL block), move it out to sit immediately before all per-strategy blocks, at the same level as them.
+
+Verify the card grid covers all 7 strategies: BTL, HMO, FLIP, SA, BRRR, R2R, SOCIAL.
+
+---
+
+TASK 2 — FIX LIVE BAR DESKTOP WIDTH
+
+Find the sticky Deal Score Bar (comment: {/* Sticky Deal Score Bar */}).
+
+The bar's outer container currently has a max-width or positioning that causes it to only span the left column on desktop. It must span the full page width — both the deal numbers column and the deal score column — as a full-width sticky bar.
+
+Fix: ensure the outer sticky container uses w-full and is NOT constrained inside the two-column grid. It should sit outside and above the grid, pinned to the top of the viewport on scroll, spanning 100% of the page width.
+
+Do not change the bar's internal layout or content — only fix the width/positioning so it spans the full page on desktop.
+
+---
+
+IMPORTANT — do not change the live bar layout on mobile. The mobile version is working correctly. 
+
+The width fix must only apply at desktop breakpoints (lg: or similar). 
+
+On mobile the bar should remain exactly as it is.
+
+---
+
+TASK 3 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+
+1. Where the card grid was found and where it was moved to (line numbers)
+
+2. What CSS change fixed the live bar width
+
+3. TypeScript error count (must be 0)
