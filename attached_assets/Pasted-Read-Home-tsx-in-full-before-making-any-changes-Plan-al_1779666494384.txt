@@ -1,0 +1,107 @@
+Read Home.tsx in full before making any changes. Plan all edits explicitly, 
+then execute in parallel. Confirm exactly what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, or calculations.ts.
+
+---
+
+TASK 1 — FIX LIVE BAR PILL STYLING
+
+Find the sticky Deal Score Bar ({/* Sticky Deal Score Bar */}).
+
+Every signal in the bar must use the same pill style:
+- Container: bg-slate-100 rounded-full px-3 py-1 border border-border/40
+- Label: text-[9px] font-semibold uppercase tracking-wider text-muted-foreground
+- Value: text-sm font-bold text-[#1B3A6B] (unless colour-coded — see below)
+
+Exceptions:
+- CASH FLOW value: monthly figure coloured green (#10B981) if positive, 
+  red (#EF4444) if negative. Annual figure in text-muted-foreground text-xs 
+  next to it.
+- DEAL SCORE pill: use verdict colour as a subtle left border accent 
+  (border-l-4) on the pill. Text colour matches verdict colour.
+- MAX OFFER pill: border-2 border-[#1B3A6B] bg-white text-[#1B3A6B]. 
+  Distinct outlined style.
+- "⚡ Deal Optimiser →" prompt: must sit INSIDE the bar as a pill. 
+  Same pill container (bg-slate-100 rounded-full px-3 py-1 border 
+  border-border/40). Text: text-xs text-muted-foreground hover:text-[#1B3A6B] 
+  cursor-pointer. Must not float outside the bar boundary.
+
+All pills must have consistent height and padding. Use flex items-center 
+on the bar's inner container to vertically align all pills.
+
+---
+
+TASK 2 — REMOVE DUPLICATE METRIC DATA IN RESULTS PANEL
+
+The results panel currently shows both:
+(a) The new four strategy-aware metric cards (2×2 grid, bg-slate-50 rounded-xl)
+(b) The original MetricBox grid (grid grid-cols-2 gap-4)
+
+These duplicate the same data. Remove the new four strategy-aware metric 
+cards (item a) entirely for all 7 strategies. Keep the original MetricBox 
+grid (item b) exactly as it was before Stage 8C-2.
+
+The four strategy-aware metric cards belong on the PDF cover page only 
+(built in 8C-3) — they should not have been added to the in-app results 
+panel. Remove them cleanly with no other changes to the results panel.
+
+---
+
+TASK 3 — REMOVE "SL BENCHMARKS" TEXT
+
+Find every instance of text containing "SL benchmarks" in Home.tsx.
+Remove these strings entirely. Do not replace with anything.
+
+---
+
+TASK 4 — FIX "LIMITED BY" TEXT STYLING
+
+Find the "Limited by: ROI constraint" / "Limited by: X constraint" text 
+in the Deal Optimiser results section.
+
+Restyle it:
+- text-[10px] text-muted-foreground italic
+- Prefix with a thin horizontal rule above it (div className="h-px bg-border/40 my-2")
+- Keep the content unchanged — only improve the visual presentation
+
+---
+
+TASK 5 — FIX MIN CF DEFAULT VALUE
+
+Find the btlOfferCF useState initialisation. It currently defaults to 2000. 
+Change it to 250.
+
+Check all other strategy CF/profit offer defaults and confirm they match 
+these correct values:
+- btlOfferCF: 250
+- btlOfferROI: 8
+- hmoOfferCF: 500
+- hmoOfferROI: 12
+- hmoOfferYield: 10
+- flipOfferMargin: 18
+- flipOfferMinProfit: 25000
+- saOfferROI: 15
+- saOfferProfit: 500
+- saOfferOccupancy: 75
+- r2rOfferProfit: 500
+- r2rOfferROI: 50
+- socialOfferROI: 8
+- socialOfferCF: 250
+- brrrOfferCashLeft: 10000
+
+Correct any that differ from this list.
+
+---
+
+TASK 6 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Pill styling changes made (Task 1)
+2. Confirmation four metric cards removed from results panel (Task 2)
+3. SL benchmarks instances removed and where (Task 3)
+4. Limited by styling change (Task 4)
+5. Default values corrected and which ones changed (Task 5)
+6. TypeScript error count (must be 0)

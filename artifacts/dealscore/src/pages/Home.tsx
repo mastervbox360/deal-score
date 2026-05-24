@@ -1641,14 +1641,14 @@ export default function HomePage() {
                 {/* 1. Strategy — always */}
                 <div className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                   <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
-                  <span className="text-[11px] font-bold text-[#1B3A6B]">{dealLabel}</span>
+                  <span className="text-sm font-bold text-[#1B3A6B]">{dealLabel}</span>
                 </div>
 
                 {/* 2. Purchase Price — desktop, not R2R */}
                 {showPurchasePrice && (
                   <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Purchase Price</span>
-                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
                   </div>
                 )}
 
@@ -1656,13 +1656,13 @@ export default function HomePage() {
                 {showGDV && (
                   <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">GDV</span>
-                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
                   </div>
                 )}
                 {showPostRefurb && (
                   <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Post-Refurb</span>
-                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(brrrInputs.postRefurbValue)}</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(brrrInputs.postRefurbValue)}</span>
                   </div>
                 )}
 
@@ -1670,7 +1670,7 @@ export default function HomePage() {
                 {!incomplete && (
                   <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
-                    <span className="text-[11px] font-bold text-[#1B3A6B]">{formatCurrency(profit)}</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(profit)}</span>
                   </div>
                 )}
 
@@ -1679,42 +1679,42 @@ export default function HomePage() {
                   <div className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[11px] font-bold" style={{ color: cfColour }}>{formatCurrency(cfMonthly)}/mo</span>
-                      <span className="hidden lg:inline text-[10px] text-muted-foreground">· {formatCurrency(cfAnnual)}/yr</span>
+                      <span className="text-sm font-bold" style={{ color: cfColour }}>{formatCurrency(cfMonthly)}/mo</span>
+                      <span className="hidden lg:inline text-xs text-muted-foreground">· {formatCurrency(cfAnnual)}/yr</span>
                     </div>
                   </div>
                 )}
 
-                {/* 6. Deal Score — when complete */}
+                {/* 6. Deal Score — when complete; border-l-4 accent in verdict colour */}
                 {!incomplete && (
                   <div
-                    className="flex flex-col leading-none rounded-full px-3 py-1 border border-border/40 shrink-0"
-                    style={{ backgroundColor: `${dsSignal.colour}18` }}
+                    className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 border-l-4 shrink-0"
+                    style={{ borderLeftColor: dsSignal.colour }}
                   >
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
-                    <span className="text-[11px] font-bold" style={{ color: dsSignal.colour }}>{dsSignal.label}</span>
+                    <span className="text-sm font-bold" style={{ color: dsSignal.colour }}>{dsSignal.label}</span>
                   </div>
                 )}
 
-                {/* 7. Deal Optimiser prompt — desktop, complete, in analyse mode */}
+                {/* 7. Deal Optimiser prompt — desktop, complete, in analyse mode; pill button */}
                 {showOptimiserPrompt && (
                   <button
                     type="button"
-                    className="hidden lg:inline-flex items-center text-xs text-muted-foreground hover:text-[#1B3A6B] hover:underline cursor-pointer shrink-0 ml-1"
+                    className="hidden lg:inline-flex items-center bg-slate-100 rounded-full px-3 py-1 border border-border/40 text-xs text-muted-foreground hover:text-[#1B3A6B] cursor-pointer shrink-0"
                     onClick={() => setResultsMode(prev => ({ ...prev, [dealType]: 'offer' }))}
                   >
                     ⚡ Deal Optimiser →
                   </button>
                 )}
 
-                {/* 8. Max Offer — desktop, offer mode, result found */}
+                {/* 8. Max Offer — desktop, offer mode, result found; outlined pill */}
                 {showMaxOffer && (
                   <div
                     className="hidden lg:flex flex-col leading-none rounded-full px-3 py-1 shrink-0"
                     style={{ border: '2px solid #1B3A6B', backgroundColor: '#fff' }}
                   >
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Max Offer</span>
-                    <span className="text-[11px] font-bold text-[#1B3A6B]">{maxOfferValue}</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{maxOfferValue}</span>
                   </div>
                 )}
 
@@ -2927,62 +2927,6 @@ export default function HomePage() {
 
               <div className="px-6 pb-4">
                 {resultsMode[dealType] === 'analyse' ? (<>
-                {missingFields.length === 0 && (() => {
-                  const cards: [string, string][] =
-                    dealType === 'BTL' ? [
-                      ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
-                      ['Monthly CF',    formatCurrency(btlResults.monthlyCashFlow)],
-                      ['Annual Profit', formatCurrency(btlResults.annualCashFlow)],
-                      ['ROI',           formatPercent(btlResults.cashOnCashROI)],
-                    ] :
-                    dealType === 'HMO' ? [
-                      ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
-                      ['Monthly CF',    formatCurrency(hmoResults.monthlyCashFlow)],
-                      ['Annual Profit', formatCurrency(hmoResults.annualCashFlow)],
-                      ['ROI',           formatPercent(hmoResults.cashOnCashROI)],
-                    ] :
-                    dealType === 'FLIP' ? [
-                      ['Total Cost In',  formatCurrency(flipResults.totalCost)],
-                      ['Net Profit',     formatCurrency(flipResults.netProfit)],
-                      ['GDV',            formatCurrency(flipInputs.expectedSalePrice)],
-                      ['Profit on Cost', formatPercent(flipResults.profitOnCost)],
-                    ] :
-                    dealType === 'SA' ? [
-                      ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
-                      ['Monthly CF',    formatCurrency(saResults.monthlyCashFlow)],
-                      ['Annual Profit', formatCurrency(saResults.annualCashFlow)],
-                      ['ROI',           formatPercent(saResults.cashOnCashROI)],
-                    ] :
-                    dealType === 'BRRR' ? [
-                      ['Cash In',           formatCurrency(brrrResults.totalCostIn)],
-                      ['Cash Left In',      brrrResults.moneyOut ? '∞' : formatCurrency(brrrResults.cashLeftInDeal)],
-                      ['Monthly CF',        formatCurrency(brrrResults.monthlyCashFlow)],
-                      ['Refinance Amount',  formatCurrency(brrrResults.refinanceLoan)],
-                    ] :
-                    dealType === 'R2R' ? [
-                      ['Setup Costs',    formatCurrency(r2rInputs.setupCosts)],
-                      ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit)],
-                      ['Annual Profit',  formatCurrency(r2rResults.annualProfit)],
-                      ['ROI on Setup',   formatPercent(r2rResults.roi)],
-                    ] : [
-                      ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
-                      ['Monthly CF',    formatCurrency(socialResults.monthlyCashFlow)],
-                      ['Annual Profit', formatCurrency(socialResults.annualCashFlow)],
-                      ['ROI',           formatPercent(socialResults.cashOnCashROI)],
-                    ];
-                  return (
-                    <div className="bg-slate-50 rounded-xl p-3 mb-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        {cards.map(([label, value]) => (
-                          <div key={label} className="bg-white rounded-lg p-3 border border-border/60">
-                            <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</div>
-                            <div className="text-base font-bold" style={{ color: '#1B3A6B' }}>{value}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
                 {missingFields.length === 0 && dealType === 'BTL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[
@@ -3281,7 +3225,6 @@ export default function HomePage() {
                     {dealType === 'BTL' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 8% CoC ROI · £250/mo cash flow</p>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={btlOfferROI} onChange={e => setBtlOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
                           <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={5000} step={50} value={btlOfferCF} onChange={e => setBtlOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
@@ -3291,7 +3234,6 @@ export default function HomePage() {
                     {dealType === 'HMO' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 12% CoC ROI · £500/mo · 10% gross yield</p>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={hmoOfferROI} onChange={e => setHmoOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
                           <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={10000} step={50} value={hmoOfferCF} onChange={e => setHmoOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
@@ -3302,7 +3244,6 @@ export default function HomePage() {
                     {dealType === 'FLIP' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 18%+ margin on cost · £25,000+ minimum profit</p>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div><p className="text-xs font-medium mb-1">Min margin on cost %</p><Input type="number" min={1} max={50} step={1} value={flipOfferMargin} onChange={e => setFlipOfferMargin(Number(e.target.value))} className="h-8 text-sm" /></div>
                           <div><p className="text-xs font-medium mb-1">Min profit £</p><Input type="number" min={0} max={500000} step={1000} value={flipOfferMinProfit} onChange={e => setFlipOfferMinProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
@@ -3312,7 +3253,6 @@ export default function HomePage() {
                     {dealType === 'SA' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 15%+ CoC ROI · £500/mo profit · 75% occupancy</p>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={100} step={0.5} value={saOfferROI} onChange={e => setSaOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
                           <div><p className="text-xs font-medium mb-1">Min profit £/mo</p><Input type="number" min={0} max={10000} step={50} value={saOfferProfit} onChange={e => setSaOfferProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
@@ -3333,7 +3273,6 @@ export default function HomePage() {
                     {dealType === 'R2R' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmarks: £500/mo profit · 50%+ ROI on setup costs</p>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div><p className="text-xs font-medium mb-1">Min profit £/mo</p><Input type="number" min={0} max={5000} step={50} value={r2rOfferProfit} onChange={e => setR2rOfferProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
                           <div><p className="text-xs font-medium mb-1">Min ROI on setup %</p><Input type="number" min={0} max={500} step={5} value={r2rOfferROI} onChange={e => setR2rOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
@@ -3343,7 +3282,6 @@ export default function HomePage() {
                     {dealType === 'SOCIAL' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmarks: 8% CoC ROI · £250/mo cash flow</p>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={socialOfferROI} onChange={e => setSocialOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
                           <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={5000} step={50} value={socialOfferCF} onChange={e => setSocialOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
@@ -3418,7 +3356,8 @@ export default function HomePage() {
                             </p>
                           </div>
                         )}
-                        <p className="text-[10px] text-muted-foreground">Limited by: {optimalOffer.binding}</p>
+                        <div className="h-px bg-border/40 my-2" />
+                        <p className="text-[10px] text-muted-foreground italic">Limited by: {optimalOffer.binding}</p>
                       </div>
                     ) : optimalOffer?.type === 'r2r' ? (
                       <div className="space-y-3">
