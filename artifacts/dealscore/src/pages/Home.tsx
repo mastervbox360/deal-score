@@ -1612,10 +1612,10 @@ export default function HomePage() {
           const bmvPct = showBMV ? bmvPercent : 0;
           const showCashIn = currentCashInValue > 0;
           return (
-            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[48px] w-full gap-2">
+            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[44px] w-full gap-2 overflow-hidden">
 
               {/* Left side — narrative signals */}
-              <div className="flex items-center">
+              <div className="flex items-center flex-wrap gap-y-1">
 
                 {/* Strategy — always first */}
                 <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
@@ -1625,7 +1625,7 @@ export default function HomePage() {
 
                 {/* BMV % — only when market value entered */}
                 {showBMV && (
-                  <div className="flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
+                  <div className="hidden sm:flex flex-col leading-none pr-4 border-r border-slate-200 mr-4 shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">BMV</span>
                     <span className="text-[11px] font-bold" style={{ color: bmvPct >= 0 ? '#10B981' : '#EF4444' }}>
                       {bmvPct >= 0 ? '▼' : '▲'}{Math.abs(bmvPct).toFixed(1)}%
@@ -1679,7 +1679,7 @@ export default function HomePage() {
                   }}
                 >
                   <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-500" />
-                  <span className="text-[10px] font-medium text-amber-600">
+                  <span className="text-[10px] font-medium text-amber-600 truncate max-w-[160px] sm:max-w-none">
                     {`Enter: ${missingFields.join(', ')}`}
                   </span>
                 </div>
