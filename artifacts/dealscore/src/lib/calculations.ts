@@ -387,6 +387,8 @@ export function calculateFlip(inputs: FlipInputs) {
     score = 'Average';
   }
 
+  const profitOnCost = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+
   return {
     totalCost,
     sellingCosts,
@@ -394,6 +396,7 @@ export function calculateFlip(inputs: FlipInputs) {
     roi,
     annualisedROI,
     profitPerMonth,
+    profitOnCost,
     score
   };
 }

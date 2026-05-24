@@ -2897,7 +2897,7 @@ export default function HomePage() {
                       ['Total Cost In',  formatCurrency(flipResults.totalCost)],
                       ['Net Profit',     formatCurrency(flipResults.netProfit)],
                       ['GDV',            formatCurrency(flipInputs.expectedSalePrice)],
-                      ['Profit on Cost', formatPercent(flipResults.roi)],
+                      ['Profit on Cost', formatPercent(flipResults.profitOnCost)],
                     ] :
                     dealType === 'SA' ? [
                       ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
