@@ -242,6 +242,9 @@ export default function HomePage() {
   const [accentColour, setAccentColour] = useState<string>('#00C896');
   const [accentColourDraft, setAccentColourDraft] = useState<string>('#00C896');
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState<boolean>(false);
+  const [showDealScoreOnCover, setShowDealScoreOnCover] = useState<boolean>(true);
+  const [showBMVOnCover, setShowBMVOnCover] = useState<boolean>(true);
+  const [showSourcingFeeOnCover, setShowSourcingFeeOnCover] = useState<boolean>(false);
   const [iosGenerating, setIosGenerating] = useState(false);
 
   useEffect(() => {
@@ -2876,6 +2879,62 @@ export default function HomePage() {
 
               <div className="px-6 pb-4">
                 {resultsMode[dealType] === 'analyse' ? (<>
+                {missingFields.length === 0 && (() => {
+                  const cards: [string, string][] =
+                    dealType === 'BTL' ? [
+                      ['Cash Invested', formatCurrency(btlResults.totalCashInvested)],
+                      ['Monthly CF',    formatCurrency(btlResults.monthlyCashFlow)],
+                      ['Annual Profit', formatCurrency(btlResults.annualCashFlow)],
+                      ['ROI',           formatPercent(btlResults.cashOnCashROI)],
+                    ] :
+                    dealType === 'HMO' ? [
+                      ['Cash Invested', formatCurrency(hmoResults.totalCashInvested)],
+                      ['Monthly CF',    formatCurrency(hmoResults.monthlyCashFlow)],
+                      ['Annual Profit', formatCurrency(hmoResults.annualCashFlow)],
+                      ['ROI',           formatPercent(hmoResults.cashOnCashROI)],
+                    ] :
+                    dealType === 'FLIP' ? [
+                      ['Total Cost In',  formatCurrency(flipResults.totalCost)],
+                      ['Net Profit',     formatCurrency(flipResults.netProfit)],
+                      ['GDV',            formatCurrency(flipInputs.expectedSalePrice)],
+                      ['Profit on Cost', formatPercent(flipResults.roi)],
+                    ] :
+                    dealType === 'SA' ? [
+                      ['Cash Invested', formatCurrency(saResults.totalCashInvested)],
+                      ['Monthly CF',    formatCurrency(saResults.monthlyCashFlow)],
+                      ['Annual Profit', formatCurrency(saResults.annualCashFlow)],
+                      ['ROI',           formatPercent(saResults.cashOnCashROI)],
+                    ] :
+                    dealType === 'BRRR' ? [
+                      ['Cash In',           formatCurrency(brrrResults.totalCostIn)],
+                      ['Cash Left In',      brrrResults.moneyOut ? '∞' : formatCurrency(brrrResults.cashLeftInDeal)],
+                      ['Monthly CF',        formatCurrency(brrrResults.monthlyCashFlow)],
+                      ['Refinance Amount',  formatCurrency(brrrResults.refinanceLoan)],
+                    ] :
+                    dealType === 'R2R' ? [
+                      ['Setup Costs',    formatCurrency(r2rInputs.setupCosts)],
+                      ['Monthly Profit', formatCurrency(r2rResults.monthlyProfit)],
+                      ['Annual Profit',  formatCurrency(r2rResults.annualProfit)],
+                      ['ROI on Setup',   formatPercent(r2rResults.roi)],
+                    ] : [
+                      ['Cash Invested', formatCurrency(socialResults.totalCashInvested)],
+                      ['Monthly CF',    formatCurrency(socialResults.monthlyCashFlow)],
+                      ['Annual Profit', formatCurrency(socialResults.annualCashFlow)],
+                      ['ROI',           formatPercent(socialResults.cashOnCashROI)],
+                    ];
+                  return (
+                    <div className="bg-slate-50 rounded-xl p-3 mb-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        {cards.map(([label, value]) => (
+                          <div key={label} className="bg-white rounded-lg p-3 border border-border/60">
+                            <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</div>
+                            <div className="text-base font-bold" style={{ color: '#1B3A6B' }}>{value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {missingFields.length === 0 && dealType === 'BTL' && (
                   <div className="space-y-6">
                     <RiskFlags flags={[

@@ -1,0 +1,78 @@
+Read Home.tsx in full before making any changes.
+
+Plan all edits explicitly, then execute them in parallel. Confirm exactly what you changed at the end.
+
+Do NOT touch any other file. Do NOT modify DealScorePDF.tsx, DealScorePDFProPlus.tsx, calculations.ts, or any component file.
+
+---
+
+TASK 1 — ADD THREE COVER TOGGLE STATE VARIABLES
+
+In the state declarations block (near the other boolean useState declarations around line 230–245), add these three new state variables:
+
+  const [showDealScoreOnCover, setShowDealScoreOnCover] = useState<boolean>(true);
+  const [showBMVOnCover, setShowBMVOnCover] = useState<boolean>(true);
+  const [showSourcingFeeOnCover, setShowSourcingFeeOnCover] = useState<boolean>(false);
+
+Do not add UI controls for these yet — they are state-only for now (used in 8C-3/8C-5 when PDF props are wired up).
+
+---
+
+TASK 2 — ADD FOUR STRATEGY-AWARE METRIC CARDS TO THE RESULTS PANEL
+
+Location: In the results panel, inside the `resultsMode[dealType] === 'analyse'` branch, ABOVE the existing per-strategy blocks (i.e. above the first `{missingFields.length === 0 && dealType === 'BTL' && ...}` block).
+
+The four cards should only render when `missingFields.length === 0`. They replace nothing — the existing RiskFlags and MetricBox grid below them are untouched.
+
+The four cards display in a 2×2 grid (grid-cols-2 gap-3) inside a rounded container with a subtle tinted background (bg-slate-50, rounded-xl, p-3, mb-4).
+
+Each card is a small rounded box (bg-white, rounded-lg, p-3, border border-border/60) showing:
+- A label in text-[10px] font-semibold uppercase tracking-widest text-muted-foreground
+- A value in text-base font-bold style={{ color: '#1B3A6B' }}
+
+Do NOT use colour coding on the values — all values render in dark navy (#1B3A6B) regardless of whether they are positive or negative. This is a permanent DealScore design rule.
+
+The four cards are strategy-aware. Use this exact mapping:
+
+BTL / HMO / SA / SOCIAL:
+  Card 1 — label: "Cash Invested",  value: formatCurrency(results.totalCashInvested)
+  Card 2 — label: "Monthly CF",     value: formatCurrency(results.monthlyCashFlow)
+  Card 3 — label: "Annual Profit",  value: formatCurrency(results.annualCashFlow)
+  Card 4 — label: "ROI",            value: formatPercent(results.cashOnCashROI)
+
+  Where results = btlResults / hmoResults / saResults / socialResults respectively.
+
+FLIP:
+  Card 1 — label: "Total Cost In",  value: formatCurrency(flipResults.totalCost)
+  Card 2 — label: "Net Profit",     value: formatCurrency(flipResults.netProfit)
+  Card 3 — label: "GDV",            value: formatCurrency(flipInputs.expectedSalePrice)
+  Card 4 — label: "Profit on Cost", value: formatPercent(flipResults.profitOnCost)
+
+BRRR:
+  Card 1 — label: "Cash In",           value: formatCurrency(brrrResults.totalCashInvested)
+  Card 2 — label: "Cash Left In",      value: brrrResults.moneyOut ? '∞' : formatCurrency(brrrResults.cashLeftIn)
+  Card 3 — label: "Monthly CF",        value: formatCurrency(brrrResults.monthlyCashFlow)
+  Card 4 — label: "Refinance Amount",  value: formatCurrency(brrrResults.refinanceAmount)
+
+R2R:
+  Card 1 — label: "Setup Costs",    value: formatCurrency(r2rInputs.setupCosts)
+  Card 2 — label: "Monthly Profit", value: formatCurrency(r2rResults.monthlyProfit)
+  Card 3 — label: "Annual Profit",  value: formatCurrency(r2rResults.annualProfit)
+  Card 4 — label: "ROI on Setup",   value: formatPercent(r2rResults.roi)
+
+Use a single conditional block — check dealType and render the appropriate four cards. Do not duplicate the grid JSX seven times; use a computed variable or inline ternary to determine which four [label, value] pairs to render, then map over them.
+
+---
+
+TASK 3 — VERIFY
+
+After making changes, run:
+  npx tsc --noEmit
+
+There must be zero TypeScript errors. If any errors appear, fix them before finishing.
+
+Report:
+1. Exact line numbers where state variables were added
+2. Exact line number where the four-card grid was inserted
+3. TypeScript error count (must be 0)
+4. Any result fields you could not find on the result objects (so we can check the calculations file)
