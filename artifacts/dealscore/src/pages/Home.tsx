@@ -178,6 +178,10 @@ export default function HomePage() {
     BTL: 'analyse', HMO: 'analyse', FLIP: 'analyse', SA: 'analyse',
     BRRR: 'analyse', R2R: 'analyse', SOCIAL: 'analyse',
   });
+  const [optimiserTarget, setOptimiserTarget] = useState<Record<string, 'roi' | 'cf'>>({
+    BTL: 'roi', HMO: 'roi', FLIP: 'roi', SA: 'roi',
+    BRRR: 'roi', R2R: 'roi', SOCIAL: 'roi',
+  });
   const [btlOfferROI, setBtlOfferROI] = useState(8);
   const [btlOfferCF, setBtlOfferCF] = useState(250);
   const [hmoOfferROI, setHmoOfferROI] = useState(12);
@@ -754,33 +758,37 @@ export default function HomePage() {
     };
 
     if (dealType === 'BTL') {
+      const effBtlROI = optimiserTarget['BTL'] === 'cf' ? -999999 : btlOfferROI;
+      const effBtlCF  = optimiserTarget['BTL'] === 'roi' ? -999999 : btlOfferCF;
       const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 500000;
       if (sharedInputs.purchasePrice > 0) {
         const adjI = btlResults.totalCashInvested + extraCosts;
         const adjROI = adjI > 0 ? (btlResults.annualCashFlow / adjI) * 100 : 0;
-        if (adjROI >= btlOfferROI && btlResults.monthlyCashFlow >= btlOfferCF)
+        if (adjROI >= effBtlROI && btlResults.monthlyCashFlow >= effBtlCF)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: btlResults.monthlyCashFlow, currentYield: btlResults.grossYield };
       }
       const calcFn = (p: number, tax: number) => calculateBTL({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...btlInputs, ...sharedCostInputs });
-      const { maxPrice, binding } = solveBTLLike(calcFn, btlOfferROI, btlOfferCF, startP);
+      const { maxPrice, binding } = solveBTLLike(calcFn, effBtlROI, effBtlCF, startP);
       if (!maxPrice) return { type: 'no_solution' as const };
       const r = calcFn(maxPrice, getStampDuty(maxPrice));
       return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.grossYield, gap: sharedInputs.purchasePrice - maxPrice };
     }
 
     if (dealType === 'HMO') {
+      const effHmoROI = optimiserTarget['HMO'] === 'cf' ? -999999 : hmoOfferROI;
+      const effHmoCF  = optimiserTarget['HMO'] === 'roi' ? -999999 : hmoOfferCF;
       const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 600000;
       const annualRent = hmoInputs.rooms * hmoInputs.rentPerRoom * (hmoInputs.occupancyRate / 100) * 12;
       if (sharedInputs.purchasePrice > 0) {
         const adjI = hmoResults.totalCashInvested + extraCosts;
         const adjROI = adjI > 0 ? (hmoResults.annualCashFlow / adjI) * 100 : 0;
         const yld = sharedInputs.purchasePrice > 0 ? annualRent / sharedInputs.purchasePrice * 100 : 0;
-        if (adjROI >= hmoOfferROI && hmoResults.monthlyCashFlow >= hmoOfferCF && yld >= hmoOfferYield)
+        if (adjROI >= effHmoROI && hmoResults.monthlyCashFlow >= effHmoCF)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: hmoResults.monthlyCashFlow, currentYield: yld };
       }
       const calcFn = (p: number, tax: number) => calculateHMO({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...hmoInputs, ...sharedCostInputs });
-      const { maxPrice: maxROICF, binding: b1 } = solveBTLLike(calcFn, hmoOfferROI, hmoOfferCF, startP);
-      const maxFromYield = hmoOfferYield > 0 ? Math.round(annualRent / (hmoOfferYield / 100) / 1000) * 1000 : null;
+      const { maxPrice: maxROICF, binding: b1 } = solveBTLLike(calcFn, effHmoROI, effHmoCF, startP);
+      const maxFromYield: number | null = null;
       let maxPrice = maxROICF;
       let binding = b1;
       if (maxFromYield !== null && (maxPrice === null || maxFromYield < maxPrice)) { maxPrice = maxFromYield; binding = 'Gross yield constraint'; }
@@ -802,13 +810,15 @@ export default function HomePage() {
         return { totalCost, profit, margin: totalCost > 0 ? (profit / totalCost) * 100 : 0 };
       };
       const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : Math.round(gdv * 0.7 / 1000) * 1000;
+      const effFlipMargin    = optimiserTarget['FLIP'] === 'cf' ? -999999 : flipOfferMargin;
+      const effFlipMinProfit = optimiserTarget['FLIP'] === 'roi' ? -999999 : flipOfferMinProfit;
       if (sharedInputs.purchasePrice > 0) {
         const m = getMetrics(sharedInputs.purchasePrice);
-        if (m.margin >= flipOfferMargin && m.profit >= flipOfferMinProfit)
+        if (m.margin >= effFlipMargin && m.profit >= effFlipMinProfit)
           return { type: 'already_meets' as const, currentROI: m.margin, currentCF: m.profit / Math.max(flipInputs.projectLengthMonths, 1), currentYield: 0 };
       }
-      const maxFromMargin = iterativeSolve(startP, p => getMetrics(p).margin >= flipOfferMargin);
-      const maxFromMinProfit = iterativeSolve(startP, p => getMetrics(p).profit >= flipOfferMinProfit);
+      const maxFromMargin = iterativeSolve(startP, p => getMetrics(p).margin >= effFlipMargin);
+      const maxFromMinProfit = iterativeSolve(startP, p => getMetrics(p).profit >= effFlipMinProfit);
       let maxPrice: number | null = null;
       let binding = '';
       if (maxFromMargin !== null && maxFromMinProfit !== null) {
@@ -848,15 +858,17 @@ export default function HomePage() {
     }
 
     if (dealType === 'SA') {
+      const effSaROI    = optimiserTarget['SA'] === 'cf' ? -999999 : saOfferROI;
+      const effSaProfit = optimiserTarget['SA'] === 'roi' ? -999999 : saOfferProfit;
       const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 400000;
       if (sharedInputs.purchasePrice > 0) {
         const adjI = saResults.totalCashInvested + extraCosts;
         const adjROI = adjI > 0 ? (saResults.annualCashFlow / adjI) * 100 : 0;
-        if (adjROI >= saOfferROI && saResults.monthlyCashFlow >= saOfferProfit)
+        if (adjROI >= effSaROI && saResults.monthlyCashFlow >= effSaProfit)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: saResults.monthlyCashFlow, currentYield: saResults.netYield };
       }
       const calcFn = (p: number, tax: number) => calculateSA({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...saInputs, occupancyPercent: saOfferOccupancy, ...sharedCostInputs });
-      const { maxPrice, binding } = solveBTLLike(calcFn, saOfferROI, saOfferProfit, startP);
+      const { maxPrice, binding } = solveBTLLike(calcFn, effSaROI, effSaProfit, startP);
       if (!maxPrice) return { type: 'no_solution' as const };
       const r = calcFn(maxPrice, getStampDuty(maxPrice));
       return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.netYield, gap: sharedInputs.purchasePrice - maxPrice };
@@ -868,28 +880,33 @@ export default function HomePage() {
       const net = gross - mgmt;
       const maxLandlordRent = net - r2rOfferProfit - r2rInputs.monthlyRunningCosts;
       const maxSetupCosts = r2rOfferROI > 0 ? (r2rOfferProfit * 12) / (r2rOfferROI / 100) : 0;
-      if (r2rResults.monthlyProfit >= r2rOfferProfit && (r2rInputs.setupCosts <= 0 || r2rResults.roi >= r2rOfferROI))
+      const r2rAlreadyMeets = optimiserTarget['R2R'] === 'roi'
+        ? (r2rInputs.setupCosts <= 0 || r2rResults.roi >= r2rOfferROI)
+        : r2rResults.monthlyProfit >= r2rOfferProfit;
+      if (r2rAlreadyMeets)
         return { type: 'already_meets' as const, currentROI: r2rResults.roi, currentCF: r2rResults.monthlyProfit, currentYield: r2rResults.grossYield };
       return { type: 'r2r' as const, maxLandlordRent, maxSetupCosts, currentLandlordRent: r2rInputs.monthlyRentPaid };
     }
 
     if (dealType === 'SOCIAL') {
+      const effSocialROI = optimiserTarget['SOCIAL'] === 'cf' ? -999999 : socialOfferROI;
+      const effSocialCF  = optimiserTarget['SOCIAL'] === 'roi' ? -999999 : socialOfferCF;
       const startP = sharedInputs.purchasePrice > 0 ? sharedInputs.purchasePrice : 300000;
       if (sharedInputs.purchasePrice > 0) {
         const adjI = socialResults.totalCashInvested + extraCosts;
         const adjROI = adjI > 0 ? (socialResults.annualCashFlow / adjI) * 100 : 0;
-        if (adjROI >= socialOfferROI && socialResults.monthlyCashFlow >= socialOfferCF)
+        if (adjROI >= effSocialROI && socialResults.monthlyCashFlow >= effSocialCF)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: socialResults.monthlyCashFlow, currentYield: socialResults.grossYield };
       }
       const calcFn = (p: number, tax: number) => calculateSocialHousing({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...socialInputs, ...sharedCostInputs });
-      const { maxPrice, binding } = solveBTLLike(calcFn, socialOfferROI, socialOfferCF, startP);
+      const { maxPrice, binding } = solveBTLLike(calcFn, effSocialROI, effSocialCF, startP);
       if (!maxPrice) return { type: 'no_solution' as const };
       const r = calcFn(maxPrice, getStampDuty(maxPrice));
       return { type: 'found' as const, maxPrice, binding, achievedROI: (r.annualCashFlow / (r.totalCashInvested + extraCosts)) * 100, achievedCF: r.monthlyCashFlow, achievedYield: r.grossYield, gap: sharedInputs.purchasePrice - maxPrice };
     }
 
     return null;
-  }, [dealType, resultsMode, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, sharedCostInputs, taxCountry, taxOverrideActive, manualTaxValue, buyerType, btlResults, hmoResults, saResults, brrrResults, r2rResults, socialResults, leaseExtensionCost, buyersPremiumValue, auctionReservationFeeValue, btlOfferROI, btlOfferCF, hmoOfferROI, hmoOfferCF, hmoOfferYield, flipOfferMargin, flipOfferMinProfit, brrrOfferCashLeft, saOfferROI, saOfferProfit, saOfferOccupancy, r2rOfferProfit, r2rOfferROI, socialOfferROI, socialOfferCF]);
+  }, [dealType, resultsMode, optimiserTarget, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, sharedCostInputs, taxCountry, taxOverrideActive, manualTaxValue, buyerType, btlResults, hmoResults, saResults, brrrResults, r2rResults, socialResults, leaseExtensionCost, buyersPremiumValue, auctionReservationFeeValue, btlOfferROI, btlOfferCF, hmoOfferROI, hmoOfferCF, hmoOfferYield, flipOfferMargin, flipOfferMinProfit, brrrOfferCashLeft, saOfferROI, saOfferProfit, saOfferOccupancy, r2rOfferProfit, r2rOfferROI, socialOfferROI, socialOfferCF]);
 
   const stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
 
@@ -1608,133 +1625,84 @@ export default function HomePage() {
       <div className="bg-white border-b border-border shadow-sm w-full">
         {(() => {
           const incomplete = missingFields.length > 0;
-          const cfMonthly = currentMonthlyCF;
-          const cfAnnual =
-            dealType === 'R2R'    ? r2rResults.annualProfit :
-            dealType === 'BTL'    ? btlResults.annualCashFlow :
-            dealType === 'HMO'    ? hmoResults.annualCashFlow :
-            dealType === 'SA'     ? saResults.annualCashFlow :
-            dealType === 'BRRR'   ? brrrResults.annualCashFlow :
-            dealType === 'SOCIAL' ? socialResults.annualCashFlow :
-            0;
-          const profit =
-            dealType === 'FLIP' ? flipResults.netProfit :
-            dealType === 'R2R'  ? r2rResults.annualProfit :
-            cfAnnual;
           const dsSignal = getDealScoreSignal(incomplete ? 'Incomplete' : currentScore);
-          const cfColour = cfMonthly > 0 ? '#10B981' : cfMonthly < 0 ? '#EF4444' : '#94A3B8';
           const showPurchasePrice = purchasePrice > 0 && dealType !== 'R2R';
-          const showGDV = dealType === 'FLIP' && flipInputs.expectedSalePrice > 0;
-          const showPostRefurb = dealType === 'BRRR' && brrrInputs.postRefurbValue > 0;
-          const showOptimiserPrompt = !incomplete && resultsMode[dealType] === 'analyse';
           const showMaxOffer = !incomplete && resultsMode[dealType] === 'offer' && !!optimalOffer && (optimalOffer.type === 'found' || optimalOffer.type === 'r2r');
+          const showOptimiserPrompt = !incomplete && resultsMode[dealType] === 'analyse';
           const maxOfferValue =
             optimalOffer?.type === 'r2r'   ? formatCurrency(Math.max(0, optimalOffer.maxLandlordRent)) + '/mo' :
             optimalOffer?.type === 'found' ? formatCurrency(optimalOffer.maxPrice) :
             '';
           return (
-            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[44px] w-full gap-2 overflow-hidden py-1.5">
+            <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[44px] w-full gap-2 overflow-hidden">
 
               {/* Left side signals */}
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center">
 
-                {/* 1. Strategy — always */}
-                <div className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Strategy</span>
-                  <span className="text-sm font-bold text-[#1B3A6B]">{dealLabel}</span>
-                </div>
+                {/* 1. Strategy — always, no label */}
+                <span className="text-sm font-bold text-[#1B3A6B] shrink-0">{dealLabel}</span>
 
-                {/* 2. Purchase Price — desktop, not R2R */}
-                {showPurchasePrice && (
-                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
+                {/* Divider + Purchase Price — desktop, not R2R */}
+                {showPurchasePrice && (<>
+                  <div className="h-6 w-px bg-border/50 mx-2 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Purchase Price</span>
                     <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
                   </div>
-                )}
+                </>)}
 
-                {/* 3. GDV (FLIP) or Post-Refurb (BRRR) — desktop only */}
-                {showGDV && (
-                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">GDV</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
-                  </div>
-                )}
-                {showPostRefurb && (
-                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Post-Refurb</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(brrrInputs.postRefurbValue)}</span>
-                  </div>
-                )}
-
-                {/* 4. Profit — desktop, when complete */}
-                {!incomplete && (
-                  <div className="hidden lg:flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(profit)}</span>
-                  </div>
-                )}
-
-                {/* 5. Cash Flow — hidden for FLIP; mobile shows monthly only */}
-                {!incomplete && dealType !== 'FLIP' && (
-                  <div className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 shrink-0">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-sm font-bold" style={{ color: cfColour }}>{formatCurrency(cfMonthly)}/mo</span>
-                      <span className="hidden lg:inline text-xs text-muted-foreground">· {formatCurrency(cfAnnual)}/yr</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 6. Deal Score — when complete; border-l-4 accent in verdict colour */}
-                {!incomplete && (
-                  <div
-                    className="flex flex-col leading-none bg-slate-100 rounded-full px-3 py-1 border border-border/40 border-l-4 shrink-0"
-                    style={{ borderLeftColor: dsSignal.colour }}
-                  >
+                {/* Divider + Deal Score — when complete */}
+                {!incomplete && (<>
+                  <div className="h-6 w-px bg-border/50 mx-2 shrink-0" />
+                  <div className="flex flex-col leading-none shrink-0">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
                     <span className="text-sm font-bold" style={{ color: dsSignal.colour }}>{dsSignal.label}</span>
                   </div>
-                )}
+                </>)}
 
-                {/* 7. Deal Optimiser prompt — desktop, complete, in analyse mode; pill button */}
+                {/* Divider + Max Offer — desktop, offer mode, found/r2r */}
+                {showMaxOffer && (<>
+                  <div className="h-6 w-px bg-border/50 mx-2 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none shrink-0">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Max Offer</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{maxOfferValue}</span>
+                  </div>
+                </>)}
+
+              </div>
+
+              {/* Right side — prompt and missing fields */}
+              <div className="flex items-center gap-3 shrink-0">
+
+                {/* Deal Optimiser prompt — desktop, complete, analyse mode */}
                 {showOptimiserPrompt && (
                   <button
                     type="button"
-                    className="hidden lg:inline-flex items-center bg-slate-100 rounded-full px-3 py-1 border border-border/40 text-xs text-muted-foreground hover:text-[#1B3A6B] cursor-pointer shrink-0"
+                    className="hidden lg:inline-flex items-center text-xs text-muted-foreground hover:text-[#1B3A6B] cursor-pointer underline-offset-2 hover:underline"
+                    title="Enter your target return — we'll calculate the maximum price you should pay"
                     onClick={() => setResultsMode(prev => ({ ...prev, [dealType]: 'offer' }))}
                   >
                     ⚡ Deal Optimiser →
                   </button>
                 )}
 
-                {/* 8. Max Offer — desktop, offer mode, result found; outlined pill */}
-                {showMaxOffer && (
+                {/* Missing fields warning pill */}
+                {missingFields.length > 0 && (
                   <div
-                    className="hidden lg:flex flex-col leading-none rounded-full px-3 py-1 shrink-0"
-                    style={{ border: '2px solid #1B3A6B', backgroundColor: '#fff' }}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: 'rgba(245,158,11,0.08)',
+                      border: '1px solid rgba(245,158,11,0.25)',
+                    }}
                   >
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Max Offer</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{maxOfferValue}</span>
+                    <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-500" />
+                    <span className="text-[10px] font-medium text-amber-600 truncate max-w-[160px] sm:max-w-none">
+                      {`Enter: ${missingFields.join(', ')}`}
+                    </span>
                   </div>
                 )}
 
               </div>
-
-              {/* Right side — missing fields warning pill */}
-              {missingFields.length > 0 && (
-                <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
-                  style={{
-                    backgroundColor: 'rgba(245,158,11,0.08)',
-                    border: '1px solid rgba(245,158,11,0.25)',
-                  }}
-                >
-                  <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-500" />
-                  <span className="text-[10px] font-medium text-amber-600 truncate max-w-[160px] sm:max-w-none">
-                    {`Enter: ${missingFields.join(', ')}`}
-                  </span>
-                </div>
-              )}
 
             </div>
           );
@@ -3225,45 +3193,54 @@ export default function HomePage() {
                     {dealType === 'BTL' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={btlOfferROI} onChange={e => setBtlOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={5000} step={50} value={btlOfferCF} onChange={e => setBtlOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, BTL: 'roi' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['BTL'] === 'roi' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>ROI</button>
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, BTL: 'cf' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['BTL'] === 'cf' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Cash Flow</button>
                         </div>
+                        {optimiserTarget['BTL'] === 'roi'
+                          ? <div><p className="text-xs font-medium mb-1">Target ROI (%)</p><Input type="number" min={1} max={50} step={0.5} value={btlOfferROI} onChange={e => setBtlOfferROI(Number(e.target.value))} className="h-8 text-sm" placeholder="8" /></div>
+                          : <div><p className="text-xs font-medium mb-1">Target Cash Flow (£/mo)</p><Input type="number" min={0} max={5000} step={50} value={btlOfferCF} onChange={e => setBtlOfferCF(Number(e.target.value))} className="h-8 text-sm" placeholder="250" /></div>}
                       </div>
                     )}
                     {dealType === 'HMO' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={hmoOfferROI} onChange={e => setHmoOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={10000} step={50} value={hmoOfferCF} onChange={e => setHmoOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min gross yield %</p><Input type="number" min={1} max={30} step={0.5} value={hmoOfferYield} onChange={e => setHmoOfferYield(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, HMO: 'roi' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['HMO'] === 'roi' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>ROI</button>
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, HMO: 'cf' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['HMO'] === 'cf' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Cash Flow</button>
                         </div>
+                        {optimiserTarget['HMO'] === 'roi'
+                          ? <div><p className="text-xs font-medium mb-1">Target ROI (%)</p><Input type="number" min={1} max={50} step={0.5} value={hmoOfferROI} onChange={e => setHmoOfferROI(Number(e.target.value))} className="h-8 text-sm" placeholder="12" /></div>
+                          : <div><p className="text-xs font-medium mb-1">Target Cash Flow (£/mo)</p><Input type="number" min={0} max={10000} step={50} value={hmoOfferCF} onChange={e => setHmoOfferCF(Number(e.target.value))} className="h-8 text-sm" placeholder="500" /></div>}
                       </div>
                     )}
                     {dealType === 'FLIP' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div><p className="text-xs font-medium mb-1">Min margin on cost %</p><Input type="number" min={1} max={50} step={1} value={flipOfferMargin} onChange={e => setFlipOfferMargin(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min profit £</p><Input type="number" min={0} max={500000} step={1000} value={flipOfferMinProfit} onChange={e => setFlipOfferMinProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, FLIP: 'roi' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['FLIP'] === 'roi' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Margin on Cost</button>
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, FLIP: 'cf' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['FLIP'] === 'cf' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Min Profit</button>
                         </div>
+                        {optimiserTarget['FLIP'] === 'roi'
+                          ? <div><p className="text-xs font-medium mb-1">Min margin on cost (%)</p><Input type="number" min={1} max={50} step={1} value={flipOfferMargin} onChange={e => setFlipOfferMargin(Number(e.target.value))} className="h-8 text-sm" placeholder="18" /></div>
+                          : <div><p className="text-xs font-medium mb-1">Min profit (£)</p><Input type="number" min={0} max={500000} step={1000} value={flipOfferMinProfit} onChange={e => setFlipOfferMinProfit(Number(e.target.value))} className="h-8 text-sm" placeholder="25000" /></div>}
                       </div>
                     )}
                     {dealType === 'SA' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={100} step={0.5} value={saOfferROI} onChange={e => setSaOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min profit £/mo</p><Input type="number" min={0} max={10000} step={50} value={saOfferProfit} onChange={e => setSaOfferProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Modelled occupancy %</p><Input type="number" min={1} max={100} step={5} value={saOfferOccupancy} onChange={e => setSaOfferOccupancy(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, SA: 'roi' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['SA'] === 'roi' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>ROI</button>
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, SA: 'cf' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['SA'] === 'cf' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Cash Flow</button>
                         </div>
+                        {optimiserTarget['SA'] === 'roi'
+                          ? <div><p className="text-xs font-medium mb-1">Target ROI (%)</p><Input type="number" min={1} max={100} step={0.5} value={saOfferROI} onChange={e => setSaOfferROI(Number(e.target.value))} className="h-8 text-sm" placeholder="15" /></div>
+                          : <div><p className="text-xs font-medium mb-1">Target Cash Flow (£/mo)</p><Input type="number" min={0} max={10000} step={50} value={saOfferProfit} onChange={e => setSaOfferProfit(Number(e.target.value))} className="h-8 text-sm" placeholder="500" /></div>}
                       </div>
                     )}
                     {dealType === 'BRRR' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <p className="text-[10px] text-muted-foreground">SL benchmark: recycle all capital (£0 left in). Set a buffer for comfort.</p>
                         <div className="pt-1">
                           <p className="text-xs font-medium mb-1">Max cash left in deal £</p>
                           <Input type="number" min={0} max={200000} step={1000} value={brrrOfferCashLeft} onChange={e => setBrrrOfferCashLeft(Number(e.target.value))} className="h-8 text-sm" />
@@ -3273,19 +3250,25 @@ export default function HomePage() {
                     {dealType === 'R2R' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div><p className="text-xs font-medium mb-1">Min profit £/mo</p><Input type="number" min={0} max={5000} step={50} value={r2rOfferProfit} onChange={e => setR2rOfferProfit(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min ROI on setup %</p><Input type="number" min={0} max={500} step={5} value={r2rOfferROI} onChange={e => setR2rOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, R2R: 'roi' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['R2R'] === 'roi' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>ROI on Setup</button>
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, R2R: 'cf' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['R2R'] === 'cf' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Monthly Profit</button>
                         </div>
+                        {optimiserTarget['R2R'] === 'roi'
+                          ? <div><p className="text-xs font-medium mb-1">Target ROI on setup (%)</p><Input type="number" min={0} max={500} step={5} value={r2rOfferROI} onChange={e => setR2rOfferROI(Number(e.target.value))} className="h-8 text-sm" placeholder="50" /></div>
+                          : <div><p className="text-xs font-medium mb-1">Target monthly profit (£/mo)</p><Input type="number" min={0} max={5000} step={50} value={r2rOfferProfit} onChange={e => setR2rOfferProfit(Number(e.target.value))} className="h-8 text-sm" placeholder="500" /></div>}
                       </div>
                     )}
                     {dealType === 'SOCIAL' && (
                       <div className="space-y-2 p-3 rounded-xl bg-slate-50 border border-border">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Your targets</p>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div><p className="text-xs font-medium mb-1">Min ROI %</p><Input type="number" min={1} max={50} step={0.5} value={socialOfferROI} onChange={e => setSocialOfferROI(Number(e.target.value))} className="h-8 text-sm" /></div>
-                          <div><p className="text-xs font-medium mb-1">Min CF £/mo</p><Input type="number" min={0} max={5000} step={50} value={socialOfferCF} onChange={e => setSocialOfferCF(Number(e.target.value))} className="h-8 text-sm" /></div>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, SOCIAL: 'roi' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['SOCIAL'] === 'roi' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>ROI</button>
+                          <button type="button" onClick={() => setOptimiserTarget(prev => ({ ...prev, SOCIAL: 'cf' }))} className={`px-3 py-1 rounded-lg text-xs font-medium ${optimiserTarget['SOCIAL'] === 'cf' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`}>Cash Flow</button>
                         </div>
+                        {optimiserTarget['SOCIAL'] === 'roi'
+                          ? <div><p className="text-xs font-medium mb-1">Target ROI (%)</p><Input type="number" min={1} max={50} step={0.5} value={socialOfferROI} onChange={e => setSocialOfferROI(Number(e.target.value))} className="h-8 text-sm" placeholder="8" /></div>
+                          : <div><p className="text-xs font-medium mb-1">Target Cash Flow (£/mo)</p><Input type="number" min={0} max={5000} step={50} value={socialOfferCF} onChange={e => setSocialOfferCF(Number(e.target.value))} className="h-8 text-sm" placeholder="250" /></div>}
                       </div>
                     )}
 
@@ -3358,6 +3341,24 @@ export default function HomePage() {
                         )}
                         <div className="h-px bg-border/40 my-2" />
                         <p className="text-[10px] text-muted-foreground italic">Limited by: {optimalOffer.binding}</p>
+                        {(() => {
+                          let line: string | null = null;
+                          if (dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'SOCIAL') {
+                            const roi = dealType === 'BTL' ? btlOfferROI : dealType === 'HMO' ? hmoOfferROI : dealType === 'SA' ? saOfferROI : socialOfferROI;
+                            const cf  = dealType === 'BTL' ? btlOfferCF  : dealType === 'HMO' ? hmoOfferCF  : dealType === 'SA' ? saOfferProfit : socialOfferCF;
+                            line = optimiserTarget[dealType] === 'roi'
+                              ? `At this price the deal hits your ${roi}% ROI target. Lead with a cash offer or short completion to justify the reduction.`
+                              : `At this price the deal generates £${cf.toLocaleString()}/mo cash flow. Negotiate on price or agree a below-market rent review clause.`;
+                          } else if (dealType === 'FLIP') {
+                            line = optimiserTarget['FLIP'] === 'roi'
+                              ? `At this price the deal hits your ${flipOfferMargin}% margin. Factor in 4-6 weeks of agent time when presenting your offer.`
+                              : `At this price the deal generates ${formatCurrency(flipOfferMinProfit)} profit. Present a clean offer with minimal conditions to strengthen your position.`;
+                          } else if (dealType === 'BRRR') {
+                            const cashLeft = 'brrrCashLeft' in optimalOffer ? (optimalOffer.brrrCashLeft as number) : 0;
+                            line = `At this price you leave ${formatCurrency(cashLeft)} in the deal. The stronger your refurb numbers, the more you can justify to the vendor.`;
+                          }
+                          return line ? <p className="text-xs text-muted-foreground italic mt-2">{line}</p> : null;
+                        })()}
                       </div>
                     ) : optimalOffer?.type === 'r2r' ? (
                       <div className="space-y-3">
@@ -3380,6 +3381,11 @@ export default function HomePage() {
                           <p className="text-xs font-medium text-muted-foreground mb-1">Max setup costs (from ROI target)</p>
                           <p className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(optimalOffer.maxSetupCosts)}</p>
                         </div>
+                        <p className="text-xs text-muted-foreground italic mt-2">
+                          {optimiserTarget['R2R'] === 'roi'
+                            ? `At this rent the deal hits your ${r2rOfferROI}% ROI on setup. Offer a longer contract term to justify the lower rent.`
+                            : `At this rent the deal generates £${r2rOfferProfit.toLocaleString()}/mo profit. Offer a longer contract term to justify the lower rent.`}
+                        </p>
                       </div>
                     ) : optimalOffer?.type === 'no_solution' ? (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">

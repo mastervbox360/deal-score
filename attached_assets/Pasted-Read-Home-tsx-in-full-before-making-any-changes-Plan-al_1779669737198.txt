@@ -1,0 +1,179 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — STRIP LIVE BAR TO FOUR SIGNALS
+
+Find the sticky Deal Score Bar ({/* Sticky Deal Score Bar */}).
+
+Replace the current signal layout with exactly these four 
+signals, left to right:
+
+1. STRATEGY — always shown, all screen sizes.
+   Bold navy label. No label above it.
+   
+2. PURCHASE PRICE — shown when purchasePrice > 0 AND 
+   dealType !== 'R2R'. Desktop only (hidden lg:).
+   Label: "PURCHASE PRICE" in text-[9px] uppercase muted.
+   Value: formatCurrency(purchasePrice) in text-sm font-bold 
+   text-[#1B3A6B].
+
+3. DEAL SCORE — shown when missingFields.length === 0.
+   All screen sizes.
+   Label: "DEAL SCORE" in text-[9px] uppercase muted.
+   Value: verdict label in verdict colour, text-sm font-bold.
+
+4. MAX OFFER — shown when missingFields.length === 0 AND 
+   resultsMode[dealType] === 'offer' AND optimalOffer exists 
+   AND (optimalOffer.type === 'found' OR 
+   optimalOffer.type === 'r2r'). Desktop only.
+   Label: "MAX OFFER" in text-[9px] uppercase muted.
+   Value: formatCurrency in text-sm font-bold text-[#1B3A6B].
+   R2R: show maxLandlordRent + "/mo".
+
+DIVIDER STYLE — remove all pill containers (bg-slate-100 
+rounded-full). Use a simple vertical divider between signals:
+<div className="h-6 w-px bg-border/50 mx-2 shrink-0" />
+Each signal is just two stacked spans (label + value) with 
+no background, no border, no pill.
+
+DEAL OPTIMISER PROMPT — keep as a simple text button on 
+the right side (not a pill). Style:
+text-xs text-muted-foreground hover:text-[#1B3A6B] 
+cursor-pointer underline-offset-2 hover:underline
+Add a title attribute: 
+title="Enter your target return — we'll calculate the 
+maximum price you should pay"
+This acts as a native hover tooltip. No other changes.
+
+Shown when: missingFields.length === 0 AND 
+resultsMode[dealType] === 'analyse'. Desktop only.
+
+MISSING FIELDS PILL — keep exactly as current on the 
+right side. No changes.
+
+Remove ALL other signals (Profit, Cash Flow, GDV, 
+Post-Refurb) entirely.
+
+---
+
+TASK 2 — DEAL OPTIMISER: SINGLE TARGET SELECTOR
+
+Find the Deal Optimiser (resultsMode[dealType] === 'offer') 
+section for all 7 strategies in Home.tsx.
+
+Currently each strategy shows separate ROI and CF input 
+fields that compete. Replace with a single-target selector 
+pattern for ALL 7 strategies:
+
+Add a new state variable at the top of the component 
+(near other useState declarations):
+const [optimiserTarget, setOptimiserTarget] = 
+  useState<Record<string, 'roi' | 'cf'>>({
+    BTL: 'roi', HMO: 'roi', FLIP: 'roi', SA: 'roi', 
+    BRRR: 'roi', R2R: 'roi', SOCIAL: 'roi'
+  });
+
+In the Deal Optimiser UI for each strategy, replace the 
+existing target inputs with:
+
+STEP 1 — Target selector (two-pill toggle):
+  "ROI" | "Cash Flow"
+  Active pill: bg-[#1B3A6B] text-white rounded-lg px-3 py-1
+  Inactive pill: bg-slate-100 text-muted-foreground 
+  rounded-lg px-3 py-1
+  On click: setOptimiserTarget(prev => 
+    ({ ...prev, [dealType]: 'roi' | 'cf' }))
+
+STEP 2 — Single input (conditional on selection):
+  If 'roi' selected:
+    Label: "Target ROI (%)"
+    Input: existing ROI state for that strategy 
+    (btlOfferROI, hmoOfferROI, etc.)
+    Placeholder: e.g. "8" for BTL
+  If 'cf' selected:
+    Label: "Target Cash Flow (£/mo)"
+    Input: existing CF state for that strategy 
+    (btlOfferCF, hmoOfferCF, etc.)
+    Placeholder: e.g. "250" for BTL
+
+STEP 3 — The calculation logic must change:
+When 'roi' is selected: solve for max price using ROI 
+constraint only (ignore CF constraint entirely).
+When 'cf' is selected: solve for max price using CF 
+constraint only (ignore ROI constraint entirely).
+
+To achieve this WITHOUT changing calculation function 
+signatures: when 'roi' selected, set the CF target to 
+an extremely low value (-999999) so it never binds. 
+When 'cf' selected, set the ROI target to an extremely 
+low value (-999999) so it never binds.
+
+Apply this pattern to ALL 7 strategies consistently.
+
+SPECIAL CASES:
+- FLIP: selector shows "Margin on Cost" | "Min Profit" 
+  instead of ROI | Cash Flow. Same single-input pattern.
+- BRRR: selector shows "Cash Left In" only — BRRR Deal 
+  Optimiser has only one target so no selector needed. 
+  Leave BRRR Deal Optimiser unchanged.
+- R2R: selector shows "ROI on Setup" | "Monthly Profit".
+
+Add a negotiation coaching line below the Max Offer result 
+for all strategies. Single sentence, contextual:
+
+BTL/HMO/SA/SOCIAL (ROI selected):
+"At this price the deal hits your {X}% ROI target. 
+Lead with a cash offer or short completion to justify 
+the reduction."
+
+BTL/HMO/SA/SOCIAL (CF selected):
+"At this price the deal generates £{X}/mo cash flow. 
+Negotiate on price or agree a below-market rent review 
+clause."
+
+FLIP (Margin selected):
+"At this price the deal hits your {X}% margin. Factor 
+in 4-6 weeks of agent time when presenting your offer."
+
+FLIP (Min Profit selected):
+"At this price the deal generates £{X} profit. Present 
+a clean offer with minimal conditions to strengthen 
+your position."
+
+BRRR:
+"At this price you leave £{X} in the deal. The stronger 
+your refurb numbers, the more you can justify to the 
+vendor."
+
+R2R (ROI selected):
+"At this rent the deal hits your {X}% ROI on setup. 
+Offer a longer contract term to justify the lower rent."
+
+R2R (Monthly Profit selected):
+"At this rent the deal generates £{X}/mo profit. 
+Offer a longer contract term to justify the lower rent."
+
+Style the coaching line: text-xs text-muted-foreground 
+italic mt-2
+
+Only show coaching line when optimalOffer.type === 'found' 
+or 'r2r'.
+
+---
+
+TASK 3 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Live bar signals removed and divider style applied
+2. New optimiserTarget state variable location (line number)
+3. Which strategies were updated with single-target selector
+4. Coaching line added — confirm for each strategy
+5. TypeScript error count (must be 0)
