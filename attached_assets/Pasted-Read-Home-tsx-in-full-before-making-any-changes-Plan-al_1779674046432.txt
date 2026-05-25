@@ -1,0 +1,213 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — CENTRE THE SCORE BADGE
+
+Find the score badge render block in the results panel 
+(the div containing renderScoreBadge calls for all 7 
+strategies).
+
+The outer container currently uses:
+className="flex flex-col items-start justify-start"
+or similar left-aligned flex.
+
+Change to centre the score badge:
+className="flex flex-col items-center justify-center 
+w-full"
+
+Apply to the wrapping div that contains the score badge 
+and verdict line for all strategies.
+
+---
+
+TASK 2 — SCORE BREAKDOWN: HIDDEN BY DEFAULT, 
+EXPAND ON CLICK
+
+Re-add the whyScoreOpen state variable:
+const [whyScoreOpen, setWhyScoreOpen] = 
+  useState<boolean>(false);
+
+Add near other boolean useState declarations.
+
+Replace the always-visible "SCORE BREAKDOWN" label and 
+threshold table with a collapsible version:
+
+Toggle button (replaces the static label):
+<button
+  type="button"
+  onClick={() => setWhyScoreOpen(v => !v)}
+  className="flex items-center gap-1.5 px-6 pt-1 pb-2 
+    text-[9px] font-semibold uppercase tracking-wider 
+    text-muted-foreground hover:text-[#1B3A6B] 
+    transition-colors w-full text-left"
+>
+  Score Breakdown
+  <ChevronDown
+    className="w-3 h-3 transition-transform duration-200"
+    style={{ transform: whyScoreOpen ? 
+      'rotate(180deg)' : 'rotate(0deg)' }}
+  />
+</button>
+
+Wrap the threshold table in {whyScoreOpen && (...)} 
+for all 7 strategies.
+
+Threshold table styling fixes:
+- Each row: flex items-center justify-between px-6 py-0.5
+- Left: text-xs text-muted-foreground (threshold label)
+- Right: icon only, no text touching it
+- ✓ passing: <span style={{ color: '#10B981' }}>✓</span>
+- ✗ failing: <span style={{ color: '#EF4444' }}>✗</span>
+- Add pb-3 after the last threshold row
+
+---
+
+TASK 3 — CASH FLOW METRICBOX: MATCH TILE DESIGN
+
+For all 7 strategies, replace the current inline toggle 
+box (bg-white rounded-xl border p-3 flex flex-col gap-1) 
+with a proper MetricBox-style tile that matches Cash 
+Invested and Mortgage exactly.
+
+The MetricBox component renders as a card tile. Since 
+MetricBox doesn't support an embedded toggle, render 
+this as a custom div that visually matches MetricBox:
+
+<div className="bg-white rounded-xl border border-border/60 
+  p-4 flex flex-col gap-2">
+  <div className="flex items-center justify-between">
+    <span className="text-[10px] font-semibold uppercase 
+      tracking-wider text-muted-foreground">
+      Cash Flow
+    </span>
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        className={`text-[9px] px-1.5 py-0.5 rounded 
+          transition-colors ${!showAnnual ? 
+          'bg-[#1B3A6B] text-white' : 
+          'bg-slate-100 text-muted-foreground 
+          hover:bg-slate-200'}`}
+        onClick={() => setShowAnnual(false)}
+      >Mo</button>
+      <button
+        type="button"
+        className={`text-[9px] px-1.5 py-0.5 rounded 
+          transition-colors ${showAnnual ? 
+          'bg-[#1B3A6B] text-white' : 
+          'bg-slate-100 text-muted-foreground 
+          hover:bg-slate-200'}`}
+        onClick={() => setShowAnnual(true)}
+      >Yr</button>
+    </div>
+  </div>
+  <span className={`text-2xl font-bold ${
+    [monthly or annual value] < 0 ? 
+    'text-red-500' : 'text-[#1B3A6B]'
+  }`}>
+    {showAnnual ? [annual value] : [monthly value]}
+  </span>
+</div>
+
+Values per strategy:
+BTL: monthly = btlResults.monthlyCashFlow, 
+     annual = btlResults.annualCashFlow
+HMO: monthly = hmoResults.monthlyCashFlow, 
+     annual = hmoResults.annualCashFlow
+SA:  monthly = saResults.monthlyCashFlow, 
+     annual = saResults.annualCashFlow
+BRRR: monthly = brrrResults.monthlyCashFlow, 
+      annual = brrrResults.annualCashFlow
+R2R: monthly = r2rResults.monthlyProfit, 
+     annual = r2rResults.annualProfit
+     Label: "Profit" instead of "Cash Flow"
+SOCIAL: monthly = socialResults.monthlyCashFlow, 
+        annual = socialResults.annualCashFlow
+FLIP: monthly = flipResults.profitPerMonth, 
+      annual = flipResults.netProfit
+      Label: "Profit" instead of "Cash Flow"
+      Mo label = "Per Mo", Yr label = "Total"
+
+---
+
+TASK 4 — RESTORE FOURTH METRICBOX
+
+For each strategy, restore the 2×2 grid (4 boxes) by 
+adding the fourth MetricBox. The grid must be 
+grid-cols-2 gap-4 with exactly 4 boxes.
+
+Current 3 boxes per strategy (after Task 3 the Cash 
+Flow tile is box 3). Add box 4:
+
+BTL:
+  Box 1: Cash Invested
+  Box 2: Mortgage  
+  Box 3: Cash Flow tile (Task 3)
+  Box 4: <MetricBox label="Monthly Mortgage" 
+    value={formatCurrency(btlResults.mortgageAmount / 
+    (sharedInputs.mortgageTerm * 12))} 
+    tooltip={TT.mortgageAmount} />
+  
+  Wait — mortgageAmount is the total loan, not monthly 
+  payment. Use the monthly mortgage payment instead.
+  For BTL the monthly mortgage is already calculated — 
+  check btlResults for a monthlyMortgage or 
+  monthlyPayment field. If it doesn't exist, use:
+  Monthly Mortgage = btlResults.mortgageAmount * 
+  (monthlyRate * Math.pow(1+monthlyRate, n)) / 
+  (Math.pow(1+monthlyRate, n) - 1) for repayment, 
+  or mortgageAmount * monthlyRate for interest only.
+  
+  SIMPLER: just show the existing Mortgage box value 
+  (total loan) labelled "Mortgage" as box 4. 
+  This already existed before — restore it exactly 
+  as it was.
+
+BTL Box 4: MetricBox label="Mortgage" 
+  value={formatCurrency(btlResults.mortgageAmount)}
+  tooltip={TT.mortgageAmount}
+
+HMO Box 4: MetricBox label="Gross Rent/mo"
+  value={formatCurrency(hmoResults.grossMonthlyRent)}
+  tooltip={TT.hmoGrossRent}
+
+FLIP — already has 4 boxes (Total Cost, Selling Costs, 
+  Net Profit, Profit/Month toggle). No change needed.
+
+SA Box 4: MetricBox label="Mortgage"
+  value={formatCurrency(saResults.mortgageAmount)}
+  tooltip={TT.mortgageAmount}
+
+BRRR Box 4: MetricBox label="Refinance Loan"
+  value={formatCurrency(brrrResults.refinanceLoan)}
+  tooltip={TT.mortgageAmount}
+
+R2R Box 4: MetricBox label="Net Income/mo"
+  value={formatCurrency(r2rResults.netMonthlyIncome)}
+  tooltip={TT.r2rNetIncome}
+
+SOCIAL Box 4: MetricBox label="Mortgage"
+  value={formatCurrency(socialResults.mortgageAmount)}
+  tooltip={TT.mortgageAmount}
+
+---
+
+TASK 5 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Score badge centred — confirm (Task 1)
+2. Score breakdown toggle restored — confirm 
+   whyScoreOpen state line number (Task 2)
+3. Cash Flow tile matches MetricBox design — confirm 
+   for all 7 strategies (Task 3)
+4. Fourth MetricBox restored — confirm for all 7 
+   strategies with correct metric (Task 4)
+5. TypeScript error count (must be 0)

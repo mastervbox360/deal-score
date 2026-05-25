@@ -230,6 +230,7 @@ export default function HomePage() {
   const [hasAnalysed, setHasAnalysed] = useState(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
+  const [whyScoreOpen, setWhyScoreOpen] = useState<boolean>(false);
   const [showAnnual, setShowAnnual] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
@@ -2817,7 +2818,7 @@ export default function HomePage() {
           <div className="lg:col-span-5 lg:sticky lg:top-[160px]">
             <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 4px 16px rgba(27, 58, 107, 0.08)', borderTop: '3px solid #1B3A6B' }}>
             <div className="bg-white overflow-hidden">
-              <div className="px-6 pt-5 pb-4 flex flex-col items-start justify-start text-left space-y-4">
+              <div className="px-6 pt-5 pb-4 flex flex-col items-center justify-center w-full space-y-4">
                 <div className="flex items-center justify-center gap-1">
                   <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" style={{ color: '#1B3A6B' }} />Deal Score
@@ -2826,65 +2827,86 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'BTL' && (<>
                   {renderScoreBadge(btlResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{btlResults.score === 'Strong' ? 'Strong cash flow and ROI — this deal stacks.' : btlResults.score === 'Average' ? 'Positive cash flow but ROI below investor threshold.' : 'Negative cash flow or ROI below minimum — deal does not stack.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 3% (Average)</span><span style={{ color: btlResults.cashOnCashROI >= 3 ? '#10B981' : '#EF4444' }}>{btlResults.cashOnCashROI >= 3 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Monthly CF ≥ £100</span><span style={{ color: btlResults.monthlyCashFlow >= 100 ? '#10B981' : '#EF4444' }}>{btlResults.monthlyCashFlow >= 100 ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 3% (Average)</span><span style={{ color: btlResults.cashOnCashROI >= 3 ? '#10B981' : '#EF4444' }}>{btlResults.cashOnCashROI >= 3 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Monthly CF ≥ £100</span><span style={{ color: btlResults.monthlyCashFlow >= 100 ? '#10B981' : '#EF4444' }}>{btlResults.monthlyCashFlow >= 100 ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
                 {missingFields.length === 0 && dealType === 'HMO' && (<>
                   {renderScoreBadge(hmoResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{hmoResults.score === 'Strong' ? 'Strong yield and cash flow — good room-level returns.' : hmoResults.score === 'Average' ? 'Borderline yield or cash flow — needs improvement.' : 'HMO yield below threshold — review rates or costs.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Gross Yield ≥ 10% (Strong) / ≥ 7% (Average)</span><span style={{ color: hmoResults.grossYield >= 7 ? '#10B981' : '#EF4444' }}>{hmoResults.grossYield >= 7 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Positive cash flow</span><span style={{ color: hmoResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{hmoResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Gross Yield ≥ 10% (Strong) / ≥ 7% (Average)</span><span style={{ color: hmoResults.grossYield >= 7 ? '#10B981' : '#EF4444' }}>{hmoResults.grossYield >= 7 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: hmoResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{hmoResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
                 {missingFields.length === 0 && dealType === 'FLIP' && (<>
                   {renderScoreBadge(flipResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{flipResults.score === 'Strong' ? 'Strong profit margin — flip stacks at current numbers.' : flipResults.score === 'Average' ? 'Acceptable margin — watch refurb costs carefully.' : 'Profit or margin below threshold — does not stack.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">ROI ≥ 12% (Strong) / ≥ 8% (Average)</span><span style={{ color: flipResults.roi >= 8 ? '#10B981' : '#EF4444' }}>{flipResults.roi >= 8 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Net Profit ≥ £18k (Strong)</span><span style={{ color: flipResults.netProfit >= 18000 ? '#10B981' : '#EF4444' }}>{flipResults.netProfit >= 18000 ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">ROI ≥ 12% (Strong) / ≥ 8% (Average)</span><span style={{ color: flipResults.roi >= 8 ? '#10B981' : '#EF4444' }}>{flipResults.roi >= 8 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Net Profit ≥ £18k (Strong)</span><span style={{ color: flipResults.netProfit >= 18000 ? '#10B981' : '#EF4444' }}>{flipResults.netProfit >= 18000 ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
                 {missingFields.length === 0 && dealType === 'SA' && (<>
                   {renderScoreBadge(saResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow — good occupancy combination.' : saResults.score === 'Average' ? 'Marginal SA returns — occupancy or rate needs improvement.' : 'SA yield below threshold or negative cash flow.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Net Yield ≥ 15% (Strong) / ≥ 10% (Average)</span><span style={{ color: saResults.netYield >= 10 ? '#10B981' : '#EF4444' }}>{saResults.netYield >= 10 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Positive cash flow</span><span style={{ color: saResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{saResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Net Yield ≥ 15% (Strong) / ≥ 10% (Average)</span><span style={{ color: saResults.netYield >= 10 ? '#10B981' : '#EF4444' }}>{saResults.netYield >= 10 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: saResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{saResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
                 {missingFields.length === 0 && dealType === 'BRRR' && (<>
                   {renderScoreBadge(brrrResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{brrrResults.score === 'Strong' ? 'Capital recycled efficiently with positive cash flow.' : brrrResults.score === 'Average' ? 'Positive cash flow but significant capital remains in deal.' : 'Negative cash flow or too much capital left in.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Positive cash flow</span><span style={{ color: brrrResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{brrrResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Cash Left In ≤ £10k (Strong) / ≤ £25k (Average)</span><span style={{ color: (brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 25000) ? '#10B981' : '#EF4444' }}>{(brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 25000) ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: brrrResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{brrrResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Cash Left In ≤ £10k (Strong) / ≤ £25k (Average)</span><span style={{ color: (brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 25000) ? '#10B981' : '#EF4444' }}>{(brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 25000) ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
                 {missingFields.length === 0 && dealType === 'R2R' && (<>
                   {renderScoreBadge(r2rResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{r2rResults.score === 'Strong' ? 'Strong margins — setup costs recovered quickly.' : r2rResults.score === 'Average' ? 'Marginal profit or ROI on setup — needs improvement.' : 'Monthly profit below threshold — does not stack.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Monthly Profit ≥ £500 (Strong) / ≥ £200 (Average)</span><span style={{ color: r2rResults.monthlyProfit >= 200 ? '#10B981' : '#EF4444' }}>{r2rResults.monthlyProfit >= 200 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">ROI on Setup ≥ 50% (Strong) / ≥ 25% (Average)</span><span style={{ color: r2rResults.roi >= 25 ? '#10B981' : '#EF4444' }}>{r2rResults.roi >= 25 ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Monthly Profit ≥ £500 (Strong) / ≥ £200 (Average)</span><span style={{ color: r2rResults.monthlyProfit >= 200 ? '#10B981' : '#EF4444' }}>{r2rResults.monthlyProfit >= 200 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">ROI on Setup ≥ 50% (Strong) / ≥ 25% (Average)</span><span style={{ color: r2rResults.roi >= 25 ? '#10B981' : '#EF4444' }}>{r2rResults.roi >= 25 ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
                 {missingFields.length === 0 && dealType === 'SOCIAL' && (<>
                   {renderScoreBadge(socialResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{socialResults.score === 'Strong' ? 'Stable lease income with strong ROI.' : socialResults.score === 'Average' ? 'ROI or cash flow below investor threshold.' : 'Lease income does not cover costs.'}</p>
-                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground px-6 pt-1">Score breakdown</p>
-                  <div className="px-6 pb-3 space-y-1">
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 2% (Average)</span><span style={{ color: socialResults.cashOnCashROI >= 2 ? '#10B981' : '#EF4444' }}>{socialResults.cashOnCashROI >= 2 ? '✓' : '✗'}</span></div>
-                    <div className="flex justify-between items-center text-xs"><span className="text-muted-foreground">Monthly CF ≥ £100</span><span style={{ color: socialResults.monthlyCashFlow >= 100 ? '#10B981' : '#EF4444' }}>{socialResults.monthlyCashFlow >= 100 ? '✓' : '✗'}</span></div>
-                  </div>
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                    Score Breakdown
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {whyScoreOpen && (<div className="pb-3 space-y-1">
+                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 2% (Average)</span><span style={{ color: socialResults.cashOnCashROI >= 2 ? '#10B981' : '#EF4444' }}>{socialResults.cashOnCashROI >= 2 ? '✓' : '✗'}</span></div>
+                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Monthly CF ≥ £100</span><span style={{ color: socialResults.monthlyCashFlow >= 100 ? '#10B981' : '#EF4444' }}>{socialResults.monthlyCashFlow >= 100 ? '✓' : '✗'}</span></div>
+                  </div>)}
                 </>)}
 
 
@@ -2955,16 +2977,17 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual CF' : 'Monthly Flow'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${hasMinimumData && (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) : '—'}</span>
+                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) : '—'}</span>
                       </div>
+                      <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3004,16 +3027,17 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual CF' : 'Monthly Flow'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${hasMinimumData && (showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) : '—'}</span>
+                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) : '—'}</span>
                       </div>
+                      <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3056,15 +3080,15 @@ export default function HomePage() {
                       <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
                       <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} tooltip={TT.flipSellingCosts} />
                       <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} tooltip={TT.flipNetProfit} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Total Profit' : 'Profit / Month'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Per Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Total</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${(showAnnual ? flipResults.netProfit : flipResults.profitPerMonth) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? flipResults.netProfit : flipResults.profitPerMonth)}</span>
+                        <span className={`text-2xl font-bold ${(showAnnual ? flipResults.netProfit : flipResults.profitPerMonth) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? flipResults.netProfit : flipResults.profitPerMonth)}</span>
                       </div>
                     </div>
                     <div className="h-px bg-border" />
@@ -3117,16 +3141,17 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
                       <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} tooltip={TT.saNetRev} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual CF' : 'Monthly Flow'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${hasMinimumData && (showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) : '—'}</span>
+                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) : '—'}</span>
                       </div>
+                      <MetricBox label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3170,16 +3195,17 @@ export default function HomePage() {
                         tooltip={TT.brrrCashLeft}
                       />
                       <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} tooltip={TT.equityCreated} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual CF' : 'Monthly Flow'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${hasMinimumData && (showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) : '—'}</span>
+                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) : '—'}</span>
                       </div>
+                      <MetricBox label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} tooltip={TT.brrrRefinanceLoan} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3215,16 +3241,17 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
                       <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual Profit' : 'Monthly Profit'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit)}</span>
+                        <span className={`text-2xl font-bold ${(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit)}</span>
                       </div>
+                      <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3254,16 +3281,17 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="bg-white rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual CF' : 'Monthly Flow'}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground'}`} onClick={() => setShowAnnual(true)}>Yr</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
+                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
                           </div>
                         </div>
-                        <span className={`text-lg font-bold ${hasMinimumData && (showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) : '—'}</span>
+                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) : '—'}</span>
                       </div>
+                      <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
