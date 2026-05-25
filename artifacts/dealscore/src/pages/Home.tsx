@@ -2827,9 +2827,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'BTL' && (<>
                   {renderScoreBadge(btlResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{btlResults.score === 'Strong' ? 'Strong cash flow and ROI — this deal stacks.' : btlResults.score === 'Average' ? 'Positive cash flow but ROI below investor threshold.' : 'Negative cash flow or ROI below minimum — deal does not stack.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 3% (Average)</span><span style={{ color: btlResults.cashOnCashROI >= 3 ? '#10B981' : '#EF4444' }}>{btlResults.cashOnCashROI >= 3 ? '✓' : '✗'}</span></div>
@@ -2839,9 +2839,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'HMO' && (<>
                   {renderScoreBadge(hmoResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{hmoResults.score === 'Strong' ? 'Strong yield and cash flow — good room-level returns.' : hmoResults.score === 'Average' ? 'Borderline yield or cash flow — needs improvement.' : 'HMO yield below threshold — review rates or costs.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Gross Yield ≥ 10% (Strong) / ≥ 7% (Average)</span><span style={{ color: hmoResults.grossYield >= 7 ? '#10B981' : '#EF4444' }}>{hmoResults.grossYield >= 7 ? '✓' : '✗'}</span></div>
@@ -2851,9 +2851,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'FLIP' && (<>
                   {renderScoreBadge(flipResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{flipResults.score === 'Strong' ? 'Strong profit margin — flip stacks at current numbers.' : flipResults.score === 'Average' ? 'Acceptable margin — watch refurb costs carefully.' : 'Profit or margin below threshold — does not stack.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">ROI ≥ 12% (Strong) / ≥ 8% (Average)</span><span style={{ color: flipResults.roi >= 8 ? '#10B981' : '#EF4444' }}>{flipResults.roi >= 8 ? '✓' : '✗'}</span></div>
@@ -2863,9 +2863,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'SA' && (<>
                   {renderScoreBadge(saResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow — good occupancy combination.' : saResults.score === 'Average' ? 'Marginal SA returns — occupancy or rate needs improvement.' : 'SA yield below threshold or negative cash flow.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Net Yield ≥ 15% (Strong) / ≥ 10% (Average)</span><span style={{ color: saResults.netYield >= 10 ? '#10B981' : '#EF4444' }}>{saResults.netYield >= 10 ? '✓' : '✗'}</span></div>
@@ -2875,9 +2875,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'BRRR' && (<>
                   {renderScoreBadge(brrrResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{brrrResults.score === 'Strong' ? 'Capital recycled efficiently with positive cash flow.' : brrrResults.score === 'Average' ? 'Positive cash flow but significant capital remains in deal.' : 'Negative cash flow or too much capital left in.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: brrrResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{brrrResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
@@ -2887,9 +2887,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'R2R' && (<>
                   {renderScoreBadge(r2rResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{r2rResults.score === 'Strong' ? 'Strong margins — setup costs recovered quickly.' : r2rResults.score === 'Average' ? 'Marginal profit or ROI on setup — needs improvement.' : 'Monthly profit below threshold — does not stack.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Monthly Profit ≥ £500 (Strong) / ≥ £200 (Average)</span><span style={{ color: r2rResults.monthlyProfit >= 200 ? '#10B981' : '#EF4444' }}>{r2rResults.monthlyProfit >= 200 ? '✓' : '✗'}</span></div>
@@ -2899,9 +2899,9 @@ export default function HomePage() {
                 {missingFields.length === 0 && dealType === 'SOCIAL' && (<>
                   {renderScoreBadge(socialResults.score)}
                   <p className="text-xs text-muted-foreground italic px-6 pb-2">{socialResults.score === 'Strong' ? 'Stable lease income with strong ROI.' : socialResults.score === 'Average' ? 'ROI or cash flow below investor threshold.' : 'Lease income does not cover costs.'}</p>
-                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-[#1B3A6B] transition-colors w-full text-left">
+                  <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
-                    <ChevronDown className="w-3 h-3 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
                   {whyScoreOpen && (<div className="pb-3 space-y-1">
                     <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 2% (Average)</span><span style={{ color: socialResults.cashOnCashROI >= 2 ? '#10B981' : '#EF4444' }}>{socialResults.cashOnCashROI >= 2 ? '✓' : '✗'}</span></div>
@@ -2949,7 +2949,7 @@ export default function HomePage() {
               <div className="px-6 pb-4">
                 {resultsMode[dealType] === 'analyse' ? (<>
                 {missingFields.length === 0 && dealType === 'BTL' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
                         ? btlResults.score === 'Strong' || btlResults.score === 'Average'
@@ -2977,7 +2977,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -2987,7 +2987,7 @@ export default function HomePage() {
                         </div>
                         <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) : '—'}</span>
                       </div>
-                      <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
+                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(btlResults.annualCashFlow) : '—'} highlight={hasMinimumData && btlResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3002,7 +3002,7 @@ export default function HomePage() {
                 )}
 
                 {missingFields.length === 0 && dealType === 'HMO' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
                         ? hmoResults.score === 'Strong' || hmoResults.score === 'Average'
@@ -3027,7 +3027,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3064,7 +3064,7 @@ export default function HomePage() {
                 )}
 
                 {missingFields.length === 0 && dealType === 'FLIP' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0
                         ? '⚠️ Deal makes a loss at these numbers — review purchase price or refurb costs'
@@ -3080,7 +3080,7 @@ export default function HomePage() {
                       <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
                       <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} tooltip={TT.flipSellingCosts} />
                       <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} tooltip={TT.flipNetProfit} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
                           <div className="flex items-center gap-1">
@@ -3121,7 +3121,7 @@ export default function HomePage() {
                 )}
 
                 {missingFields.length === 0 && dealType === 'SA' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
                         ? saResults.score === 'Strong' || saResults.score === 'Average'
@@ -3141,7 +3141,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
                       <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} tooltip={TT.saNetRev} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3168,7 +3168,7 @@ export default function HomePage() {
                 )}
 
                 {missingFields.length === 0 && dealType === 'BRRR' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
                         ? brrrResults.score === 'Strong' || brrrResults.score === 'Average'
@@ -3195,7 +3195,7 @@ export default function HomePage() {
                         tooltip={TT.brrrCashLeft}
                       />
                       <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} tooltip={TT.equityCreated} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3227,7 +3227,7 @@ export default function HomePage() {
                 )}
 
                 {missingFields.length === 0 && dealType === 'R2R' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
                         ? r2rResults.score === 'Average'
@@ -3241,7 +3241,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
                       <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
                           <div className="flex items-center gap-1">
@@ -3264,7 +3264,7 @@ export default function HomePage() {
                 )}
 
                 {missingFields.length === 0 && dealType === 'SOCIAL' && (
-                  <div className="space-y-6">
+                  <div className="space-y-3">
                     <RiskFlags flags={[
                       tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85
                         ? socialResults.score === 'Strong' || socialResults.score === 'Average'
@@ -3281,7 +3281,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="bg-white rounded-xl border border-border/60 p-4 flex flex-col gap-2">
+                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
