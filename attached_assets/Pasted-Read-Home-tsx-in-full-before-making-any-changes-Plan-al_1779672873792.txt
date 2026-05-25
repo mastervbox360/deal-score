@@ -1,0 +1,228 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — LIVE BAR: JUSTIFY-BETWEEN LAYOUT
+
+Find the sticky Deal Score Bar ({/* Sticky Deal Score Bar */}).
+
+Replace the current three-zone flex layout with a single 
+flex container using justify-between:
+
+Outer container:
+<div className="flex items-center justify-between w-full 
+  min-h-[44px] px-6 py-2 gap-4">
+
+Left signals group (flex items-center gap-6):
+  - Strategy (always, all screens)
+  - Vertical divider
+  - Purchase Price (desktop, purchasePrice > 0, not R2R)
+  - Vertical divider (if Purchase Price showing)
+  - Deal Score (when complete, all screens)
+
+Right element (shrink-0):
+  - When incomplete: missing fields pill
+  - When complete + analyse mode: Deal Optimiser prompt
+  - When complete + offer mode + result found: Max Offer signal
+
+Vertical divider style: 
+<div className="h-4 w-px bg-border/60 shrink-0" />
+
+All signals identical typography:
+  Label: text-[9px] font-semibold uppercase tracking-wider 
+    text-muted-foreground
+  Value: text-sm font-bold text-[#1B3A6B]
+  Deal Score value: text-sm font-bold in verdict colour
+
+No absolute positioning. No flex-1 centre zone. 
+No three zones. Single justify-between row.
+
+---
+
+TASK 2 — REMOVE HERO METRICS ROW
+
+Find and remove the hero metrics 3-chip strip 
+(bg-slate-50/50 border-t border-b, justify-around) 
+added in the previous prompt for all 7 strategies.
+
+Remove entirely — do not replace with anything.
+The score badge, verdict line, Why this score, and 
+ResultsModeToggle remain untouched.
+
+---
+
+TASK 3 — FIX MONTHLY/ANNUAL TOGGLE
+
+The current toggle sits above the MetricBox grid and 
+affects nothing visually. Replace with this approach:
+
+Remove the standalone View Monthly/Annual toggle div 
+from above the MetricBox grid for all 7 strategies.
+
+In each strategy's MetricBox grid, find the Monthly Flow 
+box (or equivalent cash flow box per strategy):
+  BTL/SOCIAL: "Monthly Flow" / "Annual Flow"
+  HMO: "Monthly Flow" / "Annual Flow"  
+  SA: "Monthly Flow" / "Annual Flow"
+  BRRR: "Monthly Flow" / "Annual Flow"
+  R2R: "Monthly Profit" / "Annual Profit"
+  FLIP: "Profit / Month" / "Total Profit"
+
+Replace that single MetricBox with an inline version 
+that contains the toggle inside it:
+
+<div className="bg-white rounded-xl border border-border/60 
+  p-3 flex flex-col gap-1">
+  <div className="flex items-center justify-between">
+    <span className="text-[10px] font-semibold uppercase 
+      tracking-wider text-muted-foreground">
+      {showAnnual ? '[Annual label]' : '[Monthly label]'}
+    </span>
+    <div className="flex items-center gap-1">
+      <button
+        className={`text-[9px] px-1.5 py-0.5 rounded 
+          ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 
+          'bg-slate-100 text-muted-foreground'}`}
+        onClick={() => setShowAnnual(false)}
+      >Mo</button>
+      <button
+        className={`text-[9px] px-1.5 py-0.5 rounded 
+          ${showAnnual ? 'bg-[#1B3A6B] text-white' : 
+          'bg-slate-100 text-muted-foreground'}`}
+        onClick={() => setShowAnnual(true)}
+      >Yr</button>
+    </div>
+  </div>
+  <span className="text-lg font-bold text-[#1B3A6B]">
+    {showAnnual ? [annual value] : [monthly value]}
+  </span>
+</div>
+
+Keep the Annual Flow / Annual Profit MetricBox that 
+currently sits alongside — REMOVE it since the toggle 
+now handles both. The grid should remain grid-cols-2 
+with 4 boxes total (was 4, remove annual box, add 
+inline toggle box = still 4).
+
+Apply to all 7 strategies. Keep highlight prop logic 
+(negative values) on the monthly value.
+
+Do NOT change showAnnual state variable — it already 
+exists from the previous prompt.
+
+---
+
+TASK 4 — SHORTEN VERDICT LINES
+
+Find the verdict line paragraph (text-xs italic 
+text-muted-foreground px-6 pb-2) for each strategy.
+
+Replace with these shorter single-line versions:
+
+BTL:
+  Strong: "Strong cash flow and ROI — this deal stacks."
+  Average: "Positive cash flow but ROI below investor 
+    threshold."
+  Weak: "Negative cash flow or ROI below minimum — 
+    deal does not stack."
+
+HMO:
+  Strong: "Strong yield and cash flow — good room-level 
+    returns."
+  Average: "Borderline yield or cash flow — needs 
+    improvement."
+  Weak: "HMO yield below threshold — review rates 
+    or costs."
+
+FLIP:
+  Strong: "Strong profit margin — flip stacks at current 
+    numbers."
+  Average: "Acceptable margin — watch refurb costs 
+    carefully."
+  Weak: "Profit or margin below threshold — does not 
+    stack."
+
+SA:
+  Strong: "Strong SA yield and cash flow — good 
+    occupancy combination."
+  Average: "Marginal SA returns — occupancy or rate 
+    needs improvement."
+  Weak: "SA yield below threshold or negative cash flow."
+
+BRRR:
+  Strong: "Capital recycled efficiently with positive 
+    cash flow."
+  Average: "Positive cash flow but significant capital 
+    remains in deal."
+  Weak: "Negative cash flow or too much capital left in."
+
+R2R:
+  Strong: "Strong margins — setup costs recovered quickly."
+  Average: "Marginal profit or ROI on setup — needs 
+    improvement."
+  Weak: "Monthly profit below threshold — does not stack."
+
+SOCIAL:
+  Strong: "Stable lease income with strong ROI."
+  Average: "ROI or cash flow below investor threshold."
+  Weak: "Lease income does not cover costs."
+
+---
+
+TASK 5 — WHY THIS SCORE: ALWAYS VISIBLE
+
+Find the "Why this score?" toggle button and 
+whyScoreOpen state for all 7 strategies.
+
+Remove:
+  - The <button>Why this score?</button> toggle
+  - All {whyScoreOpen && (...)} conditional wrappers
+  - The whyScoreOpen useState declaration
+
+Replace with: always-visible threshold table, 
+no toggle needed. The threshold table renders directly 
+when missingFields.length === 0, immediately below 
+the verdict line.
+
+Add a small label above the threshold table:
+<p className="text-[9px] font-semibold uppercase 
+  tracking-wider text-muted-foreground px-6 pt-1">
+  Score breakdown
+</p>
+
+Keep all threshold content and ✓/✗ logic unchanged — 
+just remove the toggle wrapper.
+
+---
+
+TASK 6 — FIX "COC ROI" LABEL
+
+Search Home.tsx for any instance of "COC ROI" 
+(all caps). Replace with "CoC ROI" wherever it appears 
+as a rendered label string. Do not change variable names.
+
+---
+
+TASK 7 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Live bar layout change — confirm justify-between 
+   single container (Task 1)
+2. Hero metrics row removed — confirm for all 7 
+   strategies (Task 2)
+3. Monthly/Annual toggle — confirm moved inside 
+   MetricBox for all 7 strategies, standalone toggle 
+   removed (Task 3)
+4. Verdict lines shortened — confirm for all 7 
+   strategies (Task 4)
+5. Why this score always visible — confirm toggle 
+   removed, whyScoreOpen state removed (Task 5)
+6. COC ROI instances fixed (Task 6)
+7. TypeScript error count (must be 0)
