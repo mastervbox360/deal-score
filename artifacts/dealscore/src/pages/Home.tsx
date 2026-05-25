@@ -1650,8 +1650,16 @@ export default function HomePage() {
                   </div>
                 </>)}
 
+                {dealType === 'R2R' && r2rInputs.setupCosts > 0 && (<>
+                  <div className="h-4 w-px bg-border/60 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Setup Costs</span>
+                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(r2rInputs.setupCosts)}</span>
+                  </div>
+                </>)}
+
                 {!incomplete && (<>
-                  {showPurchasePrice && <div className="hidden lg:block h-4 w-px bg-border/60 shrink-0" />}
+                  {(showPurchasePrice || (dealType === 'R2R' && r2rInputs.setupCosts > 0)) && <div className="hidden lg:block h-4 w-px bg-border/60 shrink-0" />}
                   <div className="flex flex-col leading-none">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
                     <span className="text-sm font-bold" style={{ color: dsSignal.colour }}>{dsSignal.label}</span>
@@ -2862,7 +2870,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'SA' && (<>
                   {renderScoreBadge(saResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow — good occupancy combination.' : saResults.score === 'Average' ? 'Marginal SA returns — occupancy or rate needs improvement.' : 'SA yield below threshold or negative cash flow.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow.' : saResults.score === 'Average' ? 'Marginal SA returns — rate or occupancy needs work.' : 'SA yield below threshold or negative cash flow.'}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2977,7 +2985,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -2987,7 +2995,6 @@ export default function HomePage() {
                         </div>
                         <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) : '—'}</span>
                       </div>
-                      <MetricBox label="Annual Flow" value={hasMinimumData ? formatCurrency(btlResults.annualCashFlow) : '—'} highlight={hasMinimumData && btlResults.annualCashFlow < 0} tooltip={TT.annualFlow} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3027,7 +3034,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3037,7 +3044,6 @@ export default function HomePage() {
                         </div>
                         <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) : '—'}</span>
                       </div>
-                      <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3080,7 +3086,7 @@ export default function HomePage() {
                       <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
                       <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} tooltip={TT.flipSellingCosts} />
                       <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} tooltip={TT.flipNetProfit} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
                           <div className="flex items-center gap-1">
@@ -3139,9 +3145,9 @@ export default function HomePage() {
                         : null,
                     ].filter(Boolean) as string[]} />
                     <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Gross Rev/mo" value={formatCurrency(saResults.grossMonthlyRevenue)} tooltip={TT.saGrossRev} />
-                      <MetricBox label="Net Rev/mo" value={formatCurrency(saResults.netMonthlyRevenue)} tooltip={TT.saNetRev} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <MetricBox label="Cash Invested" value={formatCurrency(saResults.totalCashInvested)} tooltip={TT.cashInvested} />
+                      <MetricBox label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3151,7 +3157,6 @@ export default function HomePage() {
                         </div>
                         <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) : '—'}</span>
                       </div>
-                      <MetricBox label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3195,7 +3200,7 @@ export default function HomePage() {
                         tooltip={TT.brrrCashLeft}
                       />
                       <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} tooltip={TT.equityCreated} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3241,7 +3246,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
                       <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
                           <div className="flex items-center gap-1">
@@ -3251,7 +3256,6 @@ export default function HomePage() {
                         </div>
                         <span className={`text-2xl font-bold ${(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit)}</span>
                       </div>
-                      <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">
@@ -3281,7 +3285,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 gap-4">
                       <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
                       <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2" style={{ backgroundColor: '#F0F4F8', border: '1px solid #E2E8F0' }}>
+                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
                           <div className="flex items-center gap-1">
@@ -3291,7 +3295,6 @@ export default function HomePage() {
                         </div>
                         <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) : '—'}</span>
                       </div>
-                      <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
                     </div>
                     <div className="h-px bg-border" />
                     <div className="space-y-3 pt-3">

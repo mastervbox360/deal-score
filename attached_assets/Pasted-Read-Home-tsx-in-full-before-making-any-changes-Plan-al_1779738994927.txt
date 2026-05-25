@@ -1,0 +1,128 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — REMOVE DUPLICATE FOURTH METRICBOX
+
+For the following strategies, remove the fourth MetricBox 
+entirely from the grid. The grid becomes 3 boxes 
+(grid-cols-2 gap-4 — keep the grid class, just remove 
+the fourth box):
+
+BTL: Remove <MetricBox label="Annual Flow" .../>
+  (Cash Flow toggle already shows annual when Yr selected)
+
+HMO: Remove the second <MetricBox label="Gross Rent/mo" 
+  .../> (the duplicate — Box 2 already shows Gross Rent/mo)
+
+SA: Remove <MetricBox label="Mortgage" .../> 
+  (Box 4 — Mortgage already shown in rows below)
+
+R2R: Remove the second <MetricBox label="Net Income/mo" 
+  .../> (the duplicate fourth box)
+
+SOCIAL: Remove the second <MetricBox label="Mortgage" 
+  .../> (the duplicate fourth box)
+
+KEEP unchanged:
+- FLIP: already 4 unique boxes — do not touch
+- BRRR: keep Refinance Loan as Box 4 — genuinely unique
+
+---
+
+TASK 2 — FIX SA METRICBOX LABELS
+
+The SA grid currently shows "Gross Rev/mo" and 
+"Net Rev/mo" — when platform fees are 0 these show 
+identical values which looks like a bug.
+
+Replace with more useful and distinct boxes:
+
+Box 1: <MetricBox label="Cash Invested" 
+  value={formatCurrency(saResults.totalCashInvested)} 
+  tooltip={TT.cashInvested} />
+
+Box 2: <MetricBox label="Mortgage" 
+  value={formatCurrency(saResults.mortgageAmount)} 
+  tooltip={TT.mortgageAmount} />
+
+Box 3: Cash Flow toggle tile (unchanged)
+
+Box 4: REMOVED (Task 1)
+
+This gives SA the same clean layout as BTL/SOCIAL.
+The Gross Rev and Net Rev figures remain visible in 
+the Show Workings section where they belong.
+
+---
+
+TASK 3 — R2R LIVE BAR: SHOW SETUP COSTS
+
+Find the sticky Deal Score Bar.
+
+Currently for R2R the Purchase Price signal is hidden 
+(correct — R2R has no purchase price), leaving the bar 
+sparse.
+
+Add a Setup Costs signal for R2R only:
+Show when: dealType === 'R2R' AND 
+r2rInputs.setupCosts > 0.
+Position: same slot as Purchase Price 
+(between Strategy and Deal Score).
+Label: "SETUP COSTS"
+Value: formatCurrency(r2rInputs.setupCosts)
+Style: identical to Purchase Price signal 
+(hidden on mobile, desktop only).
+
+---
+
+TASK 4 — FIX SA VERDICT LINE
+
+Find the SA verdict line paragraph. Currently it reads:
+"Strong SA yield and cash flow — good occupancy 
+combination."
+
+This wraps to two lines. Replace with:
+Strong: "Strong SA yield and cash flow."
+Average: "Marginal SA returns — rate or occupancy 
+  needs work."
+Weak: "SA yield below threshold or negative cash flow."
+
+---
+
+TASK 5 — CASH FLOW TILE BACKGROUND
+
+The Cash Flow toggle tile currently uses inline style:
+style={{ backgroundColor: '#F0F4F8', 
+  border: '1px solid #E2E8F0' }}
+
+Replace with Tailwind classes that match MetricBox 
+exactly. First read the MetricBox component definition 
+to confirm its exact background class, then apply the 
+same class to the Cash Flow tile outer div for all 
+7 strategies.
+
+Remove the inline style entirely and use the matching 
+Tailwind class instead.
+
+---
+
+TASK 6 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Fourth box removed — confirm for BTL, HMO, SA, 
+   R2R, SOCIAL (Task 1)
+2. SA MetricBox grid updated to Cash Invested + 
+   Mortgage (Task 2)
+3. R2R Setup Costs signal added to live bar (Task 3)
+4. SA verdict lines shortened (Task 4)
+5. Cash Flow tile background class confirmed and 
+   applied to all 7 strategies (Task 5)
+6. TypeScript error count (must be 0)
