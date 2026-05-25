@@ -1,0 +1,315 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — LIVE BAR LAYOUT AND SPACING
+
+Find the sticky Deal Score Bar ({/* Sticky Deal Score Bar */}).
+
+Restructure the bar's inner container to use full-width 
+distribution with three zones:
+
+LEFT ZONE — Strategy signal (always shown, all screen sizes)
+CENTRE ZONE — Purchase Price + Deal Score (evenly spaced, 
+  centred in the bar)
+RIGHT ZONE — Deal Optimiser prompt OR Max Offer 
+  (always on far right)
+
+Implementation:
+- Outer container: flex items-center justify-between w-full 
+  min-h-[44px] px-6 py-2
+- Left zone: shrink-0
+- Centre zone: flex items-center gap-8 absolute left-1/2 
+  -translate-x-1/2 (or use flex-1 justify-center approach 
+  — whichever centres cleanly without overlap)
+- Right zone: shrink-0 ml-auto
+
+All signals must use identical font sizing and weight:
+- Label: text-[9px] font-semibold uppercase tracking-wider 
+  text-muted-foreground
+- Value: text-sm font-bold — Strategy uses text-sm font-bold 
+  text-[#1B3A6B] same as all others. No signal should be 
+  larger or heavier than another.
+
+Vertical dividers between signals in the centre zone only.
+No divider between left zone and centre, or centre and right.
+
+Missing fields pill stays on the right zone, replacing the 
+Deal Optimiser prompt when fields are incomplete.
+
+---
+
+TASK 2 — DEAL OPTIMISER UI CLEANUP
+
+Find the Deal Optimiser section (resultsMode[dealType] === 
+'offer') for all 7 strategies.
+
+CHANGE 1 — Replace "YOUR TARGETS" label:
+Find the <p> or heading that says "YOUR TARGETS" (or 
+"Your targets") above the ROI/CF toggle in each strategy's 
+Deal Optimiser block.
+Replace with: 
+<p className="text-[10px] font-semibold uppercase 
+tracking-wider text-muted-foreground mb-2">Optimise for</p>
+
+CHANGE 2 — Remove "Limited by" text:
+Find and remove the "Limited by: ROI constraint" / 
+"Limited by: CF constraint" / "Limited by: X" paragraph 
+and the <div className="h-px bg-border/40 my-2" /> rule 
+above it entirely for all strategies.
+This text is now redundant since the user selected their 
+own target.
+
+---
+
+TASK 3 — RESULTS PANEL HERO METRICS ROW
+
+Find the results panel Deal Analyser section 
+(resultsMode[dealType] === 'analyse').
+
+Immediately after the score badge block and BMV banner 
+(but BEFORE the ResultsModeToggle), add a hero metrics 
+row for each strategy. Only show when 
+missingFields.length === 0.
+
+The hero row is a horizontal strip of 3 metric chips, 
+each showing:
+- Label: text-[9px] font-semibold uppercase tracking-wider 
+  text-muted-foreground
+- Value: text-xl font-extrabold text-[#1B3A6B]
+
+Container: flex items-center justify-around w-full 
+px-6 py-3 border-t border-b border-border/40 bg-slate-50/50
+
+Strategy-specific chips:
+
+BTL:
+  Chip 1 — "Monthly CF" — formatCurrency(btlResults.monthlyCashFlow)
+  Chip 2 — "CoC ROI" — formatPercent(btlResults.cashOnCashROI)
+  Chip 3 — "Gross Yield" — formatPercent(btlResults.grossYield)
+
+HMO:
+  Chip 1 — "Monthly CF" — formatCurrency(hmoResults.monthlyCashFlow)
+  Chip 2 — "Gross Yield" — formatPercent(hmoResults.grossYield)
+  Chip 3 — "Profit/Room" — formatCurrency(hmoResults.monthlyCashFlow / Math.max(hmoInputs.rooms, 1))
+
+FLIP:
+  Chip 1 — "Net Profit" — formatCurrency(flipResults.netProfit)
+  Chip 2 — "Profit on Cost" — formatPercent(flipResults.profitOnCost)
+  Chip 3 — "Ann. ROI" — formatPercent(flipResults.annualisedROI)
+
+SA:
+  Chip 1 — "Monthly CF" — formatCurrency(saResults.monthlyCashFlow)
+  Chip 2 — "Net Yield" — formatPercent(saResults.netYield)
+  Chip 3 — "Occupancy" — formatPercent(saInputs.occupancyPercent)
+
+BRRR:
+  Chip 1 — "Cash Left In" — brrrResults.moneyOut ? '∞' : formatCurrency(brrrResults.cashLeftInDeal)
+  Chip 2 — "Monthly CF" — formatCurrency(brrrResults.monthlyCashFlow)
+  Chip 3 — "CoC ROI" — brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI)
+
+R2R:
+  Chip 1 — "Monthly Profit" — formatCurrency(r2rResults.monthlyProfit)
+  Chip 2 — "Monthly Spread" — formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)
+  Chip 3 — "ROI on Setup" — formatPercent(r2rResults.roi)
+
+SOCIAL:
+  Chip 1 — "Monthly CF" — formatCurrency(socialResults.monthlyCashFlow)
+  Chip 2 — "CoC ROI" — formatPercent(socialResults.cashOnCashROI)
+  Chip 3 — "Gross Yield" — formatPercent(socialResults.grossYield)
+
+---
+
+TASK 4 — ONE-LINE CONTEXTUAL VERDICT
+
+Find the score badge render block. Immediately below the 
+score badge (renderScoreBadge call) for each strategy, 
+add a one-line verdict sentence when missingFields.length === 0.
+
+Style: text-xs text-muted-foreground italic px-6 pb-2
+
+Strategy-specific verdict logic:
+
+BTL:
+  Strong: "Strong cash flow and solid ROI — this deal 
+    stacks at the current price."
+  Average: "Marginal returns — cash flow is positive but 
+    ROI is below the typical investor threshold."
+  Weak: "This deal does not stack — negative cash flow 
+    or ROI below minimum threshold."
+
+HMO:
+  Strong: "Strong HMO yield with positive cash flow — 
+    good room-level returns."
+  Average: "Borderline HMO deal — yield or cash flow 
+    needs improvement to attract investors."
+  Weak: "HMO yield below threshold — review room rates 
+    or running costs."
+
+FLIP:
+  Strong: "Strong profit margin — this flip stacks well 
+    at the current numbers."
+  Average: "Acceptable flip margin — tight on profit, 
+    watch refurb costs carefully."
+  Weak: "Flip does not stack — profit or margin below 
+    minimum threshold."
+
+SA:
+  Strong: "Strong SA yield and positive cash flow — 
+    good nightly rate and occupancy combination."
+  Average: "Marginal SA returns — occupancy or nightly 
+    rate needs improvement."
+  Weak: "SA deal does not stack — yield below threshold 
+    or negative cash flow."
+
+BRRR:
+  Strong: "Strong BRRR — capital recycled efficiently 
+    with positive monthly cash flow."
+  Average: "Partial capital recycle — positive cash flow 
+    but significant capital remains in the deal."
+  Weak: "BRRR does not stack — negative cash flow or 
+    too much capital left in."
+
+R2R:
+  Strong: "Strong R2R margins — setup costs recovered 
+    quickly with healthy monthly profit."
+  Average: "Marginal R2R deal — monthly profit or ROI 
+    on setup needs improvement."
+  Weak: "R2R does not stack — monthly profit below 
+    minimum threshold."
+
+SOCIAL:
+  Strong: "Solid social housing returns — stable lease 
+    income with strong ROI."
+  Average: "Marginal social deal — ROI or cash flow 
+    below typical investor threshold."
+  Weak: "Social deal does not stack — lease income does 
+    not cover costs."
+
+---
+
+TASK 5 — WHY THIS SCORE EXPANDER
+
+Below the one-line verdict (Task 4), add a small 
+expandable "Why this score?" section for each strategy.
+
+Toggle: 
+<button className="text-[10px] text-muted-foreground 
+underline underline-offset-2 px-6 pb-3 text-left 
+hover:text-[#1B3A6B]">
+  Why this score?
+</button>
+
+Add a new state variable near other boolean useState 
+declarations:
+const [whyScoreOpen, setWhyScoreOpen] = 
+  useState<boolean>(false);
+
+When open, show a compact table of thresholds with 
+pass/fail indicators for each strategy:
+
+BTL thresholds:
+  "CoC ROI ≥ 5% (Strong) / ≥ 3% (Average)" — 
+    pass if btlResults.cashOnCashROI ≥ 5 (Strong), 
+    ≥ 3 (Average)
+  "Monthly CF ≥ £100" — 
+    pass if btlResults.monthlyCashFlow ≥ 100
+
+HMO thresholds:
+  "Gross Yield ≥ 10% (Strong) / ≥ 7% (Average)"
+  "Positive cash flow"
+
+FLIP thresholds:
+  "ROI ≥ 12% (Strong) / ≥ 8% (Average)"
+  "Net Profit ≥ £18k (Strong)"
+
+SA thresholds:
+  "Net Yield ≥ 15% (Strong) / ≥ 10% (Average)"
+  "Positive cash flow"
+
+BRRR thresholds:
+  "Positive cash flow"
+  "Cash Left In ≤ £10k (Strong) / ≤ £25k (Average)"
+
+R2R thresholds:
+  "Monthly Profit ≥ £500 (Strong) / ≥ £200 (Average)"
+  "ROI on Setup ≥ 50% (Strong) / ≥ 25% (Average)"
+
+SOCIAL thresholds:
+  "CoC ROI ≥ 5% (Strong) / ≥ 2% (Average)"
+  "Monthly CF ≥ £100"
+
+Each threshold row:
+  ✓ in green (#10B981) if passing for current score
+  ✗ in red (#EF4444) if not passing
+  text-xs, two columns (threshold label | pass/fail icon)
+  Container: px-6 pb-3 space-y-1
+
+Only show when missingFields.length === 0.
+
+---
+
+TASK 6 — MONTHLY/ANNUAL TOGGLE
+
+Add a new state variable near other boolean useState 
+declarations:
+const [showAnnual, setShowAnnual] = useState<boolean>(false);
+
+Find the MetricBox grid in each strategy's Deal Analyser 
+section. Immediately above the MetricBox grid for all 
+7 strategies, add a small toggle:
+
+<div className="flex items-center gap-2 mb-3">
+  <span className="text-[9px] font-semibold uppercase 
+    tracking-wider text-muted-foreground">View</span>
+  <button 
+    className={`text-xs px-2 py-0.5 rounded-md 
+      ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 
+      'bg-slate-100 text-muted-foreground'}`}
+    onClick={() => setShowAnnual(false)}
+  >Monthly</button>
+  <button 
+    className={`text-xs px-2 py-0.5 rounded-md 
+      ${showAnnual ? 'bg-[#1B3A6B] text-white' : 
+      'bg-slate-100 text-muted-foreground'}`}
+    onClick={() => setShowAnnual(true)}
+  >Annual</button>
+</div>
+
+When showAnnual is false (default): show existing monthly 
+figures in MetricBox — Monthly Flow, Monthly CF etc. 
+No change to current values.
+
+When showAnnual is true: switch the cash flow MetricBox 
+values to annual equivalents:
+- "Monthly Flow" label → "Annual Flow", 
+  value → annualCashFlow (already calculated)
+- "Monthly CF" → "Annual CF"  
+- Keep all non-CF boxes unchanged 
+  (Cash Invested, Mortgage, Gross Rent etc.)
+
+Apply this toggle to all 7 strategies consistently.
+
+---
+
+TASK 7 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Live bar layout changes (Task 1)
+2. Deal Optimiser cleanup changes (Task 2)
+3. Hero metrics row — confirm added for all 7 strategies 
+   (Task 3)
+4. Verdict line — confirm added for all 7 strategies 
+   (Task 4)
+5. Why this score expander — confirm state variable location 
+   and added for all 7 strategies (Task 5)
+6. Monthly/Annual toggle — confirm state variable location 
+   and added for all 7 strategies (Task 6)
+7. TypeScript error count (must be 0)
