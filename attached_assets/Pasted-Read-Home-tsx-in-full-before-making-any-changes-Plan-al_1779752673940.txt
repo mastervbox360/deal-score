@@ -1,0 +1,166 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — REBUILD THE LIVE BAR
+
+Find the sticky Deal Score Bar ({/* Sticky Deal Score Bar */}).
+
+Replace the entire bar content with the following confirmed 
+design. Keep all existing helper variables and state 
+references (currentScore, missingFields, resultsMode, 
+optimalOffer, dealLabel etc) — do not remove anything 
+that other parts of the file depend on.
+
+BAR STRUCTURE:
+Outer container: w-full bg-white border-b border-border 
+shadow-sm (box-shadow: 0 2px 8px rgba(0,0,0,0.06))
+Inner container: max-w-[1024px] mx-auto px-6 flex items-center 
+justify-between min-h-[44px] py-2
+
+LEFT SIGNALS GROUP: flex items-center
+RIGHT ELEMENT: shrink-0
+
+SIGNAL STYLE (all signals identical):
+- Wrapper: flex flex-col leading-none px-3
+- Label: text-[9px] font-semibold uppercase tracking-wider 
+  text-muted-foreground
+- Value: text-sm font-medium (colour varies per signal)
+- Vertical divider between signals: 
+  <div className="h-5 w-px bg-border/60 mx-1 shrink-0" />
+
+LEFT SIGNALS — in this exact order:
+
+1. STRATEGY — always, all screen sizes
+   Label: none (no label above strategy name)
+   Value: dealLabel, text-sm font-bold text-[#1B3A6B]
+
+2. PURCHASE PRICE — desktop only (hidden below lg:)
+   Show when: purchasePrice > 0 AND dealType !== 'R2R'
+   Label: "Purchase Price"
+   Value: formatCurrency(purchasePrice), color #1B3A6B
+   Divider before this signal
+
+3. GDV — desktop only, FLIP only
+   Show when: dealType === 'FLIP' AND 
+   flipInputs.expectedSalePrice > 0
+   Label: "GDV"
+   Value: formatCurrency(flipInputs.expectedSalePrice), 
+   color #1B3A6B
+   Divider before this signal
+
+4. SETUP COSTS — desktop only, R2R only
+   Show when: dealType === 'R2R' AND 
+   r2rInputs.setupCosts > 0
+   Label: "Setup Costs"
+   Value: formatCurrency(r2rInputs.setupCosts), color #1B3A6B
+   Divider before this signal
+
+5. KEY METRIC — desktop only, when missingFields.length === 0
+   Strategy-specific signal. Divider before this signal.
+   
+   BTL/HMO/SA/SOCIAL:
+     Label: "Cash Flow"
+     Value: formatCurrency(currentMonthlyCF) + "/mo"
+     Color: green (#10B981) if positive, red (#EF4444) 
+     if negative, muted if zero
+   
+   FLIP:
+     Label: "Profit on Cost"
+     Value: formatPercent(flipResults.profitOnCost)
+     Color: green if ≥ 18, amber (#F59E0B) if ≥ 10, 
+     red if below 10
+   
+   BRRR:
+     Label: "Cash Left In"
+     Value: brrrResults.moneyOut ? '∞ recycled' : 
+     formatCurrency(brrrResults.cashLeftInDeal)
+     Color: green if moneyOut OR cashLeftInDeal ≤ 10000, 
+     amber if ≤ 25000, red if above 25000
+   
+   R2R:
+     Label: "Monthly Profit"
+     Value: formatCurrency(r2rResults.monthlyProfit) + "/mo"
+     Color: green if ≥ 500, amber if ≥ 200, red if below 200
+
+6. DEAL SCORE PILL — always, all screen sizes
+   Show when: missingFields.length === 0
+   Divider before this signal
+   Render as a pill (not plain text):
+   <div className="flex flex-col leading-none px-3">
+     <span className="text-[9px] font-semibold uppercase 
+       tracking-wider text-muted-foreground mb-0.5">
+       Deal Score
+     </span>
+     <span 
+       className="text-[11px] font-semibold px-2 py-0.5 
+         rounded-full"
+       style={{ 
+         background: `${scoreColour}18`, 
+         border: `0.5px solid ${scoreColour}40`,
+         color: scoreColour 
+       }}
+     >
+       {scoreLabel}
+     </span>
+   </div>
+   Where scoreColour and scoreLabel come from 
+   getDealScoreSignal(currentScore).
+
+RIGHT ELEMENT:
+When missingFields.length > 0: missing fields pill 
+(keep exactly as current — amber pill with field names)
+
+When missingFields.length === 0 AND 
+resultsMode[dealType] === 'analyse':
+  <button
+    type="button"
+    onClick={() => setResultsMode(prev => 
+      ({ ...prev, [dealType]: 'offer' }))}
+    className="text-[11px] px-3 py-1.5 rounded-full 
+      border border-border/60 bg-white 
+      text-muted-foreground hover:border-[#1B3A6B] 
+      hover:text-[#1B3A6B] transition-colors 
+      whitespace-nowrap"
+    title="Enter your target return — we'll calculate 
+      the maximum price you should pay"
+  >
+    ⚡ Deal Optimiser →
+  </button>
+
+When missingFields.length === 0 AND 
+resultsMode[dealType] === 'offer' AND 
+optimalOffer exists AND 
+(optimalOffer.type === 'found' OR 
+optimalOffer.type === 'r2r'):
+  Show Max Offer signal (same pill style as Deal Score):
+  Label: "Max Offer"
+  Value: optimalOffer.type === 'r2r' ? 
+    formatCurrency(Math.max(0, optimalOffer.maxLandlordRent)) 
+    + '/mo' : 
+    formatCurrency(optimalOffer.maxPrice)
+  Color: #1B3A6B
+
+MOBILE BEHAVIOUR:
+On screens below lg: hide signals 2, 3, 4, 5 (Purchase 
+Price, GDV, Setup Costs, Key Metric).
+Show on mobile: Strategy, Deal Score pill, 
+missing fields pill / Deal Optimiser button.
+
+---
+
+TASK 2 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Exact line range replaced for the bar
+2. All 6 left signals confirmed with their show conditions
+3. Right element variants confirmed
+4. Mobile hide classes confirmed
+5. TypeScript error count (must be 0)

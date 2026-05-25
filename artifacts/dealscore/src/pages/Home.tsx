@@ -1624,10 +1624,12 @@ export default function HomePage() {
       <div className="sticky top-[100px] z-40 w-full">
 
       {/* Sticky Deal Score Bar */}
-      <div className="bg-white border-b border-border shadow-sm w-full">
+      <div className="bg-white border-b border-border w-full" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         {(() => {
           const incomplete = missingFields.length > 0;
           const dsSignal = getDealScoreSignal(incomplete ? 'Incomplete' : currentScore);
+          const scoreColour = dsSignal.colour;
+          const scoreLabel = dsSignal.label;
           const showPurchasePrice = purchasePrice > 0 && dealType !== 'R2R';
           const showMaxOffer = !incomplete && resultsMode[dealType] === 'offer' && !!optimalOffer && (optimalOffer.type === 'found' || optimalOffer.type === 'r2r');
           const showOptimiserPrompt = !incomplete && resultsMode[dealType] === 'analyse';
@@ -1635,36 +1637,94 @@ export default function HomePage() {
             optimalOffer?.type === 'r2r'   ? formatCurrency(Math.max(0, optimalOffer.maxLandlordRent)) + '/mo' :
             optimalOffer?.type === 'found' ? formatCurrency(optimalOffer.maxPrice) :
             '';
+
+          // Signal 5 — strategy-specific key metric
+          const currentMonthlyCF =
+            dealType === 'BTL'    ? btlResults.monthlyCashFlow :
+            dealType === 'HMO'    ? hmoResults.monthlyCashFlow :
+            dealType === 'SA'     ? saResults.monthlyCashFlow :
+            dealType === 'SOCIAL' ? socialResults.monthlyCashFlow :
+            0;
+          const keyMetricLabel =
+            (dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'SOCIAL') ? 'Cash Flow' :
+            dealType === 'FLIP' ? 'Profit on Cost' :
+            dealType === 'BRRR' ? 'Cash Left In' :
+            'Monthly Profit';
+          const keyMetricValue =
+            (dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'SOCIAL') ? formatCurrency(currentMonthlyCF) + '/mo' :
+            dealType === 'FLIP' ? formatPercent(flipResults.profitOnCost) :
+            dealType === 'BRRR' ? (brrrResults.moneyOut ? '∞ recycled' : formatCurrency(brrrResults.cashLeftInDeal)) :
+            formatCurrency(r2rResults.monthlyProfit) + '/mo';
+          const keyMetricColour: string | undefined =
+            (dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'SOCIAL')
+              ? (currentMonthlyCF > 0 ? '#10B981' : currentMonthlyCF < 0 ? '#EF4444' : undefined)
+              : dealType === 'FLIP'
+                ? (flipResults.profitOnCost >= 18 ? '#10B981' : flipResults.profitOnCost >= 10 ? '#F59E0B' : '#EF4444')
+                : dealType === 'BRRR'
+                  ? (brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 10000 ? '#10B981' : brrrResults.cashLeftInDeal <= 25000 ? '#F59E0B' : '#EF4444')
+                  : (r2rResults.monthlyProfit >= 500 ? '#10B981' : r2rResults.monthlyProfit >= 200 ? '#F59E0B' : '#EF4444');
+
           return (
-            <div className="max-w-[1024px] mx-auto px-6 py-2 flex items-center justify-between min-h-[44px] w-full overflow-hidden">
+            <div className="max-w-[1024px] mx-auto px-6 py-2 flex items-center justify-between min-h-[44px]">
 
               {/* Left signals */}
-              <div className="flex items-center gap-6">
-                <span className="text-sm font-bold text-[#1B3A6B]">{dealLabel}</span>
+              <div className="flex items-center">
 
+                {/* 1 — Strategy (always, all screens) */}
+                <div className="flex flex-col leading-none px-3">
+                  <span className="text-sm font-bold text-[#1B3A6B]">{dealLabel}</span>
+                </div>
+
+                {/* 2 — Purchase Price (desktop, not R2R) */}
                 {showPurchasePrice && (<>
-                  <div className="h-4 w-px bg-border/60 shrink-0" />
-                  <div className="hidden lg:flex flex-col leading-none">
+                  <div className="h-5 w-px bg-border/60 mx-1 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Purchase Price</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
+                    <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
                   </div>
                 </>)}
 
+                {/* 3 — GDV (desktop, FLIP only) */}
+                {dealType === 'FLIP' && flipInputs.expectedSalePrice > 0 && (<>
+                  <div className="h-5 w-px bg-border/60 mx-1 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none px-3">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">GDV</span>
+                    <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
+                  </div>
+                </>)}
+
+                {/* 4 — Setup Costs (desktop, R2R only) */}
                 {dealType === 'R2R' && r2rInputs.setupCosts > 0 && (<>
-                  <div className="h-4 w-px bg-border/60 shrink-0" />
-                  <div className="hidden lg:flex flex-col leading-none">
+                  <div className="h-5 w-px bg-border/60 mx-1 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Setup Costs</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{formatCurrency(r2rInputs.setupCosts)}</span>
+                    <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(r2rInputs.setupCosts)}</span>
                   </div>
                 </>)}
 
+                {/* 5 — Key Metric (desktop, complete only) */}
                 {!incomplete && (<>
-                  {(showPurchasePrice || (dealType === 'R2R' && r2rInputs.setupCosts > 0)) && <div className="hidden lg:block h-4 w-px bg-border/60 shrink-0" />}
-                  <div className="flex flex-col leading-none">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
-                    <span className="text-sm font-bold" style={{ color: dsSignal.colour }}>{dsSignal.label}</span>
+                  <div className="h-5 w-px bg-border/60 mx-1 shrink-0" />
+                  <div className="hidden lg:flex flex-col leading-none px-3">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{keyMetricLabel}</span>
+                    <span className="text-sm font-medium" style={keyMetricColour ? { color: keyMetricColour } : undefined}>{keyMetricValue}</span>
                   </div>
                 </>)}
+
+                {/* 6 — Deal Score pill (always visible, complete only) */}
+                {!incomplete && (<>
+                  <div className="h-5 w-px bg-border/60 mx-1 shrink-0" />
+                  <div className="flex flex-col leading-none px-3">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Deal Score</span>
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: `${scoreColour}18`, border: `0.5px solid ${scoreColour}40`, color: scoreColour }}
+                    >
+                      {scoreLabel}
+                    </span>
+                  </div>
+                </>)}
+
               </div>
 
               {/* Right element */}
@@ -1676,14 +1736,24 @@ export default function HomePage() {
                   </div>
                 )}
                 {showOptimiserPrompt && (
-                  <button type="button" className="hidden lg:inline-flex items-center text-xs text-muted-foreground hover:text-[#1B3A6B] cursor-pointer underline-offset-2 hover:underline" title="Enter your target return — we'll calculate the maximum price you should pay" onClick={() => setResultsMode(prev => ({ ...prev, [dealType]: 'offer' }))}>
+                  <button
+                    type="button"
+                    onClick={() => setResultsMode(prev => ({ ...prev, [dealType]: 'offer' }))}
+                    className="text-[11px] px-3 py-1.5 rounded-full border border-border/60 bg-white text-muted-foreground hover:border-[#1B3A6B] hover:text-[#1B3A6B] transition-colors whitespace-nowrap"
+                    title="Enter your target return — we'll calculate the maximum price you should pay"
+                  >
                     ⚡ Deal Optimiser →
                   </button>
                 )}
                 {showMaxOffer && (
-                  <div className="hidden lg:flex flex-col leading-none">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Max Offer</span>
-                    <span className="text-sm font-bold text-[#1B3A6B]">{maxOfferValue}</span>
+                  <div className="flex flex-col leading-none px-3">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Max Offer</span>
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: '#1B3A6B18', border: '0.5px solid #1B3A6B40', color: '#1B3A6B' }}
+                    >
+                      {maxOfferValue}
+                    </span>
                   </div>
                 )}
               </div>
