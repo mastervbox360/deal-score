@@ -140,9 +140,9 @@ const SCORE_TINT: Record<string, string> = {
 };
 
 const VERDICT_LABELS: Record<string, string> = {
-  Strong: 'Recommended',
-  Average: 'Conditional',
-  Weak: 'Not Recommended',
+  Strong: 'RECOMMENDED',
+  Average: 'REVIEW',
+  Weak: 'AVOID',
 };
 
 const DEAL_LABELS: Record<DealType, string> = {
@@ -465,6 +465,25 @@ function computeCalloutMetrics(props: DealScorePDFProps): { label: string; value
     { label: 'Monthly Cash Flow', value: fc(props.socialResults.monthlyCashFlow) },
     { label: 'Gross Yield', value: fp(props.socialResults.grossYield) },
   ];
+}
+
+function computeCoverKeyMetric(props: DealScorePDFProps): { label: string; value: string } {
+  const dt = props.dealType;
+  if (dt === 'BTL' || dt === 'HMO' || dt === 'SA' || dt === 'SOCIAL') {
+    const cf = dt === 'BTL' ? props.btlResults.monthlyCashFlow
+      : dt === 'HMO' ? props.hmoResults.monthlyCashFlow
+      : dt === 'SA' ? props.saResults.monthlyCashFlow
+      : props.socialResults.monthlyCashFlow;
+    return { label: 'Cash Flow', value: fc(cf) + '/mo' };
+  }
+  if (dt === 'FLIP') {
+    return { label: 'Profit on Cost', value: fp(props.flipResults.profitOnCost) };
+  }
+  if (dt === 'BRRR') {
+    const moneyOut = props.brrrResults.moneyOut && props.purchasePrice > 0;
+    return { label: 'Cash Left In', value: moneyOut ? '\u221E recycled' : fc(props.brrrResults.cashLeftInDeal) };
+  }
+  return { label: 'Monthly Profit', value: fc(props.r2rResults.monthlyProfit) + '/mo' };
 }
 
 function generateWhatThisMeans(props: DealScorePDFProps): string {
@@ -1001,6 +1020,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ...validGridPhotos,
   ].filter((src): src is string => Boolean(src) && src.startsWith('data:image/'));
   const scoreColor = SCORE_COLOR[props.currentScore] ?? '#6b7280';
+  const coverKeyMetric = computeCoverKeyMetric(props);
   console.log('[DealScorePDF] riskFlags:', props.riskFlags);
 
   const preparedLine = [
@@ -1126,6 +1146,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 32, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', textAlign: 'center' }}>
                 {DEALSCORE_BRAND.name}
               </Text>
+              {props.companyName.trim() ? (
+                <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 4, letterSpacing: 0.8 }}>
+                  {props.companyName.trim()}
+                </Text>
+              ) : null}
               <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 4 }}>
                 {DEALSCORE_BRAND.website}
               </Text>
@@ -1146,16 +1171,33 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 Date Prepared: {props.dateStr}
               </Text>
             </View>
-            <View style={{ paddingBottom: 16 }}>
-              <View style={{ borderBottomWidth: 1, borderBottomColor: DEALSCORE_BRAND.accentColour, borderBottomStyle: 'solid', marginBottom: 20 }} />
-              {preparedLine ? (
-                <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
-                  {preparedLine}
+            <View>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+                <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: scoreColor }}>
+                    {VERDICT_LABELS[props.currentScore] ?? ''}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)', marginBottom: 1 }}>
+                    {coverKeyMetric.label}
+                  </Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#FFFFFF' }}>
+                    {coverKeyMetric.value}
+                  </Text>
+                </View>
+              </View>
+              <View style={{ paddingBottom: 16 }}>
+                <View style={{ borderBottomWidth: 1, borderBottomColor: DEALSCORE_BRAND.accentColour, borderBottomStyle: 'solid', marginBottom: 20 }} />
+                {preparedLine ? (
+                  <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
+                    {preparedLine}
+                  </Text>
+                ) : null}
+                <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
+                  Confidential — Prepared for investor review only
                 </Text>
-              ) : null}
-              <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
-                Confidential — Prepared for investor review only
-              </Text>
+              </View>
             </View>
           </View>
         )}
@@ -1189,16 +1231,33 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 Date Prepared: {props.dateStr}
               </Text>
             </View>
-            <View style={{ paddingBottom: 16 }}>
-              <View style={{ borderBottomWidth: 1, borderBottomColor: isProPlus ? accent : 'rgba(255,255,255,0.2)', borderBottomStyle: 'solid', marginBottom: 20 }} />
-              {preparedLine ? (
-                <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
-                  {preparedLine}
+            <View>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+                <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: scoreColor }}>
+                    {VERDICT_LABELS[props.currentScore] ?? ''}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.55), marginBottom: 1 }}>
+                    {coverKeyMetric.label}
+                  </Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: coverBgText }}>
+                    {coverKeyMetric.value}
+                  </Text>
+                </View>
+              </View>
+              <View style={{ paddingBottom: 16 }}>
+                <View style={{ borderBottomWidth: 1, borderBottomColor: isProPlus ? accent : 'rgba(255,255,255,0.2)', borderBottomStyle: 'solid', marginBottom: 20 }} />
+                {preparedLine ? (
+                  <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
+                    {preparedLine}
+                  </Text>
+                ) : null}
+                <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
+                  Confidential — Prepared for investor review only
                 </Text>
-              ) : null}
-              <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
-                Confidential — Prepared for investor review only
-              </Text>
+              </View>
             </View>
           </View>
         )}
@@ -1230,6 +1289,21 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 </Text>
               </View>
               <View style={{ position: 'absolute', bottom: 28, left: 40, right: 40 }}>
+                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+                  <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: scoreColor }}>
+                      {VERDICT_LABELS[props.currentScore] ?? ''}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 8, color: '#777777', marginBottom: 1 }}>
+                      {coverKeyMetric.label}
+                    </Text>
+                    <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: readableBrand }}>
+                      {coverKeyMetric.value}
+                    </Text>
+                  </View>
+                </View>
                 {isProPlus && props.companyName.trim() ? (
                   <Text style={{ fontSize: 8, color: '#777777', letterSpacing: 1.4, marginBottom: 8 }}>
                     {props.companyName.trim().toUpperCase()}
@@ -1277,6 +1351,21 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: coverBgText, marginBottom: 6, lineHeight: 1.4 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
+                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 10, alignItems: 'center' }}>
+                  <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: scoreColor }}>
+                      {VERDICT_LABELS[props.currentScore] ?? ''}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.55), marginBottom: 1 }}>
+                      {coverKeyMetric.label}
+                    </Text>
+                    <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: coverBgText }}>
+                      {coverKeyMetric.value}
+                    </Text>
+                  </View>
+                </View>
                 <Text style={{ fontSize: 9, color: coverMuted(coverBg, 0.7) }}>
                   Date Prepared: {props.dateStr}
                 </Text>

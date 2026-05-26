@@ -1,0 +1,179 @@
+Read DealScorePDF.tsx in full before making any changes. 
+Plan all edits explicitly, then execute in parallel. 
+Confirm exactly what you changed at the end.
+
+Do NOT touch Home.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — UPDATE VERDICT LABELS
+
+Find the VERDICT_LABELS constant (around line 142).
+
+Replace:
+const VERDICT_LABELS: Record<string, string> = {
+  Strong: 'Recommended',
+  Average: 'Conditional',
+  Weak: 'Not Recommended',
+};
+
+With:
+const VERDICT_LABELS: Record<string, string> = {
+  Strong: 'RECOMMENDED',
+  Average: 'REVIEW',
+  Weak: 'AVOID',
+};
+
+---
+
+TASK 2 — ADD KEY METRIC TO ALL THREE COVER STYLES
+
+The cover page currently shows: strategy label, address, 
+date, prepared by. It needs one additional prominent 
+signal — the strategy-specific key metric — displayed 
+prominently on the cover, matching the live bar logic.
+
+Add a key metric computation function near 
+computeCalloutMetrics:
+
+function computeCoverKeyMetric(props: DealScorePDFProps): 
+  { label: string; value: string } {
+  const dt = props.dealType;
+  if (dt === 'BTL' || dt === 'HMO' || dt === 'SA' || 
+      dt === 'SOCIAL') {
+    const cf = dt === 'BTL' ? props.btlResults.monthlyCashFlow
+      : dt === 'HMO' ? props.hmoResults.monthlyCashFlow
+      : dt === 'SA' ? props.saResults.monthlyCashFlow
+      : props.socialResults.monthlyCashFlow;
+    return { label: 'Cash Flow', value: fc(cf) + '/mo' };
+  }
+  if (dt === 'FLIP') {
+    return { 
+      label: 'Profit on Cost', 
+      value: fp(props.flipResults.profitOnCost) 
+    };
+  }
+  if (dt === 'BRRR') {
+    const moneyOut = props.brrrResults.moneyOut && 
+      props.purchasePrice > 0;
+    return { 
+      label: 'Cash Left In', 
+      value: moneyOut ? '∞ recycled' : 
+        fc(props.brrrResults.cashLeftInDeal) 
+    };
+  }
+  // R2R
+  return { 
+    label: 'Monthly Profit', 
+    value: fc(props.r2rResults.monthlyProfit) + '/mo' 
+  };
+}
+
+Then call this function near the top of the 
+DealScorePDF component, alongside the other 
+pre-computed values:
+const coverKeyMetric = computeCoverKeyMetric(props);
+
+---
+
+TASK 3 — ADD KEY METRIC AND SCORE BADGE TO COVER PAGES
+
+For each of the four cover styles (Pro, Classic, Clean, 
+Bold), add a small metrics strip near the bottom of the 
+cover, above the prepared by line.
+
+The strip shows two items side by side:
+1. Deal Score badge (RECOMMENDED / REVIEW / AVOID)
+2. Key metric (label + value)
+
+Strip style — same for all cover styles, but text 
+colours adapt to background:
+
+PRO COVER (dark navy background):
+<View style={{ 
+  flexDirection: 'row', 
+  gap: 12, 
+  marginBottom: 16,
+  alignItems: 'center'
+}}>
+  <View style={{ 
+    backgroundColor: scoreColor + '25',
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    border: `0.5pt solid ${scoreColor}50`
+  }}>
+    <Text style={{ 
+      fontSize: 9, 
+      fontFamily: 'Helvetica-Bold', 
+      color: scoreColor 
+    }}>
+      {VERDICT_LABELS[props.currentScore] ?? ''}
+    </Text>
+  </View>
+  <View>
+    <Text style={{ 
+      fontSize: 8, 
+      color: 'rgba(255,255,255,0.55)',
+      marginBottom: 1
+    }}>
+      {coverKeyMetric.label}
+    </Text>
+    <Text style={{ 
+      fontSize: 13, 
+      fontFamily: 'Helvetica-Bold', 
+      color: '#FFFFFF' 
+    }}>
+      {coverKeyMetric.value}
+    </Text>
+  </View>
+</View>
+
+CLASSIC COVER (dark brand background):
+Same as Pro cover but use coverBgText for value colour 
+and coverMuted(coverBg, 0.55) for label colour.
+
+CLEAN COVER (white background):
+Place the strip at the bottom left above the prepared 
+by section. Use readableBrand for value colour and 
+#777777 for label colour. Score badge uses scoreColor.
+
+BOLD COVER (split — brand left, white right):
+Place the strip in the LEFT panel (brand colour 
+background) above the date line. Use coverBgText for 
+value colour and coverMuted(coverBg, 0.55) for label.
+
+---
+
+TASK 4 — UPDATE PRO COVER COMPANY NAME
+
+The Pro cover currently shows only DealScore branding.
+If props.companyName.trim() is not empty, show it 
+below the DealScore name in smaller text:
+
+After the DealScore name Text:
+{props.companyName.trim() ? (
+  <Text style={{ 
+    fontSize: 9, 
+    color: 'rgba(255,255,255,0.6)', 
+    textAlign: 'center', 
+    marginTop: 4,
+    letterSpacing: 0.8
+  }}>
+    {props.companyName.trim()}
+  </Text>
+) : null}
+
+---
+
+TASK 5 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. VERDICT_LABELS updated to RECOMMENDED/REVIEW/AVOID
+2. computeCoverKeyMetric function added
+3. Key metric strip added to all 4 cover styles
+4. Pro cover company name added
+5. TypeScript error count (must be 0)
