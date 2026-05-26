@@ -44,13 +44,29 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
   pdfProps,
   fileName,
   orientation,
+  isPdfReady = true,
+  tooltip = 'Download investor pack PDF',
 }: {
   pdfProps: DealScorePDFProps;
   fileName: string;
   orientation: 'portrait' | 'landscape';
+  isPdfReady?: boolean;
+  tooltip?: string;
 }) {
   const textColour = getContrastText(pdfProps.brandColour);
   const PdfComponent = pdfProps.tierOverride === 'pro_plus' && orientation === 'landscape' ? DealScorePDFProPlus : DealScorePDF;
+  if (!isPdfReady) {
+    return (
+      <div
+        title={tooltip}
+        className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm shadow-md opacity-50 cursor-not-allowed transition w-full"
+        style={{ flex: 1, backgroundColor: pdfProps.brandColour, color: textColour }}
+      >
+        <Download className="w-4 h-4" style={{ color: textColour }} />
+        ⬇ Download Investor Summary PDF
+      </div>
+    );
+  }
   return (
     <PDFDownloadLink
       key={pdfProps.propertyAddress + '||' + pdfProps.coverStyle + '||' + pdfProps.currentScore + '||' + pdfProps.riskFlags.length}
@@ -61,6 +77,7 @@ const PdfDownloadButton = React.memo(function PdfDownloadButton({
     >
       {({ loading }: { loading: boolean }) => (
         <div
+          title={tooltip}
           className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm shadow-md hover:opacity-90 active:scale-[0.99] transition w-full cursor-pointer"
           style={{ backgroundColor: pdfProps.brandColour, color: textColour }}
         >
@@ -1076,6 +1093,45 @@ export default function HomePage() {
     }
     return missing;
   }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice]);
+
+  const isPdfReady = (() => {
+    if (dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'SOCIAL') {
+      return purchasePrice > 0;
+    }
+    if (dealType === 'BRRR') {
+      return purchasePrice > 0 && brrrInputs.postRefurbValue > 0;
+    }
+    if (dealType === 'FLIP') {
+      return purchasePrice > 0 && flipInputs.expectedSalePrice > 0;
+    }
+    if (dealType === 'R2R') {
+      return r2rInputs.monthlyRentPaid > 0 && r2rInputs.setupCosts > 0;
+    }
+    return false;
+  })();
+
+  const pdfTooltip = (() => {
+    if (isPdfReady) return 'Download investor pack PDF';
+    if (dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'SOCIAL') {
+      return purchasePrice === 0 ? 'Enter a purchase price to unlock PDF download' : 'Download investor pack PDF';
+    }
+    if (dealType === 'BRRR') {
+      if (purchasePrice === 0) return 'Enter a purchase price to unlock PDF download';
+      if (brrrInputs.postRefurbValue === 0) return 'Enter post-refurb value to unlock PDF download';
+      return 'Download investor pack PDF';
+    }
+    if (dealType === 'FLIP') {
+      if (purchasePrice === 0) return 'Enter a purchase price to unlock PDF download';
+      if (flipInputs.expectedSalePrice === 0) return 'Enter expected sale price to unlock PDF download';
+      return 'Download investor pack PDF';
+    }
+    if (dealType === 'R2R') {
+      if (r2rInputs.monthlyRentPaid === 0) return 'Enter monthly rent to landlord to unlock PDF download';
+      if (r2rInputs.setupCosts === 0) return 'Enter setup costs to unlock PDF download';
+      return 'Download investor pack PDF';
+    }
+    return 'Complete your deal inputs to unlock PDF download';
+  })();
 
   const currentYieldLabel: string =
     dealType === 'FLIP' ? 'Net Margin' :
@@ -4721,6 +4777,8 @@ export default function HomePage() {
                 pdfProps={pdfProps}
                 fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
                 orientation={pdfOrientation}
+                isPdfReady={isPdfReady}
+                tooltip={pdfTooltip}
               />
             )}
             <button
@@ -4747,6 +4805,8 @@ export default function HomePage() {
               pdfProps={pdfProps}
               fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
               orientation={pdfOrientation}
+              isPdfReady={isPdfReady}
+              tooltip={pdfTooltip}
             />
             <button
               type="button"

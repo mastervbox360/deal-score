@@ -1,0 +1,102 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — ADD isPdfReady AND MISSING FIELD TOOLTIP
+
+Add a computed boolean isPdfReady near the existing 
+missingFields computation:
+
+const isPdfReady = (() => {
+  if (dealType === 'BTL' || dealType === 'HMO' || 
+      dealType === 'SA' || dealType === 'SOCIAL') {
+    return purchasePrice > 0;
+  }
+  if (dealType === 'BRRR') {
+    return purchasePrice > 0 && 
+      brrrInputs.postRefurbValue > 0;
+  }
+  if (dealType === 'FLIP') {
+    return purchasePrice > 0 && 
+      flipInputs.expectedSalePrice > 0;
+  }
+  if (dealType === 'R2R') {
+    return r2rInputs.monthlyRentPaid > 0 && 
+      r2rInputs.setupCosts > 0;
+  }
+  return false;
+})();
+
+Add a computed string pdfTooltip that explains exactly 
+what is missing:
+
+const pdfTooltip = (() => {
+  if (isPdfReady) return 'Download investor pack PDF';
+  if (dealType === 'BTL' || dealType === 'HMO' || 
+      dealType === 'SA' || dealType === 'SOCIAL') {
+    return purchasePrice === 0 
+      ? 'Enter a purchase price to unlock PDF download' 
+      : 'Download investor pack PDF';
+  }
+  if (dealType === 'BRRR') {
+    if (purchasePrice === 0) 
+      return 'Enter a purchase price to unlock PDF download';
+    if (brrrInputs.postRefurbValue === 0) 
+      return 'Enter post-refurb value to unlock PDF download';
+    return 'Download investor pack PDF';
+  }
+  if (dealType === 'FLIP') {
+    if (purchasePrice === 0) 
+      return 'Enter a purchase price to unlock PDF download';
+    if (flipInputs.expectedSalePrice === 0) 
+      return 'Enter expected sale price to unlock PDF download';
+    return 'Download investor pack PDF';
+  }
+  if (dealType === 'R2R') {
+    if (r2rInputs.monthlyRentPaid === 0) 
+      return 'Enter monthly rent to landlord to unlock PDF download';
+    if (r2rInputs.setupCosts === 0) 
+      return 'Enter setup costs to unlock PDF download';
+    return 'Download investor pack PDF';
+  }
+  return 'Complete your deal inputs to unlock PDF download';
+})();
+
+---
+
+TASK 2 — APPLY TO ALL PDF DOWNLOAD BUTTONS
+
+Find every button in Home.tsx that triggers PDF 
+generation or download. There may be multiple — 
+a portrait PDF button and a landscape PDF button.
+
+For each PDF download button apply:
+
+1. Add title={pdfTooltip} to the button
+2. When !isPdfReady:
+   - Add disabled={true}
+   - Add className additions: opacity-50 cursor-not-allowed
+   - Wrap the onClick in: onClick={isPdfReady ? existing_handler : undefined}
+3. When isPdfReady: button works exactly as before
+
+Do NOT change the button text, styling or any other 
+behaviour — only disable state, opacity, cursor and 
+title tooltip.
+
+---
+
+TASK 3 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. isPdfReady location (line number)
+2. pdfTooltip location (line number)
+3. All PDF download buttons found and updated — 
+   how many buttons updated
+4. TypeScript error count (must be 0)
