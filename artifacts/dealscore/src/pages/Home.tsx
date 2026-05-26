@@ -981,15 +981,15 @@ export default function HomePage() {
   }
   function getROISignal(score: string, incomplete: boolean) {
     if (incomplete || score === 'Incomplete') return { colour: '#94A3B8', label: 'INCOMPLETE' };
-    if (score === 'Strong') return { colour: '#10B981', label: 'STRONG' };
-    if (score === 'Average') return { colour: '#F59E0B', label: 'AVERAGE' };
-    return { colour: '#EF4444', label: 'WEAK' };
+    if (score === 'Strong') return { colour: '#10B981', label: 'RECOMMENDED' };
+    if (score === 'Average') return { colour: '#F59E0B', label: 'REVIEW' };
+    return { colour: '#EF4444', label: 'AVOID' };
   }
   function getDealScoreSignal(score: string) {
     if (score === 'Incomplete') return { colour: '#94A3B8', label: 'INCOMPLETE' };
-    if (score === 'Strong') return { colour: '#10B981', label: 'STRONG' };
-    if (score === 'Average') return { colour: '#F59E0B', label: 'AVERAGE' };
-    return { colour: '#EF4444', label: 'WEAK' };
+    if (score === 'Strong') return { colour: '#10B981', label: 'RECOMMENDED' };
+    if (score === 'Average') return { colour: '#F59E0B', label: 'REVIEW' };
+    return { colour: '#EF4444', label: 'AVOID' };
   }
 
   const dealLabel =
@@ -1589,9 +1589,9 @@ export default function HomePage() {
     : socialInputs.leaseIncomePerMonth > 0 && sharedInputs.purchasePrice > 0;
 
   const VERDICT_LABELS: Record<string, string> = {
-    Strong: 'Recommended',
-    Average: 'Conditional',
-    Weak: 'Not Recommended',
+    Strong: 'RECOMMENDED',
+    Average: 'REVIEW',
+    Weak: 'AVOID',
   };
 
   const renderScoreBadge = (score: string) => {
