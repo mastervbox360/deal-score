@@ -1,0 +1,92 @@
+Read DealScorePDF.tsx in full before making any changes.
+Plan all edits explicitly, then execute in parallel.
+Confirm exactly what you changed at the end.
+
+Do NOT touch Home.tsx, DealScorePDFProPlus.tsx,
+or calculations.ts.
+
+---
+
+TASK 1 — HIDE WHAT THIS MEANS WHEN INCOMPLETE
+
+Find the "What This Means" section on Page 4.
+Wrap the entire section in:
+{hasMeaningfulInputs(props) && ( ... )}
+
+So it only renders when inputs are complete.
+
+---
+
+TASK 2 — GUARD ALL resultsRows VALUES
+
+The current post-processor only guards highlight rows
+(third element true). Update it to guard ALL rows —
+not just highlighted ones — when !hasMeaningfulInputs:
+
+Replace the existing post-processor with:
+.map(([label, value, bold]) =>
+  [label, hasMeaningfulInputs(props) ? value : '—', bold] as RowData
+)
+
+This replaces every value in the results table with
+"—" when inputs are incomplete.
+
+---
+
+TASK 3 — GUARD SENSITIVITY ANALYSIS TABLE
+
+Find the Sensitivity Analysis table on Page 4.
+Wrap all computed values (Monthly Cash Flow and
+Cash-on-Cash ROI rows) with:
+hasMeaningfulInputs(props) ? fc(x) : '—'
+hasMeaningfulInputs(props) ? fp(x) : '—'
+
+---
+
+TASK 4 — HIDE FINANCIAL DETAIL PAGE WHEN INCOMPLETE
+
+Find Page 5 (Financial Detail).
+Wrap the entire Page in:
+{!hasMeaningfulInputs(props) ? (
+  <Page size="A4" style={base.page}>
+    <Footer />
+    <View style={{ flex: 1, alignItems: 'center', 
+      justifyContent: 'center' }}>
+      <Text style={{ fontSize: 11, color: '#9ca3af',
+        fontFamily: 'Helvetica-Bold', marginBottom: 6 }}>
+        Financial Detail
+      </Text>
+      <Text style={{ fontSize: 9, color: '#9ca3af',
+        textAlign: 'center' }}>
+        Enter your deal inputs to see the full
+        financial breakdown.
+      </Text>
+    </View>
+  </Page>
+) : (
+  <Page size="A4" style={base.page}>
+    ... existing content ...
+  </Page>
+)}
+
+---
+
+TASK 5 — HIDE STRESS TESTING PAGE WHEN INCOMPLETE
+
+Find Page 6 (Stress Testing). Apply the same pattern
+as Task 4 — show a placeholder page with:
+"Enter your deal inputs to see stress testing."
+
+---
+
+TASK 6 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. What This Means hidden when incomplete
+2. All resultsRows values guarded
+3. Sensitivity table guarded
+4. Financial Detail placeholder page added
+5. Stress Testing placeholder page added
+6. TypeScript error count (must be 0)

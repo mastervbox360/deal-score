@@ -1001,10 +1001,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Cash-on-Cash ROI', fp(props.socialResults.cashOnCashROI), true],
       ...bmvRows,
     ];
-  })().map((row): RowData => {
-    if (row[2] && !hasMeaningfulInputs(props)) return [row[0] as string, '\u2014', true];
-    return row as RowData;
-  });
+  })().map(([label, value, bold]): RowData => [label as string, hasMeaningfulInputs(props) ? value as string : '\u2014', bold as boolean | undefined]);
 
   const { dims: dealScoreDims, overall: dealScoreOverall } = computeDealScoreBreakdown(props);
   const verdictSummary = generateVerdictSummary(props);
@@ -1908,7 +1905,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         <Table rows={resultsRows} />
 
         {/* What This Means */}
-        {whatThisMeans ? (
+        {whatThisMeans && hasMeaningfulInputs(props) ? (
           <View style={{ marginTop: 8 }}>
             <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: structureColour, marginBottom: 5 }}>What This Means</Text>
             <Text style={{ fontSize: 9, color: '#1E2B3C', lineHeight: 1.5 }}>{whatThisMeans}</Text>
@@ -1930,7 +1927,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
                 {([props.stressTest.baseCashFlow, props.stressTest.rentDownCashFlow, props.stressTest.rateUpCashFlow] as number[]).map((v, i) => (
                   <Text key={i} style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
-                    {fc(v)}
+                    {hasMeaningfulInputs(props) ? fc(v) : '\u2014'}
                   </Text>
                 ))}
               </View>
@@ -1938,7 +1935,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
                 {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
                   <Text key={i} style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
-                    {isFinite(v) ? fp(v) : '\u221E'}
+                    {hasMeaningfulInputs(props) ? (isFinite(v) ? fp(v) : '\u221E') : '\u2014'}
                   </Text>
                 ))}
               </View>
@@ -1951,7 +1948,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       {/* ── Financial Detail Page ─────────────────────────────────────────── */}
       {(props.dealType === 'BTL' || props.dealType === 'HMO' ||
         props.dealType === 'SA' || props.dealType === 'BRRR' ||
-        props.dealType === 'SOCIAL') && (
+        props.dealType === 'SOCIAL') && !hasMeaningfulInputs(props) && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 11, color: '#9ca3af', fontFamily: 'Helvetica-Bold', marginBottom: 6 }}>Financial Detail</Text>
+            <Text style={{ fontSize: 9, color: '#9ca3af', textAlign: 'center' }}>Enter your deal inputs to see the full financial breakdown.</Text>
+          </View>
+        </Page>
+      )}
+      {(props.dealType === 'BTL' || props.dealType === 'HMO' ||
+        props.dealType === 'SA' || props.dealType === 'BRRR' ||
+        props.dealType === 'SOCIAL') && hasMeaningfulInputs(props) && (
         <Page size="A4" style={base.page}>
           <Footer />
           <SH title="Financial Detail" />
@@ -2069,7 +2077,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       {/* ── Stress Testing Page ───────────────────────────────────────────── */}
       {(props.dealType === 'BTL' || props.dealType === 'HMO' ||
         props.dealType === 'SA' || props.dealType === 'BRRR' ||
-        props.dealType === 'SOCIAL') && (
+        props.dealType === 'SOCIAL') && !hasMeaningfulInputs(props) && (
+        <Page size="A4" style={base.page}>
+          <Footer />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 11, color: '#9ca3af', fontFamily: 'Helvetica-Bold', marginBottom: 6 }}>Stress Testing</Text>
+            <Text style={{ fontSize: 9, color: '#9ca3af', textAlign: 'center' }}>Enter your deal inputs to see stress testing.</Text>
+          </View>
+        </Page>
+      )}
+      {(props.dealType === 'BTL' || props.dealType === 'HMO' ||
+        props.dealType === 'SA' || props.dealType === 'BRRR' ||
+        props.dealType === 'SOCIAL') && hasMeaningfulInputs(props) && (
         <Page size="A4" style={base.page}>
           <Footer />
           <SH title="Stress Testing" />
