@@ -1,0 +1,371 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — REBUILD THE RESULTS PANEL GRID
+
+This is a full replacement of the MetricBox grid and rows 
+section for all 7 strategies in the Deal Analyser 
+(resultsMode[dealType] === 'analyse') branch.
+
+For each strategy, replace the existing grid content 
+(everything between the RiskFlags block and the 
+<div className="h-px bg-border" /> divider, inclusive 
+of the divider and everything below it up to the closing 
+</div> of the strategy block) with the new three-group 
+structure below.
+
+Add one new state variable near other boolean useState 
+declarations:
+const [showAnnual, setShowAnnual] = useState<boolean>(false);
+
+If showAnnual already exists from a previous prompt, 
+do not add it again — reuse it.
+
+---
+
+THREE-GROUP STRUCTURE (apply to all 7 strategies):
+
+Each group has:
+- A group label row: text-[9px] font-semibold uppercase 
+  tracking-wider text-muted-foreground, flex 
+  items-center justify-between
+- A grid of MetricBox-style tiles below it
+- Gap of mb-4 between groups
+
+TILE STYLE (same for all tiles):
+<div className="bg-slate-50 rounded-xl border 
+  border-border/60 p-3 flex flex-col gap-1">
+  <span className="text-[9px] font-semibold uppercase 
+    tracking-wider text-muted-foreground flex 
+    items-center gap-1">
+    {label}
+    <InfoIcon id="{id}" text="{tooltip}" />
+  </span>
+  <span className="text-lg font-bold" 
+    style={{ color: '{colour}' }}>
+    {value}
+  </span>
+  {/* Optional secondary value for annual/monthly */}
+  <span className="text-[11px] text-muted-foreground">
+    {secondary value}
+  </span>
+</div>
+
+Primary value colour: #1B3A6B for all fixed figures.
+Positive cash flow: #10B981. Negative: #EF4444.
+Net Profit positive: #10B981. Negative: #EF4444.
+
+---
+
+GROUP 1 — "WHAT I COMMIT" (fixed, no toggle)
+
+Grid: grid-cols-2 gap-3 (or grid-cols-3 for BRRR/FLIP)
+
+BTL: 1 tile
+  Cash Invested: formatCurrency(btlResults.totalCashInvested)
+  Tooltip: "Total cash required to complete this purchase: deposit + stamp duty + refurb costs + other costs. This is your total capital at risk."
+
+HMO: 1 tile
+  Cash Invested: formatCurrency(hmoResults.totalCashInvested)
+  Tooltip: "Total cash required: deposit + stamp duty + refurb + HMO licence + other costs."
+
+FLIP: 2 tiles (grid-cols-2)
+  Total Cost In: formatCurrency(flipResults.totalCost)
+  Tooltip: "All costs to acquire and refurbish: purchase price + stamp duty + refurb + bridging interest + other costs."
+  
+  Net Profit: formatCurrency(flipResults.netProfit)
+  Colour: green if positive, red if negative
+  Tooltip: "Expected sale price minus all costs. This is your take-home from the deal."
+
+SA: 1 tile
+  Cash Invested: formatCurrency(saResults.totalCashInvested)
+  Tooltip: "Total cash required: deposit + stamp duty + refurb + other costs."
+
+BRRR: 3 tiles (grid-cols-3)
+  Cash Invested: formatCurrency(brrrResults.totalCostIn)
+  Tooltip: "Total cash before refinance: purchase + stamp duty + refurb + bridging interest + other costs."
+  
+  Cash Left In: brrrResults.moneyOut ? '∞ recycled' : formatCurrency(brrrResults.cashLeftInDeal)
+  Colour: green if moneyOut or ≤10000, amber (#F59E0B) if ≤25000, red if above 25000
+  Tooltip: "Cash remaining in deal after refinance. Target: as close to £0 as possible. £0 means capital fully recycled."
+  
+  Refinance Loan: formatCurrency(brrrResults.refinanceLoan)
+  Tooltip: "The new long-term mortgage taken out after refinancing. Calculated as refinance % × post-refurb value."
+
+R2R: 2 tiles (grid-cols-2)
+  Setup Costs: formatCurrency(r2rInputs.setupCosts)
+  Tooltip: "One-off costs to set up the R2R: furniture, furnishings, admin and legal fees."
+  
+  Total Upfront: formatCurrency(r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2))
+  Tooltip: "True total cash required to start: setup costs + landlord deposit (1 month) + first month rent paid before income begins."
+
+SOCIAL: 1 tile
+  Cash Invested: formatCurrency(socialResults.totalCashInvested)
+  Tooltip: "Total cash required: deposit + stamp duty + refurb + other costs."
+
+---
+
+GROUP 2 — MONTHLY · ANNUAL (toggle)
+
+Group label row includes the Monthly/Annual toggle:
+<div className="flex items-center justify-between mb-2">
+  <span className="text-[9px] font-semibold uppercase 
+    tracking-wider text-muted-foreground">
+    {showAnnual ? 'Annual figures' : 'Monthly figures'}
+  </span>
+  <div className="flex gap-1">
+    <button
+      type="button"
+      onClick={() => setShowAnnual(false)}
+      className={`text-[9px] px-2 py-0.5 rounded-md 
+        font-medium transition-colors ${!showAnnual 
+        ? 'bg-[#1B3A6B] text-white' 
+        : 'bg-slate-100 text-muted-foreground 
+           hover:bg-slate-200'}`}
+    >Monthly</button>
+    <button
+      type="button"
+      onClick={() => setShowAnnual(true)}
+      className={`text-[9px] px-2 py-0.5 rounded-md 
+        font-medium transition-colors ${showAnnual 
+        ? 'bg-[#1B3A6B] text-white' 
+        : 'bg-slate-100 text-muted-foreground 
+           hover:bg-slate-200'}`}
+    >Annual</button>
+  </div>
+</div>
+
+Each tile in Group 2 shows:
+- Primary value: monthly when !showAnnual, annual when showAnnual
+- Secondary value (smaller, muted): the other period shown below
+
+Grid: grid-cols-3 gap-3 for BTL/HMO/SA/BRRR/SOCIAL/R2R
+Grid: grid-cols-2 gap-3 for FLIP
+
+BTL tiles:
+  Mortgage:
+    Monthly: formatCurrency(btlResults.monthlyMortgageInterest)
+    Annual: formatCurrency(btlResults.monthlyMortgageInterest * 12)
+    Tooltip: "Monthly mortgage payment based on your rate, term and repayment type."
+  
+  Operating Costs:
+    Monthly: formatCurrency(btlResults.totalOperatingCosts)
+    Annual: formatCurrency(btlResults.totalOperatingCosts * 12)
+    Tooltip: "Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance. Includes service charge and ground rent where applicable."
+  
+  Cash Flow:
+    Monthly: formatCurrency(btlResults.monthlyCashFlow)
+    Annual: formatCurrency(btlResults.annualCashFlow)
+    Colour: green if positive, red if negative
+    Tooltip: "Net monthly income after all costs and mortgage payments. This is what lands in your account."
+
+HMO tiles:
+  Mortgage:
+    Monthly: formatCurrency(hmoResults.monthlyMortgageInterest)
+    Annual: formatCurrency(hmoResults.monthlyMortgageInterest * 12)
+    Tooltip: "Monthly mortgage payment."
+  
+  Operating Costs:
+    Monthly: formatCurrency(hmoResults.totalOperatingCosts)
+    Annual: formatCurrency(hmoResults.totalOperatingCosts * 12)
+    Tooltip: "Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance."
+  
+  Cash Flow:
+    Monthly: formatCurrency(hmoResults.monthlyCashFlow)
+    Annual: formatCurrency(hmoResults.annualCashFlow)
+    Colour: green if positive, red if negative
+    Tooltip: "Net monthly income after all costs and mortgage."
+
+FLIP tiles:
+  Holding Costs:
+    Monthly: formatCurrency(flipInputs.holdingCostsPerMonth)
+    Annual: formatCurrency(flipInputs.holdingCostsPerMonth * Math.max(flipInputs.projectLengthMonths, 1))
+    Label annual as "Total" not "Annual"
+    Tooltip: "Monthly costs during the project: insurance, council tax, utilities, finance charges."
+  
+  Profit:
+    Monthly: formatCurrency(flipResults.profitPerMonth) + '/mo'
+    Annual: formatCurrency(flipResults.netProfit) + ' total'
+    Label Monthly as "Per Month", Annual as "Total"
+    Colour: green if positive, red if negative
+    Tooltip: "Net profit divided by project length in months. Switch to Total to see the full deal profit."
+
+SA tiles:
+  Mortgage:
+    Monthly: formatCurrency(saResults.monthlyMortgage)
+    Annual: formatCurrency(saResults.monthlyMortgage * 12)
+    Tooltip: "Monthly mortgage payment."
+  
+  Operating Costs:
+    Monthly: formatCurrency(saResults.totalOperatingCosts)
+    Annual: formatCurrency(saResults.totalOperatingCosts * 12)
+    Tooltip: "Total monthly running costs: management fees + maintenance reserve + buildings insurance + platform fees (Airbnb/Booking.com)."
+  
+  Cash Flow:
+    Monthly: formatCurrency(saResults.monthlyCashFlow)
+    Annual: formatCurrency(saResults.annualCashFlow)
+    Colour: green if positive, red if negative
+    Tooltip: "Net monthly income after all costs and mortgage."
+
+BRRR tiles:
+  Mortgage:
+    Monthly: formatCurrency(brrrResults.monthlyMortgage)
+    Annual: formatCurrency(brrrResults.monthlyMortgage * 12)
+    Tooltip: "Monthly refinance mortgage payment on the new long-term mortgage."
+  
+  Operating Costs:
+    Monthly: formatCurrency(brrrResults.totalOperatingCosts)
+    Annual: formatCurrency(brrrResults.totalOperatingCosts * 12)
+    Tooltip: "Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance."
+  
+  Cash Flow:
+    Monthly: formatCurrency(brrrResults.monthlyCashFlow)
+    Annual: formatCurrency(brrrResults.annualCashFlow)
+    Colour: green if positive, red if negative
+    Tooltip: "Net monthly income after all costs and refinance mortgage."
+
+R2R tiles:
+  Landlord Rent:
+    Monthly: formatCurrency(r2rInputs.monthlyRentPaid)
+    Annual: formatCurrency(r2rInputs.monthlyRentPaid * 12)
+    Tooltip: "Monthly rent paid to the property owner under the R2R agreement. Your primary fixed cost."
+  
+  Running Costs:
+    Monthly: formatCurrency(r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0))
+    Annual: formatCurrency((r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0)) * 12)
+    Tooltip: "Monthly running costs: management/platform fees + monthly expenses."
+  
+  Profit:
+    Monthly: formatCurrency(r2rResults.monthlyProfit)
+    Annual: formatCurrency(r2rResults.annualProfit)
+    Colour: green if positive, red if negative
+    Tooltip: "Net monthly profit after landlord rent and all running costs."
+
+SOCIAL tiles:
+  Mortgage:
+    Monthly: formatCurrency(socialResults.monthlyMortgage)
+    Annual: formatCurrency(socialResults.monthlyMortgage * 12)
+    Tooltip: "Monthly mortgage payment."
+  
+  Operating Costs:
+    Monthly: formatCurrency(socialResults.totalOperatingCosts)
+    Annual: formatCurrency(socialResults.totalOperatingCosts * 12)
+    Tooltip: "Total monthly running costs. Typically lower for social housing as the housing provider manages day-to-day maintenance."
+  
+  Cash Flow:
+    Monthly: formatCurrency(socialResults.monthlyCashFlow)
+    Annual: formatCurrency(socialResults.annualCashFlow)
+    Colour: green if positive, red if negative
+    Tooltip: "Net monthly income after all costs and mortgage."
+
+---
+
+GROUP 3 — "RETURNS" (fixed ratios, no toggle)
+
+Grid: grid-cols-2 gap-3 (grid-cols-3 for HMO and FLIP)
+
+BTL: 2 tiles
+  CoC ROI: formatPercent(btlResults.cashOnCashROI)
+  Tooltip: "Cash-on-Cash ROI: annual cash flow ÷ cash invested × 100. The most accurate measure of return on leveraged property. Benchmark: 5%+ strong, 3%+ average."
+  
+  Gross Yield: formatPercent(btlResults.grossYield)
+  Tooltip: "Annual rental income ÷ purchase price × 100. Used to compare properties regardless of financing. Benchmark: 5%+ for BTL."
+
+HMO: 3 tiles
+  CoC ROI: formatPercent(hmoResults.cashOnCashROI)
+  Tooltip: "Annual cash flow ÷ cash invested × 100. Benchmark: 12%+ strong for HMO."
+  
+  Gross Yield: formatPercent(hmoResults.grossYield)
+  Tooltip: "Annual room income ÷ purchase price × 100. Benchmark: 7%+ for HMO, 10%+ strong."
+  
+  Profit Per Room: formatCurrency(hmoResults.monthlyCashFlow / Math.max(hmoInputs.rooms, 1)) + '/rm'
+  Tooltip: "Monthly cash flow divided by number of rooms. Benchmark: £100–£150+ per room minimum. Useful for comparing HMOs of different sizes."
+
+FLIP: 3 tiles
+  Total ROI: formatPercent(flipResults.roi)
+  Tooltip: "Net profit ÷ total cost × 100. Benchmark: 8%+ acceptable, 12%+ strong."
+  
+  Annualised ROI: formatPercent(flipResults.annualisedROI)
+  Tooltip: "Total ROI annualised based on project length. Allows comparison with buy-and-hold strategies."
+  
+  Profit on Cost: formatPercent(flipResults.profitOnCost)
+  Tooltip: "Net profit ÷ total cost. Developer benchmark: 18%+ with planning permission, 25%+ without planning."
+
+SA: 2 tiles
+  CoC ROI: formatPercent(saResults.cashOnCashROI)
+  Tooltip: "Annual cash flow ÷ cash invested × 100. Benchmark: 10%+ strong for SA."
+  
+  Gross Yield: formatPercent(saResults.grossYield)
+  Tooltip: "Annual gross revenue ÷ purchase price × 100."
+
+BRRR: 2 tiles
+  CoC ROI: brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)
+  Tooltip: "Annual cash flow ÷ cash left in deal × 100. The lower the cash left in, the higher this number. Infinite when capital is fully recycled."
+  
+  Gross Yield: formatPercent(brrrResults.grossYield)
+  Tooltip: "Annual rent ÷ post-refurb value × 100."
+
+R2R: 2 tiles
+  ROI on Setup: formatPercent(r2rResults.roi)
+  Tooltip: "Annual profit ÷ setup costs × 100. Benchmark: 50%+ strong, 25%+ average."
+  
+  Monthly Spread: formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)
+  Tooltip: "Gross room income minus landlord rent — your gross margin before other costs. Benchmark: £300+ comfortable, £500+ strong."
+
+SOCIAL: 2 tiles
+  CoC ROI: formatPercent(socialResults.cashOnCashROI)
+  Tooltip: "Annual cash flow ÷ cash invested × 100. Social housing trades lower return for long-term stability and zero void risk. Benchmark: 3%+ average, 5%+ strong."
+  
+  Gross Yield: formatPercent(socialResults.grossYield)
+  Tooltip: "Annual guaranteed lease income ÷ purchase price × 100."
+
+---
+
+TASK 2 — REMOVE OLD ROWS SECTION
+
+After replacing the grid, remove the old rows section 
+entirely for all 7 strategies:
+- Remove the <div className="h-px bg-border" /> divider
+- Remove all Row components below it
+- Remove the space-y-3 pt-3 wrapper div
+
+The new rows (Net Yield, Equity on Day One, Payback, 
+Break-even) will be added in Prompt 4. Leave a comment 
+placeholder: {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+
+---
+
+TASK 3 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Check that all these field names exist on result objects 
+before using them. If any field does not exist, report 
+it and use the closest available alternative:
+- btlResults.monthlyMortgageInterest
+- btlResults.totalOperatingCosts
+- hmoResults.monthlyMortgageInterest
+- hmoResults.totalOperatingCosts
+- saResults.monthlyMortgage
+- saResults.totalOperatingCosts
+- brrrResults.totalCostIn
+- brrrResults.cashLeftInDeal
+- brrrResults.refinanceLoan
+- brrrResults.monthlyMortgage
+- brrrResults.totalOperatingCosts
+- socialResults.monthlyMortgage
+- socialResults.totalOperatingCosts
+- r2rInputs.monthlyRunningCosts
+- r2rResults.managementFees
+
+Report:
+1. All field names verified or corrected
+2. Three groups confirmed for all 7 strategies
+3. Old rows removed and placeholder comment added
+4. TypeScript error count (must be 0)

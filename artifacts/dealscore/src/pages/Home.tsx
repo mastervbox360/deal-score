@@ -3052,29 +3052,62 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(btlResults.totalCashInvested)} tooltip={TT.cashInvested} />
-                      <MetricBox label="Mortgage" value={formatCurrency(btlResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
-                          </div>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-btl-cash" text="Total cash required to complete this purchase: deposit + stamp duty + refurb costs + other costs. This is your total capital at risk." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(btlResults.totalCashInvested)}</span>
                         </div>
-                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) : '—'}</span>
                       </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Gross Yield" value={formatPercent(btlResults.grossYield)} tooltip={TT.grossYield} />
-                      <Row label="Net Yield" value={formatPercent(btlResults.netYield)} tooltip={TT.netYield} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(btlResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
-                      {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
-                      )}
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-btl-mort" text="Monthly mortgage payment based on your rate, term and repayment type." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(btlResults.monthlyMortgageInterest * 12) : formatCurrency(btlResults.monthlyMortgageInterest)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(btlResults.monthlyMortgageInterest)}/mo` : `${formatCurrency(btlResults.monthlyMortgageInterest * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-btl-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance. Includes service charge and ground rent where applicable." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(btlResults.totalOperatingCosts * 12) : formatCurrency(btlResults.totalOperatingCosts)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(btlResults.totalOperatingCosts)}/mo` : `${formatCurrency(btlResults.totalOperatingCosts * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-btl-cf" text="Net monthly income after all costs and mortgage payments. This is what lands in your account." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(btlResults.annualCashFlow) : formatCurrency(btlResults.monthlyCashFlow)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(btlResults.monthlyCashFlow)}/mo` : `${formatCurrency(btlResults.annualCashFlow)}/yr`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-btl-coc" text="Cash-on-Cash ROI: annual cash flow ÷ cash invested × 100. The most accurate measure of return on leveraged property. Benchmark: 5%+ strong, 3%+ average." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(btlResults.cashOnCashROI)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-btl-gy" text="Annual rental income ÷ purchase price × 100. Used to compare properties regardless of financing. Benchmark: 5%+ for BTL." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(btlResults.grossYield)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
 
@@ -3101,41 +3134,66 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(hmoResults.totalCashInvested)} tooltip={TT.cashInvested} />
-                      <MetricBox label="Gross Rent/mo" value={formatCurrency(hmoResults.grossMonthlyRent)} tooltip={TT.hmoGrossRent} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
-                          </div>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-hmo-cash" text="Total cash required: deposit + stamp duty + refurb + HMO licence + other costs." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(hmoResults.totalCashInvested)}</span>
                         </div>
-                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) : '—'}</span>
                       </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Mortgage" value={formatCurrency(hmoResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <Row label="Gross Yield" value={formatPercent(hmoResults.grossYield)} tooltip={TT.grossYield} />
-                      <Row label="Net Yield" value={formatPercent(hmoResults.netYield)} tooltip={TT.netYield} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(hmoResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
-                      {hmoInputs.rooms > 0 && isFinite(hmoResults.monthlyCashFlow) && (
-                        <div className="flex justify-between items-center py-2 border-b border-border/40 last:border-0">
-                          <span className="text-sm text-muted-foreground flex items-center gap-0.5">
-                            Profit Per Room
-                            <InfoIcon id="row-ProfitPerRoom" text="Monthly profit divided by number of rooms. Useful for comparing HMOs of different sizes. Samuel Leeds benchmark: aim for £100–£150+ per room as a minimum." />
-                          </span>
-                          <span className={`text-sm font-medium ${hmoResults.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                            {formatCurrency(hmoResults.monthlyCashFlow / hmoInputs.rooms)}/room
-                          </span>
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
                         </div>
-                      )}
-                      {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
-                      )}
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-hmo-mort" text="Monthly mortgage payment." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(hmoResults.monthlyMortgageInterest * 12) : formatCurrency(hmoResults.monthlyMortgageInterest)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(hmoResults.monthlyMortgageInterest)}/mo` : `${formatCurrency(hmoResults.monthlyMortgageInterest * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-hmo-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(hmoResults.totalOperatingCosts * 12) : formatCurrency(hmoResults.totalOperatingCosts)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(hmoResults.totalOperatingCosts)}/mo` : `${formatCurrency(hmoResults.totalOperatingCosts * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-hmo-cf" text="Net monthly income after all costs and mortgage." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(hmoResults.annualCashFlow) : formatCurrency(hmoResults.monthlyCashFlow)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(hmoResults.monthlyCashFlow)}/mo` : `${formatCurrency(hmoResults.annualCashFlow)}/yr`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-hmo-coc" text="Annual cash flow ÷ cash invested × 100. Benchmark: 12%+ strong for HMO." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(hmoResults.cashOnCashROI)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-hmo-gy" text="Annual room income ÷ purchase price × 100. Benchmark: 7%+ for HMO, 10%+ strong." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(hmoResults.grossYield)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit/Room<InfoIcon id="g3-hmo-ppr" text="Monthly cash flow divided by number of rooms. Benchmark: £100–£150+ per room minimum. Useful for comparing HMOs of different sizes." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(hmoResults.monthlyCashFlow / Math.max(hmoInputs.rooms, 1))}/rm</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
 
@@ -3152,47 +3210,65 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Total Cost" value={formatCurrency(flipResults.totalCost)} tooltip={TT.flipTotalCost} />
-                      <MetricBox label="Selling Costs" value={formatCurrency(flipResults.sellingCosts)} tooltip={TT.flipSellingCosts} />
-                      <MetricBox label="Net Profit" value={formatCurrency(flipResults.netProfit)} highlight={flipResults.netProfit < 0} tooltip={TT.flipNetProfit} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Per Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Total</button>
-                          </div>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total Cost In<InfoIcon id="g1-flip-cost" text="All costs to acquire and refurbish: purchase price + stamp duty + refurb + bridging interest + other costs." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(flipResults.totalCost)}</span>
                         </div>
-                        <span className={`text-2xl font-bold ${(showAnnual ? flipResults.netProfit : flipResults.profitPerMonth) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? flipResults.netProfit : flipResults.profitPerMonth)}</span>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Net Profit<InfoIcon id="g1-flip-profit" text="Expected sale price minus all costs. This is your take-home from the deal." /></span>
+                          <span className="text-lg font-bold" style={{ color: flipResults.netProfit >= 0 ? '#10B981' : '#EF4444' }}>{formatCurrency(flipResults.netProfit)}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Total ROI" value={formatPercent(flipResults.roi)} isBold tooltip={TT.flipTotalROI} />
-                      <Row label="Annualised ROI" value={formatPercent(flipResults.annualisedROI)} tooltip={TT.annualisedROI} />
-                      {sharedInputs.purchasePrice > 0 && flipInputs.expectedSalePrice > 0 && (() => {
-                        const totalFlipCosts = sharedInputs.purchasePrice + sharedInputs.refurbCost + sharedInputs.otherCosts + flipResults.sellingCosts + buyersPremiumValue;
-                        const profitOnCost = totalFlipCosts > 0 ? (flipResults.netProfit / totalFlipCosts) * 100 : 0;
-                        const pocColor = profitOnCost >= 18 ? 'text-green-600' : profitOnCost >= 10 ? 'text-amber-500' : 'text-red-500';
-                        const pocBenchmark = profitOnCost >= 25 ? 'Exceeds no-planning benchmark (25%)' : profitOnCost >= 18 ? 'Meets planning benchmark (18%)' : 'Below minimum benchmark (18%)';
-                        return (
-                          <div className="flex justify-between items-start py-2 border-b border-border/40 last:border-0">
-                            <span className="text-sm text-muted-foreground flex items-center gap-0.5">
-                              Profit on Cost
-                              <InfoIcon id="row-ProfitOnCost" text="Net profit as a percentage of total costs invested. Developers use this metric rather than margin on GDV. Samuel Leeds benchmarks: 18%+ with planning permission, 25%+ without." />
-                            </span>
-                            <div className="text-right">
-                              <span className={`text-sm font-bold ${pocColor}`}>{formatPercent(profitOnCost)}</span>
-                              <p className="text-[9px] text-muted-foreground italic mt-0.5">{pocBenchmark}</p>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                      {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
-                      )}
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Total figures' : 'Per month figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Holding Costs<InfoIcon id="g2-flip-hold" text="Monthly costs during the project: insurance, council tax, utilities, finance charges." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(flipInputs.holdingCostsPerMonth * Math.max(flipInputs.projectLengthMonths, 1)) : formatCurrency(flipInputs.holdingCostsPerMonth)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(flipInputs.holdingCostsPerMonth)}/mo` : `${formatCurrency(flipInputs.holdingCostsPerMonth * Math.max(flipInputs.projectLengthMonths, 1))} total`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit<InfoIcon id="g2-flip-prof" text="Net profit divided by project length in months. Switch to Total to see the full deal profit." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? flipResults.netProfit : flipResults.profitPerMonth) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? `${formatCurrency(flipResults.netProfit)} total` : `${formatCurrency(flipResults.profitPerMonth)}/mo`}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(flipResults.profitPerMonth)}/mo` : `${formatCurrency(flipResults.netProfit)} total`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total ROI<InfoIcon id="g3-flip-roi" text="Net profit ÷ total cost × 100. Benchmark: 8%+ acceptable, 12%+ strong." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.roi)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Ann. ROI<InfoIcon id="g3-flip-ann" text="Total ROI annualised based on project length. Allows comparison with buy-and-hold strategies." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.annualisedROI)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit on Cost<InfoIcon id="g3-flip-poc" text="Net profit ÷ total cost. Developer benchmark: 18%+ with planning permission, 25%+ without planning." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.profitOnCost)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
 
@@ -3214,31 +3290,62 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(saResults.totalCashInvested)} tooltip={TT.cashInvested} />
-                      <MetricBox label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
-                          </div>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-sa-cash" text="Total cash required: deposit + stamp duty + refurb + other costs." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(saResults.totalCashInvested)}</span>
                         </div>
-                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) : '—'}</span>
                       </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Mortgage" value={formatCurrency(saResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <Row label="Gross Yield" value={formatPercent(saResults.grossYield)} tooltip={TT.grossYield} />
-                      <Row label="Net Yield" value={formatPercent(saResults.netYield)} tooltip={TT.netYield} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(saResults.cashOnCashROI)} isBold tooltip={TT.cocRoi} />
-                      <Row label="Cash Invested" value={formatCurrency(saResults.totalCashInvested)} tooltip={TT.cashInvested} />
-                      {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
-                      )}
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-sa-mort" text="Monthly mortgage payment." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(saResults.monthlyMortgage * 12) : formatCurrency(saResults.monthlyMortgage)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(saResults.monthlyMortgage)}/mo` : `${formatCurrency(saResults.monthlyMortgage * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-sa-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + platform fees (Airbnb/Booking.com)." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(saResults.totalOperatingCosts * 12) : formatCurrency(saResults.totalOperatingCosts)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(saResults.totalOperatingCosts)}/mo` : `${formatCurrency(saResults.totalOperatingCosts * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-sa-cf" text="Net monthly income after all costs and mortgage." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(saResults.annualCashFlow) : formatCurrency(saResults.monthlyCashFlow)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(saResults.monthlyCashFlow)}/mo` : `${formatCurrency(saResults.annualCashFlow)}/yr`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-sa-coc" text="Annual cash flow ÷ cash invested × 100. Benchmark: 10%+ strong for SA." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(saResults.cashOnCashROI)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-sa-gy" text="Annual gross revenue ÷ purchase price × 100." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(saResults.grossYield)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
 
@@ -3262,42 +3369,70 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox
-                        label="Cash Left In"
-                        value={sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? `${formatCurrency(Math.abs(brrrResults.cashLeftInDeal))} OUT` : formatCurrency(brrrResults.cashLeftInDeal)}
-                        highlight={!brrrResults.moneyOut && brrrResults.cashLeftInDeal > 0 && brrrResults.cashLeftInDeal > 30000}
-                        tooltip={TT.brrrCashLeft}
-                      />
-                      <MetricBox label="Equity Created" value={formatCurrency(brrrResults.equityCreated)} highlight={brrrResults.equityCreated < 0} tooltip={TT.equityCreated} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
-                          </div>
-                        </div>
-                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) : '—'}</span>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
-                      <MetricBox label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} tooltip={TT.brrrRefinanceLoan} />
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-brrr-cash" text="Total cash before refinance: purchase + stamp duty + refurb + bridging interest + other costs." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(brrrResults.totalCostIn)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Left In<InfoIcon id="g1-brrr-left" text="Cash remaining in deal after refinance. Target: as close to £0 as possible. £0 means capital fully recycled." /></span>
+                          <span className="text-lg font-bold" style={{ color: brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 10000 ? '#10B981' : brrrResults.cashLeftInDeal <= 25000 ? '#F59E0B' : '#EF4444' }}>{brrrResults.moneyOut ? '∞ recycled' : formatCurrency(brrrResults.cashLeftInDeal)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Refinance Loan<InfoIcon id="g1-brrr-refi" text="The new long-term mortgage taken out after refinancing. Calculated as refinance % × post-refurb value." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(brrrResults.refinanceLoan)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Refinance Loan" value={formatCurrency(brrrResults.refinanceLoan)} tooltip={TT.brrrRefinanceLoan} />
-                      <Row label="Monthly Mortgage" value={formatCurrency(brrrResults.monthlyMortgage)} tooltip={TT.mortgageAmount} />
-                      <Row label="Gross Yield (on GDV)" value={formatPercent(brrrResults.grossYield)} tooltip={TT.grossYield} />
-                      <Row label="Net Yield" value={formatPercent(brrrResults.netYield)} tooltip={TT.netYield} />
-                      <Row
-                        label="Cash-on-Cash ROI"
-                        value={sharedInputs.purchasePrice > 0 && brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}
-                        isBold
-                        tooltip={TT.cocRoi}
-                      />
-                      {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
-                      )}
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-brrr-mort" text="Monthly refinance mortgage payment on the new long-term mortgage." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(brrrResults.monthlyMortgage * 12) : formatCurrency(brrrResults.monthlyMortgage)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(brrrResults.monthlyMortgage)}/mo` : `${formatCurrency(brrrResults.monthlyMortgage * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-brrr-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(brrrResults.totalOperatingCosts * 12) : formatCurrency(brrrResults.totalOperatingCosts)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(brrrResults.totalOperatingCosts)}/mo` : `${formatCurrency(brrrResults.totalOperatingCosts * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-brrr-cf" text="Net monthly income after all costs and refinance mortgage." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(brrrResults.annualCashFlow) : formatCurrency(brrrResults.monthlyCashFlow)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(brrrResults.monthlyCashFlow)}/mo` : `${formatCurrency(brrrResults.annualCashFlow)}/yr`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-brrr-coc" text="Annual cash flow ÷ cash left in deal × 100. The lower the cash left in, the higher this number. Infinite when capital is fully recycled." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-brrr-gy" text="Annual rent ÷ post-refurb value × 100." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(brrrResults.grossYield)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
 
@@ -3313,27 +3448,66 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Gross Income/mo" value={formatCurrency(r2rResults.grossMonthlyIncome)} tooltip={TT.r2rGrossIncome} />
-                      <MetricBox label="Net Income/mo" value={formatCurrency(r2rResults.netMonthlyIncome)} tooltip={TT.r2rNetIncome} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Profit</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
-                          </div>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Setup Costs<InfoIcon id="g1-r2r-setup" text="One-off costs to set up the R2R: furniture, furnishings, admin and legal fees." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts)}</span>
                         </div>
-                        <span className={`text-2xl font-bold ${(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{formatCurrency(showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit)}</span>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total Upfront<InfoIcon id="g1-r2r-upfront" text="True total cash required to start: setup costs + landlord deposit (1 month) + first month rent paid before income begins." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2))}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Management Fees/mo" value={formatCurrency(r2rResults.managementFees)} tooltip={TT.r2rMgmtFees} />
-                      <Row label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} tooltip={TT.setupCosts} />
-                      <Row label="Monthly Spread" value={formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)} tooltip={TT.r2rMonthlySpread} />
-                      <Row label="Net Return on Setup Costs" value={formatPercent(r2rResults.roi)} isBold tooltip={TT.r2rNetReturn} />
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Landlord Rent<InfoIcon id="g2-r2r-rent" text="Monthly rent paid to the property owner under the R2R agreement. Your primary fixed cost." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(r2rInputs.monthlyRentPaid * 12) : formatCurrency(r2rInputs.monthlyRentPaid)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(r2rInputs.monthlyRentPaid)}/mo` : `${formatCurrency(r2rInputs.monthlyRentPaid * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Running Costs<InfoIcon id="g2-r2r-run" text="Monthly running costs: management/platform fees + monthly expenses." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency((r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0)) * 12) : formatCurrency(r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0))}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0))}/mo` : `${formatCurrency((r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0)) * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit<InfoIcon id="g2-r2r-prof" text="Net monthly profit after landlord rent and all running costs." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(r2rResults.annualProfit) : formatCurrency(r2rResults.monthlyProfit)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(r2rResults.monthlyProfit)}/mo` : `${formatCurrency(r2rResults.annualProfit)}/yr`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">ROI on Setup<InfoIcon id="g3-r2r-roi" text="Annual profit ÷ setup costs × 100. Benchmark: 50%+ strong, 25%+ average." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(r2rResults.roi)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Monthly Spread<InfoIcon id="g3-r2r-spread" text="Gross room income minus landlord rent — your gross margin before other costs. Benchmark: £300+ comfortable, £500+ strong." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
 
@@ -3352,29 +3526,62 @@ export default function HomePage() {
                         ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding'
                         : null,
                     ].filter(Boolean) as string[]} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricBox label="Cash Invested" value={formatCurrency(socialResults.totalCashInvested)} tooltip={TT.cashInvested} />
-                      <MetricBox label="Mortgage" value={formatCurrency(socialResults.mortgageAmount)} tooltip={TT.mortgageAmount} />
-                      <div className="p-4 rounded-xl flex flex-col gap-2 bg-[#F0F4F8] border border-[#E2E8F0]">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cash Flow</span>
-                          <div className="flex items-center gap-1">
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(false)}>Mo</button>
-                            <button type="button" className={`text-[9px] px-1.5 py-0.5 rounded transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`} onClick={() => setShowAnnual(true)}>Yr</button>
-                          </div>
+                    {/* Group 1 — WHAT I COMMIT */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-soc-cash" text="Total cash required: deposit + stamp duty + refurb + other costs." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(socialResults.totalCashInvested)}</span>
                         </div>
-                        <span className={`text-2xl font-bold ${hasMinimumData && (showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) < 0 ? 'text-red-500' : 'text-[#1B3A6B]'}`}>{hasMinimumData ? formatCurrency(showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) : '—'}</span>
                       </div>
                     </div>
-                    <div className="h-px bg-border" />
-                    <div className="space-y-3 pt-3">
-                      <Row label="Gross Yield" value={formatPercent(socialResults.grossYield)} tooltip={TT.socialGrossYield} />
-                      <Row label="Net Yield" value={formatPercent(socialResults.netYield)} tooltip={TT.socialNetYield} />
-                      <Row label="Cash-on-Cash ROI" value={formatPercent(socialResults.cashOnCashROI)} isBold tooltip={TT.socialCocRoi} />
-                      {marketValue > 0 && (
-                        <Row label="Equity on Day One" value={formatCurrency(equityDayOne)} isBold tooltip={TT.equityDayOne} />
-                      )}
+                    {/* Group 2 — MONTHLY · ANNUAL */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
+                          <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-soc-mort" text="Monthly mortgage payment." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(socialResults.monthlyMortgage * 12) : formatCurrency(socialResults.monthlyMortgage)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(socialResults.monthlyMortgage)}/mo` : `${formatCurrency(socialResults.monthlyMortgage * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-soc-ops" text="Total monthly running costs. Typically lower for social housing as the housing provider manages day-to-day maintenance." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(socialResults.totalOperatingCosts * 12) : formatCurrency(socialResults.totalOperatingCosts)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(socialResults.totalOperatingCosts)}/mo` : `${formatCurrency(socialResults.totalOperatingCosts * 12)}/yr`}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-soc-cf" text="Net monthly income after all costs and mortgage." /></span>
+                          <span className="text-lg font-bold" style={{ color: (showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(socialResults.annualCashFlow) : formatCurrency(socialResults.monthlyCashFlow)}</span>
+                          <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(socialResults.monthlyCashFlow)}/mo` : `${formatCurrency(socialResults.annualCashFlow)}/yr`}</span>
+                        </div>
+                      </div>
                     </div>
+                    {/* Group 3 — RETURNS */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-soc-coc" text="Annual cash flow ÷ cash invested × 100. Social housing trades lower return for long-term stability and zero void risk. Benchmark: 3%+ average, 5%+ strong." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(socialResults.cashOnCashROI)}</span>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-soc-gy" text="Annual guaranteed lease income ÷ purchase price × 100." /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(socialResults.grossYield)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
                   </div>
                 )}
                 </>) : (
