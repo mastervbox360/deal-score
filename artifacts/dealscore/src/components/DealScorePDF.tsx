@@ -434,53 +434,6 @@ function generateVerdictSummary(props: DealScorePDFProps): string {
   return `This deal scores ${vl} — gross yield of ${fp(gy)} and monthly cash flow of ${fc(cf2)} fall below the minimum thresholds for ${sn}.`;
 }
 
-function computeCalloutMetrics(props: DealScorePDFProps): { label: string; value: string }[] {
-  const dt = props.dealType;
-  const mh = hasMeaningfulInputs(props);
-  const g = (v: string) => mh ? v : '\u2014';
-  if (dt === 'BTL') return [
-    { label: 'Gross Yield', value: g(fp(props.btlResults.grossYield)) },
-    { label: 'Monthly Cash Flow', value: g(fc(props.btlResults.monthlyCashFlow)) },
-    { label: 'Cash-on-Cash ROI', value: g(fp(props.btlResults.cashOnCashROI)) },
-  ];
-  if (dt === 'HMO') return [
-    { label: 'Gross Yield', value: g(fp(props.hmoResults.grossYield)) },
-    { label: 'Monthly Cash Flow', value: g(fc(props.hmoResults.monthlyCashFlow)) },
-    { label: 'Mortgage Amount', value: g(fc(props.hmoResults.mortgageAmount)) },
-  ];
-  if (dt === 'FLIP') {
-    const margin = props.flipInputs.expectedSalePrice > 0
-      ? props.flipResults.netProfit / props.flipInputs.expectedSalePrice * 100 : 0;
-    return [
-      { label: 'Net Profit', value: g(fc(props.flipResults.netProfit)) },
-      { label: 'ROI', value: g(fp(props.flipResults.roi)) },
-      { label: 'Net Margin', value: g(fp(margin)) },
-    ];
-  }
-  if (dt === 'SA') return [
-    { label: 'Net Yield', value: g(fp(props.saResults.netYield)) },
-    { label: 'Monthly Cash Flow', value: g(fc(props.saResults.monthlyCashFlow)) },
-    { label: 'Occupancy Rate', value: `${props.saInputs.occupancyPercent.toFixed(0)}%` },
-  ];
-  if (dt === 'BRRR') return [
-    { label: 'Cash Left In', value: mh ? ((props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014' },
-    { label: 'Monthly Cash Flow', value: g(fc(props.brrrResults.monthlyCashFlow)) },
-    { label: 'Refinance Amount', value: g(fc(props.brrrResults.refinanceLoan)) },
-  ];
-  if (dt === 'R2R') {
-    const spread = props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
-    return [
-      { label: 'Monthly Profit', value: g(fc(props.r2rResults.monthlyProfit)) },
-      { label: 'Monthly Spread', value: g(fc(spread)) },
-      { label: 'Setup Costs', value: g(fc(props.r2rInputs.setupCosts)) },
-    ];
-  }
-  return [
-    { label: 'Cash-on-Cash ROI', value: g(fp(props.socialResults.cashOnCashROI)) },
-    { label: 'Monthly Cash Flow', value: g(fc(props.socialResults.monthlyCashFlow)) },
-    { label: 'Gross Yield', value: g(fp(props.socialResults.grossYield)) },
-  ];
-}
 
 function computeCoverKeyMetric(props: DealScorePDFProps): { label: string; value: string } {
   const dt = props.dealType;
@@ -1005,7 +958,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const { dims: dealScoreDims, overall: dealScoreOverall } = computeDealScoreBreakdown(props);
   const verdictSummary = generateVerdictSummary(props);
-  const calloutMetrics3 = computeCalloutMetrics(props);
   const whatThisMeans = generateWhatThisMeans(props);
 
   const execSummaryText = props.executiveSummary.trim();
@@ -1891,18 +1843,153 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <Text style={{ fontSize: 9.5, color: '#1E2B3C', marginBottom: 10, lineHeight: 1.45 }}>{verdictSummary}</Text>
         ) : null}
 
-        {/* 3 Key metric callout cards — brand top border only */}
-        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-          {calloutMetrics3.map(({ label, value }) => (
-            <View key={label} style={[base.calloutCard, { border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 9, paddingHorizontal: 10 }]}>
-              <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4 }}>{label}</Text>
-              <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{value}</Text>
-            </View>
-          ))}
-        </View>
+        {/* Three-group analysis panel */}
+        {(() => {
+          const mh = hasMeaningfulInputs(props);
+          const g = (v: string) => mh ? v : '\u2014';
+          const dt = props.dealType;
 
-        {/* Full results table — unchanged */}
-        <Table rows={resultsRows} />
+          // Group 1 — What I Commit rows
+          const commitRows: [string, string][] = (() => {
+            if (dt === 'BTL' || dt === 'HMO' || dt === 'SA' || dt === 'SOCIAL') {
+              const ci = dt === 'BTL' ? props.btlResults.totalCashInvested
+                : dt === 'HMO' ? props.hmoResults.totalCashInvested
+                : dt === 'SA' ? props.saResults.totalCashInvested
+                : props.socialResults.totalCashInvested;
+              return [['Cash Invested', g(fc(ci))]];
+            }
+            if (dt === 'FLIP') return [
+              ['Total Cost In', g(fc(props.flipResults.totalCost))],
+              ['Net Profit', g(fc(props.flipResults.netProfit))],
+            ];
+            if (dt === 'BRRR') {
+              const mo = props.brrrResults.moneyOut && props.purchasePrice > 0;
+              return [
+                ['Cash Invested', g(fc(props.brrrResults.totalCostIn))],
+                ['Cash Left In', mh ? (mo ? '\u221E recycled' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014'],
+                ['Refinance Loan', g(fc(props.brrrResults.refinanceLoan))],
+              ];
+            }
+            return [['Setup Costs', g(fc(props.r2rInputs.setupCosts))]];
+          })();
+
+          // Group 2 — Monthly
+          const btlMortgage = Math.max(0, props.btlInputs.monthlyRent - props.btlResults.monthlyCashFlow - props.btlInputs.monthlyExpenses);
+          const mortgageVal: string | null = (dt === 'FLIP' || dt === 'R2R') ? null
+            : g(fc(dt === 'BTL' ? btlMortgage
+              : dt === 'HMO' ? props.hmoResults.monthlyMortgageInterest
+              : dt === 'SA' ? props.saResults.monthlyMortgage
+              : dt === 'BRRR' ? props.brrrResults.monthlyMortgage
+              : props.socialResults.monthlyMortgage));
+
+          const opCostLabel = dt === 'FLIP' ? 'Holding Costs /mo' : 'Operating Costs';
+          const opCostVal = g(fc(
+            dt === 'BTL' ? props.btlInputs.monthlyExpenses
+            : dt === 'HMO' ? props.hmoInputs.monthlyExpenses
+            : dt === 'SA' ? props.saInputs.monthlyRunningCosts
+            : dt === 'BRRR' ? props.brrrInputs.monthlyExpenses
+            : dt === 'R2R' ? props.r2rInputs.monthlyRunningCosts
+            : dt === 'SOCIAL' ? props.socialInputs.managementCostsPerMonth
+            : props.flipInputs.holdingCostsPerMonth
+          ));
+
+          const cfVal = dt === 'BTL' ? props.btlResults.monthlyCashFlow
+            : dt === 'HMO' ? props.hmoResults.monthlyCashFlow
+            : dt === 'SA' ? props.saResults.monthlyCashFlow
+            : dt === 'BRRR' ? props.brrrResults.monthlyCashFlow
+            : dt === 'SOCIAL' ? props.socialResults.monthlyCashFlow
+            : dt === 'R2R' ? props.r2rResults.monthlyProfit
+            : props.flipResults.netProfit;
+
+          const cfLabel = dt === 'R2R' ? 'Monthly Profit' : dt === 'FLIP' ? 'Net Profit' : 'Cash Flow';
+          const cfColor = mh ? (cfVal >= 0 ? '#22C55E' : '#EF4444') : '#1E2B3C';
+
+          // Group 3 — Returns rows
+          const returnRows: [string, string][] = (() => {
+            if (dt === 'BTL' || dt === 'SA' || dt === 'SOCIAL') {
+              const coc = dt === 'BTL' ? props.btlResults.cashOnCashROI : dt === 'SA' ? props.saResults.cashOnCashROI : props.socialResults.cashOnCashROI;
+              const gy = dt === 'BTL' ? props.btlResults.grossYield : dt === 'SA' ? props.saResults.grossYield : props.socialResults.grossYield;
+              return [['Cash-on-Cash ROI', g(fp(coc))], ['Gross Yield', g(fp(gy))]];
+            }
+            if (dt === 'HMO') {
+              const ppr = props.hmoInputs.rooms > 0 ? props.hmoResults.monthlyCashFlow / props.hmoInputs.rooms : 0;
+              return [
+                ['Cash-on-Cash ROI', g(fp(props.hmoResults.cashOnCashROI))],
+                ['Gross Yield', g(fp(props.hmoResults.grossYield))],
+                ['Profit Per Room /mo', g(fc(ppr))],
+              ];
+            }
+            if (dt === 'BRRR') {
+              const mo = props.brrrResults.moneyOut && props.purchasePrice > 0;
+              return [
+                ['Cash-on-Cash ROI', mh ? (mo ? '\u221E recycled' : fp(props.brrrResults.cashOnCashROI)) : '\u2014'],
+                ['Gross Yield (on GDV)', g(fp(props.brrrResults.grossYield))],
+              ];
+            }
+            if (dt === 'FLIP') return [
+              ['Total ROI', g(fp(props.flipResults.roi))],
+              ['Annualised ROI', g(fp(props.flipResults.annualisedROI))],
+              ['Profit on Cost', g(fp(props.flipResults.profitOnCost))],
+            ];
+            return [
+              ['Net Return on Setup', g(fp(props.r2rResults.roi))],
+              ['Net Yield', g(fp(props.r2rResults.netYield))],
+            ];
+          })();
+
+          return (
+            <View style={{ marginBottom: 10 }}>
+              {/* Group 1 — What I Commit */}
+              <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 8, borderTop: `2pt solid ${structureColour}` }}>
+                <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 5 }}>What I Commit</Text>
+                {commitRows.map(([lbl, val]) => (
+                  <View key={lbl} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                    <Text style={{ fontSize: 8.5, color: '#6B7280' }}>{lbl}</Text>
+                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Group 2 — Monthly */}
+              <View style={{ border: '0.5pt solid #E5E7EB', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
+                <View style={{ paddingVertical: 5, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8 }}>Monthly</Text>
+                </View>
+                <View style={{ paddingVertical: 6, paddingHorizontal: 10 }}>
+                  {mortgageVal !== null && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                      <Text style={{ fontSize: 8.5, color: '#6B7280' }}>Mortgage</Text>
+                      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{mortgageVal}</Text>
+                    </View>
+                  )}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                    <Text style={{ fontSize: 8.5, color: '#6B7280' }}>{opCostLabel}</Text>
+                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{opCostVal}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, marginTop: 2, borderTop: '0.5pt solid #E5E7EB' }}>
+                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{cfLabel}</Text>
+                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: cfColor }}>{g(fc(cfVal))}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Group 3 — Returns */}
+              <View style={{ border: '0.5pt solid #E5E7EB', borderRadius: 4, overflow: 'hidden' }}>
+                <View style={{ paddingVertical: 5, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8 }}>Returns</Text>
+                </View>
+                <View style={{ paddingVertical: 6, paddingHorizontal: 10 }}>
+                  {returnRows.map(([lbl, val]) => (
+                    <View key={lbl} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+                      <Text style={{ fontSize: 8.5, color: '#6B7280' }}>{lbl}</Text>
+                      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          );
+        })()}
 
         {/* What This Means */}
         {whatThisMeans && hasMeaningfulInputs(props) ? (

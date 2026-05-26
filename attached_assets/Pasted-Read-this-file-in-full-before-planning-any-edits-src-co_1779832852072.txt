@@ -1,0 +1,44 @@
+Read this file in full before planning any edits:
+src/components/DealScorePDF.tsx
+
+Context
+The app's results panel was redesigned in Stage 8C into a three-group structure. The PDF's Page 4 (Deal Score Analysis) still uses the old flat table (resultsRows) and the old computeCalloutMetrics three-card row. Both must be updated to match the three-group structure from the app.
+
+What to change
+There are two targets on Page 4:
+Target 1 — computeCalloutMetrics function (lines ~437–487)
+Replace the three callout cards with the three-group panel described below. The function will be deleted and replaced inline on the page.
+Target 2 — resultsRows block and <Table rows={resultsRows} /> on Page 4 (lines ~923–1005 and ~1904)
+The flat resultsRows table and its <Table> render are replaced by the three-group panel JSX. The resultsRows variable is still used on Page 3 (Deal Inputs) — do not remove it.
+
+New three-group panel — structure and rules
+Replace the three callout cards and the <Table rows={resultsRows} /> on Page 4 with a new inline panel. Build it directly in the Page 4 JSX (not as a separate function). Structure:
+Group 1 — WHAT I COMMIT
+Render as a tinted panel (use tintBg background, structureColour label). One row per item, label left / value right, value always dark navy #1E2B3C, never brand colour.
+StrategyItemsBTL / HMO / SA / SOCIALCash Invested = totalCashInvested from that strategy's resultsFLIPTotal Cost In = flipResults.totalCost · Net Profit = flipResults.netProfitBRRRCash Invested = brrrResults.totalCostIn · Cash Left In = brrrResults.cashLeftInDeal (show ∞ recycled when brrrResults.moneyOut && purchasePrice > 0) · Refinance Loan = brrrResults.refinanceLoanR2RSetup Costs = r2rInputs.setupCosts · Total Upfront = r2rInputs.setupCosts + (r2rInputs.landlordDepositMonths ?? 1) * r2rInputs.monthlyRentPaid + r2rInputs.monthlyRentPaid — but only add this row if r2rInputs.landlordDepositMonths exists as a prop; if the field does not exist on R2RInputs, show Setup Costs only and add a TODO comment
+Group 2 — MONTHLY
+No toggle in the PDF — show monthly figures only. Render as a plain bordered section with structureColour header rule. Three rows: Mortgage, Operating Costs, Cash Flow. Values always dark navy. Cash Flow value coloured green (#22C55E) when positive, red (#EF4444) when negative.
+Monthly figures by strategy:
+FieldSourceMortgage (BTL)btlResults.mortgageAmount > 0 ? btlResults.monthlyCashFlow — derive as btlInputs.monthlyRent - btlResults.monthlyCashFlow - btlInputs.monthlyExpenses, clamped to ≥ 0Mortgage (HMO)hmoResults.monthlyMortgageInterestMortgage (SA)saResults.monthlyMortgageMortgage (BRRR)brrrResults.monthlyMortgageMortgage (SOCIAL)socialResults.monthlyMortgageMortgage (FLIP)Not applicable — omit Mortgage row for FLIPMortgage (R2R)Not applicable — omit Mortgage row for R2R; show Monthly Rent to Landlord = r2rInputs.monthlyRentPaid insteadOperating Costs (BTL)btlInputs.monthlyExpensesOperating Costs (HMO)derive: hmoResults.monthlyCashFlow-based — use hmoResults.grossMonthlyRent - hmoResults.monthlyMortgageInterest - hmoResults.monthlyCashFlow, clamped ≥ 0Operating Costs (SA)saResults.platformFees + saResults.monthlyRunningCosts — if not available as separate fields, use saResults.grossMonthlyRevenue - saResults.netMonthlyRevenueOperating Costs (BRRR)brrrInputs.monthlyExpensesOperating Costs (SOCIAL)socialInputs.managementCostsPerMonthOperating Costs (R2R)r2rResults.managementFees + r2rInputs.monthlyRunningCostsCash FlowThe active strategy's monthlyCashFlow (or monthlyProfit for R2R)
+Group 3 — RETURNS
+Render as a plain bordered section with structureColour header rule. Values always dark navy, never brand colour.
+StrategyItemsBTL / SA / SOCIALCash-on-Cash ROI · Gross YieldBRRRCash-on-Cash ROI (show ∞ recycled when money out) · Gross Yield (on GDV)HMOCash-on-Cash ROI · Gross Yield · Profit Per Room = hmoResults.monthlyCashFlow / hmoInputs.rooms (labelled Profit Per Room /mo) — compute inline; do not reference hmoResults.profitPerRoom unless it already exists on the typeFLIPTotal ROI = flipResults.roi · Annualised ROI = flipResults.annualisedROI · Profit on Cost = flipResults.profitOnCostR2RROI on Setup = r2rResults.roi · Monthly Spread = r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid
+
+hasMeaningfulInputs guard
+All values in all three groups must respect the existing hasMeaningfulInputs(props) guard — show — (the existing \u2014 pattern) when inputs are not entered. Follow the exact same pattern already used in computeCalloutMetrics and resultsRows.
+
+What to remove
+
+Delete the computeCalloutMetrics function entirely (it is only called once, on Page 4)
+Remove the {calloutMetrics3.map(...)} JSX block on Page 4
+Remove the <Table rows={resultsRows} /> line on Page 4 only
+Do not remove resultsRows itself — it may be used elsewhere (check before removing)
+Do not touch Page 3, Financial Detail page, Stress Testing page, or any other page
+Do not touch DealScorePDFProPlus.tsx
+
+
+Permanent rules
+
+Brand/accent colours (structureColour, accentColour) only on structural elements: group header labels, divider rules, border tops. Never on metric values or data text — those are always #1E2B3C (dark navy)
+All values wrapped in the hasMeaningfulInputs guard
+After all edits: npx tsc --noEmit — zero errors required. If landlordDepositMonths or any other field does not exist on the type, use optional chaining or a TODO comment — do not force a type error
