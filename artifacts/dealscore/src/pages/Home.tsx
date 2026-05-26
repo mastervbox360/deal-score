@@ -2904,7 +2904,7 @@ export default function HomePage() {
                 </div>
                 {missingFields.length === 0 && dealType === 'BTL' && (<>
                   {renderScoreBadge(btlResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{btlResults.score === 'Strong' ? 'Strong cash flow and ROI — this deal stacks.' : btlResults.score === 'Average' ? 'Positive cash flow but ROI below investor threshold.' : 'Negative cash flow or ROI below minimum — deal does not stack.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{btlResults.score === 'Strong' ? 'Strong cash flow and ROI — this deal stacks.' : btlResults.score === 'Average' ? `CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below the 5% strong threshold. Cash flow is positive but marginal.` : `Negative cash flow of ${formatCurrency(btlResults.monthlyCashFlow)}/mo. CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below minimum investor threshold.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2916,7 +2916,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'HMO' && (<>
                   {renderScoreBadge(hmoResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{hmoResults.score === 'Strong' ? 'Strong yield and cash flow — good room-level returns.' : hmoResults.score === 'Average' ? 'Borderline yield or cash flow — needs improvement.' : 'HMO yield below threshold — review rates or costs.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{hmoResults.score === 'Strong' ? 'Strong yield and cash flow — good room-level returns.' : hmoResults.score === 'Average' ? `Gross yield at ${formatPercent(hmoResults.grossYield)} — below the 10% strong threshold but above the 7% average minimum.` : `Gross yield at ${formatPercent(hmoResults.grossYield)} — below the 7% HMO minimum. Review room rates or purchase price.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2928,7 +2928,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'FLIP' && (<>
                   {renderScoreBadge(flipResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{flipResults.score === 'Strong' ? 'Strong profit margin — flip stacks at current numbers.' : flipResults.score === 'Average' ? 'Acceptable margin — watch refurb costs carefully.' : 'Profit or margin below threshold — does not stack.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{flipResults.score === 'Strong' ? 'Strong profit margin — flip stacks at current numbers.' : flipResults.score === 'Average' ? `Profit on cost at ${formatPercent(flipResults.profitOnCost)} — below the 18% planning benchmark. Thin margin for this deal.` : `Net profit ${formatCurrency(flipResults.netProfit)} — below minimum threshold. Review purchase price or refurb costs.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2940,7 +2940,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'SA' && (<>
                   {renderScoreBadge(saResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow.' : saResults.score === 'Average' ? 'Marginal SA returns — rate or occupancy needs work.' : 'SA yield below threshold or negative cash flow.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow — good occupancy combination.' : saResults.score === 'Average' ? `Net yield at ${formatPercent(saResults.netYield)} — below the 10% average threshold. Increase nightly rate or occupancy to improve.` : `SA yield below threshold or negative cash flow of ${formatCurrency(saResults.monthlyCashFlow)}/mo. Review nightly rate and occupancy assumptions.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2952,7 +2952,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'BRRR' && (<>
                   {renderScoreBadge(brrrResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{brrrResults.score === 'Strong' ? 'Capital recycled efficiently with positive cash flow.' : brrrResults.score === 'Average' ? 'Positive cash flow but significant capital remains in deal.' : 'Negative cash flow or too much capital left in.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{brrrResults.score === 'Strong' ? 'Capital recycled efficiently with positive cash flow.' : brrrResults.score === 'Average' ? `£${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits capital recycling efficiency.` : `Too much capital left in deal or negative cash flow of ${formatCurrency(brrrResults.monthlyCashFlow)}/mo. Review post-refurb value or refinance terms.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2964,7 +2964,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'R2R' && (<>
                   {renderScoreBadge(r2rResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{r2rResults.score === 'Strong' ? 'Strong margins — setup costs recovered quickly.' : r2rResults.score === 'Average' ? 'Marginal profit or ROI on setup — needs improvement.' : 'Monthly profit below threshold — does not stack.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{r2rResults.score === 'Strong' ? 'Strong margins — setup costs recovered quickly.' : r2rResults.score === 'Average' ? `Monthly profit at ${formatCurrency(r2rResults.monthlyProfit)}/mo — below the £500 strong threshold. One void month would significantly impact returns.` : `Monthly profit at ${formatCurrency(r2rResults.monthlyProfit)}/mo — below £200 minimum threshold. Review landlord rent or room rates.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -2976,7 +2976,7 @@ export default function HomePage() {
                 </>)}
                 {missingFields.length === 0 && dealType === 'SOCIAL' && (<>
                   {renderScoreBadge(socialResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2">{socialResults.score === 'Strong' ? 'Stable lease income with strong ROI.' : socialResults.score === 'Average' ? 'ROI or cash flow below investor threshold.' : 'Lease income does not cover costs.'}</p>
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{socialResults.score === 'Strong' ? 'Stable lease income with strong ROI — long-term low-management investment.' : socialResults.score === 'Average' ? `CoC ROI at ${formatPercent(socialResults.cashOnCashROI)} — below the 5% strong threshold. Stable income but limited return on capital.` : `Lease income does not cover costs — negative cash flow of ${formatCurrency(socialResults.monthlyCashFlow)}/mo. Review lease terms or purchase price.`}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />

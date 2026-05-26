@@ -1,0 +1,75 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — DYNAMIC VERDICT LINE
+
+Find the verdict line paragraph for each strategy 
+(text-xs italic text-muted-foreground px-6 pb-2).
+
+Replace ALL static verdict strings with dynamic ones 
+that respond to the actual score.
+
+For STRONG scores: keep the existing positive one-liner.
+For AVERAGE and WEAK scores: generate a specific 
+diagnostic that names the exact metric, its current 
+value, and the gap to threshold.
+
+Use these exact dynamic verdict strings:
+
+BTL:
+  Strong: "Strong cash flow and ROI — this deal stacks."
+  Average: `CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below the 5% strong threshold. Cash flow is positive but marginal.`
+  Weak: `Negative cash flow of ${formatCurrency(btlResults.monthlyCashFlow)}/mo. CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below minimum investor threshold.`
+
+HMO:
+  Strong: "Strong yield and cash flow — good room-level returns."
+  Average: `Gross yield at ${formatPercent(hmoResults.grossYield)} — below the 10% strong threshold but above the 7% average minimum.`
+  Weak: `Gross yield at ${formatPercent(hmoResults.grossYield)} — below the 7% HMO minimum. Review room rates or purchase price.`
+
+FLIP:
+  Strong: "Strong profit margin — flip stacks at current numbers."
+  Average: `Profit on cost at ${formatPercent(flipResults.profitOnCost)} — below the 18% planning benchmark. Thin margin for this deal.`
+  Weak: `Net profit ${formatCurrency(flipResults.netProfit)} — below minimum threshold. Review purchase price or refurb costs.`
+
+SA:
+  Strong: "Strong SA yield and cash flow — good occupancy combination."
+  Average: `Net yield at ${formatPercent(saResults.netYield)} — below the 10% average threshold. Increase nightly rate or occupancy to improve.`
+  Weak: `SA yield below threshold or negative cash flow of ${formatCurrency(saResults.monthlyCashFlow)}/mo. Review nightly rate and occupancy assumptions.`
+
+BRRR:
+  Strong: "Capital recycled efficiently with positive cash flow."
+  Average: `£${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits capital recycling efficiency.`
+  Weak: `Too much capital left in deal or negative cash flow of ${formatCurrency(brrrResults.monthlyCashFlow)}/mo. Review post-refurb value or refinance terms.`
+
+R2R:
+  Strong: "Strong margins — setup costs recovered quickly."
+  Average: `Monthly profit at ${formatCurrency(r2rResults.monthlyProfit)}/mo — below the £500 strong threshold. One void month would significantly impact returns.`
+  Weak: `Monthly profit at ${formatCurrency(r2rResults.monthlyProfit)}/mo — below £200 minimum threshold. Review landlord rent or room rates.`
+
+SOCIAL:
+  Strong: "Stable lease income with strong ROI — long-term low-management investment."
+  Average: `CoC ROI at ${formatPercent(socialResults.cashOnCashROI)} — below the 5% strong threshold. Stable income but limited return on capital.`
+  Weak: `Lease income does not cover costs — negative cash flow of ${formatCurrency(socialResults.monthlyCashFlow)}/mo. Review lease terms or purchase price.`
+
+Each verdict renders as:
+<p className="text-xs text-muted-foreground italic 
+  px-6 pb-2 leading-relaxed">
+  {verdict string}
+</p>
+
+---
+
+TASK 2 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Confirm dynamic verdicts applied for all 7 strategies
+2. Confirm Strong/Average/Weak variants all present
+3. TypeScript error count (must be 0)
