@@ -3058,7 +3058,7 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-btl-cash" text="Total cash required to complete this purchase: deposit + stamp duty + refurb costs + other costs. This is your total capital at risk." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(btlResults.totalCashInvested)}</span>
                         </div>
@@ -3074,17 +3074,17 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-btl-mort" text="Monthly mortgage payment based on your rate, term and repayment type." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(btlResults.monthlyMortgageInterest * 12) : formatCurrency(btlResults.monthlyMortgageInterest)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(btlResults.monthlyMortgageInterest)}/mo` : `${formatCurrency(btlResults.monthlyMortgageInterest * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-btl-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance. Includes service charge and ground rent where applicable." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(btlResults.totalOperatingCosts * 12) : formatCurrency(btlResults.totalOperatingCosts)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(btlResults.totalOperatingCosts)}/mo` : `${formatCurrency(btlResults.totalOperatingCosts * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-btl-cf" text="Net monthly income after all costs and mortgage payments. This is what lands in your account." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? btlResults.annualCashFlow : btlResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(btlResults.annualCashFlow) : formatCurrency(btlResults.monthlyCashFlow)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(btlResults.monthlyCashFlow)}/mo` : `${formatCurrency(btlResults.annualCashFlow)}/yr`}</span>
@@ -3097,11 +3097,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-btl-coc" text="Cash-on-Cash ROI: annual cash flow ÷ cash invested × 100. The most accurate measure of return on leveraged property. Benchmark: 5%+ strong, 3%+ average." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(btlResults.cashOnCashROI)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-btl-gy" text="Annual rental income ÷ purchase price × 100. Used to compare properties regardless of financing. Benchmark: 5%+ for BTL." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(btlResults.grossYield)}</span>
                         </div>
@@ -3159,7 +3159,7 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-hmo-cash" text="Total cash required: deposit + stamp duty + refurb + HMO licence + other costs." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(hmoResults.totalCashInvested)}</span>
                         </div>
@@ -3175,17 +3175,17 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-hmo-mort" text="Monthly mortgage payment." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(hmoResults.monthlyMortgageInterest * 12) : formatCurrency(hmoResults.monthlyMortgageInterest)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(hmoResults.monthlyMortgageInterest)}/mo` : `${formatCurrency(hmoResults.monthlyMortgageInterest * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-hmo-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(hmoResults.totalOperatingCosts * 12) : formatCurrency(hmoResults.totalOperatingCosts)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(hmoResults.totalOperatingCosts)}/mo` : `${formatCurrency(hmoResults.totalOperatingCosts * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-hmo-cf" text="Net monthly income after all costs and mortgage." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? hmoResults.annualCashFlow : hmoResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(hmoResults.annualCashFlow) : formatCurrency(hmoResults.monthlyCashFlow)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(hmoResults.monthlyCashFlow)}/mo` : `${formatCurrency(hmoResults.annualCashFlow)}/yr`}</span>
@@ -3198,15 +3198,15 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-hmo-coc" text="Annual cash flow ÷ cash invested × 100. Benchmark: 12%+ strong for HMO." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(hmoResults.cashOnCashROI)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-hmo-gy" text="Annual room income ÷ purchase price × 100. Benchmark: 7%+ for HMO, 10%+ strong." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(hmoResults.grossYield)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit/Room<InfoIcon id="g3-hmo-ppr" text="Monthly cash flow divided by number of rooms. Benchmark: £100–£150+ per room minimum. Useful for comparing HMOs of different sizes." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(hmoResults.monthlyCashFlow / Math.max(hmoInputs.rooms, 1))}/rm</span>
                         </div>
@@ -3254,11 +3254,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total Cost In<InfoIcon id="g1-flip-cost" text="All costs to acquire and refurbish: purchase price + stamp duty + refurb + bridging interest + other costs." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(flipResults.totalCost)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Net Profit<InfoIcon id="g1-flip-profit" text="Expected sale price minus all costs. This is your take-home from the deal." /></span>
                           <span className="text-lg font-bold" style={{ color: flipResults.netProfit >= 0 ? '#10B981' : '#EF4444' }}>{formatCurrency(flipResults.netProfit)}</span>
                         </div>
@@ -3274,12 +3274,12 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Holding Costs<InfoIcon id="g2-flip-hold" text="Monthly costs during the project: insurance, council tax, utilities, finance charges." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(flipInputs.holdingCostsPerMonth * Math.max(flipInputs.projectLengthMonths, 1)) : formatCurrency(flipInputs.holdingCostsPerMonth)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(flipInputs.holdingCostsPerMonth)}/mo` : `${formatCurrency(flipInputs.holdingCostsPerMonth * Math.max(flipInputs.projectLengthMonths, 1))} total`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit<InfoIcon id="g2-flip-prof" text="Net profit divided by project length in months. Switch to Total to see the full deal profit." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? flipResults.netProfit : flipResults.profitPerMonth) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? `${formatCurrency(flipResults.netProfit)} total` : `${formatCurrency(flipResults.profitPerMonth)}/mo`}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(flipResults.profitPerMonth)}/mo` : `${formatCurrency(flipResults.netProfit)} total`}</span>
@@ -3292,15 +3292,15 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total ROI<InfoIcon id="g3-flip-roi" text="Net profit ÷ total cost × 100. Benchmark: 8%+ acceptable, 12%+ strong." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.roi)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Ann. ROI<InfoIcon id="g3-flip-ann" text="Total ROI annualised based on project length. Allows comparison with buy-and-hold strategies." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.annualisedROI)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit on Cost<InfoIcon id="g3-flip-poc" text="Net profit ÷ total cost. Developer benchmark: 18%+ with planning permission, 25%+ without planning." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.profitOnCost)}</span>
                         </div>
@@ -3345,7 +3345,7 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-sa-cash" text="Total cash required: deposit + stamp duty + refurb + other costs." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(saResults.totalCashInvested)}</span>
                         </div>
@@ -3361,17 +3361,17 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-sa-mort" text="Monthly mortgage payment." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(saResults.monthlyMortgage * 12) : formatCurrency(saResults.monthlyMortgage)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(saResults.monthlyMortgage)}/mo` : `${formatCurrency(saResults.monthlyMortgage * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-sa-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + platform fees (Airbnb/Booking.com)." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(saResults.totalOperatingCosts * 12) : formatCurrency(saResults.totalOperatingCosts)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(saResults.totalOperatingCosts)}/mo` : `${formatCurrency(saResults.totalOperatingCosts * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-sa-cf" text="Net monthly income after all costs and mortgage." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? saResults.annualCashFlow : saResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(saResults.annualCashFlow) : formatCurrency(saResults.monthlyCashFlow)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(saResults.monthlyCashFlow)}/mo` : `${formatCurrency(saResults.annualCashFlow)}/yr`}</span>
@@ -3384,11 +3384,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-sa-coc" text="Annual cash flow ÷ cash invested × 100. Benchmark: 10%+ strong for SA." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(saResults.cashOnCashROI)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-sa-gy" text="Annual gross revenue ÷ purchase price × 100." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(saResults.grossYield)}</span>
                         </div>
@@ -3443,15 +3443,15 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-brrr-cash" text="Total cash before refinance: purchase + stamp duty + refurb + bridging interest + other costs." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(brrrResults.totalCostIn)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Left In<InfoIcon id="g1-brrr-left" text="Cash remaining in deal after refinance. Target: as close to £0 as possible. £0 means capital fully recycled." /></span>
                           <span className="text-lg font-bold" style={{ color: brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 10000 ? '#10B981' : brrrResults.cashLeftInDeal <= 25000 ? '#F59E0B' : '#EF4444' }}>{brrrResults.moneyOut ? '∞ recycled' : formatCurrency(brrrResults.cashLeftInDeal)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Refinance Loan<InfoIcon id="g1-brrr-refi" text="The new long-term mortgage taken out after refinancing. Calculated as refinance % × post-refurb value." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(brrrResults.refinanceLoan)}</span>
                         </div>
@@ -3467,17 +3467,17 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-brrr-mort" text="Monthly refinance mortgage payment on the new long-term mortgage." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(brrrResults.monthlyMortgage * 12) : formatCurrency(brrrResults.monthlyMortgage)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(brrrResults.monthlyMortgage)}/mo` : `${formatCurrency(brrrResults.monthlyMortgage * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-brrr-ops" text="Total monthly running costs: management fees + maintenance reserve + buildings insurance + void allowance." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(brrrResults.totalOperatingCosts * 12) : formatCurrency(brrrResults.totalOperatingCosts)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(brrrResults.totalOperatingCosts)}/mo` : `${formatCurrency(brrrResults.totalOperatingCosts * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-brrr-cf" text="Net monthly income after all costs and refinance mortgage." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? brrrResults.annualCashFlow : brrrResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(brrrResults.annualCashFlow) : formatCurrency(brrrResults.monthlyCashFlow)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(brrrResults.monthlyCashFlow)}/mo` : `${formatCurrency(brrrResults.annualCashFlow)}/yr`}</span>
@@ -3490,11 +3490,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-brrr-coc" text="Annual cash flow ÷ cash left in deal × 100. The lower the cash left in, the higher this number. Infinite when capital is fully recycled." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-brrr-gy" text="Annual rent ÷ post-refurb value × 100." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(brrrResults.grossYield)}</span>
                         </div>
@@ -3535,11 +3535,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Setup Costs<InfoIcon id="g1-r2r-setup" text="One-off costs to set up the R2R: furniture, furnishings, admin and legal fees." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total Upfront<InfoIcon id="g1-r2r-upfront" text="True total cash required to start: setup costs + landlord deposit (1 month) + first month rent paid before income begins." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2))}</span>
                         </div>
@@ -3555,17 +3555,17 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Landlord Rent<InfoIcon id="g2-r2r-rent" text="Monthly rent paid to the property owner under the R2R agreement. Your primary fixed cost." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(r2rInputs.monthlyRentPaid * 12) : formatCurrency(r2rInputs.monthlyRentPaid)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(r2rInputs.monthlyRentPaid)}/mo` : `${formatCurrency(r2rInputs.monthlyRentPaid * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Running Costs<InfoIcon id="g2-r2r-run" text="Monthly running costs: management/platform fees + monthly expenses." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency((r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0)) * 12) : formatCurrency(r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0))}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0))}/mo` : `${formatCurrency((r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0)) * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Profit<InfoIcon id="g2-r2r-prof" text="Net monthly profit after landlord rent and all running costs." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? r2rResults.annualProfit : r2rResults.monthlyProfit) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(r2rResults.annualProfit) : formatCurrency(r2rResults.monthlyProfit)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(r2rResults.monthlyProfit)}/mo` : `${formatCurrency(r2rResults.annualProfit)}/yr`}</span>
@@ -3578,11 +3578,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">ROI on Setup<InfoIcon id="g3-r2r-roi" text="Annual profit ÷ setup costs × 100. Benchmark: 50%+ strong, 25%+ average." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(r2rResults.roi)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Monthly Spread<InfoIcon id="g3-r2r-spread" text="Gross room income minus landlord rent — your gross margin before other costs. Benchmark: £300+ comfortable, £500+ strong." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rResults.grossMonthlyIncome - r2rInputs.monthlyRentPaid)}</span>
                         </div>
@@ -3626,7 +3626,7 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Invested<InfoIcon id="g1-soc-cash" text="Total cash required: deposit + stamp duty + refurb + other costs." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(socialResults.totalCashInvested)}</span>
                         </div>
@@ -3642,17 +3642,17 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Mortgage<InfoIcon id="g2-soc-mort" text="Monthly mortgage payment." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(socialResults.monthlyMortgage * 12) : formatCurrency(socialResults.monthlyMortgage)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(socialResults.monthlyMortgage)}/mo` : `${formatCurrency(socialResults.monthlyMortgage * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Operating Costs<InfoIcon id="g2-soc-ops" text="Total monthly running costs. Typically lower for social housing as the housing provider manages day-to-day maintenance." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{showAnnual ? formatCurrency(socialResults.totalOperatingCosts * 12) : formatCurrency(socialResults.totalOperatingCosts)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(socialResults.totalOperatingCosts)}/mo` : `${formatCurrency(socialResults.totalOperatingCosts * 12)}/yr`}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Cash Flow<InfoIcon id="g2-soc-cf" text="Net monthly income after all costs and mortgage." /></span>
                           <span className="text-lg font-bold" style={{ color: (showAnnual ? socialResults.annualCashFlow : socialResults.monthlyCashFlow) >= 0 ? '#10B981' : '#EF4444' }}>{showAnnual ? formatCurrency(socialResults.annualCashFlow) : formatCurrency(socialResults.monthlyCashFlow)}</span>
                           <span className="text-[11px] text-muted-foreground">{showAnnual ? `${formatCurrency(socialResults.monthlyCashFlow)}/mo` : `${formatCurrency(socialResults.annualCashFlow)}/yr`}</span>
@@ -3665,11 +3665,11 @@ export default function HomePage() {
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">CoC ROI<InfoIcon id="g3-soc-coc" text="Annual cash flow ÷ cash invested × 100. Social housing trades lower return for long-term stability and zero void risk. Benchmark: 3%+ average, 5%+ strong." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(socialResults.cashOnCashROI)}</span>
                         </div>
-                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col gap-1">
+                        <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Gross Yield<InfoIcon id="g3-soc-gy" text="Annual guaranteed lease income ÷ purchase price × 100." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(socialResults.grossYield)}</span>
                         </div>

@@ -1,0 +1,107 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — ADD LANDLORD DEPOSIT MONTHS INPUT TO R2R
+
+Find the R2R inputs section in the inputs panel 
+(the section containing Monthly Rent to Landlord, 
+Setup Costs, Number of Rooms, Rent per Room inputs).
+
+Add a new state variable near other r2rInputs state:
+const [r2rLandlordDepositMonths, setR2rLandlordDepositMonths] = 
+  useState<number>(1);
+
+Add a new input field in the R2R inputs section, 
+positioned immediately after the Setup Costs input:
+
+<div className="space-y-2">
+  <div className="flex items-center gap-1">
+    <Label>Landlord Deposit (months)</Label>
+    <InfoIcon 
+      id="r2r-deposit-months" 
+      text="Number of months rent held as deposit by the landlord. Typically 1–2 months. This is included in your Total Upfront calculation." 
+    />
+  </div>
+  <Input
+    type="number"
+    min={0}
+    max={6}
+    step={1}
+    placeholder="e.g. 1"
+    value={r2rLandlordDepositMonths || ''}
+    onChange={(e) => setR2rLandlordDepositMonths(
+      Number(e.target.value)
+    )}
+    data-testid="input-r2r-deposit-months"
+  />
+</div>
+
+---
+
+TASK 2 — WIRE INTO TOTAL UPFRONT CALCULATION
+
+Find the Total Upfront tile in the R2R Group 1 
+(What I Commit) section of the results panel.
+
+Currently it calculates:
+r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2)
+
+Replace with:
+r2rInputs.setupCosts + 
+(r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths) + 
+r2rInputs.monthlyRentPaid
+
+Where:
+- r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths 
+  = landlord deposit
+- + r2rInputs.monthlyRentPaid = first month rent upfront
+- Total = setup costs + deposit + first month
+
+Update the tooltip to reflect:
+"True total cash required to start: setup costs + 
+landlord deposit (${r2rLandlordDepositMonths} month${r2rLandlordDepositMonths !== 1 ? 's' : ''}) 
++ first month rent paid before income begins."
+
+---
+
+TASK 3 — WIRE INTO PAYBACK PERIOD ROW
+
+Find the R2R Payback Period row in the rows section.
+
+Currently it calculates:
+const totalUpfront = r2rInputs.setupCosts + 
+  (r2rInputs.monthlyRentPaid * 2);
+
+Replace with:
+const totalUpfront = r2rInputs.setupCosts + 
+  (r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths) + 
+  r2rInputs.monthlyRentPaid;
+
+---
+
+TASK 4 — WIRE INTO LIVE BAR SETUP COSTS SIGNAL
+
+The live bar currently shows Setup Costs for R2R.
+This signal should remain as Setup Costs only 
+(not Total Upfront) — the bar shows the input 
+figure, not the derived total.
+No change needed to the bar for this task.
+
+---
+
+TASK 5 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. New state variable location (line number)
+2. New input field location in R2R inputs section
+3. Total Upfront tile updated with dynamic deposit months
+4. Payback Period row updated
+5. TypeScript error count (must be 0)
