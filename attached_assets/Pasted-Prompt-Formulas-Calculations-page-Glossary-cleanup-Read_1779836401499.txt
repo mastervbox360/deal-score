@@ -1,0 +1,129 @@
+Prompt — Formulas & Calculations page + Glossary cleanup
+Read both files in full before planning any edits:
+
+src/components/DealScorePDF.tsx
+src/components/DealScorePDFProPlus.tsx
+
+
+Overview — three changes, both files
+
+Strip formula lines from the Glossary in both files
+Insert a new Formulas & Calculations page between the Glossary and Legal & Disclosure pages in both files
+Page order in both files must end: … → Glossary → Formulas & Calculations → Legal & Disclosure
+
+
+Change 1 — Glossary cleanup (both files)
+In DealScorePDF.tsx, remove these lines exactly (identified by their content — do not remove anything else):
+
+Line 2663: (Annual Rent / Purchase Price) × 100
+Line 2670: (Annual Cash Flow / Cash Invested) × 100
+Line 2674: Cash Invested / Annual Cash Flow
+Line 2678: Market Value - Purchase Price
+Line 2694: Gross Rent x (1 - Void %)
+Line 2701: NOI - Mortgage Payment
+Line 2708: Gross Rent - Break-Even Rent
+Line 2744: Mortgage / Property Value x 100
+Line 2751: Deposit + Tax + Refurb + Other Costs
+
+Each is a <Text> with fontFamily: 'Helvetica-Oblique' and color: '#3B82F6'. Remove the entire <Text>…</Text> element. Also update the marginBottom on the <Text> immediately above each removed line from marginBottom: 1 to marginBottom: 5 so spacing stays consistent.
+In DealScorePDFProPlus.tsx, do the same for the equivalent lines (2547, 2551, 2555, 2559, 2563, 2579, 2586, 2593, 2629, 2636) — same rule: remove the full <Text> element, update marginBottom on the line above to marginBottom: 6 (ProPlus uses 6, not 5).
+
+Change 2 — New Formulas & Calculations page (both files)
+Insert a new <Page> block immediately after the closing </Page> tag of the Glossary page and before the {hasLegal && ( block in both files.
+The page uses <Page size="A4" style={base.page}> in the portrait file and the equivalent landscape page size in ProPlus. Include <Footer /> and <SH title="Formulas & Calculations" /> at the top.
+Layout: Two-column, matching the Glossary layout exactly — <View style={{ flexDirection: 'row', gap: 0 }}> with left column flex: 1, paddingRight: 12, a <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} /> divider, and right column flex: 1, paddingLeft: 12.
+Section header style (reuse from Glossary — same in both files):
+fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour,
+textTransform: 'uppercase', letterSpacing: 0.8,
+paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6
+Entry style — three lines per formula:
+
+Term: fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1
+Description: fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1
+Formula: fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5
+
+Strategy-aware content — wrap the entire page contents in a conditional based on props.dealType. The content for each strategy is below. Split left/right columns as indicated.
+
+BTL, HMO, SA, SOCIAL, BRRR — Left column
+Section: Yield & Return
+
+Gross Yield — Annual rent as a percentage of purchase price — (Annual Rent ÷ Purchase Price) × 100
+Net Yield — Income after operating costs divided by purchase price. Mortgage excluded (UK standard) — (Annual Income − Operating Costs) ÷ Purchase Price × 100
+Cash-on-Cash ROI — Annual cash flow as a percentage of total cash invested. Includes mortgage — (Annual Cash Flow ÷ Cash Invested) × 100
+Payback Period — Years to recover invested capital from annual cash flow — Cash Invested ÷ Annual Cash Flow
+Equity on Day One (omit for BRRR) — Equity when purchased below market value — Market Value − Purchase Price
+Equity Created (BRRR only) — Equity generated through refurbishment — Post-Refurb Value − Total Cost In
+BRRR Gross Yield (BRRR only) — Yield calculated on GDV — (Annual Rent ÷ Post-Refurb Value) × 100
+
+Section: Cash Flow & Expenses (add marginTop: 10 to section header)
+
+Effective Rent — Gross rent after void allowance deducted — Gross Rent × (1 − Void %)
+Net Operating Income — Effective rent minus all operating costs, excluding mortgage — Effective Rent − Operating Costs
+Net Cash Flow — Monthly surplus after all costs including mortgage — Net Operating Income − Mortgage Payment
+Monthly Mortgage (Interest-Only) — Monthly interest payment — (Mortgage Amount × Annual Rate %) ÷ 12
+
+BTL, HMO, SA, SOCIAL, BRRR — Right column
+Section: Stress Testing & Resilience
+
+Break-Even Rent — Minimum rent to cover all costs at current rate — Operating Costs + Mortgage Payment
+Rent Headroom — Buffer before deal becomes cash-flow negative — Contracted Rent − Break-Even Rent
+Break-Even Rate — Mortgage rate at which cash flow reaches zero — Solved from: Rent = Operating Costs + (Mortgage Amount × Rate ÷ 12)
+Sensitivity Analysis — Performance under rent −10% and rate +1.5% applied independently — See sensitivity table in report
+
+Section: Capital & Structure (add marginTop: 10 to section header)
+
+Cash Invested — Total capital deployed into the deal — Deposit + Tax + Refurb + Other Costs
+LTV — Loan to value ratio — (Mortgage Amount ÷ Property Value) × 100
+Refinance Loan (BRRR only) — Capital released on refinance — Post-Refurb Value × (Refinance % ÷ 100)
+Cash Left In (BRRR only) — Capital remaining after refinance — Total Cost In − Refinance Loan
+
+Section: HMO (HMO only — add marginTop: 10 to section header)
+
+Profit Per Room — Monthly cash flow divided by number of rooms — Monthly Cash Flow ÷ Number of Rooms
+Gross Monthly Rent — Total room income at current occupancy — Rent per Room × Rooms × (Occupancy % ÷ 100)
+
+
+FLIP — Left column
+Section: Project Returns
+
+Total ROI — Net profit as a percentage of total cost — (Net Profit ÷ Total Cost In) × 100
+Annualised ROI — ROI scaled to a 12-month equivalent — (Total ROI ÷ Project Length in months) × 12
+Profit on Cost — Net profit as a percentage of total project cost — (Net Profit ÷ Total Cost) × 100
+Net Profit — Sale proceeds minus all costs — Expected Sale Price − Total Cost − Selling Costs
+
+Section: Project Costs (add marginTop: 10 to section header)
+
+Total Cost In — All capital deployed into the project — Purchase Price + Tax + Refurb + Holding Costs + Other Costs
+Holding Costs — Finance costs during the project period — Monthly Holding Cost × Project Length (months)
+Selling Costs — Agent and legal fees on sale — Expected Sale Price × Selling Costs %
+
+FLIP — Right column
+Section: Stress & Sensitivity
+
+Cost Overrun Scenario — Profit impact if costs increase by 10% — Net Profit − (Total Cost × 10%)
+GDV Sensitivity — Profit impact of a 5% lower sale price — Net Profit − (Expected Sale Price × 5%)
+Bridging Interest — Cost of bridging finance during the project — (Purchase Price × LTV %) × (Annual Rate % ÷ 12) × Term (months)
+
+
+R2R — Left column
+Section: Income & Spread
+
+Gross Monthly Income — Sub-let income at current occupancy — Rent per Room × Rooms × (Occupancy % ÷ 100)
+Monthly Spread — Income minus rent paid to landlord — Gross Monthly Income − Monthly Rent to Landlord
+Net Monthly Profit — Profit after all costs — Gross Monthly Income − Rent to Landlord − Management Fees − Running Costs
+Annual Profit — Net monthly profit scaled annually — Net Monthly Profit × 12
+
+R2R — Right column
+Section: Returns & Recovery
+
+ROI on Setup — Annual profit as a percentage of setup costs — (Annual Profit ÷ Setup Costs) × 100
+Payback Period — Months to recover setup costs from monthly profit — Setup Costs ÷ Net Monthly Profit
+Total Upfront — All capital needed to begin the agreement — Setup Costs + (Landlord Deposit Months × Monthly Rent) + First Month Rent
+
+
+Permanent rules
+
+structureColour on all section headers and divider rules — never a hardcoded colour
+All term names #1E2B3C, descriptions #6B7280, formula lines #3B82F6 — no brand colour on any of these
+Apply changes to both DealScorePDF.tsx and DealScorePDFProPlus.tsx
+After all edits: npx tsc --noEmit — zero errors required
