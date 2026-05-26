@@ -1674,7 +1674,7 @@ export default function HomePage() {
 
                 {/* 1 — Strategy (always, all screens) */}
                 <div className="flex flex-col justify-center gap-0.5 px-3">
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Strategy</span>
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Strategy</span>
                   <span className="text-sm font-medium text-[#1B3A6B]">{dealLabel}</span>
                 </div>
 
@@ -1682,7 +1682,7 @@ export default function HomePage() {
                 {showPurchasePrice && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
                   <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Purchase Price</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Purchase Price</span>
                     <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
                   </div>
                 </>)}
@@ -1691,7 +1691,7 @@ export default function HomePage() {
                 {dealType === 'FLIP' && flipInputs.expectedSalePrice > 0 && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
                   <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">GDV</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">GDV</span>
                     <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
                   </div>
                 </>)}
@@ -1700,7 +1700,7 @@ export default function HomePage() {
                 {dealType === 'R2R' && r2rInputs.setupCosts > 0 && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
                   <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Setup Costs</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Setup Costs</span>
                     <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(r2rInputs.setupCosts)}</span>
                   </div>
                 </>)}
@@ -1709,22 +1709,17 @@ export default function HomePage() {
                 {!incomplete && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
                   <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{keyMetricLabel}</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{keyMetricLabel}</span>
                     <span className="text-sm font-medium" style={keyMetricColour ? { color: keyMetricColour } : undefined}>{keyMetricValue}</span>
                   </div>
                 </>)}
 
-                {/* 6 — Deal Score pill (always visible, complete only) */}
+                {/* 6 — Deal Score (always visible, complete only) */}
                 {!incomplete && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
                   <div className="flex flex-col justify-center gap-0.5 px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
-                    <span
-                      className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                      style={{ background: `${scoreColour}18`, border: `0.5px solid ${scoreColour}40`, color: scoreColour }}
-                    >
-                      {scoreLabel}
-                    </span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Deal Score</span>
+                    <span className="text-sm font-medium" style={{ color: scoreColour }}>{scoreLabel}</span>
                   </div>
                 </>)}
 
@@ -3074,7 +3069,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3086,7 +3081,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3113,7 +3108,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3175,7 +3170,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3187,7 +3182,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3214,7 +3209,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3270,7 +3265,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3286,7 +3281,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Total figures' : 'Per month figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Total figures' : 'Per month figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3308,7 +3303,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3361,7 +3356,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3373,7 +3368,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3400,7 +3395,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3459,7 +3454,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3479,7 +3474,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3506,7 +3501,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3551,7 +3546,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3567,7 +3562,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3594,7 +3589,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3642,7 +3637,7 @@ export default function HomePage() {
                     {/* Group 1 — WHAT I COMMIT */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">What I Commit</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">What I Commit</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -3654,7 +3649,7 @@ export default function HomePage() {
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{showAnnual ? 'Annual figures' : 'Monthly figures'}</span>
                         <div className="flex gap-1">
                           <button type="button" onClick={() => setShowAnnual(false)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${!showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Monthly</button>
                           <button type="button" onClick={() => setShowAnnual(true)} className={`text-[9px] px-2 py-0.5 rounded-md font-medium transition-colors ${showAnnual ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Annual</button>
@@ -3681,7 +3676,7 @@ export default function HomePage() {
                     {/* Group 3 — RETURNS */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Returns</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Returns</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
