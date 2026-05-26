@@ -2312,6 +2312,22 @@ export default function HomePage() {
                       <Input type="number" placeholder="Enter setup costs" value={r2rInputs.setupCosts || ''} onChange={(e) => handleR2rChange('setupCosts', e.target.value)} />
                     </div>
                     <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label>Landlord Deposit (months)</Label>
+                        <InfoIcon id="r2r-deposit-months" text="Number of months rent held as deposit by the landlord. Typically 1–2 months. This is included in your Total Upfront calculation." />
+                      </div>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={6}
+                        step={1}
+                        placeholder="e.g. 1"
+                        value={r2rLandlordDepositMonths || ''}
+                        onChange={(e) => setR2rLandlordDepositMonths(Number(e.target.value))}
+                        data-testid="input-r2r-deposit-months"
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="r2r-rooms" text={TT.numRooms} /></div>
                       <Input type="number" placeholder="Enter number of rooms" value={r2rInputs.rooms || ''} onChange={(e) => handleR2rChange('rooms', e.target.value)} />
                     </div>
@@ -3542,8 +3558,8 @@ export default function HomePage() {
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts)}</span>
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
-                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total Upfront<InfoIcon id="g1-r2r-upfront" text="True total cash required to start: setup costs + landlord deposit (1 month) + first month rent paid before income begins." /></span>
-                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2))}</span>
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">Total Upfront<InfoIcon id="g1-r2r-upfront" text={`True total cash required to start: setup costs + landlord deposit (${r2rLandlordDepositMonths} month${r2rLandlordDepositMonths !== 1 ? 's' : ''}) + first month rent paid before income begins.`} /></span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatCurrency(r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths) + r2rInputs.monthlyRentPaid)}</span>
                         </div>
                       </div>
                     </div>
@@ -3597,7 +3613,7 @@ export default function HomePage() {
                       </div>
                       <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
                         <span className="text-sm text-muted-foreground flex items-center gap-1">Payback Period<InfoIcon id="row-r2r-payback" text="Months to recover total upfront cash (setup costs + deposit + first month rent) from monthly profit. Under 6 months = strong, under 12 = acceptable." /></span>
-                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{(() => { const totalUpfront = r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2); return r2rResults.monthlyProfit > 0 ? `${Math.round(totalUpfront / r2rResults.monthlyProfit)} months` : '—'; })()}</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{(() => { const totalUpfront = r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths) + r2rInputs.monthlyRentPaid; return r2rResults.monthlyProfit > 0 ? `${Math.round(totalUpfront / r2rResults.monthlyProfit)} months` : '—'; })()}</span>
                       </div>
                       <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
                         <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Landlord Rent<InfoIcon id="row-r2r-breakeven" text="Maximum landlord rent you could pay and still break even at zero profit. Useful for negotiating lease terms." /></span>
