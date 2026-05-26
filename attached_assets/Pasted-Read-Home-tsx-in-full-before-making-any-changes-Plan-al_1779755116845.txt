@@ -1,0 +1,222 @@
+Read Home.tsx in full before making any changes. Plan all 
+edits explicitly, then execute in parallel. Confirm exactly 
+what you changed at the end.
+
+Do NOT touch DealScorePDF.tsx, DealScorePDFProPlus.tsx, 
+or calculations.ts.
+
+---
+
+TASK 1 — ADD NEW ROWS SECTION
+
+Find the {/* ROWS PLACEHOLDER — added in Prompt 4 */} 
+comment for each of the 7 strategies and replace it with 
+the new rows section.
+
+ROWS CONTAINER:
+<div className="mt-2 space-y-0">
+  {/* rows go here */}
+</div>
+
+ROW STYLE (same for all rows):
+<div className="flex items-center justify-between 
+  py-2.5 border-b border-border/40 last:border-0">
+  <span className="text-sm text-muted-foreground 
+    flex items-center gap-1">
+    {label}
+    <InfoIcon id="{id}" text="{tooltip}" />
+  </span>
+  <span className="text-sm font-medium" 
+    style={{ color: '{colour}' }}>
+    {value}
+  </span>
+</div>
+
+Default value colour: var(--foreground) (dark navy)
+Break-even rows: #F59E0B (amber)
+Equity on Day One: #1B3A6B when value > 0, 
+  text-muted-foreground when "—"
+
+---
+
+ROWS PER STRATEGY:
+
+BTL rows (4 rows):
+
+Row 1 — Net Yield:
+  Label: "Net Yield"
+  Value: formatPercent(btlResults.netYield)
+  Tooltip: "Net annual income after all operating costs ÷ purchase price × 100. More accurate than gross yield as it accounts for running costs."
+  Colour: default
+
+Row 2 — Equity on Day One:
+  Label: "Equity on Day One"
+  Show when: marketValue > 0 only
+  Value: marketValue > 0 ? formatCurrency(equityDayOne) : null
+  Tooltip: "Market value minus purchase price. Instant equity from buying below market value. Only shows when market value is entered."
+  Colour: #1B3A6B if equityDayOne > 0, #EF4444 if negative
+
+Row 3 — Payback Period:
+  Label: "Payback Period"
+  Value: btlResults.annualCashFlow > 0 
+    ? `${(btlResults.totalCashInvested / btlResults.annualCashFlow).toFixed(1)} yrs`
+    : '—'
+  Tooltip: "Years to recover your cash invested from net cash flow. Under 12 years = strong, under 20 years = acceptable. Shows — when cash flow is negative."
+  Colour: default
+
+Row 4 — Break-even Rent:
+  Label: "Break-even Rent"
+  Value: formatCurrency(btlResults.monthlyMortgageInterest + btlResults.totalOperatingCosts) + '/mo'
+  Tooltip: "Minimum monthly rent needed to cover all costs including mortgage. Useful for stress-testing void periods and setting minimum rental thresholds."
+  Colour: #F59E0B
+
+---
+
+HMO rows (4 rows):
+
+Row 1 — Net Yield:
+  Value: formatPercent(hmoResults.netYield)
+  Tooltip: "Net annual income after all costs ÷ purchase price × 100."
+
+Row 2 — Equity on Day One:
+  Same conditional logic as BTL
+
+Row 3 — Payback Period:
+  Value: hmoResults.annualCashFlow > 0
+    ? `${(hmoResults.totalCashInvested / hmoResults.annualCashFlow).toFixed(1)} yrs`
+    : '—'
+  Tooltip: same as BTL
+
+Row 4 — Break-even Rent:
+  Value: formatCurrency(hmoResults.monthlyMortgageInterest + hmoResults.totalOperatingCosts) + '/mo'
+  Tooltip: "Minimum total room income needed to cover all costs including mortgage."
+  Colour: #F59E0B
+
+---
+
+FLIP rows (2 rows):
+
+Row 1 — Break-even Sale Price:
+  Label: "Break-even Sale Price"
+  Value: formatCurrency(flipResults.totalCost + flipResults.sellingCosts)
+  Tooltip: "Minimum sale price to recover all costs. The gap between this and your GDV is your safety margin."
+  Colour: #F59E0B
+
+Row 2 — Equity on Day One:
+  Same conditional logic as BTL
+  Tooltip: "Market value minus purchase price. Enter market value above to calculate."
+
+---
+
+SA rows (4 rows):
+
+Row 1 — Net Yield:
+  Value: formatPercent(saResults.netYield)
+  Tooltip: "Net annual income after all costs ÷ purchase price × 100."
+
+Row 2 — Equity on Day One:
+  Same conditional logic as BTL
+
+Row 3 — Payback Period:
+  Value: saResults.annualCashFlow > 0
+    ? `${(saResults.totalCashInvested / saResults.annualCashFlow).toFixed(1)} yrs`
+    : '—'
+  Tooltip: same as BTL
+
+Row 4 — Break-even Occupancy:
+  Label: "Break-even Occupancy"
+  Value: (() => {
+    const totalCosts = saResults.monthlyMortgage + saResults.totalOperatingCosts;
+    const grossDailyRate = saInputs.nightlyRate * (30.4);
+    const pct = grossDailyRate > 0 
+      ? (totalCosts / grossDailyRate) * 100 
+      : 0;
+    return pct > 0 ? formatPercent(Math.min(pct, 100)) : '—';
+  })()
+  Tooltip: "Minimum occupancy rate needed to cover all costs. Compare against your local market average to assess risk."
+  Colour: #F59E0B
+
+---
+
+BRRR rows (3 rows):
+
+Row 1 — Net Yield:
+  Value: formatPercent(brrrResults.netYield)
+  Tooltip: "Net annual income ÷ post-refurb value × 100."
+
+Row 2 — Equity on Day One:
+  Label: "Equity Created"
+  Show always (not conditional) — BRRR always creates 
+  equity through refurbishment if post-refurb > total cost
+  Value: brrrInputs.postRefurbValue > 0 
+    ? formatCurrency(brrrInputs.postRefurbValue - brrrResults.totalCostIn)
+    : '—'
+  Colour: value > 0 ? #1B3A6B : #EF4444
+  Tooltip: "Post-refurb value minus total cost in — equity created through the refurbishment process."
+
+Row 3 — Break-even Rent:
+  Value: formatCurrency(brrrResults.monthlyMortgage + brrrResults.totalOperatingCosts) + '/mo'
+  Tooltip: "Minimum monthly rent to cover refinance mortgage and all operating costs."
+  Colour: #F59E0B
+
+---
+
+R2R rows (3 rows):
+
+Row 1 — Gross Income/mo:
+  Label: "Gross Income/mo"
+  Value: formatCurrency(r2rResults.grossMonthlyIncome)
+  Tooltip: "Total room income before any costs — your top line revenue before landlord rent and running costs."
+  Colour: default
+
+Row 2 — Payback Period:
+  Label: "Payback Period"
+  Value: (() => {
+    const totalUpfront = r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2);
+    return r2rResults.monthlyProfit > 0
+      ? `${Math.round(totalUpfront / r2rResults.monthlyProfit)} months`
+      : '—';
+  })()
+  Tooltip: "Months to recover total upfront cash (setup costs + deposit + first month rent) from monthly profit. Under 6 months = strong, under 12 = acceptable."
+  Colour: default
+
+Row 3 — Break-even Landlord Rent:
+  Label: "Break-even Landlord Rent"
+  Value: (() => {
+    const maxRent = r2rResults.grossMonthlyIncome 
+      - (r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0));
+    return maxRent > 0 ? formatCurrency(maxRent) + '/mo' : '—';
+  })()
+  Tooltip: "Maximum landlord rent you could pay and still break even at zero profit. Useful for negotiating lease terms."
+  Colour: #F59E0B
+
+---
+
+SOCIAL rows (3 rows):
+
+Row 1 — Net Yield:
+  Value: formatPercent(socialResults.netYield)
+  Tooltip: "Net annual income after all costs ÷ purchase price × 100."
+
+Row 2 — Equity on Day One:
+  Same conditional logic as BTL
+
+Row 3 — Break-even Lease Income:
+  Label: "Break-even Lease Income"
+  Value: formatCurrency(socialResults.monthlyMortgage + socialResults.totalOperatingCosts) + '/mo'
+  Tooltip: "Minimum guaranteed lease income needed to cover mortgage and all running costs. Any income above this is your cash flow."
+  Colour: #F59E0B
+
+---
+
+TASK 2 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. Rows confirmed added for all 7 strategies
+2. Break-even calculations confirmed inline (no changes 
+   to calculations.ts)
+3. Equity on Day One conditional display confirmed
+4. R2R Payback in months confirmed
+5. TypeScript error count (must be 0)

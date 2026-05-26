@@ -3107,7 +3107,26 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Net Yield<InfoIcon id="row-btl-nety" text="Net annual income after all operating costs ÷ purchase price × 100. More accurate than gross yield as it accounts for running costs." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{formatPercent(btlResults.netYield)}</span>
+                      </div>
+                      {marketValue > 0 && (
+                        <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">Equity on Day One<InfoIcon id="row-btl-equity" text="Market value minus purchase price. Instant equity from buying below market value. Only shows when market value is entered." /></span>
+                          <span className="text-sm font-medium" style={{ color: equityDayOne > 0 ? '#1B3A6B' : '#EF4444' }}>{formatCurrency(equityDayOne)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Payback Period<InfoIcon id="row-btl-payback" text="Years to recover your cash invested from net cash flow. Under 12 years = strong, under 20 years = acceptable. Shows — when cash flow is negative." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{btlResults.annualCashFlow > 0 ? `${(btlResults.totalCashInvested / btlResults.annualCashFlow).toFixed(1)} yrs` : '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Rent<InfoIcon id="row-btl-breakeven" text="Minimum monthly rent needed to cover all costs including mortgage. Useful for stress-testing void periods and setting minimum rental thresholds." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(btlResults.monthlyMortgageInterest + btlResults.totalOperatingCosts)}/mo</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -3193,7 +3212,26 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Net Yield<InfoIcon id="row-hmo-nety" text="Net annual income after all costs ÷ purchase price × 100." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{formatPercent(hmoResults.netYield)}</span>
+                      </div>
+                      {marketValue > 0 && (
+                        <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">Equity on Day One<InfoIcon id="row-hmo-equity" text="Market value minus purchase price. Instant equity from buying below market value. Only shows when market value is entered." /></span>
+                          <span className="text-sm font-medium" style={{ color: equityDayOne > 0 ? '#1B3A6B' : '#EF4444' }}>{formatCurrency(equityDayOne)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Payback Period<InfoIcon id="row-hmo-payback" text="Years to recover your cash invested from net cash flow. Under 12 years = strong, under 20 years = acceptable. Shows — when cash flow is negative." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{hmoResults.annualCashFlow > 0 ? `${(hmoResults.totalCashInvested / hmoResults.annualCashFlow).toFixed(1)} yrs` : '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Rent<InfoIcon id="row-hmo-breakeven" text="Minimum total room income needed to cover all costs including mortgage." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(hmoResults.monthlyMortgageInterest + hmoResults.totalOperatingCosts)}/mo</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -3268,7 +3306,18 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Sale Price<InfoIcon id="row-flip-breakeven" text="Minimum sale price to recover all costs. The gap between this and your GDV is your safety margin." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(flipResults.totalCost + flipResults.sellingCosts)}</span>
+                      </div>
+                      {marketValue > 0 && (
+                        <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">Equity on Day One<InfoIcon id="row-flip-equity" text="Market value minus purchase price. Enter market value above to calculate." /></span>
+                          <span className="text-sm font-medium" style={{ color: equityDayOne > 0 ? '#1B3A6B' : '#EF4444' }}>{formatCurrency(equityDayOne)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -3345,7 +3394,26 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Net Yield<InfoIcon id="row-sa-nety" text="Net annual income after all costs ÷ purchase price × 100." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{formatPercent(saResults.netYield)}</span>
+                      </div>
+                      {marketValue > 0 && (
+                        <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">Equity on Day One<InfoIcon id="row-sa-equity" text="Market value minus purchase price. Instant equity from buying below market value. Only shows when market value is entered." /></span>
+                          <span className="text-sm font-medium" style={{ color: equityDayOne > 0 ? '#1B3A6B' : '#EF4444' }}>{formatCurrency(equityDayOne)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Payback Period<InfoIcon id="row-sa-payback" text="Years to recover your cash invested from net cash flow. Under 12 years = strong, under 20 years = acceptable. Shows — when cash flow is negative." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{saResults.annualCashFlow > 0 ? `${(saResults.totalCashInvested / saResults.annualCashFlow).toFixed(1)} yrs` : '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Occupancy<InfoIcon id="row-sa-breakeven" text="Minimum occupancy rate needed to cover all costs. Compare against your local market average to assess risk." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{(() => { const totalCosts = saResults.monthlyMortgage + saResults.totalOperatingCosts; const grossDailyRate = saInputs.nightlyRate * 30.4; const pct = grossDailyRate > 0 ? (totalCosts / grossDailyRate) * 100 : 0; return pct > 0 ? formatPercent(Math.min(pct, 100)) : '—'; })()}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -3432,7 +3500,20 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Net Yield<InfoIcon id="row-brrr-nety" text="Net annual income ÷ post-refurb value × 100." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{formatPercent(brrrResults.netYield)}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Equity Created<InfoIcon id="row-brrr-equity" text="Post-refurb value minus total cost in — equity created through the refurbishment process." /></span>
+                        <span className="text-sm font-medium" style={{ color: brrrInputs.postRefurbValue > 0 ? (brrrInputs.postRefurbValue - brrrResults.totalCostIn > 0 ? '#1B3A6B' : '#EF4444') : 'var(--muted-foreground)' }}>{brrrInputs.postRefurbValue > 0 ? formatCurrency(brrrInputs.postRefurbValue - brrrResults.totalCostIn) : '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Rent<InfoIcon id="row-brrr-breakeven" text="Minimum monthly rent to cover refinance mortgage and all operating costs." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(brrrResults.monthlyMortgage + brrrResults.totalOperatingCosts)}/mo</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -3507,7 +3588,20 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Gross Income/mo<InfoIcon id="row-r2r-gross" text="Total room income before any costs — your top line revenue before landlord rent and running costs." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{formatCurrency(r2rResults.grossMonthlyIncome)}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Payback Period<InfoIcon id="row-r2r-payback" text="Months to recover total upfront cash (setup costs + deposit + first month rent) from monthly profit. Under 6 months = strong, under 12 = acceptable." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{(() => { const totalUpfront = r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * 2); return r2rResults.monthlyProfit > 0 ? `${Math.round(totalUpfront / r2rResults.monthlyProfit)} months` : '—'; })()}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Landlord Rent<InfoIcon id="row-r2r-breakeven" text="Maximum landlord rent you could pay and still break even at zero profit. Useful for negotiating lease terms." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{(() => { const maxRent = r2rResults.grossMonthlyIncome - (r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0)); return maxRent > 0 ? `${formatCurrency(maxRent)}/mo` : '—'; })()}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -3581,7 +3675,22 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    {/* ROWS PLACEHOLDER — added in Prompt 4 */}
+                    <div className="mt-2 space-y-0">
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Net Yield<InfoIcon id="row-soc-nety" text="Net annual income after all costs ÷ purchase price × 100." /></span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{formatPercent(socialResults.netYield)}</span>
+                      </div>
+                      {marketValue > 0 && (
+                        <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">Equity on Day One<InfoIcon id="row-soc-equity" text="Market value minus purchase price. Instant equity from buying below market value. Only shows when market value is entered." /></span>
+                          <span className="text-sm font-medium" style={{ color: equityDayOne > 0 ? '#1B3A6B' : '#EF4444' }}>{formatCurrency(equityDayOne)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Lease Income<InfoIcon id="row-soc-breakeven" text="Minimum guaranteed lease income needed to cover mortgage and all running costs. Any income above this is your cash flow." /></span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(socialResults.monthlyMortgage + socialResults.totalOperatingCosts)}/mo</span>
+                      </div>
+                    </div>
                   </div>
                 )}
                 </>) : (
