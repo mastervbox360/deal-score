@@ -127,7 +127,7 @@ export interface DealScorePDFProps {
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
 const fp = (n: number) => n.toFixed(1) + '%';
 
-const hasMeaningfulInputs = (props: DealScorePDFProps): boolean => {
+export const hasMeaningfulInputs = (props: DealScorePDFProps): boolean => {
   if (props.dealType === 'R2R') {
     return props.r2rInputs.monthlyRentPaid > 0 && props.r2rInputs.setupCosts > 0;
   }
