@@ -310,6 +310,8 @@ export default function HomePage() {
 
   const [brrrInputs, setBrrrInputs] = useState({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
 
+  const [r2rLandlordDepositMonths, setR2rLandlordDepositMonths] = useState<number>(1);
+
   const [r2rInputs, setR2rInputs] = useState<R2RInputs>({
     monthlyRentPaid: 0,
     rooms: 0,
