@@ -2319,13 +2319,13 @@ export default function HomePage() {
                       <Input
                         type="number"
                         min={0}
-                        max={6}
                         step={1}
                         placeholder="e.g. 1"
                         value={r2rLandlordDepositMonths || ''}
-                        onChange={(e) => setR2rLandlordDepositMonths(Number(e.target.value))}
+                        onChange={(e) => setR2rLandlordDepositMonths(Math.max(0, Number(e.target.value)))}
                         data-testid="input-r2r-deposit-months"
                       />
+                      <p className="text-[10px] text-muted-foreground mt-1">Months of rent held as deposit by the landlord</p>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="r2r-rooms" text={TT.numRooms} /></div>
