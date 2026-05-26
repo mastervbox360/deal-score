@@ -1673,14 +1673,15 @@ export default function HomePage() {
               <div className="flex items-center">
 
                 {/* 1 — Strategy (always, all screens) */}
-                <div className="flex flex-col justify-center px-3">
-                  <span className="text-sm font-bold text-[#1B3A6B]">{dealLabel}</span>
+                <div className="flex flex-col justify-center gap-0.5 px-3">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Strategy</span>
+                  <span className="text-sm font-medium text-[#1B3A6B]">{dealLabel}</span>
                 </div>
 
                 {/* 2 — Purchase Price (desktop, not R2R) */}
                 {showPurchasePrice && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
-                  <div className="hidden lg:flex flex-col justify-center px-3">
+                  <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Purchase Price</span>
                     <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(purchasePrice)}</span>
                   </div>
@@ -1689,7 +1690,7 @@ export default function HomePage() {
                 {/* 3 — GDV (desktop, FLIP only) */}
                 {dealType === 'FLIP' && flipInputs.expectedSalePrice > 0 && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
-                  <div className="hidden lg:flex flex-col justify-center px-3">
+                  <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">GDV</span>
                     <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(flipInputs.expectedSalePrice)}</span>
                   </div>
@@ -1698,7 +1699,7 @@ export default function HomePage() {
                 {/* 4 — Setup Costs (desktop, R2R only) */}
                 {dealType === 'R2R' && r2rInputs.setupCosts > 0 && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
-                  <div className="hidden lg:flex flex-col justify-center px-3">
+                  <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">Setup Costs</span>
                     <span className="text-sm font-medium text-[#1B3A6B]">{formatCurrency(r2rInputs.setupCosts)}</span>
                   </div>
@@ -1707,7 +1708,7 @@ export default function HomePage() {
                 {/* 5 — Key Metric (desktop, complete only) */}
                 {!incomplete && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
-                  <div className="hidden lg:flex flex-col justify-center px-3">
+                  <div className="hidden lg:flex flex-col justify-center gap-0.5 px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start">{keyMetricLabel}</span>
                     <span className="text-sm font-medium" style={keyMetricColour ? { color: keyMetricColour } : undefined}>{keyMetricValue}</span>
                   </div>
@@ -1716,8 +1717,8 @@ export default function HomePage() {
                 {/* 6 — Deal Score pill (always visible, complete only) */}
                 {!incomplete && (<>
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
-                  <div className="flex flex-col justify-center px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Deal Score</span>
+                  <div className="flex flex-col justify-center gap-0.5 px-3">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Deal Score</span>
                     <span
                       className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
                       style={{ background: `${scoreColour}18`, border: `0.5px solid ${scoreColour}40`, color: scoreColour }}
@@ -1748,8 +1749,8 @@ export default function HomePage() {
                   </button>
                 )}
                 {showMaxOffer && (
-                  <div className="flex flex-col justify-center px-3">
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Max Offer</span>
+                  <div className="flex flex-col justify-center gap-0.5 px-3">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Max Offer</span>
                     <span
                       className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
                       style={{ background: '#1B3A6B18', border: '0.5px solid #1B3A6B40', color: '#1B3A6B' }}
