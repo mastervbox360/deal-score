@@ -304,7 +304,7 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70 });
+  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO' as 'IO' | 'Repayment' });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
 
@@ -346,6 +346,8 @@ export default function HomePage() {
   const handleFlipChange = (field: keyof typeof flipInputs, value: string) => {
     if (field === 'financingMethod') {
       setFlipInputs(prev => ({ ...prev, financingMethod: value as 'Cash' | 'Bridging' | 'Mortgage' }));
+    } else if (field === 'flipMortgageType') {
+      setFlipInputs(prev => ({ ...prev, flipMortgageType: value as 'IO' | 'Repayment' }));
     } else {
       setFlipInputs(prev => ({ ...prev, [field]: Number(value) || 0 }));
     }
@@ -673,7 +675,7 @@ export default function HomePage() {
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
     } else if (dealType === 'FLIP') {
-      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70 });
+      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO' });
     } else if (dealType === 'SA') {
       setSaInputs({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
@@ -722,11 +724,20 @@ export default function HomePage() {
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
   const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs });
-  const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, ...flipInputsForCalc } = flipInputs;
+  const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, ...flipInputsForCalc } = flipInputs;
   const flipBridgingInterest = financingMethod === 'Bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0
     ? (purchasePrice * (flipBridgingLTV / 100)) * (flipBridgingRate / 100) * flipBridgingTermMonths
     : 0;
-  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + contingencyPercent / 100), otherCosts: otherCosts + flipBridgingInterest, stampDuty: effectiveTax, ...flipInputsForCalc });
+  const flipMortgageInterest = (() => {
+    if (financingMethod !== 'Mortgage' || flipMortgageRate <= 0 || flipInputs.projectLengthMonths <= 0) return 0;
+    const loan = purchasePrice * (1 - flipMortgageDeposit / 100);
+    if (flipMortgageType === 'IO') return loan * (flipMortgageRate / 100 / 12) * flipInputs.projectLengthMonths;
+    const r = flipMortgageRate / 100 / 12;
+    const n = flipMortgageTerm * 12;
+    const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+    return monthly * flipInputs.projectLengthMonths;
+  })();
+  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + contingencyPercent / 100), otherCosts: otherCosts + flipBridgingInterest + flipMortgageInterest, stampDuty: effectiveTax, ...flipInputsForCalc });
   const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
   const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
@@ -1285,14 +1296,23 @@ export default function HomePage() {
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
     const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
-    const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, flipBridgingRate: _pdfFlipBridgingRate, flipBridgingTermMonths: _pdfFlipBridgingTerm, flipBridgingLTV: _pdfFlipBridgingLTV, ...pdfFlipCalcInputs } = flipInputs;
+    const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, flipBridgingRate: _pdfFlipBridgingRate, flipBridgingTermMonths: _pdfFlipBridgingTerm, flipBridgingLTV: _pdfFlipBridgingLTV, flipMortgageDeposit: _pdfFlipMortgageDeposit, flipMortgageRate: _pdfFlipMortgageRate, flipMortgageTerm: _pdfFlipMortgageTerm, flipMortgageType: _pdfFlipMortgageType, ...pdfFlipCalcInputs } = flipInputs;
     const _flipBridgingInterest = _pdfFlipFM === 'Bridging' && _pdfFlipBridgingRate > 0 && _pdfFlipBridgingTerm > 0
       ? (sharedInputs.purchasePrice * (_pdfFlipBridgingLTV / 100)) * (_pdfFlipBridgingRate / 100) * _pdfFlipBridgingTerm
       : 0;
+    const _flipMortgageInterest = (() => {
+      if (_pdfFlipFM !== 'Mortgage' || _pdfFlipMortgageRate <= 0 || pdfFlipCalcInputs.projectLengthMonths <= 0) return 0;
+      const loan = sharedInputs.purchasePrice * (1 - _pdfFlipMortgageDeposit / 100);
+      if (_pdfFlipMortgageType === 'IO') return loan * (_pdfFlipMortgageRate / 100 / 12) * pdfFlipCalcInputs.projectLengthMonths;
+      const r = _pdfFlipMortgageRate / 100 / 12;
+      const n = _pdfFlipMortgageTerm * 12;
+      const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+      return monthly * pdfFlipCalcInputs.projectLengthMonths;
+    })();
     const _flipResults = calculateFlip({
       purchasePrice: sharedInputs.purchasePrice,
       refurbCost: sharedInputs.refurbCost * (1 + _pdfFlipCP / 100),
-      otherCosts: sharedInputs.otherCosts + _flipBridgingInterest,
+      otherCosts: sharedInputs.otherCosts + _flipBridgingInterest + _flipMortgageInterest,
       stampDuty: _effectiveTax,
       ...pdfFlipCalcInputs,
     });
@@ -2196,6 +2216,37 @@ export default function HomePage() {
                         ))}
                       </div>
                     </div>
+                    {flipInputs.financingMethod === 'Mortgage' && (
+                      <>
+                        <div className="md:col-span-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Mortgage Finance</p>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="flip-mort-dep" text="Percentage of purchase price paid as deposit." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={flipInputs.flipMortgageDeposit || ''} onChange={(e) => handleFlipChange('flipMortgageDeposit', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="flip-mort-rate" text="Annual mortgage interest rate." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={flipInputs.flipMortgageRate || ''} onChange={(e) => handleFlipChange('flipMortgageRate', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Term (years)</Label><InfoIcon id="flip-mort-term" text="Length of mortgage in years." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={flipInputs.flipMortgageTerm || ''} onChange={(e) => handleFlipChange('flipMortgageTerm', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Repayment Type</Label><InfoIcon id="flip-mort-type" text="Interest Only keeps monthly payments lower during the project. Repayment reduces the loan balance over time." /></div>
+                          <div className="flex w-full rounded-md overflow-hidden border border-input">
+                            {(['IO', 'Repayment'] as const).map((t) => (
+                              <button key={t} type="button"
+                                onClick={() => setFlipInputs(prev => ({ ...prev, flipMortgageType: t }))}
+                                className={`flex-1 py-2 text-sm font-medium transition-colors ${flipInputs.flipMortgageType === t ? 'bg-[#1B3A6B] text-white' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+                                {t === 'IO' ? 'Interest Only' : 'Repayment'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                     {flipInputs.financingMethod === 'Bridging' && (
                       <>
                         <div className="md:col-span-2">
