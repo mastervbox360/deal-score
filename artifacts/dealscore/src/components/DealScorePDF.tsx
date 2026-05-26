@@ -1932,8 +1932,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               ['Profit on Cost', g(fp(props.flipResults.profitOnCost))],
             ];
             return [
-              ['Net Return on Setup', g(fp(props.r2rResults.roi))],
-              ['Net Yield', g(fp(props.r2rResults.netYield))],
+              ['ROI on Setup', g(fp(props.r2rResults.roi))],
+              ['Monthly Spread', g(fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid))],
             ];
           })();
 
