@@ -1966,10 +1966,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                     <Text style={{ fontSize: 8.5, color: '#6B7280' }}>{opCostLabel}</Text>
                     <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{opCostVal}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, marginTop: 2, borderTop: '0.5pt solid #E5E7EB' }}>
-                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{cfLabel}</Text>
-                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: cfColor }}>{g(fc(cfVal))}</Text>
-                  </View>
+                  {dt !== 'FLIP' && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, marginTop: 2, borderTop: '0.5pt solid #E5E7EB' }}>
+                      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{cfLabel}</Text>
+                      <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: cfColor }}>{g(fc(cfVal))}</Text>
+                    </View>
+                  )}
                 </View>
               </View>
 
