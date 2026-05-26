@@ -127,6 +127,19 @@ export interface DealScorePDFProps {
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
 const fp = (n: number) => n.toFixed(1) + '%';
 
+const hasMeaningfulInputs = (props: DealScorePDFProps): boolean => {
+  if (props.dealType === 'R2R') {
+    return props.r2rInputs.monthlyRentPaid > 0 && props.r2rInputs.setupCosts > 0;
+  }
+  if (props.dealType === 'FLIP') {
+    return props.purchasePrice > 0 && props.flipInputs.expectedSalePrice > 0;
+  }
+  if (props.dealType === 'BRRR') {
+    return props.purchasePrice > 0 && props.brrrInputs.postRefurbValue > 0;
+  }
+  return props.purchasePrice > 0;
+};
+
 const SCORE_COLOR: Record<string, string> = {
   Strong: '#16a34a',
   Average: '#d97706',
@@ -423,67 +436,70 @@ function generateVerdictSummary(props: DealScorePDFProps): string {
 
 function computeCalloutMetrics(props: DealScorePDFProps): { label: string; value: string }[] {
   const dt = props.dealType;
+  const mh = hasMeaningfulInputs(props);
+  const g = (v: string) => mh ? v : '\u2014';
   if (dt === 'BTL') return [
-    { label: 'Gross Yield', value: fp(props.btlResults.grossYield) },
-    { label: 'Monthly Cash Flow', value: fc(props.btlResults.monthlyCashFlow) },
-    { label: 'Cash-on-Cash ROI', value: fp(props.btlResults.cashOnCashROI) },
+    { label: 'Gross Yield', value: g(fp(props.btlResults.grossYield)) },
+    { label: 'Monthly Cash Flow', value: g(fc(props.btlResults.monthlyCashFlow)) },
+    { label: 'Cash-on-Cash ROI', value: g(fp(props.btlResults.cashOnCashROI)) },
   ];
   if (dt === 'HMO') return [
-    { label: 'Gross Yield', value: fp(props.hmoResults.grossYield) },
-    { label: 'Monthly Cash Flow', value: fc(props.hmoResults.monthlyCashFlow) },
-    { label: 'Mortgage Amount', value: fc(props.hmoResults.mortgageAmount) },
+    { label: 'Gross Yield', value: g(fp(props.hmoResults.grossYield)) },
+    { label: 'Monthly Cash Flow', value: g(fc(props.hmoResults.monthlyCashFlow)) },
+    { label: 'Mortgage Amount', value: g(fc(props.hmoResults.mortgageAmount)) },
   ];
   if (dt === 'FLIP') {
     const margin = props.flipInputs.expectedSalePrice > 0
       ? props.flipResults.netProfit / props.flipInputs.expectedSalePrice * 100 : 0;
     return [
-      { label: 'Net Profit', value: fc(props.flipResults.netProfit) },
-      { label: 'ROI', value: fp(props.flipResults.roi) },
-      { label: 'Net Margin', value: fp(margin) },
+      { label: 'Net Profit', value: g(fc(props.flipResults.netProfit)) },
+      { label: 'ROI', value: g(fp(props.flipResults.roi)) },
+      { label: 'Net Margin', value: g(fp(margin)) },
     ];
   }
   if (dt === 'SA') return [
-    { label: 'Net Yield', value: fp(props.saResults.netYield) },
-    { label: 'Monthly Cash Flow', value: fc(props.saResults.monthlyCashFlow) },
+    { label: 'Net Yield', value: g(fp(props.saResults.netYield)) },
+    { label: 'Monthly Cash Flow', value: g(fc(props.saResults.monthlyCashFlow)) },
     { label: 'Occupancy Rate', value: `${props.saInputs.occupancyPercent.toFixed(0)}%` },
   ];
   if (dt === 'BRRR') return [
-    { label: 'Cash Left In', value: (props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal) },
-    { label: 'Monthly Cash Flow', value: fc(props.brrrResults.monthlyCashFlow) },
-    { label: 'Refinance Amount', value: fc(props.brrrResults.refinanceLoan) },
+    { label: 'Cash Left In', value: mh ? ((props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014' },
+    { label: 'Monthly Cash Flow', value: g(fc(props.brrrResults.monthlyCashFlow)) },
+    { label: 'Refinance Amount', value: g(fc(props.brrrResults.refinanceLoan)) },
   ];
   if (dt === 'R2R') {
     const spread = props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
     return [
-      { label: 'Monthly Profit', value: fc(props.r2rResults.monthlyProfit) },
-      { label: 'Monthly Spread', value: fc(spread) },
-      { label: 'Setup Costs', value: fc(props.r2rInputs.setupCosts) },
+      { label: 'Monthly Profit', value: g(fc(props.r2rResults.monthlyProfit)) },
+      { label: 'Monthly Spread', value: g(fc(spread)) },
+      { label: 'Setup Costs', value: g(fc(props.r2rInputs.setupCosts)) },
     ];
   }
   return [
-    { label: 'Cash-on-Cash ROI', value: fp(props.socialResults.cashOnCashROI) },
-    { label: 'Monthly Cash Flow', value: fc(props.socialResults.monthlyCashFlow) },
-    { label: 'Gross Yield', value: fp(props.socialResults.grossYield) },
+    { label: 'Cash-on-Cash ROI', value: g(fp(props.socialResults.cashOnCashROI)) },
+    { label: 'Monthly Cash Flow', value: g(fc(props.socialResults.monthlyCashFlow)) },
+    { label: 'Gross Yield', value: g(fp(props.socialResults.grossYield)) },
   ];
 }
 
 function computeCoverKeyMetric(props: DealScorePDFProps): { label: string; value: string } {
   const dt = props.dealType;
+  const mh = hasMeaningfulInputs(props);
   if (dt === 'BTL' || dt === 'HMO' || dt === 'SA' || dt === 'SOCIAL') {
     const cf = dt === 'BTL' ? props.btlResults.monthlyCashFlow
       : dt === 'HMO' ? props.hmoResults.monthlyCashFlow
       : dt === 'SA' ? props.saResults.monthlyCashFlow
       : props.socialResults.monthlyCashFlow;
-    return { label: 'Cash Flow', value: fc(cf) + '/mo' };
+    return { label: 'Cash Flow', value: mh ? fc(cf) + '/mo' : '\u2014' };
   }
   if (dt === 'FLIP') {
-    return { label: 'Profit on Cost', value: fp(props.flipResults.profitOnCost) };
+    return { label: 'Profit on Cost', value: mh ? fp(props.flipResults.profitOnCost) : '\u2014' };
   }
   if (dt === 'BRRR') {
     const moneyOut = props.brrrResults.moneyOut && props.purchasePrice > 0;
-    return { label: 'Cash Left In', value: moneyOut ? '\u221E recycled' : fc(props.brrrResults.cashLeftInDeal) };
+    return { label: 'Cash Left In', value: mh ? (moneyOut ? '\u221E recycled' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014' };
   }
-  return { label: 'Monthly Profit', value: fc(props.r2rResults.monthlyProfit) + '/mo' };
+  return { label: 'Monthly Profit', value: mh ? fc(props.r2rResults.monthlyProfit) + '/mo' : '\u2014' };
 }
 
 function generateWhatThisMeans(props: DealScorePDFProps): string {
@@ -865,40 +881,42 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   })();
 
   const heroMetrics: { label: string; value: string }[] = (() => {
+    const _mh = hasMeaningfulInputs(props);
+    const g = (v: string) => _mh ? v : '\u2014';
     if (props.dealType === 'BTL') return [
-      { label: 'Cash Invested', value: fc(props.btlResults.totalCashInvested) },
-      { label: 'Monthly Cash Flow', value: fc(props.btlResults.monthlyCashFlow) },
-      { label: 'Gross Yield', value: fp(props.btlResults.grossYield) },
+      { label: 'Cash Invested', value: g(fc(props.btlResults.totalCashInvested)) },
+      { label: 'Monthly Cash Flow', value: g(fc(props.btlResults.monthlyCashFlow)) },
+      { label: 'Gross Yield', value: g(fp(props.btlResults.grossYield)) },
     ];
     if (props.dealType === 'HMO') return [
-      { label: 'Cash Invested', value: fc(props.hmoResults.totalCashInvested) },
-      { label: 'Monthly Cash Flow', value: fc(props.hmoResults.monthlyCashFlow) },
-      { label: 'Gross Yield', value: fp(props.hmoResults.grossYield) },
+      { label: 'Cash Invested', value: g(fc(props.hmoResults.totalCashInvested)) },
+      { label: 'Monthly Cash Flow', value: g(fc(props.hmoResults.monthlyCashFlow)) },
+      { label: 'Gross Yield', value: g(fp(props.hmoResults.grossYield)) },
     ];
     if (props.dealType === 'FLIP') return [
-      { label: 'Net Profit', value: fc(props.flipResults.netProfit) },
-      { label: 'Total ROI', value: fp(props.flipResults.roi) },
-      { label: 'Annualised ROI', value: fp(props.flipResults.annualisedROI) },
+      { label: 'Net Profit', value: g(fc(props.flipResults.netProfit)) },
+      { label: 'Total ROI', value: g(fp(props.flipResults.roi)) },
+      { label: 'Annualised ROI', value: g(fp(props.flipResults.annualisedROI)) },
     ];
     if (props.dealType === 'SA') return [
-      { label: 'Cash Invested', value: fc(props.saResults.totalCashInvested) },
-      { label: 'Monthly Cash Flow', value: fc(props.saResults.monthlyCashFlow) },
-      { label: 'Net Yield', value: fp(props.saResults.netYield) },
+      { label: 'Cash Invested', value: g(fc(props.saResults.totalCashInvested)) },
+      { label: 'Monthly Cash Flow', value: g(fc(props.saResults.monthlyCashFlow)) },
+      { label: 'Net Yield', value: g(fp(props.saResults.netYield)) },
     ];
     if (props.dealType === 'BRRR') return [
-      { label: 'Cash Left In', value: (props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal) },
-      { label: 'Monthly Cash Flow', value: fc(props.brrrResults.monthlyCashFlow) },
-      { label: 'Equity Created', value: fc(props.brrrResults.equityCreated) },
+      { label: 'Cash Left In', value: _mh ? ((props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014' },
+      { label: 'Monthly Cash Flow', value: g(fc(props.brrrResults.monthlyCashFlow)) },
+      { label: 'Equity Created', value: g(fc(props.brrrResults.equityCreated)) },
     ];
     if (props.dealType === 'R2R') return [
-      { label: 'Monthly Profit', value: fc(props.r2rResults.monthlyProfit) },
-      { label: 'Annual Profit', value: fc(props.r2rResults.annualProfit) },
-      { label: 'Net Return on Setup', value: fp(props.r2rResults.roi) },
+      { label: 'Monthly Profit', value: g(fc(props.r2rResults.monthlyProfit)) },
+      { label: 'Annual Profit', value: g(fc(props.r2rResults.annualProfit)) },
+      { label: 'Net Return on Setup', value: g(fp(props.r2rResults.roi)) },
     ];
     return [
-      { label: 'Cash Invested', value: fc(props.socialResults.totalCashInvested) },
-      { label: 'Monthly Cash Flow', value: fc(props.socialResults.monthlyCashFlow) },
-      { label: 'Gross Yield', value: fp(props.socialResults.grossYield) },
+      { label: 'Cash Invested', value: g(fc(props.socialResults.totalCashInvested)) },
+      { label: 'Monthly Cash Flow', value: g(fc(props.socialResults.monthlyCashFlow)) },
+      { label: 'Gross Yield', value: g(fp(props.socialResults.grossYield)) },
     ];
   })();
 
@@ -983,7 +1001,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Cash-on-Cash ROI', fp(props.socialResults.cashOnCashROI), true],
       ...bmvRows,
     ];
-  })();
+  })().map((row): RowData => {
+    if (row[2] && !hasMeaningfulInputs(props)) return [row[0] as string, '\u2014', true];
+    return row as RowData;
+  });
 
   const { dims: dealScoreDims, overall: dealScoreOverall } = computeDealScoreBreakdown(props);
   const verdictSummary = generateVerdictSummary(props);
@@ -1428,6 +1449,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             style={{ flex: 1, fontSize: 7.5, color: '#9ca3af', textAlign: 'right' }}
           />
         </View>
+
+        {/* Incomplete notice */}
+        {!hasMeaningfulInputs(props) && (
+          <View style={{ backgroundColor: '#FEF3C7', border: '0.5pt solid #F59E0B', borderRadius: 4, padding: 8, marginBottom: 10 }}>
+            <Text style={{ fontSize: 8.5, color: '#92400E', fontFamily: 'Helvetica-Bold', marginBottom: 2 }}>
+              Template preview — deal inputs not yet entered
+            </Text>
+            <Text style={{ fontSize: 8, color: '#92400E', lineHeight: 1.4 }}>
+              Enter your deal numbers in the analyser to see real figures in this pack. This preview shows the pack structure only.
+            </Text>
+          </View>
+        )}
 
         {/* Hero photo — full width 200px */}
         {heroPhoto ? (

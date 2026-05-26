@@ -1,0 +1,145 @@
+Read DealScorePDF.tsx in full before making any changes.
+Plan all edits explicitly, then execute in parallel.
+Confirm exactly what you changed at the end.
+
+Do NOT touch Home.tsx, DealScorePDFProPlus.tsx,
+or calculations.ts.
+
+---
+
+TASK 1 — ADD NULL-SAFE FORMATTING HELPERS
+
+After the existing fc and fp helper functions (around 
+line 127), add two null-safe versions:
+
+// Shows — when value is 0, negative from defaults,
+// NaN, Infinity, or not meaningful
+const fcs = (n: number, key?: number): string => {
+  if (!key && key !== undefined) return '—';
+  if (!isFinite(n) || isNaN(n)) return '—';
+  if (n === 0) return '—';
+  return fc(n);
+};
+
+const fps = (n: number, key?: number): string => {
+  if (!key && key !== undefined) return '—';
+  if (!isFinite(n) || isNaN(n)) return '—';
+  if (n === 0) return '—';
+  return fp(n);
+};
+
+// Returns true when the deal has meaningful inputs
+// and figures should be shown
+const hasMeaningfulInputs = (props: DealScorePDFProps): 
+  boolean => {
+  if (props.dealType === 'R2R') {
+    return props.r2rInputs.monthlyRentPaid > 0 && 
+      props.r2rInputs.setupCosts > 0;
+  }
+  if (props.dealType === 'FLIP') {
+    return props.purchasePrice > 0 && 
+      props.flipInputs.expectedSalePrice > 0;
+  }
+  if (props.dealType === 'BRRR') {
+    return props.purchasePrice > 0 && 
+      props.brrrInputs.postRefurbValue > 0;
+  }
+  return props.purchasePrice > 0;
+};
+
+---
+
+TASK 2 — ADD INCOMPLETE STATE NOTICE ON PAGE 2
+
+Find Page 2 (Executive Summary + Property Overview).
+
+At the top of Page 2, add a conditional notice when
+!hasMeaningfulInputs(props):
+
+{!hasMeaningfulInputs(props) && (
+  <View style={{
+    backgroundColor: '#FEF3C7',
+    border: '0.5pt solid #F59E0B',
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 10,
+  }}>
+    <Text style={{ 
+      fontSize: 8.5, 
+      color: '#92400E',
+      fontFamily: 'Helvetica-Bold',
+      marginBottom: 2
+    }}>
+      Template preview — deal inputs not yet entered
+    </Text>
+    <Text style={{ 
+      fontSize: 8, 
+      color: '#92400E',
+      lineHeight: 1.4
+    }}>
+      Enter your deal numbers in the analyser to see 
+      real figures in this pack. This preview shows the 
+      pack structure only.
+    </Text>
+  </View>
+)}
+
+---
+
+TASK 3 — REPLACE ZERO/NaN VALUES WITH DASHES
+
+Find every location in DealScorePDF.tsx where a 
+calculated figure is rendered using fc() or fp() 
+directly in JSX Text elements.
+
+For the following specific locations, wrap with a 
+guard so that when !hasMeaningfulInputs(props) the 
+value shows '—' instead:
+
+1. heroMetrics array values — wrap each fc/fp call:
+   Replace fc(x) with hasMeaningfulInputs(props) ? fc(x) : '—'
+   Replace fp(x) with hasMeaningfulInputs(props) ? fp(x) : '—'
+
+2. The three callout metric cards on Page 4 —
+   same pattern
+
+3. The resultsRows array values — same pattern for
+   all highlight rows (third element true)
+
+4. The hero metric cards on Page 2 — same pattern
+
+5. The cover key metric value:
+   In computeCoverKeyMetric, wrap the return values:
+   value: hasMeaningfulInputs(props) ? fc(cf) + '/mo' : '—'
+   (and similar for other strategies)
+
+For non-highlight table rows, leave fc/fp as-is —
+showing £0 in a detailed inputs table is acceptable
+and expected.
+
+---
+
+TASK 4 — REVERT isPdfReady DISABLE ON BUTTONS
+
+Since we now want preview and download always 
+available, find the isPdfReady guards added to the 
+PdfDownloadButton component in Home.tsx and remove 
+the disabled state.
+
+Wait — do NOT touch Home.tsx in this prompt.
+Flag this as needing a separate Home.tsx prompt
+to revert the download button disable.
+
+---
+
+TASK 5 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. hasMeaningfulInputs helper added
+2. Page 2 incomplete notice added
+3. heroMetrics values guarded
+4. callout metrics guarded
+5. Cover key metric guarded
+6. TypeScript error count (must be 0)
