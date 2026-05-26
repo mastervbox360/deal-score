@@ -1,0 +1,85 @@
+Read DealScorePDF.tsx in full before making any changes.
+Plan all edits explicitly, then execute in parallel.
+Confirm exactly what you changed at the end.
+
+Do NOT touch Home.tsx, DealScorePDFProPlus.tsx,
+or calculations.ts.
+
+---
+
+TASK 1 — FIX VERDICT SUMMARY SENTENCE CAPITALISATION
+
+Find the generateVerdictSummary function.
+
+The function builds sentences like:
+"This deal scores Recommended based on..."
+"This deal scores Conditional — ..."
+"This deal scores Not Recommended — ..."
+
+These now need to use the new labels. Since VERDICT_LABELS
+already returns uppercase strings (RECOMMENDED/REVIEW/AVOID),
+the sentences will naturally use the correct label via `vl`.
+
+Check every sentence in generateVerdictSummary that
+references `vl` and confirm it reads naturally with
+uppercase labels. For example:
+"This deal scores RECOMMENDED based on..." — acceptable
+"This deal scores REVIEW — ..." — acceptable  
+"This deal scores AVOID — ..." — acceptable
+
+If any sentence constructs the label manually as a
+string literal (e.g. 'Recommended' or 'Conditional')
+rather than using `vl`, replace those with `vl`.
+
+Report all instances found and whether they use `vl`
+or hardcoded strings.
+
+---
+
+TASK 2 — FIX PAGE 2 HERO METRIC CARD LABELS
+
+Find the three hero metric cards on Page 2 (around the
+heroMetrics.map section). These are the cards showing
+Cash Invested / Monthly Cash Flow / Gross Yield values.
+
+The label text below each value is rendering blank.
+
+Check the label Text element — it likely has a style
+that sets color to a variable that resolves to undefined
+or transparent. Fix by ensuring the label uses a
+hardcoded readable colour:
+
+Replace whatever colour the label currently uses with:
+color: '#6B7280'
+
+This applies only to the hero metric card labels on
+Page 2 — do not change any other label styles.
+
+---
+
+TASK 3 — VERIFY PAGE COUNT
+
+After fixes, confirm the PDF structure has not lost
+any pages compared to the previous version. Report
+the expected page sequence:
+Page 1: Cover
+Page 2: Executive Summary + Property Overview
+Page 3: Deal Inputs + Cash Invested
+Page 4: Deal Score Verdict
+Page 5: Financial Detail
+Page 6: Stress Testing
+Page 7: Deal Rationale
+Page 8: Glossary
+(Photos: additional pages if photos uploaded)
+
+---
+
+TASK 4 — VERIFY
+
+Run npx tsc --noEmit. Zero errors required.
+
+Report:
+1. generateVerdictSummary — all label references confirmed
+2. Hero metric card label colour fixed
+3. Page count confirmed
+4. TypeScript error count (must be 0)
