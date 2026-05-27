@@ -1,0 +1,186 @@
+Read src/lib/AuthContext.tsx, src/lib/database.types.ts, src/pages/ProfilePage.tsx, and package.json in full before making any changes. Plan all edits explicitly, then execute in parallel.
+Task: Stage 9 Step 5 — Stripe integration.
+Step 1 — Install Stripe:
+Run in Shell:
+npm install @stripe/stripe-js
+Step 2 — Add Stripe env vars to .env.local:
+Add these lines to .env.local:
+VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+Also add to .gitignore if not already covered.
+Step 3 — Create Stripe price IDs config:
+Create src/lib/stripeConfig.ts:
+typescriptexport const STRIPE_CONFIG = {
+  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+  prices: {
+    pro_monthly: 'price_pro_monthly_id_here',
+    pro_plus_monthly: 'price_pro_plus_monthly_id_here',
+  },
+  products: {
+    pro: 'prod_pro_id_here',
+    pro_plus: 'prod_pro_plus_id_here',
+  }
+}
+Step 4 — Create a Netlify Function for Stripe checkout:
+Create netlify/functions/create-checkout-session.cjs:
+javascriptconst stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+
+exports.handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method not allowed' }
+  }
+
+  try {
+    const { priceId, userId, userEmail, tier } = JSON.parse(event.body)
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      customer_email: userEmail,
+      client_reference_id: userId,
+      metadata: { userId, tier },
+      success_url: `${process.env.URL}/dashboard?upgraded=true`,
+      cancel_url: `${process.env.URL}/profile?cancelled=true`,
+    })
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ url: session.url })
+    }
+  } catch (error) {
+    console.error('Stripe checkout error:', error)
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    }
+  }
+}
+Step 5 — Create a Netlify Function for Stripe webhook:
+Create netlify/functions/stripe-webhook.cjs:
+javascriptconst stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const { createClient } = require('@supabase/supabase-js')
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
+exports.handler = async (event) => {
+  const sig = event.headers['stripe-signature']
+  let stripeEvent
+
+  try {
+    stripeEvent = stripe.webhooks.constructEvent(
+      event.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    )
+  } catch (err) {
+    console.error('Webhook signature error:', err)
+    return { statusCode: 400, body: `Webhook error: ${err.message}` }
+  }
+
+  const { type, data } = stripeEvent
+
+  try {
+    switch (type) {
+      case 'checkout.session.completed': {
+        const session = data.object
+        const userId = session.client_reference_id
+        const tier = session.metadata?.tier
+
+        if (userId && tier) {
+          await supabase
+            .from('profiles')
+            .update({
+              tier,
+              stripe_customer_id: session.customer,
+              stripe_subscription_id: session.subscription
+            })
+            .eq('id', userId)
+        }
+        break
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = data.object
+        await supabase
+          .from('profiles')
+          .update({ tier: 'free', stripe_subscription_id: null })
+          .eq('stripe_subscription_id', subscription.id)
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = data.object
+        const status = subscription.status
+        if (status === 'past_due' || status === 'unpaid') {
+          await supabase
+            .from('profiles')
+            .update({ tier: 'free' })
+            .eq('stripe_subscription_id', subscription.id)
+        }
+        break
+      }
+    }
+  } catch (err) {
+    console.error('Webhook handler error:', err)
+    return { statusCode: 500, body: 'Handler error' }
+  }
+
+  return { statusCode: 200, body: JSON.stringify({ received: true }) }
+}
+Step 6 — Create a checkout service:
+Create src/lib/checkoutService.ts:
+typescriptimport { STRIPE_CONFIG } from './stripeConfig'
+
+export async function startCheckout(
+  tier: 'pro' | 'pro_plus',
+  userId: string,
+  userEmail: string
+): Promise<void> {
+  const priceId = tier === 'pro'
+    ? STRIPE_CONFIG.prices.pro_monthly
+    : STRIPE_CONFIG.prices.pro_plus_monthly
+
+  const response = await fetch('/.netlify/functions/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ priceId, userId, userEmail, tier })
+  })
+
+  const { url, error } = await response.json()
+  if (error) throw new Error(error)
+  if (url) window.location.href = url
+}
+Step 7 — Replace ProfilePage with real profile + subscription UI:
+Replace src/pages/ProfilePage.tsx with a page that shows:
+
+User's name, email, company, phone (editable fields, save button)
+Current tier badge (Free / Pro / Pro Plus)
+If Free: "Upgrade to Pro — £19/mo" button + "Upgrade to Pro Plus — £49/mo" button — both call startCheckout
+If Pro: "Manage billing" button (links to Stripe portal — placeholder for now), "Upgrade to Pro Plus" button
+If Pro Plus: "Manage billing" button only
+Trial status: if trial_ends_at is in the future, show "Pro trial — X days remaining"
+On mount: load profile from Supabase, populate fields
+Save button: updates profiles table with name, company, phone
+Clean navy/white styling matching DashboardPage
+
+Step 8 — Add Stripe env vars to Netlify:
+Add these to Netlify environment variables (same way as Supabase vars):
+
+STRIPE_SECRET_KEY — from Stripe dashboard → Developers → API keys → Secret key
+STRIPE_WEBHOOK_SECRET — from Stripe dashboard → Webhooks (set up after deploy)
+SUPABASE_SERVICE_ROLE_KEY — from Supabase → Settings → API → Service role key (secret — never expose client-side)
+URL — https://stage-6--melodic-faun-882839.netlify.app
+
+Do not touch:
+
+Home.tsx
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+DashboardPage.tsx
+Any existing Netlify functions
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm the profile page loads and displays the current tier correctly.
