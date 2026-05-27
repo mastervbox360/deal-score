@@ -2702,6 +2702,25 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               </>
             )}
 
+            {/* Finance & Structure — HMO only */}
+            {props.dealType === 'HMO' && (
+              <>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Finance &amp; Structure</Text>
+
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Interest-Only Mortgage</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
+
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Repayment Mortgage</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
+
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>LTV</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
+
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
+              </>
+            )}
+
             {props.dealType === 'SA' && (
               <>
                 <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Yield &amp; Return</Text>
@@ -2856,6 +2875,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           {/* Right column */}
           <View style={{ flex: 1, paddingLeft: 12 }}>
 
+            {/* Stress Testing & Resilience — BTL / SOCIAL / HMO / SA */}
             {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'HMO' || props.dealType === 'SA') && (
               <>
                 <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Stress Testing &amp; Resilience</Text>
@@ -2871,7 +2891,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sensitivity Analysis</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>{props.dealType === 'SA' ? 'Shows the impact on cash flow and ROI of a 10% revenue reduction and a 1.5% rate increase independently.' : 'Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently.'}</Text>
+              </>
+            )}
 
+            {/* Finance & Structure — BTL / SOCIAL / SA (HMO moved to left column) */}
+            {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'SA') && (
+              <>
                 <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Finance &amp; Structure</Text>
 
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Interest-Only Mortgage</Text>
