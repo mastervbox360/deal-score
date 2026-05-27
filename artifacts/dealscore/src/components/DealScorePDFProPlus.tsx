@@ -2880,13 +2880,13 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Deal Score</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Weighted composite score from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile.</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>RECOMMENDED</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Recommended</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Deal meets or exceeds all key thresholds for this strategy. Strong candidate for investor presentation.</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>REVIEW</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Review</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Deal partially meets thresholds. Worth progressing with negotiation or cost review.</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>AVOID</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Avoid</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 6 }}>Deal falls below minimum thresholds. Not recommended at current numbers.</Text>
 
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sourcing Fee</Text>
