@@ -1,0 +1,33 @@
+Read DealScorePDFProPlus.tsx in full before making any changes. Focus on the Glossary page and the Formulas & Calculations page. Plan all edits explicitly, then execute in parallel.
+Task: Convert Glossary and Formulas & Calculations pages from two-column to three-column layout — landscape PDF only.
+CRITICAL RULE: Do not remove, replace, or simplify any existing strategy-conditional logic. Every strategy branch (BTL, HMO, SA, SOCIAL, BRRR, FLIP, R2R) must be preserved exactly as it currently exists. You are only changing the column structure that wraps around the existing content — not the content itself.
+
+Glossary page — three-column restructure:
+The current layout renders two columns inside a <View style={{ flexDirection: 'row' }}>. Replace this with three columns using the same flexDirection: 'row' wrapper.
+Column assignments — apply to every strategy branch:
+
+Left column (flex: 1, paddingRight: 10): Yield & Return category + all its terms
+Centre column (flex: 1, paddingHorizontal: 10): Cash Flow & Expenses category + all its terms, followed by Stress Testing & Resilience category + all its terms
+Right column (flex: 1, paddingLeft: 10): Finance & Structure category + all its terms, followed by Tax, Legal & Verdicts category + all its terms (including the existing LTT/SDLT conditional logic — preserve it exactly)
+
+Every strategy branch must have this same three-column structure. The content inside each column for each strategy branch stays exactly as it currently is — only the column it sits in changes.
+
+Formulas & Calculations page — three-column restructure:
+Same approach. Replace the two-column flexDirection: 'row' wrapper with three columns.
+Column assignments — apply to every strategy branch:
+
+Left column (flex: 1, paddingRight: 10): Yield & Return category + all its terms and formulas
+Centre column (flex: 1, paddingHorizontal: 10): Cash Flow & Expenses category + all its terms and formulas, followed by Stress Testing & Resilience category + all its terms and formulas
+Right column (flex: 1, paddingLeft: 10): Capital & Structure category + all its terms and formulas
+
+Every strategy branch must have this same three-column structure. All term names, descriptions, and formula lines stay exactly as they currently are.
+Also add paddingTop: 28 inline on the Formulas page <Page> element: style={{ ...landscapePage, paddingTop: 28 }} — same as already applied to the Glossary page.
+
+Do not touch:
+
+DealScorePDF.tsx — do not change it
+Any page other than Glossary and Formulas & Calculations in DealScorePDFProPlus.tsx
+Any calculation logic, results panel, cover page, or any other component
+Font sizes, term names, definitions, or formula content — do not change any of these
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm both pages fit on a single page. Tell me exactly what structural changes were made — and explicitly confirm that all 7 strategy branches are preserved in both pages.
