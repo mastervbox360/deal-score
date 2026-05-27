@@ -1,0 +1,50 @@
+Read DealScorePDFProPlus.tsx in full before making any changes. Focus on the Glossary page and the Formulas & Calculations page. Plan all edits explicitly, then execute in parallel.
+Task: Redesign Glossary and Formulas & Calculations pages to three-column layout — landscape PDF only.
+Glossary page — three columns:
+Left column:
+
+Yield & Return (all terms: Gross Yield, Net Yield, Cash-on-Cash ROI, Payback Period, Equity on Day One, BMV)
+
+Centre column:
+
+Cash Flow & Expenses (all terms: Gross Rent, Void Allowance, Effective Rent, Net Operating Income, Net Cash Flow, Break-Even Rent, Rent Headroom)
+Stress Testing & Resilience (all terms: Break-Even Rent, Stress Test, Break-Even Rate, Sensitivity Analysis)
+
+Right column:
+
+Finance & Structure (all terms: Interest-Only Mortgage, Repayment Mortgage, LTV, Cash Invested)
+Tax, Legal & Verdicts (all terms: Sourcing Fee, LTT/SDLT conditional on strategy, Deal Score, Recommended, Review, Avoid)
+
+All five category headings — same style as current (structureColour, uppercase, rule beneath). All term name and definition styles — unchanged. No terms or definitions removed.
+Formulas & Calculations page — three columns:
+Left column:
+
+Yield & Return (all current terms and formulas)
+
+Centre column:
+
+Cash Flow & Expenses (all current terms and formulas)
+Stress Testing & Resilience (all current terms and formulas)
+
+Right column:
+
+Capital & Structure (all current terms and formulas)
+
+All category headings, term names, descriptions and formula lines — same style as current. No terms or formulas removed.
+Layout rules for both pages:
+
+Three equal-width columns with consistent gutters between them
+Column width: approximately 30% each with ~5% gutter — adjust to fit the landscape page margins cleanly
+Category heading spacing — uniform across all three columns: marginTop: 10, marginBottom: 3
+Term definition marginBottom: 2 throughout
+Term name marginBottom: 0 throughout
+Both pages must fit on a single page each — no overflow
+paddingTop: 28 on both pages (already set on Glossary — apply same to Formulas page)
+
+Do not touch:
+
+DealScorePDF.tsx — portrait is gold standard, do not change it
+Any page other than Glossary and Formulas & Calculations in DealScorePDFProPlus.tsx
+Any calculation logic, results panel, cover page, or any other component
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Tell me exactly what was changed on each page and confirm both pages fit on a single page.

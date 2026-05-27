@@ -2534,349 +2534,93 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
         <Footer />
         <SH title="Glossary" />
 
-        <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
+        <View style={{ flexDirection: 'row', flex: 1 }}>
 
-          {/* Left column */}
+          {/* Left column — Yield & Return */}
           <View style={{ flex: 1, paddingRight: 16 }}>
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
 
-            {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'HMO') && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual rent as a percentage of purchase price.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual rent as a percentage of purchase price.</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage payment.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage payment.</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Years to recover total cash invested from annual cash flow.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Years to recover total cash invested from annual cash flow.</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Immediate equity created when a property is purchased below market value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Immediate equity created when a property is purchased below market value.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Below Market Value. The discount between purchase price and estimated market value.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total rental income before any deductions or void allowance.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross rent after void allowance deducted.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including mortgage payment.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Minimum rent required to cover all costs at the current mortgage rate.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The buffer between contracted rent and break-even rent.</Text>
-              </>
-            )}
-
-            {props.dealType === 'SA' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage payment.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Immediate equity created when a property is purchased below market value.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Below Market Value. The discount between purchase price and estimated market value.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>SA Income</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total nightly income before platform fees and running costs. Calculated as: Nightly Rate × (Occupancy % ÷ 100) × 30.42 days.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Platform Fees</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Commission charged by booking platforms such as Airbnb and Booking.com.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Revenue</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross revenue after platform fees deducted.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Occupancy Rate</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Percentage of nights in a month the property is occupied and generating income. DealScore default: 75%.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including mortgage payment.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Minimum revenue required to cover all costs at the current mortgage rate.</Text>
-              </>
-            )}
-
-            {props.dealType === 'BRRR' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BRRR Gross Yield</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Yield calculated on post-refurb value (GDV), not purchase price.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by post-refurb value. Mortgage excluded.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of cash left in the deal after refinance.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity Created</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The uplift in property value above total cost in, realised through refurbishment.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Money Out / Recycled</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>When the refinance loan exceeds total cost in. All capital returned plus a surplus. Cash-on-cash ROI is infinite.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total rental income before any deductions or void allowance.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross rent after void allowance deducted.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including the refinance mortgage payment.</Text>
-              </>
-            )}
-
-            {props.dealType === 'FLIP' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Returns</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Net profit as a percentage of total project cost.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Annualised ROI</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total ROI scaled to a 12-month equivalent based on project length in months.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit on Cost</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Net profit expressed as a percentage of total costs. Benchmark: 18%+ with planning permission, 25%+ without.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Profit</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Sale proceeds minus all acquisition, build, and selling costs.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The target sale price or estimated open market value after works are complete.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Costs</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital deployed: purchase price + tax + refurb + contingency + holding costs + other costs.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Holding Costs</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly financing or carrying costs during the project period.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Selling Costs</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Agent fees and legal costs on sale, expressed as a percentage of GDV.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Contingency</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>A percentage buffer added to refurb costs to absorb unexpected expenses. DealScore default: 10%.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Short-term property-secured loan used to fund acquisition and/or refurbishment.</Text>
-              </>
-            )}
-
-            {props.dealType === 'R2R' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>R2R Income</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Monthly Spread</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The difference between sub-let income collected and rent paid to the landlord. The core R2R profit driver.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total sub-let rent collected from all rooms at current occupancy.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Profit</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly income after rent to landlord, management fees, and running costs.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Annual Profit</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Net monthly profit multiplied by 12.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Setup Costs</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>One-off costs to establish the R2R agreement: furniture, deposits, compliance, and fit-out.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Returns</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual profit as a percentage of total setup costs.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Number of months to recover setup costs from monthly profit.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Upfront</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital needed to begin: setup costs + landlord deposit + first month rent.</Text>
-              </>
-            )}
-
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Below Market Value. The discount between purchase price and estimated market value.</Text>
           </View>
 
           {/* Vertical rule */}
-          <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
+          <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
 
-          {/* Right column */}
+          {/* Centre column — Cash Flow & Expenses + Stress Testing & Resilience */}
+          <View style={{ flex: 1, paddingHorizontal: 16 }}>
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total rental income before any deductions or void allowance.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross rent after void allowance deducted.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including mortgage payment.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Minimum rent required to cover all costs at the current mortgage rate.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The buffer between contracted rent and break-even rent.</Text>
+
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The minimum rent or revenue required to cover all costs at the current mortgage rate. Cash flow is exactly zero at this level.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent or revenue (-10%), applied independently.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The mortgage rate at which monthly cash flow reaches exactly zero.</Text>
+
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase, applied independently.</Text>
+          </View>
+
+          {/* Vertical rule */}
+          <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
+
+          {/* Right column — Finance & Structure + Tax, Legal & Verdicts */}
           <View style={{ flex: 1, paddingLeft: 16 }}>
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
 
-            {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'HMO' || props.dealType === 'SA') && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The minimum rent or revenue required to cover all costs at the current mortgage rate. Cash flow is exactly zero at this level.</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>{props.dealType === 'SA' ? 'Analysis of deal performance under a higher mortgage rate (+1.5%) and lower revenue (-10%), applied independently.' : 'Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (-10%), applied independently.'}</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The mortgage rate at which monthly cash flow reaches exactly zero.</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>{props.dealType === 'SA' ? 'Shows the impact on cash flow and ROI of a 10% revenue reduction and a 1.5% rate increase independently.' : 'Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently.'}</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
-              </>
-            )}
-
-            {props.dealType === 'HMO' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>HMO</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly cash flow divided equally across all rooms. Key HMO efficiency metric.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>HMO Licence</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total room rental income across all rooms at current occupancy rate.</Text>
-              </>
-            )}
-
-            {props.dealType === 'BRRR' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>BRRR Structure</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The estimated market value of the property after refurbishment is complete.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Capital released by remortgaging against the post-refurb value at a set LTV.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Capital remaining in the deal after subtracting the refinance loan from total cost in.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital deployed into the BRRR: purchase price + tax + refurb + bridging interest + other costs.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Short-term property-secured loan used to fund acquisition and refurbishment before refinancing.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (-10%), applied independently.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The mortgage rate at which monthly cash flow reaches exactly zero.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI).</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed into the deal before refinance.</Text>
-              </>
-            )}
-
-            {props.dealType === 'FLIP' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress &amp; Sensitivity</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Risk</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Impact on profit if build costs increase beyond budget. A 10% overrun on a £30k refurb reduces profit by £3,000.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV Sensitivity</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Impact on profit if the achieved sale price is lower than the GDV estimate.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even GDV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The minimum sale price at which the project still makes a profit.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI). Government purchase tax on property transactions.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed into the project.</Text>
-              </>
-            )}
-
-            {props.dealType === 'R2R' && (
-              <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Agreement &amp; Risk</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Landlord Agreement</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The lease or licence between the sourcer and the property owner permitting sub-letting. Term, break clauses, and subletting rights must be clearly documented.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Subletting</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Renting out a property or individual rooms that you yourself rent from the owner.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Occupancy Rate</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Percentage of rooms occupied and generating income. DealScore default: 90%.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Management Fees</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Platform or agent commission charged on gross income collected.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Structure</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total setup costs deployed to establish the agreement.</Text>
-              </>
-            )}
-
-            {/* Universal terms — all strategies */}
             <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax, Legal &amp; Verdicts</Text>
 
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sourcing Fee</Text>
@@ -2900,21 +2644,23 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Avoid</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Deal falls below minimum thresholds. Not recommended at current numbers.</Text>
-
           </View>
+
         </View>
       </Page>
 
       {/* ── Formulas & Calculations Page ─────────────────────────────────────── */}
-      <Page size="A4" orientation="landscape" style={landscapePage}>
+      <Page size="A4" orientation="landscape" style={{ ...landscapePage, paddingTop: 28 }}>
         <PageHeader />
         <Footer />
         <SH title="Formulas &amp; Calculations" />
 
         {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'SOCIAL' || props.dealType === 'BRRR') ? (
-          <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
+          <View style={{ flexDirection: 'row', flex: 1 }}>
+
+            {/* Left column — Yield & Return */}
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Yield &amp; Return</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual rent as a percentage of purchase price.</Text>
@@ -2952,7 +2698,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {props.dealType === 'SA' && (
                 <>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>SA Revenue</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>SA Revenue</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Nightly rate at target occupancy over an average month.</Text>
@@ -2967,8 +2713,14 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue - Platform Fees</Text>
                 </>
               )}
+            </View>
 
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Cash Flow &amp; Expenses</Text>
+            {/* Vertical rule */}
+            <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
+
+            {/* Centre column — Cash Flow & Expenses + Stress Testing & Resilience */}
+            <View style={{ flex: 1, paddingHorizontal: 16 }}>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Gross rent after void allowance deducted.</Text>
@@ -2985,12 +2737,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Monthly Mortgage (Interest-Only)</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly interest payment.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount × Annual Rate %) ÷ 12</Text>
-            </View>
 
-            <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
-
-            <View style={{ flex: 1, paddingLeft: 16 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Stress Testing &amp; Resilience</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Minimum rent to cover all costs at current rate.</Text>
@@ -3006,8 +2754,14 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Performance under rent -10% and rate +1.5% applied independently. See sensitivity table in report.</Text>
+            </View>
 
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Capital &amp; Structure</Text>
+            {/* Vertical rule */}
+            <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
+
+            {/* Right column — Capital & Structure */}
+            <View style={{ flex: 1, paddingLeft: 16 }}>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Capital &amp; Structure</Text>
 
               {props.dealType === 'BRRR' ? (
                 <>
@@ -3041,7 +2795,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {props.dealType === 'HMO' && (
                 <>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>HMO</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>HMO</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly cash flow divided by number of rooms.</Text>
@@ -3053,11 +2807,12 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 </>
               )}
             </View>
+
           </View>
         ) : props.dealType === 'FLIP' ? (
-          <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
+          <View style={{ flexDirection: 'row', flex: 1 }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Project Returns</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Returns</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net profit as a percentage of total cost.</Text>
@@ -3075,7 +2830,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Sale proceeds minus all costs.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price - Total Cost - Selling Costs</Text>
 
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Project Costs</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Costs</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital deployed into the project.</Text>
@@ -3094,10 +2849,10 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Refurb Cost × Contingency %</Text>
             </View>
 
-            <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
+            <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
 
             <View style={{ flex: 1, paddingLeft: 16 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Stress &amp; Sensitivity</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress &amp; Sensitivity</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Scenario</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit impact if costs increase by 10%.</Text>
@@ -3113,9 +2868,9 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             </View>
           </View>
         ) : (
-          <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
+          <View style={{ flexDirection: 'row', flex: 1 }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Income &amp; Spread</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Income &amp; Spread</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Sub-let income at current occupancy.</Text>
@@ -3138,10 +2893,10 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income × Management Fee %</Text>
             </View>
 
-            <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
+            <View style={{ width: 0.5, backgroundColor: '#E5E7EB' }} />
 
             <View style={{ flex: 1, paddingLeft: 16 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Returns &amp; Recovery</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Returns &amp; Recovery</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual profit as a percentage of setup costs.</Text>
