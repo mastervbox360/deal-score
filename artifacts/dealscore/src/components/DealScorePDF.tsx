@@ -2860,6 +2860,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <>
                 <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Stress Testing &amp; Resilience</Text>
 
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Break-Even Rent</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>The minimum rent or revenue required to cover all costs at the current mortgage rate. Cash flow is exactly zero at this level.</Text>
+
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Stress Test</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>{props.dealType === 'SA' ? 'Analysis of deal performance under a higher mortgage rate (+1.5%) and lower revenue (-10%), applied independently.' : 'Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (-10%), applied independently.'}</Text>
 
@@ -3165,9 +3168,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Deal Score</Text>
 
-              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Overall Score</Text>
-              <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Weighted composite from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile</Text>
-
               <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>RECOMMENDED</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All key thresholds met or exceeded for this strategy.</Text>
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Score signals strong deal at current numbers</Text>
@@ -3240,9 +3240,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Deal Score</Text>
 
-              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Overall Score</Text>
-              <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Weighted composite from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile</Text>
-
               <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>RECOMMENDED</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All key thresholds met or exceeded for this strategy.</Text>
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Score signals strong deal at current numbers</Text>
@@ -3300,9 +3297,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Setup Costs + (Landlord Deposit Months × Monthly Rent) + First Month Rent</Text>
 
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Deal Score</Text>
-
-              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Overall Score</Text>
-              <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Weighted composite from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile</Text>
 
               <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>RECOMMENDED</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All key thresholds met or exceeded for this strategy.</Text>
