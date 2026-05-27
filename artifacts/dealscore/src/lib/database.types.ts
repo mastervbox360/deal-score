@@ -1,6 +1,13 @@
 export type DealStatus = 'analysing' | 'reviewing' | 'presenting' | 'closed' | 'dead'
 export type InvestorStatus = 'interested' | 'reviewing' | 'fee_paid' | 'not_interested' | 'pack_released'
 export type UserTier = 'free' | 'pro' | 'pro_plus'
+export type NotificationType =
+  | 'cooling_off_expiring'
+  | 'cooling_off_expired'
+  | 'pack_released'
+  | 'investor_logged'
+  | 'offer_deadline'
+  | 'fee_received'
 
 export interface Profile {
   id: string
@@ -15,6 +22,9 @@ export interface Profile {
   accent_colour: string | null
   logo_url: string | null
   ai_uses_count: number
+  referral_code: string | null
+  referred_by: string | null
+  trial_ends_at: string | null
   created_at: string
   updated_at: string
 }
@@ -32,6 +42,13 @@ export interface Deal {
   inputs: Record<string, unknown>
   notes: string | null
   packs_generated: number
+  deal_score: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null
+  cash_flow: number | null
+  coc_roi: number | null
+  gross_yield: number | null
+  cover_style: string | null
+  offer_deadline: string | null
+  address_protected: boolean
   created_at: string
   updated_at: string
 }
@@ -67,5 +84,16 @@ export interface ActivityLog {
   user_id: string
   event: string
   metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  deal_id: string | null
+  type: NotificationType
+  title: string
+  body: string
+  read: boolean
   created_at: string
 }
