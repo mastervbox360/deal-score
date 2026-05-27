@@ -1,0 +1,56 @@
+Read DealScorePDF.tsx in full before making any changes. Focus on the Glossary page and the Formulas & Calculations page. Plan all edits explicitly, then execute in parallel.
+Task: Rebalance all portrait Glossary and Formulas & Calculations branches so the left column is always denser than the right.
+GLOSSARY PAGE — apply the following per branch:
+BTL / SOCIAL:
+
+Left: Yield & Return + Cash Flow & Expenses + Stress Testing & Resilience
+Right: Finance & Structure + Tax, Legal & Verdicts
+
+HMO — already correct, do not change.
+SA:
+
+Left: Yield & Return + SA Income
+Right: Stress Testing & Resilience + Finance & Structure + Tax, Legal & Verdicts
+
+BRRR — already correct, do not change.
+FLIP:
+
+Left: Project Returns + Project Costs
+Right: Stress & Sensitivity + Tax & Structure + Tax, Legal & Verdicts
+
+R2R:
+
+Left: R2R Income + Returns
+Right: Agreement & Risk + Structure + Tax, Legal & Verdicts
+
+FORMULAS & CALCULATIONS PAGE — apply the following per branch:
+BTL / HMO / SA / SOCIAL / BRRR:
+
+Left: Yield & Return + Cash Flow & Expenses
+Right: Stress Testing & Resilience + Capital & Structure
+
+FLIP:
+
+Left: Project Returns + Project Costs
+Right: Stress & Sensitivity
+
+R2R:
+
+Left: Income & Spread + Returns & Recovery
+Right: any remaining R2R terms — if none, leave right column empty
+
+Spacing rules — uniform across all branches, both columns, both pages:
+
+Category heading marginTop: 10, marginBottom: 3
+Term definition marginBottom: 2
+Term name marginBottom: 0
+Formula line (teal) — do not change styling
+
+Both pages must fit on a single page for every strategy. If any branch overflows, reduce definition marginBottom from 2 to 1 on that branch only.
+Do not touch:
+
+DealScorePDFProPlus.tsx
+Any page other than Glossary and Formulas & Calculations in DealScorePDF.tsx
+Any other component, calculation, results panel, or cover page
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm every strategy branch fits on one page on both pages. Tell me exactly what was moved for each branch on each page.
