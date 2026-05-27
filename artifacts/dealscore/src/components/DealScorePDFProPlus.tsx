@@ -2832,7 +2832,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           {/* Right column — Finance & Structure + Tax, Legal & Verdicts */}
           <View style={{ flex: 1, paddingLeft: 10 }}>
 
-            {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'HMO' || props.dealType === 'SA') && (
+            {/* Finance & Structure — BTL / SOCIAL / SA (standard spacing) */}
+            {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'SA') && (
               <>
                 <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
 
@@ -2850,50 +2851,65 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               </>
             )}
 
+            {/* Finance & Structure + HMO — HMO only (reduced spacing) */}
             {props.dealType === 'HMO' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>HMO</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 2, marginTop: 6 }}>Finance &amp; Structure</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
+
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 2, marginTop: 6 }}>HMO</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly cash flow divided equally across all rooms. Key HMO efficiency metric.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly cash flow divided equally across all rooms. Key HMO efficiency metric.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>HMO Licence</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total room rental income across all rooms at current occupancy rate.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total room rental income across all rooms at current occupancy rate.</Text>
               </>
             )}
 
             {props.dealType === 'BRRR' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>BRRR Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 2, marginTop: 6 }}>BRRR Structure</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The estimated market value of the property after refurbishment is complete.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>The estimated market value of the property after refurbishment is complete.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Capital released by remortgaging against the post-refurb value at a set LTV.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Capital released by remortgaging against the post-refurb value at a set LTV.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Capital remaining in the deal after subtracting the refinance loan from total cost in.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Capital remaining in the deal after subtracting the refinance loan from total cost in.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital deployed into the BRRR: purchase price + tax + refurb + bridging interest + other costs.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital deployed into the BRRR: purchase price + tax + refurb + bridging interest + other costs.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Short-term property-secured loan used to fund acquisition and refurbishment before refinancing.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Short-term property-secured loan used to fund acquisition and refurbishment before refinancing.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 2, marginTop: 6 }}>Tax &amp; Structure</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI).</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI).</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed into the deal before refinance.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total capital deployed into the deal before refinance.</Text>
               </>
             )}
 
