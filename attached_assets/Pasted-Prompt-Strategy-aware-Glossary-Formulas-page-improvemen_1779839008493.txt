@@ -1,0 +1,260 @@
+Prompt — Strategy-aware Glossary + Formulas page improvements
+Read both files in full before planning any edits:
+
+src/components/DealScorePDF.tsx
+src/components/DealScorePDFProPlus.tsx
+
+
+Overview — two changes, both files
+
+Replace the static Glossary page with a strategy-aware version — each deal type shows only its relevant terms, plus universal terms shown on all strategies
+Improve the Formulas & Calculations page — add missing formulas and fix the BRRR Cash Invested formula
+
+
+Change 1 — Strategy-aware Glossary (both files)
+The Glossary page currently renders identically for all 7 strategies. Replace the entire contents of the Glossary <Page> (everything between <SH title="Glossary" /> and the closing </Page>) with a conditional structure based on props.dealType.
+The two-column layout, section headers, vertical rule divider, and all existing styling remain exactly the same. Only the terms shown change per strategy.
+Styling reference — copy exactly from existing Glossary:
+
+Section header: fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: '0.5pt solid ${structureColour}', marginBottom: 6
+Second+ section headers on same column: add marginTop: 10
+Term name: fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1
+Definition: fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5
+
+
+UNIVERSAL terms — show on ALL strategies (right column, Mortgage / Tax / Structure section):
+
+Deal Score — Weighted composite score from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile
+RECOMMENDED — Deal meets or exceeds all key thresholds for this strategy. Strong candidate for investor presentation
+REVIEW — Deal partially meets thresholds. Worth progressing with negotiation or cost review
+AVOID — Deal falls below minimum thresholds. Not recommended at current numbers
+Sourcing Fee — Fee payable to the deal sourcer on legal completion
+LTT / SDLT — Land Transaction Tax (Wales) or Stamp Duty Land Tax (England & NI). Government purchase tax on property transactions
+
+
+BTL — Left column:
+Section: Yield & Return
+
+Gross Yield — Annual rent as a percentage of purchase price
+Net Yield — Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard)
+Cash-on-Cash ROI — Annual cash flow as a percentage of total cash invested. Includes mortgage payment
+Payback Period — Years to recover total cash invested from annual cash flow
+Equity on Day One — Immediate equity created when a property is purchased below market value
+BMV — Below Market Value. The discount between purchase price and estimated market value
+
+Section: Cash Flow & Expenses (marginTop: 10)
+
+Gross Rent — Total rental income before any deductions or void allowance
+Void Allowance — Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year
+Effective Rent — Gross rent after void allowance deducted
+Net Operating Income (NOI) — Effective rent minus all operating costs, excluding mortgage
+Net Cash Flow — Monthly surplus after all costs including mortgage payment
+Break-Even Rent — Minimum rent required to cover all costs at the current mortgage rate
+Rent Headroom — The buffer between contracted rent and break-even rent
+
+BTL — Right column:
+Section: Stress Testing & Resilience
+
+Stress Test — Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (−10%), applied independently
+Break-Even Rate — The mortgage rate at which monthly cash flow reaches exactly zero
+Sensitivity Analysis — Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently
+
+Section: Mortgage, Tax & Structure (marginTop: 10)
+
+Interest-Only Mortgage — Monthly payment covers interest only. Capital balance remains unchanged throughout the term
+Repayment Mortgage — Monthly payment covers both interest and capital. Balance reduces to zero over the term
+LTV — Loan to Value. Mortgage amount expressed as a percentage of property value
+Cash Invested — Total capital deployed: deposit + tax + refurb + other costs
+Plus universal terms (Deal Score, RECOMMENDED/REVIEW/AVOID, Sourcing Fee, LTT/SDLT)
+
+
+HMO — same as BTL plus this additional section in the right column after Mortgage / Tax / Structure:
+Section: HMO (marginTop: 10)
+
+Profit Per Room — Monthly cash flow divided equally across all rooms. Key HMO efficiency metric
+HMO Licence — Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly
+Gross Monthly Rent — Total room rental income across all rooms at current occupancy rate
+
+
+SA — Left column:
+Section: Yield & Return
+
+Net Yield — Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard)
+Cash-on-Cash ROI — Annual cash flow as a percentage of total cash invested. Includes mortgage payment
+Equity on Day One — Immediate equity created when a property is purchased below market value
+BMV — Below Market Value. The discount between purchase price and estimated market value
+
+Section: SA Income (marginTop: 10)
+
+Gross Monthly Revenue — Total nightly income before platform fees and running costs. Calculated as: Nightly Rate × (Occupancy % ÷ 100) × 30.42 days
+Platform Fees — Commission charged by booking platforms such as Airbnb and Booking.com
+Net Monthly Revenue — Gross revenue after platform fees deducted
+Occupancy Rate — Percentage of nights in a month the property is occupied and generating income. DealScore default: 75%
+Net Cash Flow — Monthly surplus after all costs including mortgage payment
+Break-Even Rent — Minimum revenue required to cover all costs at the current mortgage rate
+
+SA — Right column:
+Section: Stress Testing & Resilience
+
+Stress Test — Analysis of deal performance under a higher mortgage rate (+1.5%) and lower revenue (−10%), applied independently
+Break-Even Rate — The mortgage rate at which monthly cash flow reaches exactly zero
+Sensitivity Analysis — Shows the impact on cash flow and ROI of a 10% revenue reduction and a 1.5% rate increase independently
+
+Section: Mortgage, Tax & Structure (marginTop: 10)
+
+Interest-Only Mortgage — Monthly payment covers interest only. Capital balance remains unchanged throughout the term
+Repayment Mortgage — Monthly payment covers both interest and capital. Balance reduces to zero over the term
+LTV — Loan to Value. Mortgage amount expressed as a percentage of property value
+Cash Invested — Total capital deployed: deposit + tax + refurb + other costs
+Plus universal terms
+
+
+BRRR — Left column:
+Section: Yield & Return
+
+BRRR Gross Yield — Yield calculated on post-refurb value (GDV), not purchase price
+Net Yield — Annual income minus operating costs divided by post-refurb value. Mortgage excluded
+Cash-on-Cash ROI — Annual cash flow as a percentage of cash left in the deal after refinance
+Equity Created — The uplift in property value above total cost in, realised through refurbishment
+Money Out / ∞ Recycled — When the refinance loan exceeds total cost in. All capital returned plus a surplus. Cash-on-cash ROI is infinite
+
+Section: Cash Flow & Expenses (marginTop: 10)
+
+Gross Rent — Total rental income before any deductions or void allowance
+Void Allowance — Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year
+Effective Rent — Gross rent after void allowance deducted
+Net Operating Income (NOI) — Effective rent minus all operating costs, excluding mortgage
+Net Cash Flow — Monthly surplus after all costs including the refinance mortgage payment
+
+BRRR — Right column:
+Section: BRRR Structure
+
+GDV (Gross Development Value) — The estimated market value of the property after refurbishment is complete
+Refinance Loan — Capital released by remortgaging against the post-refurb value at a set LTV
+Cash Left In — Capital remaining in the deal after subtracting the refinance loan from total cost in
+Total Cost In — All capital deployed into the BRRR: purchase price + tax + refurb + bridging interest + other costs
+Bridging Finance — Short-term property-secured loan used to fund acquisition and refurbishment before refinancing
+
+Section: Stress Testing & Resilience (marginTop: 10)
+
+Stress Test — Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (−10%), applied independently
+Break-Even Rate — The mortgage rate at which monthly cash flow reaches exactly zero
+Sensitivity Analysis — Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently
+
+Section: Tax & Structure (marginTop: 10)
+
+LTV — Loan to Value. Mortgage amount expressed as a percentage of property value
+LTT / SDLT — Land Transaction Tax (Wales) or Stamp Duty Land Tax (England & NI)
+Cash Invested — Total capital deployed into the deal before refinance
+Plus universal terms (Deal Score, RECOMMENDED/REVIEW/AVOID, Sourcing Fee)
+
+
+FLIP — Left column:
+Section: Project Returns
+
+Total ROI — Net profit as a percentage of total project cost
+Annualised ROI — Total ROI scaled to a 12-month equivalent based on project length in months
+Profit on Cost — Net profit expressed as a percentage of total costs. Benchmark: 18%+ with planning permission, 25%+ without
+Net Profit — Sale proceeds minus all acquisition, build, and selling costs
+GDV (Gross Development Value) — The target sale price or estimated open market value after works are complete
+
+Section: Project Costs (marginTop: 10)
+
+Total Cost In — All capital deployed: purchase price + tax + refurb + contingency + holding costs + other costs
+Holding Costs — Monthly financing or carrying costs during the project period
+Selling Costs — Agent fees and legal costs on sale, expressed as a percentage of GDV
+Contingency — A percentage buffer added to refurb costs to absorb unexpected expenses. DealScore default: 10%
+Bridging Finance — Short-term property-secured loan used to fund acquisition and/or refurbishment
+
+FLIP — Right column:
+Section: Stress & Sensitivity
+
+Cost Overrun Risk — Impact on profit if build costs increase beyond budget. A 10% overrun on a £30k refurb reduces profit by £3,000
+GDV Sensitivity — Impact on profit if the achieved sale price is lower than the GDV estimate
+Break-Even GDV — The minimum sale price at which the project still makes a profit
+
+Section: Tax & Structure (marginTop: 10)
+
+LTT / SDLT — Land Transaction Tax (Wales) or Stamp Duty Land Tax (England & NI)
+Cash Invested — Total capital deployed into the project
+Plus universal terms (Deal Score, RECOMMENDED/REVIEW/AVOID, Sourcing Fee)
+
+
+R2R — Left column:
+Section: R2R Income
+
+Monthly Spread — The difference between sub-let income collected and rent paid to the landlord. The core R2R profit driver
+Gross Monthly Income — Total sub-let rent collected from all rooms at current occupancy
+Net Monthly Profit — Monthly income after rent to landlord, management fees, and running costs
+Annual Profit — Net monthly profit multiplied by 12
+Setup Costs — One-off costs to establish the R2R agreement: furniture, deposits, compliance, and fit-out
+
+Section: Returns (marginTop: 10)
+
+ROI on Setup — Annual profit as a percentage of total setup costs
+Payback Period — Number of months to recover setup costs from monthly profit
+Total Upfront — All capital needed to begin: setup costs + landlord deposit + first month rent
+
+R2R — Right column:
+Section: Agreement & Risk
+
+Landlord Agreement — The lease or licence between the sourcer and the property owner permitting sub-letting. Term, break clauses, and subletting rights must be clearly documented
+Subletting — Renting out a property or individual rooms that you yourself rent from the owner
+Occupancy Rate — Percentage of rooms occupied and generating income. DealScore default: 90%
+Management Fees — Platform or agent commission charged on gross income collected
+
+Section: Structure (marginTop: 10)
+
+Cash Invested — Total setup costs deployed to establish the agreement
+Plus universal terms (Deal Score, RECOMMENDED/REVIEW/AVOID, Sourcing Fee, LTT/SDLT)
+
+
+SOCIAL — identical to BTL (social housing is a standard mortgage-based rental strategy with guaranteed lease income — all BTL terms apply exactly)
+
+Change 2 — Formulas page improvements (both files)
+Make the following targeted edits to the existing Formulas & Calculations page. Do not restructure the page — make surgical additions and corrections only.
+Fix 1 — BRRR Cash Invested formula
+In the BTL/HMO/SA/SOCIAL/BRRR branch, the Capital & Structure section currently shows:
+Cash Invested — Deposit + Tax + Refurb + Other Costs
+Wrap this entry in a conditional: when props.dealType === 'BRRR' show:
+
+Cash Invested — All capital deployed before refinance — Purchase Price + Tax + Refurb + Bridging Interest + Other Costs
+
+When props.dealType !== 'BRRR' show the existing entry:
+
+Cash Invested — Total capital deployed into the deal — Deposit + Tax + Refurb + Other Costs
+
+Fix 2 — SA revenue formulas
+In the BTL/HMO/SA/SOCIAL/BRRR branch left column, add a new section immediately before the Cash Flow & Expenses section header, conditional on props.dealType === 'SA':
+Section header: SA Revenue
+
+Gross Monthly Revenue — Nightly rate at target occupancy over an average month — Nightly Rate × (Occupancy % ÷ 100) × 30.42
+Platform Fees — Commission deducted from gross revenue — Gross Monthly Revenue × Platform Fee %
+Net Monthly Revenue — Revenue after platform fees — Gross Monthly Revenue - Platform Fees
+
+Fix 3 — FLIP Contingency formula
+In the FLIP branch left column, add this entry to the end of the Project Costs section:
+
+Contingency — Buffer added to refurb costs for unexpected expenses — Refurb Cost × Contingency %
+
+Fix 4 — R2R Management Fees formula
+In the R2R branch left column, add this entry to the end of the Income & Spread section:
+
+Management Fees — Platform or agent commission on gross income — Gross Monthly Income × Management Fee %
+
+Fix 5 — Deal Score dimensions and verdicts
+In all strategy branches, add a new section at the bottom of the right column:
+Section header: Deal Score
+
+Overall Score — Weighted average of six dimensions — (Gross Yield × 20%) + (Net Cash Flow × 25%) + (Capital Growth × 20%) + (Tenant Demand × 15%) + (Deal Structure × 10%) + (Risk Profile × 10%)
+RECOMMENDED — All key thresholds met or exceeded for this strategy — Score signals strong deal at current numbers
+REVIEW — Partially meets thresholds — Score signals deal worth progressing with negotiation
+AVOID — Falls below minimum thresholds — Score signals deal does not stack at current numbers
+
+
+Permanent rules
+
+structureColour on all section headers and divider rules — never hardcoded colour
+Term names #1E2B3C, definitions #6B7280, formula lines #3B82F6
+Apply all changes to both DealScorePDF.tsx and DealScorePDFProPlus.tsx
+After all edits: npx tsc --noEmit — zero errors required
