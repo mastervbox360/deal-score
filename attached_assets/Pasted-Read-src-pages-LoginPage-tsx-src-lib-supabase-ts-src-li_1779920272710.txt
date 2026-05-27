@@ -1,0 +1,118 @@
+Read src/pages/LoginPage.tsx, src/lib/supabase.ts, src/lib/database.types.ts, and src/App.tsx in full before making any changes. Plan all edits explicitly, then execute in parallel.
+Task: Stage 9 Step 3 — Auth screens (Login, Signup, Password Reset) + Auth state management.
+Step 1 — Create auth context:
+Create src/lib/AuthContext.tsx:
+typescriptimport { createContext, useContext, useEffect, useState } from 'react'
+import { Session, User } from '@supabase/supabase-js'
+import { supabase } from './supabase'
+import { Profile } from './database.types'
+
+interface AuthContextType {
+  session: Session | null
+  user: User | null
+  profile: Profile | null
+  loading: boolean
+  signOut: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType>({
+  session: null,
+  user: null,
+  profile: null,
+  loading: true,
+  signOut: async () => {}
+})
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) fetchProfile(session.user.id)
+      else setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) fetchProfile(session.user.id)
+      else {
+        setProfile(null)
+        setLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function fetchProfile(userId: string) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    setProfile(data)
+    setLoading(false)
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut()
+  }
+
+  return (
+    <AuthContext.Provider value={{ session, user, profile, loading, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  return useContext(AuthContext)
+}
+Step 2 — Replace LoginPage with real auth UI:
+Replace src/pages/LoginPage.tsx with a full Login/Signup/Reset tabbed page. Requirements:
+
+Three tabs: Log in / Sign up / Reset password
+Log in: email + password fields, submit button, Supabase signInWithPassword
+Sign up: email + password + confirm password fields, submit button, Supabase signUp. On success show "Check your email to confirm your account"
+Reset password: email field, submit button, Supabase resetPasswordForEmail. On success show "Password reset email sent"
+On successful login: navigate to /dashboard using useNavigate
+Error messages shown inline beneath the form
+Clean minimal styling using inline styles — navy (#1B3A6B) and white, matching DealScore brand
+No external UI libraries
+
+Step 3 — Create a ProtectedRoute component:
+Create src/components/ProtectedRoute.tsx:
+typescriptimport { Navigate } from 'react-router-dom'
+import { useAuth } from '../lib/AuthContext'
+
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { session, loading } = useAuth()
+  if (loading) return <div style={{ padding: 40 }}>Loading...</div>
+  if (!session) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+Step 4 — Update src/App.tsx:
+
+Wrap entire app in <AuthProvider>
+Protect /dashboard, /deal/:id, /deal/new, /profile, /investors with <ProtectedRoute>
+/app (the analyser) and /login remain public — no auth required for the analyser
+
+Step 5 — Update src/main.tsx:
+
+Import and add AuthProvider is handled in App.tsx — no changes needed to main.tsx
+
+Do not touch:
+
+Home.tsx
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+Any existing components or styles
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm /app still loads without auth. Confirm /dashboard redirects to /login when not logged in. Confirm the login page renders correctly.
