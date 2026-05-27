@@ -1,0 +1,112 @@
+Read src/main.tsx, src/App.tsx, and package.json in full before making any changes. Plan all edits explicitly, then execute in parallel.
+Task: Stage 9 Step 2 — Install React Router and set up routing structure.
+Step 1 — Install dependency:
+Run in Shell:
+npm install react-router-dom
+Step 2 — Create page components (empty shells only — no logic yet):
+Create these files:
+src/pages/DashboardPage.tsx:
+typescriptexport default function DashboardPage() {
+  return (
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Dashboard</h1>
+      <p>Stage 9 — Dashboard placeholder</p>
+    </div>
+  )
+}
+src/pages/DealPage.tsx:
+typescriptimport { useParams } from 'react-router-dom'
+export default function DealPage() {
+  const { id } = useParams()
+  return (
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Deal</h1>
+      <p>Deal ID: {id}</p>
+    </div>
+  )
+}
+src/pages/NewDealPage.tsx:
+typescriptexport default function NewDealPage() {
+  return (
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>New Deal</h1>
+      <p>Stage 9 — New deal placeholder</p>
+    </div>
+  )
+}
+src/pages/ProfilePage.tsx:
+typescriptexport default function ProfilePage() {
+  return (
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Profile</h1>
+      <p>Stage 9 — Profile placeholder</p>
+    </div>
+  )
+}
+src/pages/InvestorsPage.tsx:
+typescriptexport default function InvestorsPage() {
+  return (
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Investors</h1>
+      <p>Stage 9 — Investor address book placeholder</p>
+    </div>
+  )
+}
+src/pages/LoginPage.tsx:
+typescriptexport default function LoginPage() {
+  return (
+    <div style={{ padding: '40px', fontFamily: 'sans-serif' }}>
+      <h1>Login</h1>
+      <p>Stage 9 — Login placeholder</p>
+    </div>
+  )
+}
+Step 3 — Update src/main.tsx:
+Wrap the app in BrowserRouter:
+typescriptimport React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
+)
+Step 4 — Update src/App.tsx:
+Add routes. The existing analyser (Home) lives at /app for now — do not remove or change it. All existing functionality must be preserved.
+typescriptimport { Routes, Route, Navigate } from 'react-router-dom'
+import Home from './components/Home'
+import DashboardPage from './pages/DashboardPage'
+import DealPage from './pages/DealPage'
+import NewDealPage from './pages/NewDealPage'
+import ProfilePage from './pages/ProfilePage'
+import InvestorsPage from './pages/InvestorsPage'
+import LoginPage from './pages/LoginPage'
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/app" replace />} />
+      <Route path="/app" element={<Home />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/deal/:id" element={<DealPage />} />
+      <Route path="/deal/new" element={<NewDealPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/investors" element={<InvestorsPage />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
+  )
+}
+Do not touch:
+
+Home.tsx
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+Any existing components or styles
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm the app still loads correctly at /app and that navigating to /dashboard shows the placeholder page.
