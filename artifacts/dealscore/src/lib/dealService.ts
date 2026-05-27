@@ -10,6 +10,10 @@ function generateReference(): string {
 export async function createDeal(
   userId: string,
   strategy: Deal['strategy'],
+  address: string | null,
+  postcode: string | null,
+  purchasePrice: number | null,
+  marketValue: number | null,
   inputs: Record<string, unknown>
 ): Promise<Deal | null> {
   const { data, error } = await supabase
@@ -19,6 +23,10 @@ export async function createDeal(
       reference: generateReference(),
       strategy,
       status: 'analysing',
+      address: address || null,
+      postcode: postcode || null,
+      purchase_price: purchasePrice || null,
+      market_value: marketValue || null,
       inputs
     })
     .select()
@@ -30,11 +38,22 @@ export async function createDeal(
 
 export async function updateDeal(
   dealId: string,
+  address: string | null,
+  postcode: string | null,
+  purchasePrice: number | null,
+  marketValue: number | null,
   inputs: Record<string, unknown>
 ): Promise<boolean> {
   const { error } = await supabase
     .from('deals')
-    .update({ inputs, updated_at: new Date().toISOString() })
+    .update({
+      address: address || null,
+      postcode: postcode || null,
+      purchase_price: purchasePrice || null,
+      market_value: marketValue || null,
+      inputs,
+      updated_at: new Date().toISOString()
+    })
     .eq('id', dealId)
 
   if (error) { console.error('updateDeal error:', error); return false }

@@ -1,0 +1,81 @@
+Read src/lib/dealService.ts and src/components/Home.tsx in full before making any changes. Plan all edits explicitly, then execute.
+Task: Fix deal saving to populate top-level columns — address, postcode, purchase_price, market_value, strategy.
+In src/lib/dealService.ts, update createDeal and updateDeal to accept and write the top-level columns separately from the inputs JSON blob.
+Update createDeal signature and body:
+typescriptexport async function createDeal(
+  userId: string,
+  strategy: Deal['strategy'],
+  address: string | null,
+  postcode: string | null,
+  purchasePrice: number | null,
+  marketValue: number | null,
+  inputs: Record<string, unknown>
+): Promise<Deal | null> {
+  const { data, error } = await supabase
+    .from('deals')
+    .insert({
+      user_id: userId,
+      reference: generateReference(),
+      strategy,
+      status: 'analysing',
+      address: address || null,
+      postcode: postcode || null,
+      purchase_price: purchasePrice || null,
+      market_value: marketValue || null,
+      inputs
+    })
+    .select()
+    .single()
+
+  if (error) { console.error('createDeal error:', error); return null }
+  return data
+}
+Update updateDeal signature and body:
+typescriptexport async function updateDeal(
+  dealId: string,
+  address: string | null,
+  postcode: string | null,
+  purchasePrice: number | null,
+  marketValue: number | null,
+  inputs: Record<string, unknown>
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('deals')
+    .update({
+      address: address || null,
+      postcode: postcode || null,
+      purchase_price: purchasePrice || null,
+      market_value: marketValue || null,
+      inputs,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', dealId)
+
+  if (error) { console.error('updateDeal error:', error); return false }
+  return true
+}
+Update src/hooks/useDealSync.ts — update the hook to accept and pass through the top-level fields:
+typescriptexport function useDealSync(
+  dealId: string | null,
+  address: string | null,
+  postcode: string | null,
+  purchasePrice: number | null,
+  marketValue: number | null,
+  inputs: Record<string, unknown>,
+  enabled: boolean
+)
+Update the updateDeal call inside to pass all new parameters.
+Update src/components/Home.tsx:
+
+Update the useDealSync call to pass address, postcode, purchasePrice, marketValue as separate arguments
+Update the handleSaveDeal function to pass address, postcode, purchasePrice, marketValue as separate arguments to createDeal
+
+Do not touch:
+
+Any calculation logic
+Any existing UI
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors.

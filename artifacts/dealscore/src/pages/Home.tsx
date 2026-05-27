@@ -371,7 +371,17 @@ export default function HomePage() {
     groundRentAnnual,
   })
 
-  useDealSync(currentDealId, allInputs, !!user)
+  const dealPostcode = propertyAddress.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i)?.[0]?.toUpperCase().replace(/\s/g, '') ?? null
+
+  useDealSync(
+    currentDealId,
+    propertyAddress || null,
+    dealPostcode,
+    sharedInputs.purchasePrice || null,
+    marketValue || null,
+    allInputs,
+    !!user
+  )
 
   const handleSharedChange = (field: keyof typeof sharedInputs, value: string) => {
     setSharedInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
@@ -422,7 +432,15 @@ export default function HomePage() {
   async function handleSaveDeal() {
     if (!user) return
     if (currentDealId) return
-    const deal = await createDeal(user.id, dealType as Deal['strategy'], allInputs)
+    const deal = await createDeal(
+      user.id,
+      dealType as Deal['strategy'],
+      propertyAddress || null,
+      dealPostcode,
+      sharedInputs.purchasePrice || null,
+      marketValue || null,
+      allInputs
+    )
     if (deal) setCurrentDealId(deal.id)
   }
 

@@ -3,6 +3,10 @@ import { updateDeal } from '../lib/dealService'
 
 export function useDealSync(
   dealId: string | null,
+  address: string | null,
+  postcode: string | null,
+  purchasePrice: number | null,
+  marketValue: number | null,
   inputs: Record<string, unknown>,
   enabled: boolean
 ) {
@@ -14,8 +18,8 @@ export function useDealSync(
     const serialised = JSON.stringify(inputs)
     if (serialised === lastSavedRef.current) return
     lastSavedRef.current = serialised
-    await updateDeal(dealId, inputs)
-  }, [dealId, inputs, enabled])
+    await updateDeal(dealId, address, postcode, purchasePrice, marketValue, inputs)
+  }, [dealId, address, postcode, purchasePrice, marketValue, inputs, enabled])
 
   useEffect(() => {
     if (!dealId || !enabled) return
