@@ -11,6 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '../lib/AuthContext'
+import { useDealSync } from '../hooks/useDealSync'
+import { createDeal } from '../lib/dealService'
+import { serializeInputs } from '../lib/inputsSerializer'
+import { Deal } from '../lib/database.types'
 
 declare global {
   interface Window {
@@ -255,6 +260,9 @@ export default function HomePage() {
   const [showBMVOnCover, setShowBMVOnCover] = useState<boolean>(true);
   const [showSourcingFeeOnCover, setShowSourcingFeeOnCover] = useState<boolean>(false);
   const [iosGenerating, setIosGenerating] = useState(false);
+  const [currentDealId, setCurrentDealId] = useState<string | null>(null)
+
+  const { user } = useAuth()
 
   useEffect(() => {
     const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
@@ -334,6 +342,37 @@ export default function HomePage() {
   const [serviceCharge, setServiceCharge] = useState(0);
   const [groundRentAnnual, setGroundRentAnnual] = useState(0);
 
+  const allInputs = serializeInputs({
+    strategy: dealType,
+    address: propertyAddress,
+    purchasePrice: sharedInputs.purchasePrice,
+    marketValue,
+    propertyType,
+    bedrooms,
+    bathrooms,
+    tenure,
+    taxRegion: taxCountry,
+    sharedInputs,
+    btlInputs,
+    hmoInputs,
+    saInputs,
+    flipInputs,
+    brrrInputs,
+    r2rInputs,
+    r2rLandlordDepositMonths,
+    socialInputs,
+    leaseLengthYears,
+    sourcingFee,
+    managementFeePercent,
+    voidAllowancePercent,
+    maintenanceReserve,
+    buildingsInsurance,
+    serviceCharge,
+    groundRentAnnual,
+  })
+
+  useDealSync(currentDealId, allInputs, !!user)
+
   const handleSharedChange = (field: keyof typeof sharedInputs, value: string) => {
     setSharedInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));
   };
@@ -379,6 +418,13 @@ export default function HomePage() {
     reader.onload = (ev) => setLogoBase64((ev.target?.result as string) ?? null);
     reader.readAsDataURL(file);
   };
+
+  async function handleSaveDeal() {
+    if (!user) return
+    if (currentDealId) return
+    const deal = await createDeal(user.id, dealType as Deal['strategy'], allInputs)
+    if (deal) setCurrentDealId(deal.id)
+  }
 
   const detectTaxCountryFromPostcode = (address: string) => {
     const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
@@ -4725,6 +4771,23 @@ export default function HomePage() {
                 fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
                 orientation={pdfOrientation}
               />
+            )}
+            {!!user && (
+              currentDealId ? (
+                <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold w-full" style={{ backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>
+                  ✓ Deal saved
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSaveDeal}
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm w-full hover:opacity-90 active:scale-[0.99] transition"
+                  style={{ backgroundColor: '#1B3A6B', color: '#fff' }}
+                  data-testid="button-save-deal"
+                >
+                  Save Deal
+                </button>
+              )
             )}
             <button
               type="button"

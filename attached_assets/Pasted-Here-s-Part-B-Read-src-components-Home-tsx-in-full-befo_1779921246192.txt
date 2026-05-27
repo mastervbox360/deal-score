@@ -1,0 +1,112 @@
+Here's Part B:
+
+Read src/components/Home.tsx in full before making any changes. Plan all edits explicitly, then execute in parallel.
+Task: Stage 9 Step 4B — Wire deal saving into Home.tsx.
+Home.tsx needs to know about the current deal ID and auto-save inputs to Supabase. This must be done with minimal changes to Home.tsx — do not restructure the component, do not change any calculation logic, do not change any UI.
+Changes to make in Home.tsx:
+1. Add imports at the top:
+typescriptimport { useAuth } from '../lib/AuthContext'
+import { useDealSync } from '../hooks/useDealSync'
+import { createDeal } from '../lib/dealService'
+import { serializeInputs } from '../lib/inputsSerializer'
+2. Add state for current deal ID — add this near the top of the Home component, with the other useState declarations:
+typescriptconst [currentDealId, setCurrentDealId] = useState<string | null>(null)
+3. Get auth context — add this near the top of the Home component:
+typescriptconst { user } = useAuth()
+4. Build the inputs object for syncing — add this after all the existing state declarations. This collects all current state into a single object for the sync hook. Do not change any existing state variables — just reference them:
+typescriptconst allInputs = serializeInputs({
+  strategy: activeTab,
+  address,
+  postcode,
+  purchasePrice,
+  marketValue,
+  propertyType,
+  bedrooms,
+  bathrooms,
+  tenure,
+  taxRegion,
+  // BTL
+  monthlyRent,
+  mortgageAmount,
+  mortgageRate,
+  mortgageTerm,
+  isInterestOnly,
+  // HMO
+  numberOfRooms,
+  rentPerRoom,
+  hmoMortgageAmount,
+  hmoMortgageRate,
+  hmoMortgageTerm,
+  hmoIsInterestOnly,
+  hmoLicenceCost,
+  // SA
+  nightlyRate,
+  occupancyRate,
+  saMortgageAmount,
+  saMortgageRate,
+  saMortgageTerm,
+  saIsInterestOnly,
+  // FLIP
+  expectedSalePrice,
+  refurbCost,
+  contingencyPercent,
+  projectLengthMonths,
+  flipFinancingMethod,
+  flipBridgingRate,
+  flipBridgingTerm,
+  flipMortgageAmount,
+  flipMortgageRate,
+  flipMortgageTerm,
+  flipIsInterestOnly,
+  // BRRR
+  postRefurbValue,
+  brrrRefurbCost,
+  refinanceLTV,
+  brrrMortgageRate,
+  brrrMortgageTerm,
+  brrrIsInterestOnly,
+  brrrMonthlyRent,
+  // R2R
+  monthlyRentPaid,
+  grossMonthlyIncome,
+  setupCosts,
+  landlordDepositMonths,
+  managementFeePercent,
+  // SOCIAL
+  socialMonthlyRent,
+  socialMortgageAmount,
+  socialMortgageRate,
+  socialMortgageTerm,
+  socialIsInterestOnly,
+  leaseLengthYears,
+  // Shared costs
+  refurbCosts,
+  stampDuty,
+  otherCosts,
+  sourcingFee,
+  monthlyMaintenance,
+  monthlyInsurance,
+  monthlyManagement,
+  monthlyOther,
+  voidAllowancePercent,
+})
+5. Add the sync hook — add this after the allInputs declaration:
+typescriptuseDealSync(currentDealId, allInputs, !!user)
+6. Add a "Save deal" button handler — add this function inside the Home component:
+typescriptasync function handleSaveDeal() {
+  if (!user) return
+  if (currentDealId) return // already saving via autosave
+  const deal = await createDeal(user.id, activeTab as Deal['strategy'], allInputs)
+  if (deal) setCurrentDealId(deal.id)
+}
+Add the import for Deal from '../lib/database.types' to the imports.
+7. Add a save button to the UI — find the existing PDF download button area in Home.tsx and add a "Save deal" button nearby. Simple navy button. Only show when user is logged in (!!user). Show "Saved" with a green checkmark when currentDealId is set.
+Do not touch:
+
+Any calculation logic
+Any existing UI components other than adding the save button
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm the save button appears when logged in and that clicking it creates a deal in Supabase.
