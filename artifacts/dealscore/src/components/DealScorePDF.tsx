@@ -2872,7 +2872,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sensitivity Analysis</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>{props.dealType === 'SA' ? 'Shows the impact on cash flow and ROI of a 10% revenue reduction and a 1.5% rate increase independently.' : 'Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently.'}</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Mortgage, Tax &amp; Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Finance &amp; Structure</Text>
 
                 <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Interest-Only Mortgage</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
@@ -2993,6 +2993,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             )}
 
             {/* Universal terms — all strategies */}
+            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 10 }}>Tax, Legal &amp; Verdicts</Text>
+
+            <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sourcing Fee</Text>
+            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Fee payable to the deal sourcer on legal completion.</Text>
+
+            {(props.dealType !== 'BRRR' && props.dealType !== 'FLIP') && (
+              <>
+                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>LTT / SDLT</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI). Government purchase tax on property transactions.</Text>
+              </>
+            )}
+
             <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Deal Score</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Weighted composite score from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile.</Text>
 
@@ -3004,16 +3016,6 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
             <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Avoid</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Deal falls below minimum thresholds. Not recommended at current numbers.</Text>
-
-            <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>Sourcing Fee</Text>
-            <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Fee payable to the deal sourcer on legal completion.</Text>
-
-            {(props.dealType !== 'BRRR' && props.dealType !== 'FLIP') && (
-              <>
-                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 1 }}>LTT / SDLT</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 5 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI). Government purchase tax on property transactions.</Text>
-              </>
-            )}
 
           </View>
         </View>
