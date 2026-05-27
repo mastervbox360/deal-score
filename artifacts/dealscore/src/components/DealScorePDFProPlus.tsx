@@ -2563,6 +2563,25 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               </>
             )}
 
+            {/* Finance & Structure — HMO only */}
+            {props.dealType === 'HMO' && (
+              <>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
+
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
+              </>
+            )}
+
             {props.dealType === 'SA' && (
               <>
                 <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
@@ -2868,33 +2887,19 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               </>
             )}
 
-            {/* Finance & Structure + HMO — HMO only (reduced spacing) */}
+            {/* HMO — HMO only */}
             {props.dealType === 'HMO' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 2, marginTop: 6 }}>Finance &amp; Structure</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
-
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
-
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 2, marginTop: 6 }}>HMO</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>HMO</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly cash flow divided equally across all rooms. Key HMO efficiency metric.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly cash flow divided equally across all rooms. Key HMO efficiency metric.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>HMO Licence</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly.</Text>
 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
-                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total room rental income across all rooms at current occupancy rate.</Text>
+                <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total room rental income across all rooms at current occupancy rate.</Text>
               </>
             )}
 
