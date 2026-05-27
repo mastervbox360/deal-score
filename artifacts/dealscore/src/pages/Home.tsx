@@ -11,10 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { useDealSync } from '../hooks/useDealSync'
-import { createDeal } from '../lib/dealService'
-import { serializeInputs } from '../lib/inputsSerializer'
+import { createDeal, loadDeal } from '../lib/dealService'
+import { serializeInputs, deserializeIntoSetters, SerializedInputs } from '../lib/inputsSerializer'
 import { Deal } from '../lib/database.types'
 
 declare global {
@@ -382,6 +383,54 @@ export default function HomePage() {
     allInputs,
     !!user
   )
+
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const dealId = searchParams.get('deal')
+    if (!dealId || !user) return
+
+    loadDeal(dealId).then((deal) => {
+      if (!deal) return
+      setCurrentDealId(deal.id)
+
+      const inputs = deal.inputs as SerializedInputs
+      if (!inputs) return
+
+      // Set strategy first
+      if (inputs.strategy) setDealType(inputs.strategy as DealType)
+
+      const setterMap: Record<string, (value: unknown) => void> = {
+        address:                  (v) => setPropertyAddress(v as string),
+        purchasePrice:            (v) => setSharedInputs(prev => ({ ...prev, purchasePrice: v as number })),
+        marketValue:              (v) => setMarketValue(v as number),
+        propertyType:             (v) => setPropertyType(v as string),
+        bedrooms:                 (v) => setBedrooms(v as number),
+        bathrooms:                (v) => setBathrooms(v as number),
+        tenure:                   (v) => setTenure(v as 'Freehold' | 'Leasehold'),
+        taxRegion:                (v) => setTaxCountry(v as Country),
+        sharedInputs:             (v) => setSharedInputs(v as typeof sharedInputs),
+        btlInputs:                (v) => setBtlInputs(v as typeof btlInputs),
+        hmoInputs:                (v) => setHmoInputs(v as typeof hmoInputs),
+        saInputs:                 (v) => setSaInputs(v as typeof saInputs),
+        flipInputs:               (v) => setFlipInputs(v as typeof flipInputs),
+        brrrInputs:               (v) => setBrrrInputs(v as typeof brrrInputs),
+        r2rInputs:                (v) => setR2rInputs(v as R2RInputs),
+        r2rLandlordDepositMonths: (v) => setR2rLandlordDepositMonths(v as number),
+        socialInputs:             (v) => setSocialInputs(v as typeof socialInputs),
+        leaseLengthYears:         (v) => setLeaseLengthYears(v as number),
+        sourcingFee:              (v) => setSourcingFee(v as number),
+        managementFeePercent:     (v) => setManagementFeePercent(v as number),
+        voidAllowancePercent:     (v) => setVoidAllowancePercent(v as number),
+        maintenanceReserve:       (v) => setMaintenanceReserve(v as number),
+        buildingsInsurance:       (v) => setBuildingsInsurance(v as number),
+        serviceCharge:            (v) => setServiceCharge(v as number),
+        groundRentAnnual:         (v) => setGroundRentAnnual(v as number),
+      }
+
+      deserializeIntoSetters(inputs, setterMap)
+    })
+  }, [searchParams, user])
 
   const handleSharedChange = (field: keyof typeof sharedInputs, value: string) => {
     setSharedInputs(prev => ({ ...prev, [field]: field === 'mortgageType' ? value : (Number(value) || 0) }));

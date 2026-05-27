@@ -24,3 +24,14 @@ export function serializeInputs(state: Record<string, unknown>): SerializedInput
 export function deserializeInputs(inputs: SerializedInputs): Record<string, unknown> {
   return { ...inputs }
 }
+
+export function deserializeIntoSetters(
+  inputs: SerializedInputs,
+  setters: Record<string, (value: unknown) => void>
+) {
+  Object.entries(inputs).forEach(([key, value]) => {
+    if (key in setters && value !== undefined && value !== null) {
+      setters[key](value)
+    }
+  })
+}

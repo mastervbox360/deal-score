@@ -1,0 +1,138 @@
+Read src/components/Home.tsx, src/lib/dealService.ts, and src/lib/inputsSerializer.ts in full before making any changes. Plan all edits explicitly, then execute in parallel.
+
+Task: Stage 9 Step 4C — Load a saved deal into the analyser.
+
+When a user navigates to /app?deal=<dealId>, the analyser should load that deal's inputs from Supabase and populate all the state variables.
+
+Step 1 — Update src/lib/inputsSerializer.ts:
+
+Add a deserializeIntoSetters function that takes a saved inputs object and a map of setter functions, and calls each setter with the correct value:
+
+typescript
+export function deserializeIntoSetters(
+  inputs: SerializedInputs,
+  setters: Record<string, (value: unknown) => void>
+) {
+  Object.entries(inputs).forEach(([key, value]) => {
+    if (key in setters && value !== undefined && value !== null) {
+      setters[key](value)
+    }
+  })
+}
+Step 2 — Update src/components/Home.tsx:
+
+Add the following imports if not already present:
+
+typescript
+import { useSearchParams } from 'react-router-dom'
+import { loadDeal } from '../lib/dealService'
+import { deserializeIntoSetters } from '../lib/inputsSerializer'
+Add this inside the Home component, after all state declarations and after the useDealSync call:
+
+typescript
+const [searchParams] = useSearchParams()
+
+useEffect(() => {
+  const dealId = searchParams.get('deal')
+  if (!dealId || !user) return
+
+  loadDeal(dealId).then((deal) => {
+    if (!deal) return
+    setCurrentDealId(deal.id)
+
+    const inputs = deal.inputs as SerializedInputs
+    if (!inputs) return
+
+    // Set strategy first
+    if (inputs.strategy) setActiveTab(inputs.strategy as string)
+
+    // Map all input keys to their setter functions
+    const setterMap: Record<string, (value: unknown) => void> = {
+      propertyAddress: (v) => setPropertyAddress(v as string),
+      purchasePrice: (v) => setPurchasePrice(v as number),
+      marketValue: (v) => setMarketValue(v as number),
+      propertyType: (v) => setPropertyType(v as string),
+      bedrooms: (v) => setBedrooms(v as number),
+      bathrooms: (v) => setBathrooms(v as number),
+      tenure: (v) => setTenure(v as string),
+      taxRegion: (v) => setTaxRegion(v as string),
+      // BTL
+      monthlyRent: (v) => setMonthlyRent(v as number),
+      mortgageAmount: (v) => setMortgageAmount(v as number),
+      mortgageRate: (v) => setMortgageRate(v as number),
+      mortgageTerm: (v) => setMortgageTerm(v as number),
+      isInterestOnly: (v) => setIsInterestOnly(v as boolean),
+      // HMO
+      numberOfRooms: (v) => setNumberOfRooms(v as number),
+      rentPerRoom: (v) => setRentPerRoom(v as number),
+      hmoMortgageAmount: (v) => setHmoMortgageAmount(v as number),
+      hmoMortgageRate: (v) => setHmoMortgageRate(v as number),
+      hmoMortgageTerm: (v) => setHmoMortgageTerm(v as number),
+      hmoIsInterestOnly: (v) => setHmoIsInterestOnly(v as boolean),
+      hmoLicenceCost: (v) => setHmoLicenceCost(v as number),
+      // SA
+      nightlyRate: (v) => setNightlyRate(v as number),
+      occupancyRate: (v) => setOccupancyRate(v as number),
+      saMortgageAmount: (v) => setSaMortgageAmount(v as number),
+      saMortgageRate: (v) => setSaMortgageRate(v as number),
+      saMortgageTerm: (v) => setSaMortgageTerm(v as number),
+      saIsInterestOnly: (v) => setSaIsInterestOnly(v as boolean),
+      // FLIP
+      expectedSalePrice: (v) => setExpectedSalePrice(v as number),
+      refurbCost: (v) => setRefurbCost(v as number),
+      contingencyPercent: (v) => setContingencyPercent(v as number),
+      projectLengthMonths: (v) => setProjectLengthMonths(v as number),
+      flipFinancingMethod: (v) => setFlipFinancingMethod(v as string),
+      flipBridgingRate: (v) => setFlipBridgingRate(v as number),
+      flipBridgingTerm: (v) => setFlipBridgingTerm(v as number),
+      flipMortgageAmount: (v) => setFlipMortgageAmount(v as number),
+      flipMortgageRate: (v) => setFlipMortgageRate(v as number),
+      flipMortgageTerm: (v) => setFlipMortgageTerm(v as number),
+      flipIsInterestOnly: (v) => setFlipIsInterestOnly(v as boolean),
+      // BRRR
+      postRefurbValue: (v) => setPostRefurbValue(v as number),
+      brrrRefurbCost: (v) => setBrrrRefurbCost(v as number),
+      refinanceLTV: (v) => setRefinanceLTV(v as number),
+      brrrMortgageRate: (v) => setBrrrMortgageRate(v as number),
+      brrrMortgageTerm: (v) => setBrrrMortgageTerm(v as number),
+      brrrIsInterestOnly: (v) => setBrrrIsInterestOnly(v as boolean),
+      brrrMonthlyRent: (v) => setBrrrMonthlyRent(v as number),
+      // R2R
+      monthlyRentPaid: (v) => setMonthlyRentPaid(v as number),
+      grossMonthlyIncome: (v) => setGrossMonthlyIncome(v as number),
+      setupCosts: (v) => setSetupCosts(v as number),
+      landlordDepositMonths: (v) => setLandlordDepositMonths(v as number),
+      managementFeePercent: (v) => setManagementFeePercent(v as number),
+      // SOCIAL
+      socialMonthlyRent: (v) => setSocialMonthlyRent(v as number),
+      socialMortgageAmount: (v) => setSocialMortgageAmount(v as number),
+      socialMortgageRate: (v) => setSocialMortgageRate(v as number),
+      socialMortgageTerm: (v) => setSocialMortgageTerm(v as number),
+      socialIsInterestOnly: (v) => setSocialIsInterestOnly(v as boolean),
+      leaseLengthYears: (v) => setLeaseLengthYears(v as number),
+      // Shared costs
+      refurbCosts: (v) => setRefurbCosts(v as number),
+      stampDuty: (v) => setStampDuty(v as number),
+      otherCosts: (v) => setOtherCosts(v as number),
+      sourcingFee: (v) => setSourcingFee(v as number),
+      monthlyMaintenance: (v) => setMonthlyMaintenance(v as number),
+      monthlyInsurance: (v) => setMonthlyInsurance(v as number),
+      monthlyManagement: (v) => setMonthlyManagement(v as number),
+      monthlyOther: (v) => setMonthlyOther(v as number),
+      voidAllowancePercent: (v) => setVoidAllowancePercent(v as number),
+    }
+
+    deserializeIntoSetters(inputs, setterMap)
+  })
+}, [searchParams, user])
+Also add SerializedInputs to the import from '../lib/inputsSerializer'.
+
+Do not touch:
+
+Any calculation logic
+Any existing UI other than what's specified
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm the app still loads normally at /app with no errors.
+
