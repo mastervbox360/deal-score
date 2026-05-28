@@ -2465,16 +2465,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setBtlPurchaseFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               btlPurchaseFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
@@ -2517,16 +2517,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="btl-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setBtlRefurbFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               btlRefurbFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
@@ -2570,16 +2570,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setHmoPurchaseFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               hmoPurchaseFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
@@ -2622,16 +2622,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="hmo-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setHmoRefurbFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               hmoRefurbFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
@@ -2690,16 +2690,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging', 'mortgage'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setFlipInputs(prev => ({ ...prev, financingMethod: m }))}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               flipInputs.financingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : m === 'bridging' ? 'Bridging Loan' : 'Mortgage'}
@@ -2744,11 +2744,11 @@ export default function HomePage() {
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center gap-1"><Label>Repayment Type</Label><InfoIcon id="flip-mort-type" text="Interest Only keeps monthly payments lower during the project. Repayment reduces the loan balance over time." /></div>
-                          <div className="flex w-full rounded-md overflow-hidden border border-input">
+                          <div className="flex flex-wrap gap-2">
                             {(['IO', 'Repayment'] as const).map((t) => (
                               <button key={t} type="button"
                                 onClick={() => setFlipInputs(prev => ({ ...prev, flipMortgageType: t }))}
-                                className={`flex-1 py-2 text-sm font-medium transition-colors ${flipInputs.flipMortgageType === t ? 'bg-[#1B3A6B] text-white' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${flipInputs.flipMortgageType === t ? 'bg-[#1B3A6B] text-white' : 'bg-white text-muted-foreground border-border hover:bg-slate-50'}`}>
                                 {t === 'IO' ? 'Interest Only' : 'Repayment'}
                               </button>
                             ))}
@@ -2764,16 +2764,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => handleFlipChange('refurbFinancingMethod', m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               flipInputs.refurbFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
@@ -2785,16 +2785,16 @@ export default function HomePage() {
                       <>
                         <div className="col-span-1 md:col-span-2 space-y-2">
                           <div className="flex items-center gap-1"><Label>Use same bridging terms as purchase?</Label><InfoIcon id="flip-same-facility" text="Roll the refurb cost into your existing purchase bridging facility. Interest on the additional amount is added to the loan and repaid on exit — no separate facility needed." /></div>
-                          <div className="flex w-full rounded-md overflow-hidden border border-input">
+                          <div className="flex flex-wrap gap-2">
                             {([true, false] as const).map((v) => (
                               <button
                                 key={String(v)}
                                 type="button"
                                 onClick={() => setFlipInputs(prev => ({ ...prev, refurbSameAsPurchase: v }))}
-                                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                                   flipInputs.refurbSameAsPurchase === v
                                     ? 'bg-[#1B3A6B] text-white'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                    : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                                 }`}
                               >
                                 {v ? 'Yes — same facility' : 'No — separate facility'}
@@ -2857,16 +2857,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setSaPurchaseFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               saPurchaseFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
@@ -2909,16 +2909,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="sa-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setSaRefurbFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               saRefurbFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
@@ -3118,16 +3118,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setSocialPurchaseFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               socialPurchaseFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
@@ -3170,16 +3170,16 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="soc-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                      <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setSocialRefurbFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                               socialRefurbFinancingMethod === m
                                 ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                : 'bg-white text-muted-foreground border-border hover:bg-slate-50'
                             }`}
                           >
                             {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
@@ -6002,18 +6002,18 @@ function TenureSection({
     <>
       <div className="space-y-2 md:col-span-2">
         <div className="flex items-center gap-1"><Label>Tenure</Label><InfoIcon id="ten-tenure" text={TT.tenure} /></div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => onChange('Freehold')}
-            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${tenure === 'Freehold' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${tenure === 'Freehold' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-muted-foreground border-border hover:bg-slate-50'}`}
           >
             Freehold
           </button>
           <button
             type="button"
             onClick={() => onChange('Leasehold')}
-            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${tenure === 'Leasehold' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#1B3A6B]'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${tenure === 'Leasehold' ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-muted-foreground border-border hover:bg-slate-50'}`}
           >
             Leasehold
           </button>
@@ -6213,17 +6213,17 @@ function ResultsModeToggle({ value, onChange }: { value: 'analyse' | 'offer', on
 }
 
 function MortgageTypeToggle({ value, onChange }: { value: 'IO' | 'REPAYMENT', onChange: (v: 'IO' | 'REPAYMENT') => void }) {
-  const baseBtn = 'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors';
-  const active = 'bg-white shadow-sm text-foreground';
-  const inactive = 'text-muted-foreground hover:text-foreground';
+  const pillBase = 'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors';
+  const pillActive = 'bg-[#1B3A6B] text-white border-[#1B3A6B]';
+  const pillInactive = 'bg-white text-muted-foreground border-border hover:bg-slate-50';
   return (
-    <div className="inline-flex w-full p-1 rounded-lg bg-muted border border-border" role="radiogroup" aria-label="Mortgage type">
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Mortgage type">
       <button
         type="button"
         role="radio"
         aria-checked={value === 'IO'}
         onClick={() => onChange('IO')}
-        className={`${baseBtn} ${value === 'IO' ? active : inactive}`}
+        className={`${pillBase} ${value === 'IO' ? pillActive : pillInactive}`}
         data-testid="toggle-mortgage-io"
       >
         Interest Only
@@ -6233,7 +6233,7 @@ function MortgageTypeToggle({ value, onChange }: { value: 'IO' | 'REPAYMENT', on
         role="radio"
         aria-checked={value === 'REPAYMENT'}
         onClick={() => onChange('REPAYMENT')}
-        className={`${baseBtn} ${value === 'REPAYMENT' ? active : inactive}`}
+        className={`${pillBase} ${value === 'REPAYMENT' ? pillActive : pillInactive}`}
         data-testid="toggle-mortgage-repayment"
       >
         Repayment
