@@ -1,0 +1,51 @@
+Read src/pages/DashboardPage.tsx, src/pages/ProfilePage.tsx, src/lib/AuthContext.tsx, and src/App.tsx in full before making any changes. Plan all edits explicitly, then execute in parallel.
+Task: Build persistent navigation header across all authenticated pages.
+Step 1 — Create src/components/AppHeader.tsx:
+Build the confirmed Layout 12 header. Requirements:
+
+Full-width navy (#1B3A6B) background
+Left: DealScore logo/wordmark — click navigates to /dashboard
+Centre-right: [Deal advert] button (outline, white border) — placeholder, navigates to /dashboard for now
+Centre-right: [+ New deal] button (filled green #00C896, navy text) — navigates to /app
+Far right: Avatar circle with user initials — click opens dropdown menu
+Dropdown menu contains:
+
+User name + email (display only)
+Tier badge (Free=grey, Pro=blue, Pro Plus=amber)
+Divider
+Profile settings → /profile
+Billing → /profile (same page for now)
+Refer a colleague → placeholder alert for now
+Divider
+Sign out → calls signOut() from AuthContext, navigates to /login
+
+
+Dropdown closes when clicking outside
+No external UI libraries — inline styles only, matching DealScore navy/white brand
+Fully typed TypeScript
+
+Step 2 — Add AppHeader to all protected pages:
+Add <AppHeader /> as the first element inside the return of:
+
+src/pages/DashboardPage.tsx
+src/pages/ProfilePage.tsx
+src/pages/DealPage.tsx
+src/pages/NewDealPage.tsx
+src/pages/InvestorsPage.tsx
+
+Remove any existing nav/header elements from these pages that duplicate the header (DashboardPage currently has its own DealScore logo and + New deal button in the header area — remove those and use AppHeader instead).
+Step 3 — Do NOT add AppHeader to:
+
+/app (Home.tsx) — the analyser stays headerless for now
+/login — auth page stays clean
+
+Step 4 — Update src/App.tsx:
+No changes needed to routing — AppHeader is added at page level not route level.
+Do not touch:
+
+Home.tsx
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm the header renders on /dashboard and /profile with correct user initials, tier badge, and working sign out.

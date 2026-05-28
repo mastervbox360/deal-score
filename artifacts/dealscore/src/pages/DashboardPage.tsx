@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { listDeals, deleteDeal } from '../lib/dealService'
 import { Deal, DealStatus } from '../lib/database.types'
+import AppHeader from '../components/AppHeader'
 
 const NAVY = '#1B3A6B'
 
@@ -79,18 +80,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Top nav bar */}
-      <header style={{ backgroundColor: NAVY, padding: '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: '#fff', fontWeight: 700, fontSize: '18px', letterSpacing: '-0.3px' }}>
-          Deal<span style={{ color: '#60a5fa' }}>Score</span>
-        </span>
-        <button
-          onClick={() => navigate('/app')}
-          style={{ backgroundColor: '#fff', color: NAVY, border: 'none', borderRadius: '6px', padding: '7px 16px', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
-        >
-          + New deal
-        </button>
-      </header>
+      <AppHeader />
 
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
         {/* Page header */}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { startCheckout } from '../lib/checkoutService'
 import { UserTier } from '../lib/database.types'
+import AppHeader from '../components/AppHeader'
 
 const NAVY = '#1B3A6B'
 
@@ -44,8 +44,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 export default function ProfilePage() {
-  const { user, profile, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { user, profile } = useAuth()
 
   const [fullName, setFullName]       = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -103,22 +102,7 @@ export default function ProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, sans-serif' }}>
-
-      {/* Nav */}
-      <header style={{ backgroundColor: NAVY, padding: '0 32px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span
-          onClick={() => navigate('/dashboard')}
-          style={{ color: '#fff', fontWeight: 700, fontSize: '18px', letterSpacing: '-0.3px', cursor: 'pointer' }}
-        >
-          Deal<span style={{ color: '#60a5fa' }}>Score</span>
-        </span>
-        <button
-          onClick={() => { signOut().then(() => navigate('/login')) }}
-          style={{ background: 'none', color: '#93c5fd', border: 'none', fontSize: '14px', cursor: 'pointer', fontWeight: 500 }}
-        >
-          Sign out
-        </button>
-      </header>
+      <AppHeader />
 
       <main style={{ maxWidth: '640px', margin: '0 auto', padding: '40px 24px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginTop: 0, marginBottom: '28px' }}>My Profile</h1>
