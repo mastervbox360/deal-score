@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { listDeals, deleteDeal } from '../lib/dealService'
 import { Deal, DealStatus } from '../lib/database.types'
@@ -33,6 +33,12 @@ const STATUS_COLOURS: Record<DealStatus, { bg: string; text: string }> = {
   dead:       { bg: '#fee2e2', text: '#991b1b' },
 }
 
+const DEAL_SCORE_STYLE: Record<'RECOMMENDED' | 'REVIEW' | 'AVOID', { bg: string; text: string; border: string }> = {
+  RECOMMENDED: { bg: '#d1fae5', text: '#065f46', border: '#10B981' },
+  REVIEW:      { bg: '#fef3c7', text: '#92400e', border: '#F59E0B' },
+  AVOID:       { bg: '#fee2e2', text: '#991b1b', border: '#EF4444' },
+}
+
 function formatPrice(value: number | null): string {
   if (value === null) return '—'
   return '£' + value.toLocaleString('en-GB')
@@ -49,6 +55,7 @@ function formatDate(iso: string): string {
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
@@ -63,7 +70,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDeals()
-  }, [fetchDeals])
+  }, [fetchDeals, location])
 
   async function handleDelete(id: string) {
     setDeleting(prev => new Set(prev).add(id))
@@ -121,6 +128,7 @@ export default function DashboardPage() {
               const statusStyle = STATUS_COLOURS[deal.status] ?? STATUS_COLOURS.analysing
               const strategyColour = STRATEGY_COLOURS[deal.strategy] ?? NAVY
               const isDeleting = deleting.has(deal.id)
+              const scoreStyle = deal.deal_score ? DEAL_SCORE_STYLE[deal.deal_score] : null
 
               return (
                 <div
@@ -128,6 +136,7 @@ export default function DashboardPage() {
                   style={{
                     backgroundColor: '#fff',
                     border: '1px solid #e5e7eb',
+                    borderTop: scoreStyle ? `3px solid ${scoreStyle.border}` : '3px solid #d1d5db',
                     borderRadius: '10px',
                     padding: '20px',
                     display: 'flex',
@@ -137,7 +146,7 @@ export default function DashboardPage() {
                     transition: 'opacity 0.2s',
                   }}
                 >
-                  {/* Top row: strategy badge + status pill */}
+                  {/* Top row: strategy badge + score badge (or status pill if no score yet) */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{
                       backgroundColor: strategyColour,
@@ -150,16 +159,30 @@ export default function DashboardPage() {
                     }}>
                       {deal.strategy}
                     </span>
-                    <span style={{
-                      backgroundColor: statusStyle.bg,
-                      color: statusStyle.text,
-                      borderRadius: '20px',
-                      padding: '3px 10px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                    }}>
-                      {STATUS_LABELS[deal.status]}
-                    </span>
+                    {scoreStyle ? (
+                      <span style={{
+                        backgroundColor: scoreStyle.bg,
+                        color: scoreStyle.text,
+                        borderRadius: '20px',
+                        padding: '3px 10px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        letterSpacing: '0.3px',
+                      }}>
+                        {deal.deal_score}
+                      </span>
+                    ) : (
+                      <span style={{
+                        backgroundColor: statusStyle.bg,
+                        color: statusStyle.text,
+                        borderRadius: '20px',
+                        padding: '3px 10px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                      }}>
+                        {STATUS_LABELS[deal.status]}
+                      </span>
+                    )}
                   </div>
 
                   {/* Address */}
