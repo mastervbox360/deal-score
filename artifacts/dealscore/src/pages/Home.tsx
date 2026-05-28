@@ -248,6 +248,8 @@ export default function HomePage() {
   const [saRefurbBridgingRate, setSaRefurbBridgingRate] = useState(0);
   const [saRefurbBridgingTermMonths, setSaRefurbBridgingTermMonths] = useState(0);
   const [saRefurbBridgingLTV, setSaRefurbBridgingLTV] = useState(70);
+  const [hmoPurchaseFinancingMethod, setHmoPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
+  const [saPurchaseFinancingMethod, setSaPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
   const [whyScoreOpen, setWhyScoreOpen] = useState<boolean>(false);
   const [showAnnual, setShowAnnual] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
@@ -831,6 +833,7 @@ export default function HomePage() {
       setHmoRefurbBridgingRate(0);
       setHmoRefurbBridgingTermMonths(0);
       setHmoRefurbBridgingLTV(70);
+      setHmoPurchaseFinancingMethod('mortgage');
     } else if (dealType === 'FLIP') {
       setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, contingencyPercent: 10, financingMethod: 'cash', flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO', refurbFinancingMethod: 'cash', refurbSameAsPurchase: true, refurbBridgingRate: 0, refurbBridgingTermMonths: 0, refurbBridgingLTV: 70 });
     } else if (dealType === 'SA') {
@@ -839,6 +842,7 @@ export default function HomePage() {
       setSaRefurbBridgingRate(0);
       setSaRefurbBridgingTermMonths(0);
       setSaRefurbBridgingLTV(70);
+      setSaPurchaseFinancingMethod('mortgage');
     } else if (dealType === 'BRRR') {
       setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
     } else if (dealType === 'R2R') {
@@ -887,7 +891,7 @@ export default function HomePage() {
   const hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
     ? refurbCost * (hmoRefurbBridgingLTV / 100) * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
     : 0;
-  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost + hmoRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
+  const hmoResults = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost + hmoRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, refurbFinancingMethod, refurbSameAsPurchase, refurbBridgingRate, refurbBridgingTermMonths, refurbBridgingLTV } = flipInputs;
   const purchaseFinancingCost = (() => {
     if (financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
@@ -930,7 +934,7 @@ export default function HomePage() {
   const saRefurbBridgingCost = saRefurbFinancingMethod === 'bridging' && saRefurbBridgingRate > 0 && saRefurbBridgingTermMonths > 0
     ? refurbCost * (saRefurbBridgingLTV / 100) * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
     : 0;
-  const saResults = calculateSA({ ...sharedInputs, ...saInputs, otherCosts: sharedInputs.otherCosts + saRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
+  const saResults = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...saInputs, otherCosts: sharedInputs.otherCosts + saRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
   const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
     ? (purchasePrice * (brrBridgingLTV / 100)) * (brrBridgingRate / 100) * brrBridgingTerm
@@ -1180,11 +1184,11 @@ export default function HomePage() {
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'HMO') {
-      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : { mortgageRate: sharedInputs.mortgageRate + 1.5 }), ...hmoInputs, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SA') {
-      const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : { mortgageRate: sharedInputs.mortgageRate + 1.5 }), ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
@@ -1294,8 +1298,8 @@ export default function HomePage() {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(hmoInputs.rooms > 0)) missing.push('Number of Rooms');
       if (!(hmoInputs.rentPerRoom > 0)) missing.push('Rent Per Room');
-      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
-      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+      if (hmoPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (hmoPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
     } else if (dealType === 'FLIP') {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(flipInputs.expectedSalePrice > 0)) missing.push('Expected Sale Price');
@@ -1316,8 +1320,8 @@ export default function HomePage() {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(saInputs.nightlyRate > 0)) missing.push('Nightly Rate');
       if (!(saInputs.occupancyPercent > 0)) missing.push('Occupancy %');
-      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
-      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+      if (saPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (saPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
     } else if (dealType === 'BRRR') {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(brrrInputs.postRefurbValue > 0)) missing.push('Post-Refurb Value');
@@ -1336,7 +1340,7 @@ export default function HomePage() {
       if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
     }
     return missing;
-  }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice]);
+  }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice, hmoPurchaseFinancingMethod, saPurchaseFinancingMethod]);
 
   const currentYieldLabel: string =
     dealType === 'FLIP' ? 'Net Margin' :
@@ -2273,7 +2277,7 @@ export default function HomePage() {
                       </div>
                     </>
                   )}
-                  {(['BTL', 'HMO', 'SA', 'SOCIAL'] as const).includes(dealType as 'BTL' | 'HMO' | 'SA' | 'SOCIAL') && (
+                  {(dealType === 'BTL' || dealType === 'SOCIAL') && (
                     <>
                       <div className="md:col-span-2 space-y-3 pt-1">
                         <div className="flex items-center gap-2">
@@ -2475,6 +2479,77 @@ export default function HomePage() {
                           <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="hmo-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
                           <Input type="number" step="1" value={hmoRefurbBridgingLTV} onChange={(e) => setHmoRefurbBridgingLTV(Number(e.target.value) || 70)} />
                         </div>
+                      </>
+                    )}
+                    {/* Uninhabitable */}
+                    <div className="col-span-1 md:col-span-2 space-y-3 pt-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="uninhabitable-hmo"
+                          checked={isUninhabitable}
+                          onChange={(e) => setIsUninhabitable(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+                        />
+                        <label htmlFor="uninhabitable-hmo" className="text-sm font-medium text-slate-700 cursor-pointer">
+                          Uninhabitable property
+                        </label>
+                      </div>
+                      {isUninhabitable && (
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
+                          Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
+                        </p>
+                      )}
+                    </div>
+                    {/* Purchase Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setHmoPurchaseFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              hmoPurchaseFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash' : 'Mortgage'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {hmoPurchaseFinancingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
+                      </div>
+                    )}
+                    {hmoPurchaseFinancingMethod === 'mortgage' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="hmo-mort-dep" text={TT.deposit} /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="hmo-mort-rate" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                        {sharedInputs.mortgageType === 'REPAYMENT' && (
+                          <div className="space-y-2">
+                            <Label>Mortgage Term (years)</Label>
+                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                          </div>
+                        )}
                       </>
                     )}
                     <div className="md:col-span-2 pt-2">
@@ -2715,6 +2790,77 @@ export default function HomePage() {
                           <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="sa-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
                           <Input type="number" step="1" value={saRefurbBridgingLTV} onChange={(e) => setSaRefurbBridgingLTV(Number(e.target.value) || 70)} />
                         </div>
+                      </>
+                    )}
+                    {/* Uninhabitable */}
+                    <div className="col-span-1 md:col-span-2 space-y-3 pt-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="uninhabitable-sa"
+                          checked={isUninhabitable}
+                          onChange={(e) => setIsUninhabitable(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+                        />
+                        <label htmlFor="uninhabitable-sa" className="text-sm font-medium text-slate-700 cursor-pointer">
+                          Uninhabitable property
+                        </label>
+                      </div>
+                      {isUninhabitable && (
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
+                          Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
+                        </p>
+                      )}
+                    </div>
+                    {/* Purchase Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSaPurchaseFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              saPurchaseFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash' : 'Mortgage'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {saPurchaseFinancingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
+                      </div>
+                    )}
+                    {saPurchaseFinancingMethod === 'mortgage' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="sa-mort-dep" text={TT.deposit} /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="sa-mort-rate" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                        {sharedInputs.mortgageType === 'REPAYMENT' && (
+                          <div className="space-y-2">
+                            <Label>Mortgage Term (years)</Label>
+                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                          </div>
+                        )}
                       </>
                     )}
                     <div className="col-span-1 md:col-span-2 pt-2">
