@@ -1,0 +1,44 @@
+Read artifacts/dealscore/src/lib/calculations.ts in full.
+Make these two targeted changes:
+1. Update the FlipInputs interface (around line 87) — add these 5 fields:
+tsfinancingMethod: 'cash' | 'bridging' | 'mortgage';
+contingencyPercent: number;
+bridgingRate: number;        // % per month
+bridgingTerm: number;        // months
+bridgingLTV: number;         // %
+2. Rewrite calculateFlip (around line 372) — replace the entire function with this:
+tsexport function calculateFlip(inputs: FlipInputs) {
+  const refurbWithContingency = inputs.refurbCost * (1 + inputs.contingencyPercent / 100);
+
+  let financingCost = 0;
+  if (inputs.financingMethod === 'bridging') {
+    financingCost = (inputs.purchasePrice * inputs.bridgingLTV / 100) * (inputs.bridgingRate / 100) * inputs.bridgingTerm;
+  } else if (inputs.financingMethod === 'mortgage') {
+    const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
+    const mortgageAmount = inputs.purchasePrice - deposit;
+    const monthlyPayment = calculateMonthlyMortgagePayment(mortgageAmount, inputs.mortgageRate, inputs.mortgageTerm, inputs.mortgageType);
+    financingCost = monthlyPayment * inputs.projectLengthMonths;
+  }
+
+  const totalCost = inputs.purchasePrice + inputs.stampDuty + refurbWithContingency + inputs.otherCosts + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths) + financingCost;
+  const sellingCosts = inputs.expectedSalePrice * (inputs.sellingCostsPercent / 100);
+  const netProfit = inputs.expectedSalePrice - totalCost - sellingCosts;
+
+  const roi = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+  const annualisedROI = inputs.projectLengthMonths > 0 ? roi * (12 / inputs.projectLengthMonths) : 0;
+  const profitPerMonth = inputs.projectLengthMonths > 0 ? netProfit / inputs.projectLengthMonths : 0;
+
+  let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
+  if (!inputs.purchasePrice || !inputs.expectedSalePrice) {
+    score = 'Incomplete';
+  } else if (roi >= 12 && netProfit >= 18000) {
+    score = 'Strong';
+  } else if (roi >= 8) {
+    score = 'Average';
+  }
+
+  const profitOnCost = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+
+  return { totalCost, sellingCosts, netProfit, roi, annualisedROI, profitPerMonth, profitOnCost, score, financingCost, refurbWithContingency };
+}
+Do not touch any other function or interface. After editing, confirm: (1) the 5 new fields added to FlipInputs, (2) that calculateFlip now branches on financingMethod, (3) zero TypeScript errors on npx tsc --noEmit.

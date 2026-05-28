@@ -89,6 +89,15 @@ export interface FlipInputs extends BaseInputs {
   projectLengthMonths: number;
   expectedSalePrice: number;
   sellingCostsPercent: number;
+  financingMethod?: 'cash' | 'bridging' | 'mortgage';
+  contingencyPercent?: number;
+  bridgingRate?: number;
+  bridgingTerm?: number;
+  bridgingLTV?: number;
+  depositPercent?: number;
+  mortgageRate?: number;
+  mortgageTerm?: number;
+  mortgageType?: MortgageType;
 }
 
 export type Country = 'ENGLAND' | 'WALES' | 'SCOTLAND';
@@ -370,7 +379,29 @@ export function calculateHMO(inputs: HMOInputs) {
 }
 
 export function calculateFlip(inputs: FlipInputs) {
-  const totalCost = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths);
+  const financingMethod = inputs.financingMethod ?? 'cash';
+  const contingencyPercent = inputs.contingencyPercent ?? 0;
+  const bridgingRate = inputs.bridgingRate ?? 0;
+  const bridgingTerm = inputs.bridgingTerm ?? 0;
+  const bridgingLTV = inputs.bridgingLTV ?? 0;
+  const depositPercent = inputs.depositPercent ?? 0;
+  const mortgageRate = inputs.mortgageRate ?? 0;
+  const mortgageTerm = inputs.mortgageTerm ?? 25;
+  const mortgageType: MortgageType = inputs.mortgageType ?? 'REPAYMENT';
+
+  const refurbWithContingency = inputs.refurbCost * (1 + contingencyPercent / 100);
+
+  let financingCost = 0;
+  if (financingMethod === 'bridging') {
+    financingCost = (inputs.purchasePrice * bridgingLTV / 100) * (bridgingRate / 100) * bridgingTerm;
+  } else if (financingMethod === 'mortgage') {
+    const deposit = inputs.purchasePrice * (depositPercent / 100);
+    const mortgageAmount = inputs.purchasePrice - deposit;
+    const monthlyPayment = calculateMonthlyMortgagePayment(mortgageAmount, mortgageRate, mortgageTerm, mortgageType);
+    financingCost = monthlyPayment * inputs.projectLengthMonths;
+  }
+
+  const totalCost = inputs.purchasePrice + inputs.stampDuty + refurbWithContingency + inputs.otherCosts + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths) + financingCost;
   const sellingCosts = inputs.expectedSalePrice * (inputs.sellingCostsPercent / 100);
   const netProfit = inputs.expectedSalePrice - totalCost - sellingCosts;
 
@@ -389,16 +420,7 @@ export function calculateFlip(inputs: FlipInputs) {
 
   const profitOnCost = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
 
-  return {
-    totalCost,
-    sellingCosts,
-    netProfit,
-    roi,
-    annualisedROI,
-    profitPerMonth,
-    profitOnCost,
-    score
-  };
+  return { totalCost, sellingCosts, netProfit, roi, annualisedROI, profitPerMonth, profitOnCost, score, financingCost, refurbWithContingency };
 }
 
 export function calculateSA(inputs: SAInputs) {
