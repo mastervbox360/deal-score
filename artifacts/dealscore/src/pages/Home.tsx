@@ -2509,7 +2509,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="hmo-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="hmo-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
                       <div className="flex w-full rounded-md overflow-hidden border border-input">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2522,7 +2522,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
                           </button>
                         ))}
                       </div>
@@ -2651,7 +2651,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
                       <div className="flex w-full rounded-md overflow-hidden border border-input">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2664,7 +2664,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
                           </button>
                         ))}
                       </div>
@@ -2672,7 +2672,7 @@ export default function HomePage() {
                     {flipInputs.financingMethod === 'bridging' && flipInputs.refurbFinancingMethod === 'bridging' && (
                       <>
                         <div className="col-span-1 md:col-span-2 space-y-2">
-                          <Label>Use same bridging terms as purchase?</Label>
+                          <div className="flex items-center gap-1"><Label>Use same bridging terms as purchase?</Label><InfoIcon id="flip-same-facility" text="Roll the refurb cost into your existing purchase bridging facility. Interest on the additional amount is added to the loan and repaid on exit — no separate facility needed." /></div>
                           <div className="flex w-full rounded-md overflow-hidden border border-input">
                             {([true, false] as const).map((v) => (
                               <button
@@ -2796,7 +2796,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="sa-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="sa-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
                       <div className="flex w-full rounded-md overflow-hidden border border-input">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2809,7 +2809,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
                           </button>
                         ))}
                       </div>
