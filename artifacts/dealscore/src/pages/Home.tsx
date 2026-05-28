@@ -252,6 +252,18 @@ export default function HomePage() {
   const [saRefurbBridgingLTV, setSaRefurbBridgingLTV] = useState(70);
   const [hmoPurchaseFinancingMethod, setHmoPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
   const [saPurchaseFinancingMethod, setSaPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
+  const [btlPurchaseFinancingMethod, setBtlPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
+  const [btlRefurbFinancingMethod, setBtlRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
+  const [btlRefurbBridgingRate, setBtlRefurbBridgingRate] = useState(0);
+  const [btlRefurbBridgingTermMonths, setBtlRefurbBridgingTermMonths] = useState(0);
+  const [btlRefurbBridgingLTV, setBtlRefurbBridgingLTV] = useState(70);
+  const [btlFinancingDetailOpen, setBtlFinancingDetailOpen] = useState<boolean>(false);
+  const [socialPurchaseFinancingMethod, setSocialPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
+  const [socialRefurbFinancingMethod, setSocialRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
+  const [socialRefurbBridgingRate, setSocialRefurbBridgingRate] = useState(0);
+  const [socialRefurbBridgingTermMonths, setSocialRefurbBridgingTermMonths] = useState(0);
+  const [socialRefurbBridgingLTV, setSocialRefurbBridgingLTV] = useState(70);
+  const [socialFinancingDetailOpen, setSocialFinancingDetailOpen] = useState<boolean>(false);
   const [whyScoreOpen, setWhyScoreOpen] = useState<boolean>(false);
   const [showAnnual, setShowAnnual] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
@@ -290,8 +302,12 @@ export default function HomePage() {
   useEffect(() => {
     if (isUninhabitable) {
       setIsCashBuyer(true);
+      setBtlPurchaseFinancingMethod('cash');
+      setSocialPurchaseFinancingMethod('cash');
     } else {
       setIsCashBuyer(false);
+      setBtlPurchaseFinancingMethod('mortgage');
+      setSocialPurchaseFinancingMethod('mortgage');
     }
   }, [isUninhabitable]);
 
@@ -829,6 +845,12 @@ export default function HomePage() {
     setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0 });
+      setBtlPurchaseFinancingMethod('mortgage');
+      setBtlRefurbFinancingMethod('cash');
+      setBtlRefurbBridgingRate(0);
+      setBtlRefurbBridgingTermMonths(0);
+      setBtlRefurbBridgingLTV(70);
+      setBtlFinancingDetailOpen(false);
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
       setHmoRefurbFinancingMethod('cash');
@@ -851,6 +873,12 @@ export default function HomePage() {
       setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
     } else {
       setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
+      setSocialPurchaseFinancingMethod('mortgage');
+      setSocialRefurbFinancingMethod('cash');
+      setSocialRefurbBridgingRate(0);
+      setSocialRefurbBridgingTermMonths(0);
+      setSocialRefurbBridgingLTV(70);
+      setSocialFinancingDetailOpen(false);
     }
     setManagementFeePercent(10);
     setVoidAllowancePercent(5);
@@ -878,6 +906,8 @@ export default function HomePage() {
     setHmoFinancingDetailOpen(false);
     setFlipFinancingDetailOpen(false);
     setSaFinancingDetailOpen(false);
+    setBtlFinancingDetailOpen(false);
+    setSocialFinancingDetailOpen(false);
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
@@ -891,7 +921,10 @@ export default function HomePage() {
 
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
-  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const btlRefurbBridgingCost = btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingRate > 0 && btlRefurbBridgingTermMonths > 0
+    ? refurbCost * (btlRefurbBridgingLTV / 100) * (btlRefurbBridgingRate / 100) * btlRefurbBridgingTermMonths
+    : 0;
+  const btlResults = calculateBTL({ ...sharedInputs, ...(btlPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...btlInputs, otherCosts: sharedInputs.otherCosts + btlRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
   const hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
     ? refurbCost * (hmoRefurbBridgingLTV / 100) * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
@@ -946,7 +979,10 @@ export default function HomePage() {
     : 0;
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrBridgingInterest, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs });
   const r2rResults = calculateR2R(r2rInputs);
-  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const socialRefurbBridgingCost = socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingRate > 0 && socialRefurbBridgingTermMonths > 0
+    ? refurbCost * (socialRefurbBridgingLTV / 100) * (socialRefurbBridgingRate / 100) * socialRefurbBridgingTermMonths
+    : 0;
+  const socialResults = calculateSocialHousing({ ...sharedInputs, ...(socialPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...socialInputs, otherCosts: sharedInputs.otherCosts + socialRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
 
   const optimalOffer = React.useMemo(() => {
     if (resultsMode[dealType] !== 'offer') return null;
@@ -1297,8 +1333,8 @@ export default function HomePage() {
     if (dealType === 'BTL') {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(btlInputs.monthlyRent > 0)) missing.push('Monthly Rent');
-      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
-      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+      if (btlPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (btlPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
     } else if (dealType === 'HMO') {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(hmoInputs.rooms > 0)) missing.push('Number of Rooms');
@@ -1341,11 +1377,11 @@ export default function HomePage() {
     } else {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(socialInputs.leaseIncomePerMonth > 0)) missing.push('Lease Income');
-      if (!isCashBuyer && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
-      if (!isCashBuyer && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+      if (socialPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (socialPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
     }
     return missing;
-  }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice, hmoPurchaseFinancingMethod, saPurchaseFinancingMethod]);
+  }, [dealType, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, isCashBuyer, purchasePrice, hmoPurchaseFinancingMethod, saPurchaseFinancingMethod, btlPurchaseFinancingMethod, socialPurchaseFinancingMethod]);
 
   const currentYieldLabel: string =
     dealType === 'FLIP' ? 'Net Margin' :
@@ -2395,54 +2431,108 @@ export default function HomePage() {
                       </div>
                     </>
                   )}
-                  {(dealType === 'BTL' || dealType === 'SOCIAL') && (
-                    <>
-                      <div className="md:col-span-2 space-y-3 pt-1">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id="cash-buyer"
-                            checked={isCashBuyer}
-                            onChange={(e) => { if (!isUninhabitable) setIsCashBuyer(e.target.checked); }}
-                            disabled={isUninhabitable}
-                            className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer disabled:cursor-not-allowed"
-                          />
-                          <label htmlFor="cash-buyer" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
-                            Cash purchase (no mortgage)
-                            <InfoIcon id="cash-buyer-info" text="Cash purchases use the full purchase price as capital deployed. ROI is calculated on total cash invested including purchase price, tax, and all costs." />
-                          </label>
-                        </div>
-                      </div>
-                      {!isCashBuyer && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="shared-dep" text={TT.deposit} /></div>
-                          <Input type="number" value={sharedInputs.depositPercent} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
-                        </div>
-                      )}
-                      {!isCashBuyer && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="shared-mr" text={TT.mortgageRate} /></div>
-                          <Input type="number" step="0.1" placeholder="Enter mortgage rate" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
-                          <MortgageTypeToggle
-                            value={sharedInputs.mortgageType}
-                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
-                          />
-                        </div>
-                      )}
-                      {!isCashBuyer && sharedInputs.mortgageType === 'REPAYMENT' && (
-                        <div className="space-y-2">
-                          <Label>Mortgage Term (years)</Label>
-                          <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
-                        </div>
-                      )}
-                    </>
-                  )}
 
                 </div>
 
                 {/* Tab-specific inputs */}
                 {dealType === 'BTL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    {/* Purchase Financing */}
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setBtlPurchaseFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              btlPurchaseFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {btlPurchaseFinancingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
+                      </div>
+                    )}
+                    {btlPurchaseFinancingMethod === 'mortgage' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="btl-mort-dep" text={TT.deposit} /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="btl-mort-rate" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Term (years)</Label><InfoIcon id="btl-mort-term" text="Length of mortgage in years." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.mortgageTerm || ''} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Repayment Type</Label><InfoIcon id="btl-mort-type" text="Interest Only keeps monthly payments lower. Repayment reduces the loan balance over time." /></div>
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="btl-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'bridging'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setBtlRefurbFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              btlRefurbFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {btlRefurbFinancingMethod === 'bridging' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Rate (% per month)</Label><InfoIcon id="btl-ref-bridge-rate" text="Monthly rate for the refurb bridging facility. Typical UK rates: 0.5–1.5%/month." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 0.9" value={btlRefurbBridgingRate || ''} onChange={(e) => setBtlRefurbBridgingRate(Number(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Term (months)</Label><InfoIcon id="btl-ref-bridge-term" text="How long the refurb bridging facility runs. Typically matches your construction programme." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 6" value={btlRefurbBridgingTermMonths || ''} onChange={(e) => setBtlRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="btl-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
+                          <Input type="number" step="1" value={btlRefurbBridgingLTV} onChange={(e) => setBtlRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                        </div>
+                      </>
+                    )}
+                    {/* Rental Income */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rental Income</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Monthly Rental Income (£)</Label><InfoIcon id="btl-rent" text={TT.monthlyRent} /></div>
                       <Input type="number" placeholder="Enter monthly rent" value={btlInputs.monthlyRent || ''} onChange={(e) => handleBtlChange('monthlyRent', e.target.value)} />
@@ -2851,6 +2941,9 @@ export default function HomePage() {
 
                 {dealType === 'BRRR' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
                     <div className="md:col-span-2">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Phase 1 — Bridging Finance</p>
                     </div>
@@ -2866,7 +2959,13 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Bridging LTV (%)</Label><InfoIcon id="brrr-bridge-ltv" text="The loan-to-value your bridging lender will advance against the purchase price. Typically 65–75% for standard residential bridging. The remaining percentage is your cash deposit for phase 1." /></div>
                       <Input type="number" step="1" value={brrrInputs.bridgingLTV} onChange={(e) => handleBrrrChange('bridgingLTV', e.target.value)} />
                     </div>
-                    <div className="md:col-span-2 pt-2">
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
+                      <p className="text-xs text-muted-foreground">Full refurb bridging rebuild coming in a future update.</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Phase 2 — Refinance &amp; Rental</p>
                     </div>
                     <div className="space-y-2">
@@ -2890,6 +2989,9 @@ export default function HomePage() {
 
                 {dealType === 'R2R' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Rental Agreement</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Monthly Rent to Landlord (£)</Label><InfoIcon id="r2r-rtl" text={TT.rentToLandlord} /></div>
                       <Input type="number" placeholder="Enter rent paid to landlord" value={r2rInputs.monthlyRentPaid || ''} onChange={(e) => handleR2rChange('monthlyRentPaid', e.target.value)} />
@@ -2914,6 +3016,10 @@ export default function HomePage() {
                       />
                       <p className="text-[10px] text-muted-foreground mt-1">Months of rent held as deposit by the landlord</p>
                     </div>
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Room Income</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Number of Rooms</Label><InfoIcon id="r2r-rooms" text={TT.numRooms} /></div>
                       <Input type="number" placeholder="Enter number of rooms" value={r2rInputs.rooms || ''} onChange={(e) => handleR2rChange('rooms', e.target.value)} />
@@ -2925,6 +3031,10 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="r2r-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={r2rInputs.occupancyRate} onChange={(e) => handleR2rChange('occupancyRate', e.target.value)} />
+                    </div>
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Costs</p>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Platform / Management Fees (%)</Label><InfoIcon id="r2r-mgmt" text={TT.mgmtFees} /></div>
@@ -2939,6 +3049,102 @@ export default function HomePage() {
 
                 {dealType === 'SOCIAL' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    {/* Purchase Financing */}
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSocialPurchaseFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              socialPurchaseFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {socialPurchaseFinancingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
+                      </div>
+                    )}
+                    {socialPurchaseFinancingMethod === 'mortgage' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="soc-mort-dep" text={TT.deposit} /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="soc-mort-rate" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Term (years)</Label><InfoIcon id="soc-mort-term" text="Length of mortgage in years." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.mortgageTerm || ''} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Repayment Type</Label><InfoIcon id="soc-mort-type" text="Interest Only keeps monthly payments lower. Repayment reduces the loan balance over time." /></div>
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="soc-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'bridging'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSocialRefurbFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              socialRefurbFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging Loan'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {socialRefurbFinancingMethod === 'bridging' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Rate (% per month)</Label><InfoIcon id="soc-ref-bridge-rate" text="Monthly rate for the refurb bridging facility. Typical UK rates: 0.5–1.5%/month." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 0.9" value={socialRefurbBridgingRate || ''} onChange={(e) => setSocialRefurbBridgingRate(Number(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Term (months)</Label><InfoIcon id="soc-ref-bridge-term" text="How long the refurb bridging facility runs. Typically matches your construction programme." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 6" value={socialRefurbBridgingTermMonths || ''} onChange={(e) => setSocialRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="soc-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
+                          <Input type="number" step="1" value={socialRefurbBridgingLTV} onChange={(e) => setSocialRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                        </div>
+                      </>
+                    )}
+                    {/* Lease Income */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lease Income</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Guaranteed Lease Income / month (£)</Label><InfoIcon id="soc-lease" text={TT.leaseIncome} /></div>
                       <Input type="number" placeholder="Enter monthly lease income" value={socialInputs.leaseIncomePerMonth || ''} onChange={(e) => handleSocialChange('leaseIncomePerMonth', e.target.value)} />
@@ -3732,6 +3938,47 @@ export default function HomePage() {
                         <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(btlResults.monthlyMortgageInterest + btlResults.totalOperatingCosts)}/mo</span>
                       </div>
                     </div>
+                    {btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingCost > 0 && (
+                      <div className="mt-3 p-3 rounded-md border border-amber-300" style={{ backgroundColor: '#FEF3C7' }}>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#92400E' }}>Refurb Financing Summary</p>
+                        <div className="flex items-center justify-between py-1">
+                          <span className="text-xs text-amber-800">Method</span>
+                          <span className="text-xs font-medium text-amber-900">Bridging Loan</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 mt-1 pt-2 border-t border-amber-300">
+                          <span className="text-xs font-semibold text-amber-900">Refurb Finance Cost</span>
+                          <span className="text-xs font-bold text-amber-900">{formatCurrency(btlRefurbBridgingCost)}</span>
+                        </div>
+                        {btlResults.totalCashInvested > 0 && (
+                          <p className="text-xs text-amber-700 mt-1">{Math.round((btlRefurbBridgingCost / btlResults.totalCashInvested) * 100)}% of total cash invested</p>
+                        )}
+                      </div>
+                    )}
+                    {btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingCost > 0 && (
+                      <div className="mt-4">
+                        <div className="border-t border-border" />
+                        <button
+                          type="button"
+                          onClick={() => setBtlFinancingDetailOpen((v) => !v)}
+                          aria-expanded={btlFinancingDetailOpen}
+                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                        >
+                          <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: btlFinancingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </button>
+                        {btlFinancingDetailOpen && (
+                          <div className="pb-4 space-y-3">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
+                              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                                <span className="text-sm text-muted-foreground">{`Bridging (${btlRefurbBridgingLTV}% LTV × ${btlRefurbBridgingRate}%/mo × ${btlRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm font-medium">{formatCurrency(btlRefurbBridgingCost)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -4502,6 +4749,47 @@ export default function HomePage() {
                         <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(socialResults.monthlyMortgage + socialResults.totalOperatingCosts)}/mo</span>
                       </div>
                     </div>
+                    {socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingCost > 0 && (
+                      <div className="mt-3 p-3 rounded-md border border-amber-300" style={{ backgroundColor: '#FEF3C7' }}>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#92400E' }}>Refurb Financing Summary</p>
+                        <div className="flex items-center justify-between py-1">
+                          <span className="text-xs text-amber-800">Method</span>
+                          <span className="text-xs font-medium text-amber-900">Bridging Loan</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 mt-1 pt-2 border-t border-amber-300">
+                          <span className="text-xs font-semibold text-amber-900">Refurb Finance Cost</span>
+                          <span className="text-xs font-bold text-amber-900">{formatCurrency(socialRefurbBridgingCost)}</span>
+                        </div>
+                        {socialResults.totalCashInvested > 0 && (
+                          <p className="text-xs text-amber-700 mt-1">{Math.round((socialRefurbBridgingCost / socialResults.totalCashInvested) * 100)}% of total cash invested</p>
+                        )}
+                      </div>
+                    )}
+                    {socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingCost > 0 && (
+                      <div className="mt-4">
+                        <div className="border-t border-border" />
+                        <button
+                          type="button"
+                          onClick={() => setSocialFinancingDetailOpen((v) => !v)}
+                          aria-expanded={socialFinancingDetailOpen}
+                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                        >
+                          <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: socialFinancingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </button>
+                        {socialFinancingDetailOpen && (
+                          <div className="pb-4 space-y-3">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
+                              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                                <span className="text-sm text-muted-foreground">{`Bridging (${socialRefurbBridgingLTV}% LTV × ${socialRefurbBridgingRate}%/mo × ${socialRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm font-medium">{formatCurrency(socialRefurbBridgingCost)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
                 </>) : (
@@ -4804,6 +5092,9 @@ export default function HomePage() {
                       <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      {btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingCost > 0 && (
+                        <WRow label={`Refurb Bridging (${btlRefurbBridgingLTV}% LTV × ${btlRefurbBridgingRate}%/mo × ${btlRefurbBridgingTermMonths} months)`} value={formatCurrency(btlRefurbBridgingCost)} />
+                      )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
@@ -4992,6 +5283,9 @@ export default function HomePage() {
                       <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       {sharedInputs.refurbCost > 0 && <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />}
+                      {socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingCost > 0 && (
+                        <WRow label={`Refurb Bridging (${socialRefurbBridgingLTV}% LTV × ${socialRefurbBridgingRate}%/mo × ${socialRefurbBridgingTermMonths} months)`} value={formatCurrency(socialRefurbBridgingCost)} />
+                      )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}

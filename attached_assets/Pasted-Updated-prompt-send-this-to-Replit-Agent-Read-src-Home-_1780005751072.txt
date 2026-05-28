@@ -1,0 +1,64 @@
+Updated prompt — send this to Replit Agent:
+
+Read src/Home.tsx — read the BTL, SOCIAL, BRRR, and R2R tab blocks in full before planning anything. Also read the HMO Purchase Financing and Refurb Financing blocks as the benchmark UI.
+These are UI consistency fixes only — no calculation changes unless explicitly stated.
+
+Fix 1 — BTL: Add Purchase Financing and Refurb Financing blocks
+Add a PURCHASE FINANCING section block matching the HMO benchmark exactly:
+
+Section header: PURCHASE FINANCING
+Financing Method label
+Full-width pill toggle: Cash (Own Funds) | Mortgage
+When Cash (Own Funds): note "No financing costs — purchase price paid in full"
+When Mortgage: Deposit (%), Mortgage Rate (%), Mortgage Term (years), Repayment Type (Interest Only / Repayment) — wired to existing sharedInputs fields
+State var: btlPurchaseFinancingMethod — useState<'cash' | 'mortgage'>('mortgage')
+When Cash selected: pass { depositPercent: 100, mortgageRate: 0 } into calculateBTL
+Remove the old standalone Cash purchase checkbox from BTL if present
+
+Add a REFURB FINANCING section block matching the HMO benchmark exactly:
+
+Section header: REFURB FINANCING
+"How is the refurb funded?" label with InfoIcon (same tooltip as HMO)
+Full-width pill toggle: Cash (Own Funds) | Bridging Loan
+When Bridging Loan: Refurb Bridging Rate (%/mo), Refurb Bridging Term (months), Refurb Bridging LTV (%)
+State vars: btlRefurbFinancingMethod, btlRefurbBridgingRate, btlRefurbBridgingTermMonths, btlRefurbBridgingLTV
+Pre-compute: btlRefurbBridgingCost = refurbCost × (btlRefurbBridgingLTV/100) × (btlRefurbBridgingRate/100) × btlRefurbBridgingTermMonths
+Pass btlRefurbBridgingCost into calculateBTL via otherCosts or equivalent
+Add Tier 2 amber Refurb Financing Summary box to BTL results — same pattern as HMO
+Add Refurb Bridging line to BTL Show Workings when bridging selected
+
+
+Fix 2 — SOCIAL: Add Purchase Financing and Refurb Financing blocks
+Identical pattern to Fix 1:
+
+PURCHASE FINANCING block with Cash (Own Funds) / Mortgage toggle
+State var: socialPurchaseFinancingMethod — useState<'cash' | 'mortgage'>('mortgage')
+When Cash: pass { depositPercent: 100, mortgageRate: 0 } into calculateSOCIAL
+REFURB FINANCING block with Cash (Own Funds) / Bridging Loan toggle
+State vars: socialRefurbFinancingMethod, socialRefurbBridgingRate, socialRefurbBridgingTermMonths, socialRefurbBridgingLTV
+socialRefurbBridgingCost pre-computed and passed into calculateSOCIAL
+Tier 2 amber summary box in SOCIAL results
+Refurb Bridging line in SOCIAL Show Workings
+
+
+Fix 3 — BRRR: Add section headers and visual structure only
+Do NOT change any calculations, state variables, or field logic. Only add visual structure:
+
+Add PURCHASE FINANCING section header above the Phase 1 Bridging fields — styled identically to FLIP/HMO/SA
+Add REFURB FINANCING section header as placeholder — no new fields, no logic
+Add PHASE 2 — REFINANCE & RENTAL section header styled consistently
+Full BRRR financing logic rebuild is Prompt 3
+
+
+Fix 4 — R2R: Add section headers for visual consistency
+
+RENTAL AGREEMENT — above Monthly Rent to Landlord, Landlord Deposit
+ROOM INCOME — above Number of Rooms, Rent per Room, Occupancy Rate
+COSTS — above Platform/Management Fees, Monthly Running Costs, Setup Costs
+No new fields, no calc changes
+
+
+All fixes:
+
+Add all new state vars to the reset block
+Zero TypeScript errors after all changes
