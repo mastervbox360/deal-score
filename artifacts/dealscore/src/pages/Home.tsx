@@ -2652,30 +2652,22 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
-                      {flipInputs.financingMethod === 'bridging' ? (
-                        <div className="flex w-full rounded-md overflow-hidden border border-input">
-                          {(['cash', 'bridging'] as const).map((m) => (
-                            <button
-                              key={m}
-                              type="button"
-                              onClick={() => handleFlipChange('refurbFinancingMethod', m)}
-                              className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                                flipInputs.refurbFinancingMethod === m
-                                  ? 'bg-[#1B3A6B] text-white'
-                                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                              }`}
-                            >
-                              {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex w-full rounded-md overflow-hidden border border-input">
-                          <button type="button" disabled className="flex-1 py-2 text-sm font-medium bg-[#1B3A6B] text-white cursor-default">
-                            Cash (Own Funds)
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'bridging'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => handleFlipChange('refurbFinancingMethod', m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              flipInputs.refurbFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
                           </button>
-                        </div>
-                      )}
+                        ))}
+                      </div>
                     </div>
                     {flipInputs.financingMethod === 'bridging' && flipInputs.refurbFinancingMethod === 'bridging' && (
                       <>
