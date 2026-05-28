@@ -1277,6 +1277,7 @@ export default function HomePage() {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(flipInputs.expectedSalePrice > 0)) missing.push('Expected Sale Price');
       if (!(sharedInputs.refurbCost > 0)) missing.push('Refurb Cost');
+      if (!(flipInputs.projectLengthMonths > 0)) missing.push('Project Length');
       if (flipInputs.financingMethod === 'bridging') {
         if (!(flipInputs.flipBridgingRate > 0)) missing.push('Bridging Rate');
         if (!(flipInputs.flipBridgingTermMonths > 0)) missing.push('Bridging Term');
@@ -3674,7 +3675,7 @@ export default function HomePage() {
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">Ann. ROI<InfoIcon id="g3-flip-ann" text="Total ROI annualised based on project length. Allows comparison with buy-and-hold strategies." /></span>
-                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(flipResults.annualisedROI)}</span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{flipInputs.projectLengthMonths === 0 ? '—' : formatPercent(flipResults.annualisedROI)}</span>
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">Profit on Cost<InfoIcon id="g3-flip-poc" text="Net profit ÷ total cost. Developer benchmark: 18%+ with planning permission, 25%+ without planning." /></span>
@@ -3718,55 +3719,59 @@ export default function HomePage() {
                         )}
                       </div>
                     )}
-                    {flipStressSupported && flipSensitivity && (
-                      <div className="mt-4">
-                        <div className="border-t border-border" />
-                        <button
-                          type="button"
-                          onClick={() => setStressTestOpen((v) => !v)}
-                          aria-expanded={stressTestOpen}
-                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
-                        >
-                          <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
-                            Sensitivity Analysis
-                            <InfoIcon id="flip-sensitivity-analysis" text="Shows how profit and ROI change under three stress scenarios: refurb costs 10% higher, sale price 5% lower, and one extra month on the project." />
-                          </span>
-                          <ChevronDown
-                            className="h-4 w-4 transition-transform duration-200"
-                            style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                          />
-                        </button>
-                        {stressTestOpen && (
-                          <div className="border-t border-border">
-                            <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
-                              <span className="text-xs text-muted-foreground col-span-1" />
-                              <span className="text-xs font-semibold text-foreground text-right">Base</span>
-                              <span className="text-xs font-semibold text-foreground text-right">Costs +10%</span>
-                              <span className="text-xs font-semibold text-foreground text-right">GDV −5%</span>
-                            </div>
-                            <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
-                              <span className="text-sm text-muted-foreground col-span-1">Net Profit</span>
-                              {([flipSensitivity.base.profit, flipSensitivity.costUp10.profit, flipSensitivity.gdvDown5.profit] as number[]).map((v, i) => (
-                                <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
-                                  {formatCurrency(v)}
-                                </span>
-                              ))}
-                            </div>
-                            <div className="grid grid-cols-4 px-4 py-2.5">
-                              <span className="text-sm text-muted-foreground col-span-1">ROI</span>
-                              {([flipSensitivity.base.roi, flipSensitivity.costUp10.roi, flipSensitivity.gdvDown5.roi] as number[]).map((v, i) => (
-                                <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
-                                  {formatPercent(v)}
-                                </span>
-                              ))}
-                            </div>
-                            <div className="px-4 py-2 bg-slate-50 border-t border-border">
-                              <p className="text-xs text-muted-foreground">+1 month extends project: profit {formatCurrency(flipSensitivity.extraMonth.profit)} ({formatPercent(flipSensitivity.extraMonth.roi)} ROI)</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="mt-4">
+                      <div className="border-t border-border" />
+                      <button
+                        type="button"
+                        onClick={() => setStressTestOpen((v) => !v)}
+                        aria-expanded={stressTestOpen}
+                        className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                      >
+                        <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
+                          Sensitivity Analysis
+                          <InfoIcon id="flip-sensitivity-analysis" text="Shows how profit and ROI change under three stress scenarios: refurb costs 10% higher, sale price 5% lower, and one extra month on the project." />
+                        </span>
+                        <ChevronDown
+                          className="h-4 w-4 transition-transform duration-200"
+                          style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                        />
+                      </button>
+                      {stressTestOpen && (
+                        <div className="border-t border-border">
+                          {flipInputs.projectLengthMonths === 0 ? (
+                            <p className="text-sm text-muted-foreground text-center py-6">Enter a project length to see sensitivity analysis</p>
+                          ) : flipSensitivity ? (
+                            <>
+                              <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
+                                <span className="text-xs text-muted-foreground col-span-1" />
+                                <span className="text-xs font-semibold text-foreground text-right">Base</span>
+                                <span className="text-xs font-semibold text-foreground text-right">Costs +10%</span>
+                                <span className="text-xs font-semibold text-foreground text-right">GDV −5%</span>
+                              </div>
+                              <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
+                                <span className="text-sm text-muted-foreground col-span-1">Net Profit</span>
+                                {([flipSensitivity.base.profit, flipSensitivity.costUp10.profit, flipSensitivity.gdvDown5.profit] as number[]).map((v, i) => (
+                                  <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                                    {formatCurrency(v)}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="grid grid-cols-4 px-4 py-2.5">
+                                <span className="text-sm text-muted-foreground col-span-1">ROI</span>
+                                {([flipSensitivity.base.roi, flipSensitivity.costUp10.roi, flipSensitivity.gdvDown5.roi] as number[]).map((v, i) => (
+                                  <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                                    {formatPercent(v)}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="px-4 py-2 bg-slate-50 border-t border-border">
+                                <p className="text-xs text-muted-foreground">+1 month extends project: profit {formatCurrency(flipSensitivity.extraMonth.profit)} ({formatPercent(flipSensitivity.extraMonth.roi)} ROI)</p>
+                              </div>
+                            </>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
