@@ -239,7 +239,9 @@ export default function HomePage() {
   const [hasAnalysed, setHasAnalysed] = useState(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
-  const [financingDetailOpen, setFinancingDetailOpen] = useState<boolean>(false);
+  const [hmoFinancingDetailOpen, setHmoFinancingDetailOpen] = useState<boolean>(false);
+  const [flipFinancingDetailOpen, setFlipFinancingDetailOpen] = useState<boolean>(false);
+  const [saFinancingDetailOpen, setSaFinancingDetailOpen] = useState<boolean>(false);
   const [hmoRefurbFinancingMethod, setHmoRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
   const [hmoRefurbBridgingRate, setHmoRefurbBridgingRate] = useState(0);
   const [hmoRefurbBridgingTermMonths, setHmoRefurbBridgingTermMonths] = useState(0);
@@ -873,6 +875,9 @@ export default function HomePage() {
     setBuyersPremiumAmount('');
     setBuyersPremiumMode('pct');
     setAuctionReservationFee('');
+    setHmoFinancingDetailOpen(false);
+    setFlipFinancingDetailOpen(false);
+    setSaFinancingDetailOpen(false);
   };
 
   const sharedTax = calculatePropertyTax(sharedInputs.purchasePrice, taxCountry, buyerType);
@@ -3861,14 +3866,14 @@ export default function HomePage() {
                         <div className="border-t border-border" />
                         <button
                           type="button"
-                          onClick={() => setFinancingDetailOpen((v) => !v)}
-                          aria-expanded={financingDetailOpen}
+                          onClick={() => setHmoFinancingDetailOpen((v) => !v)}
+                          aria-expanded={hmoFinancingDetailOpen}
                           className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                         >
                           <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
-                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: financingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: hmoFinancingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                         </button>
-                        {financingDetailOpen && (
+                        {hmoFinancingDetailOpen && (
                           <div className="pb-4 space-y-3">
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
@@ -3996,14 +4001,14 @@ export default function HomePage() {
                         <div className="border-t border-border" />
                         <button
                           type="button"
-                          onClick={() => setFinancingDetailOpen((v) => !v)}
-                          aria-expanded={financingDetailOpen}
+                          onClick={() => setFlipFinancingDetailOpen((v) => !v)}
+                          aria-expanded={flipFinancingDetailOpen}
                           className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                         >
                           <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
-                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: financingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: flipFinancingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                         </button>
-                        {financingDetailOpen && (
+                        {flipFinancingDetailOpen && (
                           <div className="pb-4 space-y-3">
                             {flipPurchaseFinancingCost > 0 && (
                               <div>
@@ -4208,14 +4213,14 @@ export default function HomePage() {
                         <div className="border-t border-border" />
                         <button
                           type="button"
-                          onClick={() => setFinancingDetailOpen((v) => !v)}
-                          aria-expanded={financingDetailOpen}
+                          onClick={() => setSaFinancingDetailOpen((v) => !v)}
+                          aria-expanded={saFinancingDetailOpen}
                           className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                         >
                           <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
-                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: financingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: saFinancingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                         </button>
-                        {financingDetailOpen && (
+                        {saFinancingDetailOpen && (
                           <div className="pb-4 space-y-3">
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
