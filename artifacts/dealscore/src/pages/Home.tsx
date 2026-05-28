@@ -2442,8 +2442,59 @@ export default function HomePage() {
 
                 {dealType === 'HMO' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
-                    {/* Refurb Financing */}
+                    {/* Purchase Financing */}
                     <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setHmoPurchaseFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              hmoPurchaseFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash' : 'Mortgage'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {hmoPurchaseFinancingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
+                      </div>
+                    )}
+                    {hmoPurchaseFinancingMethod === 'mortgage' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="hmo-mort-dep" text={TT.deposit} /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="hmo-mort-rate" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                        {sharedInputs.mortgageType === 'REPAYMENT' && (
+                          <div className="space-y-2">
+                            <Label>Mortgage Term (years)</Label>
+                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
@@ -2501,57 +2552,6 @@ export default function HomePage() {
                         </p>
                       )}
                     </div>
-                    {/* Purchase Financing */}
-                    <div className="col-span-1 md:col-span-2 pt-2">
-                      <div className="h-px w-full bg-border mb-3" />
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
-                    </div>
-                    <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
-                        {(['cash', 'mortgage'] as const).map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => setHmoPurchaseFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                              hmoPurchaseFinancingMethod === m
-                                ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            {m === 'cash' ? 'Cash' : 'Mortgage'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {hmoPurchaseFinancingMethod === 'cash' && (
-                      <div className="md:col-span-2">
-                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
-                      </div>
-                    )}
-                    {hmoPurchaseFinancingMethod === 'mortgage' && (
-                      <>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="hmo-mort-dep" text={TT.deposit} /></div>
-                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="hmo-mort-rate" text={TT.mortgageRate} /></div>
-                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
-                          <MortgageTypeToggle
-                            value={sharedInputs.mortgageType}
-                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
-                          />
-                        </div>
-                        {sharedInputs.mortgageType === 'REPAYMENT' && (
-                          <div className="space-y-2">
-                            <Label>Mortgage Term (years)</Label>
-                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
-                          </div>
-                        )}
-                      </>
-                    )}
                     <div className="md:col-span-2 pt-2">
                       <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">One-off Costs</p>
@@ -2753,8 +2753,59 @@ export default function HomePage() {
 
                 {dealType === 'SA' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
-                    {/* Refurb Financing */}
+                    {/* Purchase Financing */}
                     <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>Financing Method</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'mortgage'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSaPurchaseFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              saPurchaseFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Cash' : 'Mortgage'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {saPurchaseFinancingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
+                      </div>
+                    )}
+                    {saPurchaseFinancingMethod === 'mortgage' && (
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="sa-mort-dep" text={TT.deposit} /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="sa-mort-rate" text={TT.mortgageRate} /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                          <MortgageTypeToggle
+                            value={sharedInputs.mortgageType}
+                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
+                          />
+                        </div>
+                        {sharedInputs.mortgageType === 'REPAYMENT' && (
+                          <div className="space-y-2">
+                            <Label>Mortgage Term (years)</Label>
+                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
@@ -2812,57 +2863,6 @@ export default function HomePage() {
                         </p>
                       )}
                     </div>
-                    {/* Purchase Financing */}
-                    <div className="col-span-1 md:col-span-2 pt-2">
-                      <div className="h-px w-full bg-border mb-3" />
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
-                    </div>
-                    <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
-                        {(['cash', 'mortgage'] as const).map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => setSaPurchaseFinancingMethod(m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                              saPurchaseFinancingMethod === m
-                                ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            {m === 'cash' ? 'Cash' : 'Mortgage'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {saPurchaseFinancingMethod === 'cash' && (
-                      <div className="md:col-span-2">
-                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full.</p>
-                      </div>
-                    )}
-                    {saPurchaseFinancingMethod === 'mortgage' && (
-                      <>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="sa-mort-dep" text={TT.deposit} /></div>
-                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.depositPercent || ''} onChange={(e) => handleSharedChange('depositPercent', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="sa-mort-rate" text={TT.mortgageRate} /></div>
-                          <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
-                          <MortgageTypeToggle
-                            value={sharedInputs.mortgageType}
-                            onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
-                          />
-                        </div>
-                        {sharedInputs.mortgageType === 'REPAYMENT' && (
-                          <div className="space-y-2">
-                            <Label>Mortgage Term (years)</Label>
-                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
-                          </div>
-                        )}
-                      </>
-                    )}
                     <div className="col-span-1 md:col-span-2 pt-2">
                       <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Revenue</p>
