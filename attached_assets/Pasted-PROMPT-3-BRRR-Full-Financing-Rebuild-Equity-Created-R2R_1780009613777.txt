@@ -1,0 +1,95 @@
+PROMPT 3 — BRRR Full Financing Rebuild + Equity Created + R2R Metrics + R2R UI Alignment + SOCIAL Lease Risk Flag
+Read the following files in full before planning anything:
+
+artifacts/dealscore/src/pages/Home.tsx
+artifacts/dealscore/src/lib/calculations.ts
+
+Then plan all edits explicitly before executing. Execute in parallel where safe.
+
+TASK 1 — BRRR Purchase Financing Rebuild
+In Home.tsx, replace the existing BRRR Phase 1 bridging fields with a full three-option Purchase Financing block matching the FLIP benchmark pattern.
+Add state variable: brrrPurchaseFinancingMethod — type "cash" | "bridging" | "mortgage" — default: "bridging".
+Render a pill toggle with three options: Cash (Own Funds) / Bridging Loan / Mortgage.
+
+When Cash: no financing cost. No sub-fields.
+When Bridging Loan: show existing Phase 1 fields — Bridging Rate %, Bridging Term (months), Bridging LTV %. Pre-compute: brrrPurchaseBridgingCost = (purchasePrice × brrrBridgingLTV/100) × (brrrBridgingRate/100/12) × brrrBridgingTermMonths. Pass into total cost before refinance.
+When Mortgage: show Deposit %, Mortgage Rate %, Mortgage Term (years), Repayment Type (IO / Repayment). Pre-compute holding cost using calculateMonthlyMortgagePayment() × project duration if applicable. Keep Phase 2 refinance mortgage unchanged.
+
+All new fields must be optional with safe defaults (backward-compatible with existing saved deals).
+
+TASK 2 — BRRR Refurb Financing Rebuild
+Replace the REFURB FINANCING placeholder with a working two-option block.
+Add state variable: brrrRefurbFinancingMethod — type "cash" | "bridging" — default: "bridging".
+Render a pill toggle: Cash (Own Funds) / Bridging Loan.
+
+When Bridging Loan: brrrRefurbBridgingCost = refurbCost × (brrrBridgingRate/100/12) × brrrBridgingTermMonths. Use the same rate/term as purchase bridging (shared facility — standard BRRR structure). Include this cost in total cost before refinance.
+When Cash: refurb is cash-funded, no bridging cost.
+
+Add a Tier 2 amber financing summary box in the BRRR results section — same pattern as HMO/SA/BTL/SOCIAL. Show: purchase method + cost, refurb method + cost (when bridging selected).
+Add Show Workings line: "Refurb Bridging Interest: £X" — shown only when brrrRefurbFinancingMethod === "bridging".
+Do NOT touch BRRR Phase 2 mortgage logic (IO-only hardcoded — separate cleanup task).
+
+TASK 3 — BRRR Equity Created Display
+equityCreated is already calculated in calculateBRRR in calculations.ts. It is not currently displayed in the UI.
+Add a display row in the BRRR results section:
+
+Label: Equity Created
+Value: formatCurrency(brrrResults.equityCreated)
+Position: below the Cash Left In Deal row
+
+
+TASK 4 — R2R Spread Per Room Metric
+Add a new calculated metric in the R2R results section:
+
+Label: Spread Per Room
+Formula: (grossMonthlyIncome - monthlyRentPaid) / rooms
+Value: formatCurrency(result) per month
+Add tooltip: "Monthly profit spread across each room — measures how hard each room is working."
+
+
+TASK 5 — R2R Occupancy Break-Even Metric
+Add a new calculated metric in the R2R results section:
+
+Label: Occupancy Break-Even
+Formula: monthlyCost / (rooms × rentPerRoom) — expressed as a percentage
+Value: formatPercent(result)
+Add tooltip: "The minimum occupancy rate needed to cover all costs — below this you are loss-making."
+
+Where monthlyCost = monthly rent to landlord + management fees + monthly running costs.
+
+TASK 6 — R2R Full UI Alignment
+Review the full R2R input and results section against the BTL/HMO/SA benchmark. Apply consistent visual structure:
+
+Confirm section headers are in place: RENTAL AGREEMENT / ROOM INCOME / COSTS (added Session 46 — verify and keep)
+Ensure field grouping, spacing, label style, and results card layout match other strategies
+Results section should follow the same Group 1 / Group 2 / Group 3 panel structure used across other strategies
+Tier 2 amber summary box: R2R does not have financing so no financing summary needed — skip
+Do not add or remove any input fields — alignment only
+
+
+TASK 7 — SOCIAL Lease Term Risk Flag
+In Home.tsx, in the SOCIAL results section, add a risk flag:
+
+Condition: leaseLengthYears < mortgageTerm (only when both values are set and > 0)
+Display: amber warning card — "⚠️ Lease length is shorter than mortgage term — review exit strategy."
+Same visual style as existing risk flags in other strategies
+Do not show this flag when SOCIAL purchase financing is Cash (Own Funds)
+
+
+DO NOT TOUCH:
+
+BRRR Phase 2 mortgage logic (IO-only — separate cleanup)
+FLIP financing (complete — do not regress)
+HMO, SA, BTL, SOCIAL financing blocks (complete — do not regress)
+inputsSerializer.ts — it is a full passthrough, no changes needed
+DealScorePDFProPlus.tsx — do not touch in this prompt
+DealScorePDF.tsx — only touch if equityCreated or the new R2R metrics need to be added to the portrait PDF (in which case, add them cleanly and confirm what was changed)
+Any existing score thresholds or verdict logic
+
+
+When complete:
+
+Confirm exactly which files were changed
+Confirm all 7 tasks are done
+Run git add -A && git commit -m "Prompt 3: BRRR financing rebuild + equity display + R2R metrics + UI alignment + SOCIAL lease risk flag" && git push origin stage-6 from ~/workspace root
+Confirm the push succeeded and provide the Netlify preview URL: stage-6--melodic-faun-882839.netlify.app
