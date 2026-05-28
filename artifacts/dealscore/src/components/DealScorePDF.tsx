@@ -940,16 +940,27 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Net Yield', fp(props.brrrResults.netYield)],
       ['Cash-on-Cash ROI', (props.brrrResults.moneyOut && props.purchasePrice > 0) ? '∞ (money out)' : fp(props.brrrResults.cashOnCashROI), true],
     ];
-    if (props.dealType === 'R2R') return [
-      ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
-      ['Management Fees / mo', fc(props.r2rResults.managementFees)],
-      ['Net Monthly Income', fc(props.r2rResults.netMonthlyIncome)],
-      ['Monthly Profit', fc(props.r2rResults.monthlyProfit), true],
-      ['Annual Profit', fc(props.r2rResults.annualProfit)],
-      ['Setup Costs', fc(props.r2rInputs.setupCosts)],
-      ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
-      ['Net Return on Setup Costs', fp(props.r2rResults.roi), true],
-    ];
+    if (props.dealType === 'R2R') {
+      const _r2rMonthlyCost = props.r2rInputs.monthlyRentPaid + props.r2rResults.managementFees + props.r2rInputs.monthlyRunningCosts;
+      const _r2rSpreadPerRoom = props.r2rInputs.rooms > 0
+        ? (props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms
+        : 0;
+      const _r2rOccupancyBE = (props.r2rInputs.rooms > 0 && props.r2rInputs.rentPerRoom > 0)
+        ? (_r2rMonthlyCost / (props.r2rInputs.rooms * props.r2rInputs.rentPerRoom)) * 100
+        : 0;
+      return [
+        ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
+        ['Management Fees / mo', fc(props.r2rResults.managementFees)],
+        ['Net Monthly Income', fc(props.r2rResults.netMonthlyIncome)],
+        ['Monthly Profit', fc(props.r2rResults.monthlyProfit), true],
+        ['Annual Profit', fc(props.r2rResults.annualProfit)],
+        ['Setup Costs', fc(props.r2rInputs.setupCosts)],
+        ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+        ['Spread Per Room', fc(_r2rSpreadPerRoom)],
+        ['Occupancy Break-Even', fp(_r2rOccupancyBE)],
+        ['Net Return on Setup Costs', fp(props.r2rResults.roi), true],
+      ];
+    }
     return [
       ['Cash Invested', fc(props.socialResults.totalCashInvested)],
       ['Mortgage Amount', fc(props.socialResults.mortgageAmount)],
@@ -1867,6 +1878,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               return [
                 ['Cash Invested', g(fc(props.brrrResults.totalCostIn))],
                 ['Cash Left In', mh ? (mo ? '\u221E recycled' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014'],
+                ['Equity Created', g(fc(props.brrrResults.equityCreated))],
                 ['Refinance Loan', g(fc(props.brrrResults.refinanceLoan))],
               ];
             }
@@ -1931,9 +1943,18 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               ['Annualised ROI', g(fp(props.flipResults.annualisedROI))],
               ['Profit on Cost', g(fp(props.flipResults.profitOnCost))],
             ];
+            const r2rMonthlyCost = props.r2rInputs.monthlyRentPaid + props.r2rResults.managementFees + props.r2rInputs.monthlyRunningCosts;
+            const r2rSpreadPerRoom = props.r2rInputs.rooms > 0
+              ? (props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms
+              : 0;
+            const r2rOccupancyBE = (props.r2rInputs.rooms > 0 && props.r2rInputs.rentPerRoom > 0)
+              ? (r2rMonthlyCost / (props.r2rInputs.rooms * props.r2rInputs.rentPerRoom)) * 100
+              : 0;
             return [
               ['ROI on Setup', g(fp(props.r2rResults.roi))],
               ['Monthly Spread', g(fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid))],
+              ['Spread Per Room', g(fc(r2rSpreadPerRoom))],
+              ['Occupancy Break-Even', g(fp(r2rOccupancyBE))],
             ];
           })();
 
