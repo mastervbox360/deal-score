@@ -1,0 +1,475 @@
+Read the following files in full before making any changes:
+
+artifacts/dealscore/src/lib/calculations.ts
+artifacts/dealscore/src/pages/Home.tsx
+artifacts/dealscore/src/components/DealScorePDF.tsx
+artifacts/dealscore/src/components/DealScorePDFProPlus.tsx
+
+Do not make any changes until you have read all four files completely. Then plan every edit explicitly before executing. Execute all edits in parallel where possible.
+
+PART 1 — calculations.ts
+1A — Verify earlier fixes are present
+Check that FlipInputs interface already contains these optional fields:
+tsfinancingMethod?: 'cash' | 'bridging' | 'mortgage'
+contingencyPercent?: number
+bridgingRate?: number
+bridgingTerm?: number
+bridgingLTV?: number
+depositPercent?: number
+mortgageRate?: number
+mortgageTerm?: number
+mortgageType?: MortgageType
+And that calculateFlip already branches on financingMethod with defaults, applies refurbWithContingency, calculates financingCost, and returns financingCost and refurbWithContingency in addition to existing return fields.
+If these fixes are already present — do not touch calculations.ts. Move to Part 2.
+If they are NOT present — apply them now exactly as follows:
+Add optional fields to FlipInputs as listed above.
+Replace calculateFlip with:
+tsexport function calculateFlip(inputs: FlipInputs) {
+  const contingencyPercent = inputs.contingencyPercent ?? 0;
+  const refurbWithContingency = inputs.refurbCost * (1 + contingencyPercent / 100);
+
+  let financingCost = 0;
+  const fm = inputs.financingMethod ?? 'cash';
+  if (fm === 'bridging') {
+    const ltv = inputs.bridgingLTV ?? 70;
+    const rate = inputs.bridgingRate ?? 0;
+    const term = inputs.bridgingTerm ?? 0;
+    financingCost = (inputs.purchasePrice * ltv / 100) * (rate / 100) * term;
+  } else if (fm === 'mortgage') {
+    const dep = inputs.depositPercent ?? 25;
+    const rate = inputs.mortgageRate ?? 0;
+    const term = inputs.mortgageTerm ?? 25;
+    const type = inputs.mortgageType ?? 'IO';
+    const loan = inputs.purchasePrice * (1 - dep / 100);
+    const projectMonths = inputs.projectLengthMonths ?? 0;
+    if (type === 'IO') {
+      financingCost = loan * (rate / 100 / 12) * projectMonths;
+    } else {
+      const r = rate / 100 / 12;
+      const n = term * 12;
+      const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+      financingCost = monthly * projectMonths;
+    }
+  }
+
+  const totalCost = inputs.purchasePrice + inputs.stampDuty + refurbWithContingency + inputs.otherCosts + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths) + financingCost;
+  const sellingCosts = inputs.expectedSalePrice * (inputs.sellingCostsPercent / 100);
+  const netProfit = inputs.expectedSalePrice - totalCost - sellingCosts;
+
+  const roi = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+  const annualisedROI = inputs.projectLengthMonths > 0 ? roi * (12 / inputs.projectLengthMonths) : 0;
+  const profitPerMonth = inputs.projectLengthMonths > 0 ? netProfit / inputs.projectLengthMonths : 0;
+  const profitOnCost = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+
+  let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
+  if (!inputs.purchasePrice || !inputs.expectedSalePrice) {
+    score = 'Incomplete';
+  } else if (roi >= 12 && netProfit >= 18000) {
+    score = 'Strong';
+  } else if (roi >= 8) {
+    score = 'Average';
+  }
+
+  return {
+    totalCost,
+    sellingCosts,
+    netProfit,
+    roi,
+    annualisedROI,
+    profitPerMonth,
+    profitOnCost,
+    score,
+    financingCost,
+    refurbWithContingency,
+  };
+}
+
+PART 2 — Home.tsx
+2A — flipInputs state
+Replace the existing flipInputs useState with:
+tsconst [flipInputs, setFlipInputs] = useState({
+  holdingCostsPerMonth: 0,
+  projectLengthMonths: 0,
+  expectedSalePrice: 0,
+  sellingCostsPercent: 2,
+  contingencyPercent: 10,
+  // Purchase finance
+  financingMethod: 'cash' as 'cash' | 'bridging' | 'mortgage',
+  flipBridgingRate: 0,
+  flipBridgingTermMonths: 0,
+  flipBridgingLTV: 70,
+  flipMortgageDeposit: 25,
+  flipMortgageRate: 0,
+  flipMortgageTerm: 25,
+  flipMortgageType: 'IO' as 'IO' | 'Repayment',
+  // Refurb finance
+  refurbFinancingMethod: 'cash' as 'cash' | 'bridging',
+  refurbSameAsPurchase: true,
+  refurbBridgingRate: 0,
+  refurbBridgingTermMonths: 0,
+  refurbBridgingLTV: 70,
+});
+2B — handleFlipChange
+Add handling for the new string enum fields refurbFinancingMethod alongside the existing financingMethod and flipMortgageType handling. All other numeric fields continue to use Number(value) || 0. Boolean refurbSameAsPurchase must be handled separately — it is set directly via setFlipInputs, not through handleFlipChange.
+2C — Reset block
+In the reset block where setFlipInputs is called, include all new fields with their default values matching 2A exactly.
+2D — Pre-compute block
+Replace the existing FLIP pre-compute block (the section that destructures flipInputs and calculates flipBridgingInterest, flipMortgageInterest, then calls calculateFlip) with the following logic:
+Purchase financing cost:
+
+If financingMethod === 'bridging': purchaseFinancingCost = (purchasePrice × flipBridgingLTV/100) × (flipBridgingRate/100) × flipBridgingTermMonths
+If financingMethod === 'mortgage': calculate monthly payment on purchasePrice × (1 - flipMortgageDeposit/100) using flipMortgageRate, flipMortgageTerm, flipMortgageType × projectLengthMonths
+If financingMethod === 'cash': purchaseFinancingCost = 0
+
+Refurb financing cost:
+
+If refurbFinancingMethod === 'bridging':
+
+If refurbSameAsPurchase === true AND financingMethod === 'bridging': use purchase bridging fields (rate, term) but loan amount = refurbCost × (1 + contingencyPercent/100) — i.e. the refurb amount is added to the bridging facility, interest calculated on refurb portion only
+If refurbSameAsPurchase === false: use refurbBridgingRate, refurbBridgingTermMonths, refurbBridgingLTV — loan = refurbCost × (1 + contingencyPercent/100) × refurbBridgingLTV/100
+
+
+If refurbFinancingMethod === 'cash': refurbFinancingCost = 0
+
+Total financing cost: totalFinancingCost = purchaseFinancingCost + refurbFinancingCost
+Call calculateFlip:
+tsconst flipResults = calculateFlip({
+  purchasePrice,
+  refurbCost: refurbCost * (1 + contingencyPercent / 100),
+  otherCosts: otherCosts + totalFinancingCost,
+  stampDuty: effectiveTax,
+  holdingCostsPerMonth: flipInputs.holdingCostsPerMonth,
+  projectLengthMonths: flipInputs.projectLengthMonths,
+  expectedSalePrice: flipInputs.expectedSalePrice,
+  sellingCostsPercent: flipInputs.sellingCostsPercent,
+});
+Also derive these for display use:
+tsconst flipPurchaseFinancingCost = purchaseFinancingCost;
+const flipRefurbFinancingCost = refurbFinancingCost;
+const flipTotalFinancingCost = totalFinancingCost;
+const flipRefurbWithContingency = refurbCost * (1 + contingencyPercent / 100);
+Remove the PDF duplicate calc block entirely. The existing block (starting with const { financingMethod: _pdfFlipFM ...) that recalculates _flipResults for PDF props is deleted. In the PDF props object, replace flipResults: _flipResults with flipResults: flipResults — the live result is used directly. This eliminates the duplicate calculation permanently.
+2E — Optimiser getMetrics
+Replace the existing FLIP getMetrics inline function so it recalculates financing cost per iterated price p:
+tsconst getMetrics = (p: number) => {
+  const tax = getStampDuty(p);
+  const refurbAdj = refurbCost * (1 + contingencyPercent / 100);
+  
+  // Purchase financing cost — recalculated per price
+  let pfc = 0;
+  if (financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
+    pfc = (p * flipBridgingLTV / 100) * (flipBridgingRate / 100) * flipBridgingTermMonths;
+  } else if (financingMethod === 'mortgage' && flipMortgageRate > 0) {
+    const loan = p * (1 - flipMortgageDeposit / 100);
+    if (flipMortgageType === 'IO') {
+      pfc = loan * (flipMortgageRate / 100 / 12) * flipInputs.projectLengthMonths;
+    } else {
+      const r = flipMortgageRate / 100 / 12;
+      const n = flipMortgageTerm * 12;
+      const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+      pfc = monthly * flipInputs.projectLengthMonths;
+    }
+  }
+
+  // Refurb financing cost — fixed regardless of purchase price
+  const rfc = flipRefurbFinancingCost;
+
+  const fixedCosts = refurbAdj + otherCosts + holding + buyersPremiumValue + auctionReservationFeeValue;
+  const totalCost = p + tax + fixedCosts + pfc + rfc;
+  const profit = gdv - sellingCosts - totalCost;
+  return { totalCost, profit, margin: totalCost > 0 ? (profit / totalCost) * 100 : 0 };
+};
+2F — Missing fields validation
+Add to the FLIP validation block:
+tsif (financingMethod === 'bridging') {
+  if (!(flipInputs.flipBridgingRate > 0)) missing.push('Bridging Rate');
+  if (!(flipInputs.flipBridgingTermMonths > 0)) missing.push('Bridging Term');
+}
+if (financingMethod === 'mortgage') {
+  if (!(flipInputs.flipMortgageRate > 0)) missing.push('Mortgage Rate');
+}
+if (flipInputs.refurbFinancingMethod === 'bridging' && !flipInputs.refurbSameAsPurchase) {
+  if (!(flipInputs.refurbBridgingRate > 0)) missing.push('Refurb Bridging Rate');
+  if (!(flipInputs.refurbBridgingTermMonths > 0)) missing.push('Refurb Bridging Term');
+}
+2G — FLIP risk flags
+Add to the existing FLIP risk flags array:
+ts// Bridging term shorter than project length
+financingMethod === 'bridging' && flipInputs.flipBridgingTermMonths > 0 && flipInputs.projectLengthMonths > flipInputs.flipBridgingTermMonths
+  ? `⚠️ Bridging term (${flipInputs.flipBridgingTermMonths} months) is shorter than project length (${flipInputs.projectLengthMonths} months) — you will need to extend or refinance before the project completes`
+  : null,
+
+// High LTV
+financingMethod === 'bridging' && flipInputs.flipBridgingLTV > 75
+  ? `⚠️ Bridging LTV at ${flipInputs.flipBridgingLTV}% — above 75% is unusual and may attract higher rates or require additional security`
+  : null,
+
+// High bridging rate
+financingMethod === 'bridging' && flipInputs.flipBridgingRate > 1
+  ? `⚠️ Bridging rate at ${flipInputs.flipBridgingRate}%/mo — above 1% is expensive. Ensure this is factored into your profit expectations`
+  : null,
+
+// Finance cost consuming more than 25% of profit
+flipTotalFinancingCost > 0 && flipResults.netProfit > 0 && (flipTotalFinancingCost / flipResults.netProfit) > 0.25
+  ? `⚠️ Financing costs (${formatCurrency(flipTotalFinancingCost)}) represent ${Math.round((flipTotalFinancingCost / flipResults.netProfit) * 100)}% of net profit — financing is significantly eroding returns`
+  : null,
+2H — Tier 2 financing summary row
+Add this block immediately after Group 3 (the Returns group) in the FLIP results panel, conditionally rendered when financingMethod !== 'cash' || refurbFinancingMethod !== 'cash':
+tsx{(flipInputs.financingMethod !== 'cash' || flipInputs.refurbFinancingMethod !== 'cash') && flipTotalFinancingCost > 0 && (
+  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+    <p className="text-[9px] font-semibold uppercase tracking-wider text-amber-700 mb-2">Financing Cost</p>
+    <div className="flex flex-wrap gap-x-4 gap-y-1">
+      {flipInputs.financingMethod !== 'cash' && (
+        <span className="text-xs text-amber-800">
+          Purchase ({flipInputs.financingMethod === 'bridging'
+            ? `${flipInputs.flipBridgingLTV}% LTV · ${flipInputs.flipBridgingRate}%/mo · ${flipInputs.flipBridgingTermMonths}mo`
+            : `${flipInputs.flipMortgageDeposit}% dep · ${flipInputs.flipMortgageRate}%`
+          }): <span className="font-semibold">{formatCurrency(flipPurchaseFinancingCost)}</span>
+        </span>
+      )}
+      {flipInputs.refurbFinancingMethod !== 'cash' && (
+        <span className="text-xs text-amber-800">
+          Refurb bridging: <span className="font-semibold">{formatCurrency(flipRefurbFinancingCost)}</span>
+        </span>
+      )}
+      <span className="text-xs font-semibold text-amber-900">
+        Total: {formatCurrency(flipTotalFinancingCost)}
+      </span>
+    </div>
+  </div>
+)}
+2I — FLIP UI section
+Replace the existing single "Financing Method" section with two independent sections:
+Section 1 — Purchase Finance:
+Label: "Purchase Finance"
+Buttons: [Cash] [Bridging] [Mortgage]
+— if Bridging: show Bridging Rate (%/mo), Bridging Term (months), Bridging LTV (%)
+— if Mortgage: show Deposit (%), Mortgage Rate (%), Mortgage Term (years), Repayment Type [IO / Repayment]
+— if Cash: show short descriptive text (no sub-fields)
+Section 2 — Refurb Finance:
+Label: "Refurb Finance"
+Buttons: [Cash] [Bridging]
+— if Bridging AND purchaseFinancingMethod === 'bridging':
+    Show checkbox: "☑ Same bridging facility as purchase" (default checked = refurbSameAsPurchase)
+    If checked: show read-only summary "Using purchase bridging rates — refurb cost added to loan"
+    If unchecked: show Refurb Bridging Rate (%/mo), Refurb Bridging Term (months), Refurb Bridging LTV (%)
+— if Bridging AND purchaseFinancingMethod !== 'bridging':
+    Show Refurb Bridging Rate (%/mo), Refurb Bridging Term (months), Refurb Bridging LTV (%)
+— if Cash: show short descriptive text
+Keep all existing fields below both sections: Holding Costs/mo, Project Length, Expected Sale Price / GDV, Selling Costs %, Contingency %.
+2J — Show Workings
+In the FLIP Show Workings section, update Section A (Total Costs) to show the full breakdown:
+Purchase Price
+Stamp Duty / Tax
+Refurb Cost (raw)
+  — if contingencyPercent > 0: Contingency (X%): £xxx
+  — if contingencyPercent > 0: Adjusted Refurb Cost: £xxx  [bold]
+Other Costs
+  — if purchaseFinancingMethod === 'bridging' and flipPurchaseFinancingCost > 0:
+      Purchase Bridging Interest (LTV% × rate%/mo × term mo): £xxx
+  — if purchaseFinancingMethod === 'mortgage' and flipPurchaseFinancingCost > 0:
+      Mortgage Holding Cost (monthly × X months): £xxx
+  — if refurbFinancingMethod === 'bridging' and flipRefurbFinancingCost > 0:
+      Refurb Bridging Interest: £xxx
+Holding Costs (X months × £xxx/mo)
+TOTAL COST IN  [bold]
+Section B and C unchanged.
+2K — FLIP stress test
+Add a FLIP-specific stress test. stressSupported already excludes FLIP — add a separate flipStressSupported boolean: const flipStressSupported = dealType === 'FLIP' && flipInputs.projectLengthMonths > 0 && flipInputs.expectedSalePrice > 0.
+Calculate three scenarios inline (do not call calculateFlip — calculate directly to avoid re-cooking financing):
+ts// Scenario 1: Refurb cost +10%
+const flipStressRefurbUp = (() => {
+  if (!flipStressSupported) return null;
+  const newRefurb = refurbCost * 1.1 * (1 + contingencyPercent / 100);
+  const totalCost = purchasePrice + effectiveTax + newRefurb + otherCosts + 
+    (flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths) + flipTotalFinancingCost;
+  const sellingCosts = flipInputs.expectedSalePrice * (flipInputs.sellingCostsPercent / 100);
+  const netProfit = flipInputs.expectedSalePrice - totalCost - sellingCosts;
+  return { totalCost, netProfit, roi: totalCost > 0 ? (netProfit / totalCost) * 100 : 0 };
+})();
+
+// Scenario 2: Project length +1 month (bridging interest recalculates)
+const flipStressProjectUp = (() => {
+  if (!flipStressSupported) return null;
+  const extraMonth = flipInputs.projectLengthMonths + 1;
+  // Recalculate purchase financing cost with extra month
+  let newPfc = 0;
+  if (financingMethod === 'bridging' && flipInputs.flipBridgingRate > 0) {
+    newPfc = (purchasePrice * flipInputs.flipBridgingLTV / 100) * (flipInputs.flipBridgingRate / 100) * (flipInputs.flipBridgingTermMonths + 1);
+  } else if (financingMethod === 'mortgage' && flipInputs.flipMortgageRate > 0) {
+    const loan = purchasePrice * (1 - flipInputs.flipMortgageDeposit / 100);
+    if (flipInputs.flipMortgageType === 'IO') {
+      newPfc = loan * (flipInputs.flipMortgageRate / 100 / 12) * extraMonth;
+    } else {
+      const r = flipInputs.flipMortgageRate / 100 / 12;
+      const n = flipInputs.flipMortgageTerm * 12;
+      const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+      newPfc = monthly * extraMonth;
+    }
+  }
+  const newHolding = flipInputs.holdingCostsPerMonth * extraMonth;
+  const totalCost = purchasePrice + effectiveTax + flipRefurbWithContingency + otherCosts + newHolding + newPfc + flipRefurbFinancingCost;
+  const sellingCosts = flipInputs.expectedSalePrice * (flipInputs.sellingCostsPercent / 100);
+  const netProfit = flipInputs.expectedSalePrice - totalCost - sellingCosts;
+  return { totalCost, netProfit, roi: totalCost > 0 ? (netProfit / totalCost) * 100 : 0 };
+})();
+
+// Scenario 3: GDV -5%
+const flipStressGdvDown = (() => {
+  if (!flipStressSupported) return null;
+  const newGdv = flipInputs.expectedSalePrice * 0.95;
+  const sellingCosts = newGdv * (flipInputs.sellingCostsPercent / 100);
+  const netProfit = newGdv - flipResults.totalCost - sellingCosts;
+  return { netProfit, roi: flipResults.totalCost > 0 ? (netProfit / flipResults.totalCost) * 100 : 0 };
+})();
+Display as a sensitivity table matching the existing style of stressTestOpen, with columns: Base Case / Refurb +10% / Project +1mo / GDV −5%, and rows: Net Profit / ROI. Shown inside a collapsible "Sensitivity Analysis" section for FLIP, separate from the existing stressSupported section which is for the other strategies.
+2L — AI summary payload
+In both handleGenerateSummary and handleGenerateStrategy fetch calls, add financing context for FLIP:
+ts...(dealType === 'FLIP' && flipTotalFinancingCost > 0 ? {
+  financingMethod: flipInputs.financingMethod,
+  totalFinancingCost: flipTotalFinancingCost,
+  purchaseFinancingCost: flipPurchaseFinancingCost,
+  refurbFinancingCost: flipRefurbFinancingCost,
+  bridgingRate: flipInputs.financingMethod === 'bridging' ? flipInputs.flipBridgingRate : undefined,
+  bridgingTerm: flipInputs.financingMethod === 'bridging' ? flipInputs.flipBridgingTermMonths : undefined,
+} : {}),
+
+PART 3 — DealScorePDF.tsx
+3A — Expand flipInputs inline prop type
+Replace the existing inline type:
+tsflipInputs: { holdingCostsPerMonth: number; projectLengthMonths: number; expectedSalePrice: number; sellingCostsPercent: number };
+With:
+tsflipInputs: {
+  holdingCostsPerMonth: number;
+  projectLengthMonths: number;
+  expectedSalePrice: number;
+  sellingCostsPercent: number;
+  contingencyPercent: number;
+  financingMethod: 'cash' | 'bridging' | 'mortgage';
+  flipBridgingRate: number;
+  flipBridgingTermMonths: number;
+  flipBridgingLTV: number;
+  flipMortgageDeposit: number;
+  flipMortgageRate: number;
+  flipMortgageTerm: number;
+  flipMortgageType: 'IO' | 'Repayment';
+  refurbFinancingMethod: 'cash' | 'bridging';
+  refurbSameAsPurchase: boolean;
+  refurbBridgingRate: number;
+  refurbBridgingTermMonths: number;
+  refurbBridgingLTV: number;
+};
+Also add to the props interface:
+tsflipPurchaseFinancingCost?: number;
+flipRefurbFinancingCost?: number;
+flipTotalFinancingCost?: number;
+flipRefurbWithContingency?: number;
+3B — inputRows FLIP section
+Replace the existing FLIP rows in inputRows with:
+ts['Purchase Price', fc(props.purchasePrice)],
+[`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel.replace(' / Buy-to-Let', '')})`, fc(props.effectiveTax)],
+['Refurb Cost', fc(props.refurbCost)],
+...(props.flipInputs.contingencyPercent > 0 ? [
+  [`Contingency (${props.flipInputs.contingencyPercent}%)`, fc(props.refurbCost * props.flipInputs.contingencyPercent / 100)] as RowData,
+  ['Adjusted Refurb Cost', fc(props.refurbCost * (1 + props.flipInputs.contingencyPercent / 100))] as RowData,
+] : []),
+['Purchase Finance', props.flipInputs.financingMethod === 'cash' ? 'Cash' :
+  props.flipInputs.financingMethod === 'bridging'
+    ? `Bridging · ${props.flipInputs.flipBridgingLTV}% LTV · ${props.flipInputs.flipBridgingRate}%/mo · ${props.flipInputs.flipBridgingTermMonths} months`
+    : `Mortgage · ${props.flipInputs.flipMortgageDeposit}% deposit · ${props.flipInputs.flipMortgageRate}% · ${props.flipInputs.flipMortgageType === 'IO' ? 'Interest Only' : 'Repayment'}`
+],
+...(props.flipInputs.financingMethod !== 'cash' && (props.flipTotalFinancingCost ?? 0) > 0 ? [
+  ['Purchase Finance Cost', fc(props.flipPurchaseFinancingCost ?? 0)] as RowData,
+] : []),
+['Refurb Finance', props.flipInputs.refurbFinancingMethod === 'cash' ? 'Cash' :
+  props.flipInputs.refurbSameAsPurchase ? `Bridging (same facility as purchase)` :
+  `Bridging · ${props.flipInputs.refurbBridgingRate}%/mo · ${props.flipInputs.refurbBridgingTermMonths} months`
+],
+...(props.flipInputs.refurbFinancingMethod !== 'cash' && (props.flipRefurbFinancingCost ?? 0) > 0 ? [
+  ['Refurb Finance Cost', fc(props.flipRefurbFinancingCost ?? 0)] as RowData,
+] : []),
+['Other Costs', fc(props.otherCosts)],
+['Holding Costs (per month)', fc(props.flipInputs.holdingCostsPerMonth)],
+['Project Length', `${props.flipInputs.projectLengthMonths} months`],
+['Expected Sale Price (GDV)', fc(props.flipInputs.expectedSalePrice)],
+['Selling Costs', `${props.flipInputs.sellingCostsPercent}%`],
+...tenureRows,
+3C — Project Cost Summary panel
+Replace the existing panel rows with:
+Purchase Price
+Stamp Duty
+Refurb Cost (raw)
+— if contingencyPercent > 0: Contingency (X%): fc(refurbCost × contingencyPercent/100)
+— if contingencyPercent > 0: Adjusted Refurb Cost: fc(refurbWithContingency)  [bold]
+Other Costs
+— if purchaseFinancingCost > 0: Purchase Finance Cost (label shows method): fc(flipPurchaseFinancingCost)
+— if refurbFinancingCost > 0: Refurb Finance Cost: fc(flipRefurbFinancingCost)
+Holding Costs (total)
+Selling Costs
+Target GDV
+[separator]
+NET PROFIT [large, colour-coded]
+Use props.flipPurchaseFinancingCost ?? 0 and props.flipRefurbFinancingCost ?? 0 — never recalculate inline.
+3D — Key Assumptions panel
+Replace the FLIP exclusion at line ~2491. Currently FLIP is excluded from showing deposit/mortgage. Add a FLIP-specific branch:
+tsx{props.dealType === 'FLIP' ? (
+  <>
+    <View ...>
+      <Text>Purchase Finance</Text>
+      <Text>{props.flipInputs.financingMethod === 'cash' ? 'Cash' :
+        props.flipInputs.financingMethod === 'bridging'
+          ? `Bridging ${props.flipInputs.flipBridgingLTV}% LTV`
+          : `Mortgage ${props.flipInputs.flipMortgageDeposit}% dep`
+      }</Text>
+    </View>
+    {(props.flipTotalFinancingCost ?? 0) > 0 && (
+      <View ...>
+        <Text>Total Finance Cost</Text>
+        <Text>{fc(props.flipTotalFinancingCost ?? 0)}</Text>
+      </View>
+    )}
+    <View ...>
+      <Text>Contingency</Text>
+      <Text>{props.flipInputs.contingencyPercent}%</Text>
+    </View>
+  </>
+) : props.dealType !== 'R2R' ? (
+  // existing deposit + mortgage rate rows
+) : null}
+Match the exact styling of the existing Key Assumptions rows.
+3E — Cost overrun risk text fix
+Find the cost overrun risk text (approximately line 2446):
+ts`Cost overrun risk — project budgeted at ${fc(props.flipResults.totalCost)} over ${props.flipInputs.projectLengthMonths} months. A 10% cost overrun reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - props.flipResults.totalCost * 0.1)}.`
+Replace with:
+ts`Cost overrun risk — refurb budgeted at ${fc(props.flipInputs.contingencyPercent > 0 ? props.flipRefurbWithContingency ?? props.refurbCost : props.refurbCost)} (inc. ${props.flipInputs.contingencyPercent}% contingency). A 10% refurb overrun reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - (props.flipRefurbWithContingency ?? props.refurbCost) * 0.1)}.`
+
+PART 4 — DealScorePDFProPlus.tsx
+Apply identical changes to Parts 3B, 3C, 3D, 3E above — same logic, same field references, matching the Pro Plus component's existing styling patterns. The Pro Plus component imports DealScorePDFProps from DealScorePDF.tsx so the prop type expansion in 3A covers both automatically.
+Find the equivalent sections in Pro Plus by searching for:
+
+inputRows FLIP section (search: 'Holding Costs / mo')
+Project cost breakdown (search: 'Holding Costs' near flipResults.sellingCosts)
+Cost overrun risk text (search: Cost overrun risk)
+
+Apply the same fixes as portrait. Match Pro Plus styling throughout.
+
+PART 5 — Final checks
+
+Run npx tsc --noEmit — zero TypeScript errors required before committing
+Confirm the following work end-to-end for FLIP:
+
+Cash purchase + cash refurb → financing cost = £0, no Tier 2 row shown
+Bridging purchase + same facility refurb → single bridging cost shown split across purchase/refurb
+Bridging purchase + separate refurb bridging → both costs shown
+Mortgage purchase + cash refurb → mortgage holding cost shown
+Stress test shows three FLIP-specific columns
+Optimiser max offer price changes correctly when bridging LTV/rate/term are entered
+
+
+Confirm both PDF components render without errors for all financing combinations
+Confirm flipResults (not _flipResults) is now used in PDF props
+Confirm no references to the deleted PDF duplicate calc block remain
+
+At the end, list every file changed and every specific change made.
+
+Do not touch: calculateBTL, calculateHMO, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, any BRRR UI section, any BTL/HMO/SA/R2R/SOCIAL results panels, Supabase functions, Stripe functions, AppHeader, DashboardPage, AuthContext, or any other file not listed above.

@@ -315,7 +315,26 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
-  const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO' as 'IO' | 'Repayment' });
+  const [flipInputs, setFlipInputs] = useState({
+    holdingCostsPerMonth: 0,
+    projectLengthMonths: 0,
+    expectedSalePrice: 0,
+    sellingCostsPercent: 2,
+    contingencyPercent: 10,
+    financingMethod: 'cash' as 'cash' | 'bridging' | 'mortgage',
+    flipBridgingRate: 0,
+    flipBridgingTermMonths: 0,
+    flipBridgingLTV: 70,
+    flipMortgageDeposit: 25,
+    flipMortgageRate: 0,
+    flipMortgageTerm: 25,
+    flipMortgageType: 'IO' as 'IO' | 'Repayment',
+    refurbFinancingMethod: 'cash' as 'cash' | 'bridging',
+    refurbSameAsPurchase: true,
+    refurbBridgingRate: 0,
+    refurbBridgingTermMonths: 0,
+    refurbBridgingLTV: 70,
+  });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
 
@@ -448,7 +467,9 @@ export default function HomePage() {
 
   const handleFlipChange = (field: keyof typeof flipInputs, value: string) => {
     if (field === 'financingMethod') {
-      setFlipInputs(prev => ({ ...prev, financingMethod: value as 'Cash' | 'Bridging' | 'Mortgage' }));
+      setFlipInputs(prev => ({ ...prev, financingMethod: value as 'cash' | 'bridging' | 'mortgage' }));
+    } else if (field === 'refurbFinancingMethod') {
+      setFlipInputs(prev => ({ ...prev, refurbFinancingMethod: value as 'cash' | 'bridging' }));
     } else if (field === 'flipMortgageType') {
       setFlipInputs(prev => ({ ...prev, flipMortgageType: value as 'IO' | 'Repayment' }));
     } else {
@@ -798,7 +819,7 @@ export default function HomePage() {
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
     } else if (dealType === 'FLIP') {
-      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO' });
+      setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, contingencyPercent: 10, financingMethod: 'cash', flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO', refurbFinancingMethod: 'cash', refurbSameAsPurchase: true, refurbBridgingRate: 0, refurbBridgingTermMonths: 0, refurbBridgingLTV: 70 });
     } else if (dealType === 'SA') {
       setSaInputs({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
     } else if (dealType === 'BRRR') {
@@ -847,20 +868,45 @@ export default function HomePage() {
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
   const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs });
-  const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, ...flipInputsForCalc } = flipInputs;
-  const flipBridgingInterest = financingMethod === 'Bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0
-    ? (purchasePrice * (flipBridgingLTV / 100)) * (flipBridgingRate / 100) * flipBridgingTermMonths
-    : 0;
-  const flipMortgageInterest = (() => {
-    if (financingMethod !== 'Mortgage' || flipMortgageRate <= 0 || flipInputs.projectLengthMonths <= 0) return 0;
-    const loan = purchasePrice * (1 - flipMortgageDeposit / 100);
-    if (flipMortgageType === 'IO') return loan * (flipMortgageRate / 100 / 12) * flipInputs.projectLengthMonths;
-    const r = flipMortgageRate / 100 / 12;
-    const n = flipMortgageTerm * 12;
-    const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
-    return monthly * flipInputs.projectLengthMonths;
+  const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, refurbFinancingMethod, refurbSameAsPurchase, refurbBridgingRate, refurbBridgingTermMonths, refurbBridgingLTV } = flipInputs;
+  const purchaseFinancingCost = (() => {
+    if (financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
+      return (purchasePrice * flipBridgingLTV / 100) * (flipBridgingRate / 100) * flipBridgingTermMonths;
+    }
+    if (financingMethod === 'mortgage' && flipMortgageRate > 0 && flipInputs.projectLengthMonths > 0) {
+      const loan = purchasePrice * (1 - flipMortgageDeposit / 100);
+      if (flipMortgageType === 'IO') return loan * (flipMortgageRate / 100 / 12) * flipInputs.projectLengthMonths;
+      const r = flipMortgageRate / 100 / 12;
+      const n = flipMortgageTerm * 12;
+      const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+      return monthly * flipInputs.projectLengthMonths;
+    }
+    return 0;
   })();
-  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + contingencyPercent / 100), otherCosts: otherCosts + flipBridgingInterest + flipMortgageInterest, stampDuty: effectiveTax, ...flipInputsForCalc });
+  const flipRefurbWithContingency = refurbCost * (1 + contingencyPercent / 100);
+  const refurbFinancingCost = (() => {
+    if (refurbFinancingMethod !== 'bridging') return 0;
+    if (refurbSameAsPurchase && financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
+      return flipRefurbWithContingency * (flipBridgingRate / 100) * flipBridgingTermMonths;
+    }
+    if (!refurbSameAsPurchase && refurbBridgingRate > 0 && refurbBridgingTermMonths > 0) {
+      return (flipRefurbWithContingency * refurbBridgingLTV / 100) * (refurbBridgingRate / 100) * refurbBridgingTermMonths;
+    }
+    return 0;
+  })();
+  const flipPurchaseFinancingCost = purchaseFinancingCost;
+  const flipRefurbFinancingCost = refurbFinancingCost;
+  const flipTotalFinancingCost = purchaseFinancingCost + refurbFinancingCost;
+  const flipResults = calculateFlip({
+    purchasePrice,
+    refurbCost: flipRefurbWithContingency,
+    otherCosts: otherCosts + flipTotalFinancingCost,
+    stampDuty: effectiveTax,
+    holdingCostsPerMonth: flipInputs.holdingCostsPerMonth,
+    projectLengthMonths: flipInputs.projectLengthMonths,
+    expectedSalePrice: flipInputs.expectedSalePrice,
+    sellingCostsPercent: flipInputs.sellingCostsPercent,
+  });
   const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
   const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
@@ -940,10 +986,27 @@ export default function HomePage() {
       if (gdv <= 0) return { type: 'no_solution' as const };
       const sellingCosts = gdv * (flipInputs.sellingCostsPercent / 100);
       const holding = flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths;
-      const fixedCosts = sharedInputs.refurbCost + sharedInputs.otherCosts + holding + buyersPremiumValue + auctionReservationFeeValue;
+      const { financingMethod: flipFM, flipBridgingRate: flipBR, flipBridgingTermMonths: flipBTM, flipBridgingLTV: flipBLTV, flipMortgageDeposit: flipMD, flipMortgageRate: flipMR, flipMortgageTerm: flipMT, flipMortgageType: flipMTY } = flipInputs;
       const getMetrics = (p: number) => {
         const tax = getStampDuty(p);
-        const totalCost = p + tax + fixedCosts;
+        const refurbAdj = refurbCost * (1 + contingencyPercent / 100);
+        let pfc = 0;
+        if (flipFM === 'bridging' && flipBR > 0 && flipBTM > 0) {
+          pfc = (p * flipBLTV / 100) * (flipBR / 100) * flipBTM;
+        } else if (flipFM === 'mortgage' && flipMR > 0) {
+          const loan = p * (1 - flipMD / 100);
+          if (flipMTY === 'IO') {
+            pfc = loan * (flipMR / 100 / 12) * flipInputs.projectLengthMonths;
+          } else {
+            const r = flipMR / 100 / 12;
+            const n = flipMT * 12;
+            const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
+            pfc = monthly * flipInputs.projectLengthMonths;
+          }
+        }
+        const rfc = flipRefurbFinancingCost;
+        const fixedCostsAdj = refurbAdj + otherCosts + holding + buyersPremiumValue + auctionReservationFeeValue;
+        const totalCost = p + tax + fixedCostsAdj + pfc + rfc;
         const profit = gdv - sellingCosts - totalCost;
         return { totalCost, profit, margin: totalCost > 0 ? (profit / totalCost) * 100 : 0 };
       };
@@ -1047,6 +1110,22 @@ export default function HomePage() {
   }, [dealType, resultsMode, optimiserTarget, sharedInputs, btlInputs, hmoInputs, flipInputs, saInputs, brrrInputs, r2rInputs, socialInputs, sharedCostInputs, taxCountry, taxOverrideActive, manualTaxValue, buyerType, btlResults, hmoResults, saResults, brrrResults, r2rResults, socialResults, leaseExtensionCost, buyersPremiumValue, auctionReservationFeeValue, btlOfferROI, btlOfferCF, hmoOfferROI, hmoOfferCF, hmoOfferYield, flipOfferMargin, flipOfferMinProfit, brrrOfferCashLeft, saOfferROI, saOfferProfit, saOfferOccupancy, r2rOfferProfit, r2rOfferROI, socialOfferROI, socialOfferCF]);
 
   const stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
+  const flipStressSupported = dealType === 'FLIP' && purchasePrice > 0 && flipInputs.projectLengthMonths > 0 && flipInputs.expectedSalePrice > 0 && refurbCost > 0;
+  const flipSensitivity = flipStressSupported ? {
+    base: { profit: flipResults.netProfit, roi: flipResults.roi },
+    costUp10: (() => {
+      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency * 1.1, otherCosts: otherCosts + flipTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: flipInputs.projectLengthMonths, expectedSalePrice: flipInputs.expectedSalePrice, sellingCostsPercent: flipInputs.sellingCostsPercent });
+      return { profit: r.netProfit, roi: r.roi };
+    })(),
+    gdvDown5: (() => {
+      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency, otherCosts: otherCosts + flipTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: flipInputs.projectLengthMonths, expectedSalePrice: flipInputs.expectedSalePrice * 0.95, sellingCostsPercent: flipInputs.sellingCostsPercent });
+      return { profit: r.netProfit, roi: r.roi };
+    })(),
+    extraMonth: (() => {
+      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency, otherCosts: otherCosts + flipTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: flipInputs.projectLengthMonths + 1, expectedSalePrice: flipInputs.expectedSalePrice, sellingCostsPercent: flipInputs.sellingCostsPercent });
+      return { profit: r.netProfit, roi: r.roi };
+    })(),
+  } : null;
 
   const stressRentDown = (() => {
     if (dealType === 'BTL') {
@@ -1198,6 +1277,17 @@ export default function HomePage() {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(flipInputs.expectedSalePrice > 0)) missing.push('Expected Sale Price');
       if (!(sharedInputs.refurbCost > 0)) missing.push('Refurb Cost');
+      if (flipInputs.financingMethod === 'bridging') {
+        if (!(flipInputs.flipBridgingRate > 0)) missing.push('Bridging Rate');
+        if (!(flipInputs.flipBridgingTermMonths > 0)) missing.push('Bridging Term');
+      }
+      if (flipInputs.financingMethod === 'mortgage') {
+        if (!(flipInputs.flipMortgageRate > 0)) missing.push('Mortgage Rate');
+      }
+      if (flipInputs.refurbFinancingMethod === 'bridging' && !flipInputs.refurbSameAsPurchase) {
+        if (!(flipInputs.refurbBridgingRate > 0)) missing.push('Refurb Bridging Rate');
+        if (!(flipInputs.refurbBridgingTermMonths > 0)) missing.push('Refurb Bridging Term');
+      }
     } else if (dealType === 'SA') {
       if (!(purchasePrice > 0)) missing.push('Purchase Price');
       if (!(saInputs.nightlyRate > 0)) missing.push('Nightly Rate');
@@ -1379,6 +1469,18 @@ export default function HomePage() {
       flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
       flags.push(sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+      flags.push(financingMethod === 'bridging' && flipInputs.flipBridgingTermMonths > 0 && flipInputs.projectLengthMonths > flipInputs.flipBridgingTermMonths
+        ? `⚠️ Bridging term (${flipInputs.flipBridgingTermMonths} months) is shorter than project length (${flipInputs.projectLengthMonths} months) — you will need to extend or refinance before the project completes`
+        : null);
+      flags.push(financingMethod === 'bridging' && flipInputs.flipBridgingLTV > 75
+        ? `⚠️ Bridging LTV at ${flipInputs.flipBridgingLTV}% — above 75% is unusual and may attract higher rates or require additional security`
+        : null);
+      flags.push(financingMethod === 'bridging' && flipInputs.flipBridgingRate > 1
+        ? `⚠️ Bridging rate at ${flipInputs.flipBridgingRate}%/mo — above 1% is expensive. Ensure this is factored into your profit expectations`
+        : null);
+      flags.push(flipTotalFinancingCost > 0 && flipResults.netProfit > 0 && (flipTotalFinancingCost / flipResults.netProfit) > 0.25
+        ? `⚠️ Financing costs (${formatCurrency(flipTotalFinancingCost)}) represent ${Math.round((flipTotalFinancingCost / flipResults.netProfit) * 100)}% of net profit — financing is significantly eroding returns`
+        : null);
     } else if (dealType === 'SA') {
       flags.push(leaseholdWarning
         ? (saResults.score === 'Strong' || saResults.score === 'Average'
@@ -1443,26 +1545,6 @@ export default function HomePage() {
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
     const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
-    const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, flipBridgingRate: _pdfFlipBridgingRate, flipBridgingTermMonths: _pdfFlipBridgingTerm, flipBridgingLTV: _pdfFlipBridgingLTV, flipMortgageDeposit: _pdfFlipMortgageDeposit, flipMortgageRate: _pdfFlipMortgageRate, flipMortgageTerm: _pdfFlipMortgageTerm, flipMortgageType: _pdfFlipMortgageType, ...pdfFlipCalcInputs } = flipInputs;
-    const _flipBridgingInterest = _pdfFlipFM === 'Bridging' && _pdfFlipBridgingRate > 0 && _pdfFlipBridgingTerm > 0
-      ? (sharedInputs.purchasePrice * (_pdfFlipBridgingLTV / 100)) * (_pdfFlipBridgingRate / 100) * _pdfFlipBridgingTerm
-      : 0;
-    const _flipMortgageInterest = (() => {
-      if (_pdfFlipFM !== 'Mortgage' || _pdfFlipMortgageRate <= 0 || pdfFlipCalcInputs.projectLengthMonths <= 0) return 0;
-      const loan = sharedInputs.purchasePrice * (1 - _pdfFlipMortgageDeposit / 100);
-      if (_pdfFlipMortgageType === 'IO') return loan * (_pdfFlipMortgageRate / 100 / 12) * pdfFlipCalcInputs.projectLengthMonths;
-      const r = _pdfFlipMortgageRate / 100 / 12;
-      const n = _pdfFlipMortgageTerm * 12;
-      const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
-      return monthly * pdfFlipCalcInputs.projectLengthMonths;
-    })();
-    const _flipResults = calculateFlip({
-      purchasePrice: sharedInputs.purchasePrice,
-      refurbCost: sharedInputs.refurbCost * (1 + _pdfFlipCP / 100),
-      otherCosts: sharedInputs.otherCosts + _flipBridgingInterest + _flipMortgageInterest,
-      stampDuty: _effectiveTax,
-      ...pdfFlipCalcInputs,
-    });
     const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { bridgingRate: _brrBridgingRate, bridgingTermMonths: _brrBridgingTerm, bridgingLTV: _brrBridgingLTV, ...brrrInputsForPdfCalc } = brrrInputs;
     const _brrrBridgingInterest = sharedInputs.purchasePrice > 0 && _brrBridgingRate > 0 && _brrBridgingTerm > 0
@@ -1546,7 +1628,7 @@ export default function HomePage() {
     const _currentScore =
       dealType === 'BTL' ? _btlResults.score :
       dealType === 'HMO' ? _hmoResults.score :
-      dealType === 'FLIP' ? _flipResults.score :
+      dealType === 'FLIP' ? flipResults.score :
       dealType === 'SA' ? _saResults.score :
       dealType === 'BRRR' ? _brrrResults.score :
       dealType === 'R2R' ? _r2rResults.score :
@@ -1576,7 +1658,7 @@ export default function HomePage() {
         f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
       } else if (dealType === 'FLIP') {
         f.push(_leaseholdWarn ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
-        f.push(_pp > 0 && _flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
+        f.push(_pp > 0 && flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
         f.push(_floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
       } else if (dealType === 'SA') {
         f.push(_leaseholdWarn
@@ -1666,7 +1748,11 @@ export default function HomePage() {
       socialInputs: { ...socialInputs, ..._sharedCostInputs, managementCostsPerMonth: _socialResults.totalOperatingCosts },
       btlResults: _btlResults,
       hmoResults: _hmoResults,
-      flipResults: _flipResults,
+      flipResults: flipResults,
+      flipPurchaseFinancingCost,
+      flipRefurbFinancingCost,
+      flipTotalFinancingCost,
+      flipRefurbWithContingency,
       saResults: _saResults,
       brrrResults: _brrrResults,
       r2rResults: _r2rResults,
@@ -2347,10 +2433,14 @@ export default function HomePage() {
 
                 {dealType === 'FLIP' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
+                    {/* Purchase Financing */}
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                    </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>Financing Method</Label>
                       <div className="flex w-full rounded-md overflow-hidden border border-input">
-                        {(['Cash', 'Bridging', 'Mortgage'] as const).map((m) => (
+                        {(['cash', 'bridging', 'mortgage'] as const).map((m) => (
                           <button
                             key={m}
                             type="button"
@@ -2361,16 +2451,34 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m}
+                            {m === 'cash' ? 'Cash' : m === 'bridging' ? 'Bridging' : 'Mortgage'}
                           </button>
                         ))}
                       </div>
                     </div>
-                    {flipInputs.financingMethod === 'Mortgage' && (
+                    {flipInputs.financingMethod === 'cash' && (
+                      <div className="md:col-span-2">
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price paid in full. Refurb and other costs still apply.</p>
+                      </div>
+                    )}
+                    {flipInputs.financingMethod === 'bridging' && (
                       <>
-                        <div className="md:col-span-2">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Mortgage Finance</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging Rate (% per month)</Label><InfoIcon id="flip-bridge-rate" text="The monthly interest rate charged by your bridging lender. Typical UK bridging rates: 0.5–1.5% per month. Interest is charged on the loan amount for the full bridging term." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 0.85" value={flipInputs.flipBridgingRate || ''} onChange={(e) => handleFlipChange('flipBridgingRate', e.target.value)} />
                         </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging Term (months)</Label><InfoIcon id="flip-bridge-term" text="How long you will hold the bridging loan — from purchase to sale completion. Should match your project length. Typical range: 3–12 months." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 6" value={flipInputs.flipBridgingTermMonths || ''} onChange={(e) => handleFlipChange('flipBridgingTermMonths', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging LTV (%)</Label><InfoIcon id="flip-bridge-ltv" text="The loan-to-value your bridging lender will advance against the purchase price. Typically 65–75% for standard residential bridging." /></div>
+                          <Input type="number" step="1" value={flipInputs.flipBridgingLTV} onChange={(e) => handleFlipChange('flipBridgingLTV', e.target.value)} />
+                        </div>
+                      </>
+                    )}
+                    {flipInputs.financingMethod === 'mortgage' && (
+                      <>
                         <div className="space-y-2">
                           <div className="flex items-center gap-1"><Label>Deposit (%)</Label><InfoIcon id="flip-mort-dep" text="Percentage of purchase price paid as deposit." /></div>
                           <Input type="number" step="1" placeholder="e.g. 25" value={flipInputs.flipMortgageDeposit || ''} onChange={(e) => handleFlipChange('flipMortgageDeposit', e.target.value)} />
@@ -2397,31 +2505,81 @@ export default function HomePage() {
                         </div>
                       </>
                     )}
-                    {flipInputs.financingMethod === 'Cash' && (
-                      <div className="md:col-span-2">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Cash purchase</p>
-                        <p className="text-xs text-muted-foreground">No financing costs — purchase price and costs paid in full. Refurb and other costs still apply.</p>
+
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>How is the refurb funded?</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'bridging'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => handleFlipChange('refurbFinancingMethod', m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              flipInputs.refurbFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                          </button>
+                        ))}
                       </div>
-                    )}
-                    {flipInputs.financingMethod === 'Bridging' && (
+                    </div>
+                    {flipInputs.refurbFinancingMethod === 'bridging' && (
                       <>
-                        <div className="md:col-span-2">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Bridging Finance</p>
+                        <div className="col-span-1 md:col-span-2 space-y-2">
+                          <Label>Use same bridging terms as purchase?</Label>
+                          <div className="flex w-full rounded-md overflow-hidden border border-input">
+                            {([true, false] as const).map((v) => (
+                              <button
+                                key={String(v)}
+                                type="button"
+                                onClick={() => setFlipInputs(prev => ({ ...prev, refurbSameAsPurchase: v }))}
+                                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                                  flipInputs.refurbSameAsPurchase === v
+                                    ? 'bg-[#1B3A6B] text-white'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                }`}
+                              >
+                                {v ? 'Yes — same facility' : 'No — separate facility'}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Bridging Rate (% per month)</Label><InfoIcon id="flip-bridge-rate" text="The monthly interest rate charged by your bridging lender. Typical UK bridging rates: 0.5–1.5% per month. Interest is charged on the loan amount for the full bridging term." /></div>
-                          <Input type="number" step="0.1" placeholder="e.g. 0.85" value={flipInputs.flipBridgingRate || ''} onChange={(e) => handleFlipChange('flipBridgingRate', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Bridging Term (months)</Label><InfoIcon id="flip-bridge-term" text="How long you will hold the bridging loan — from purchase to sale completion. Should match your project length. Typical range: 3–12 months." /></div>
-                          <Input type="number" step="1" placeholder="e.g. 6" value={flipInputs.flipBridgingTermMonths || ''} onChange={(e) => handleFlipChange('flipBridgingTermMonths', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Bridging LTV (%)</Label><InfoIcon id="flip-bridge-ltv" text="The loan-to-value your bridging lender will advance against the purchase price. Typically 65–75% for standard residential bridging." /></div>
-                          <Input type="number" step="1" value={flipInputs.flipBridgingLTV} onChange={(e) => handleFlipChange('flipBridgingLTV', e.target.value)} />
-                        </div>
+                        {!flipInputs.refurbSameAsPurchase && (
+                          <>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-1"><Label>Refurb Bridging Rate (% per month)</Label><InfoIcon id="ref-bridge-rate" text="Monthly rate for the refurb bridging facility. Typical UK rates: 0.5–1.5%/month." /></div>
+                              <Input type="number" step="0.1" placeholder="e.g. 0.9" value={flipInputs.refurbBridgingRate || ''} onChange={(e) => handleFlipChange('refurbBridgingRate', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-1"><Label>Refurb Bridging Term (months)</Label><InfoIcon id="ref-bridge-term" text="How long the refurb bridging facility runs. Typically matches your construction programme." /></div>
+                              <Input type="number" step="1" placeholder="e.g. 6" value={flipInputs.refurbBridgingTermMonths || ''} onChange={(e) => handleFlipChange('refurbBridgingTermMonths', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
+                              <Input type="number" step="1" value={flipInputs.refurbBridgingLTV} onChange={(e) => handleFlipChange('refurbBridgingLTV', e.target.value)} />
+                            </div>
+                          </>
+                        )}
+                        {flipInputs.refurbSameAsPurchase && flipInputs.financingMethod !== 'bridging' && (
+                          <div className="md:col-span-2">
+                            <p className="text-xs text-amber-600">⚠️ "Same facility" requires Bridging selected for purchase financing above. Switch purchase to Bridging or choose a separate facility.</p>
+                          </div>
+                        )}
                       </>
                     )}
+
+                    {/* Project & Exit */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Project &amp; Exit</p>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Holding Costs/mo (£)</Label><InfoIcon id="flip-hold" text={TT.holdingCosts} /></div>
                       <Input type="number" placeholder="Enter monthly holding costs" value={flipInputs.holdingCostsPerMonth || ''} onChange={(e) => handleFlipChange('holdingCostsPerMonth', e.target.value)} />
@@ -2429,9 +2587,6 @@ export default function HomePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Project Length (months)</Label><InfoIcon id="flip-proj" text={TT.projectLength} /></div>
                       <Input type="number" placeholder="Enter project length in months" value={flipInputs.projectLengthMonths || ''} onChange={(e) => handleFlipChange('projectLengthMonths', e.target.value)} />
-                    </div>
-                    <div className="col-span-1 md:col-span-2">
-                      <div className="h-px w-full bg-border my-2" />
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-1"><Label>Expected Sale Price / GDV (£)</Label><InfoIcon id="flip-sale" text={TT.salePrice} /></div>
@@ -3539,6 +3694,79 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
+                    {flipTotalFinancingCost > 0 && (
+                      <div className="mt-3 p-3 rounded-md border border-amber-300" style={{ backgroundColor: '#FEF3C7' }}>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#92400E' }}>Financing Cost Breakdown</p>
+                        {flipPurchaseFinancingCost > 0 && (
+                          <div className="flex items-center justify-between py-1">
+                            <span className="text-xs text-amber-800">Purchase Finance</span>
+                            <span className="text-xs font-medium text-amber-900">{formatCurrency(flipPurchaseFinancingCost)}</span>
+                          </div>
+                        )}
+                        {flipRefurbFinancingCost > 0 && (
+                          <div className="flex items-center justify-between py-1">
+                            <span className="text-xs text-amber-800">Refurb Finance</span>
+                            <span className="text-xs font-medium text-amber-900">{formatCurrency(flipRefurbFinancingCost)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between py-1 mt-1 pt-2 border-t border-amber-300">
+                          <span className="text-xs font-semibold text-amber-900">Total Financing Cost</span>
+                          <span className="text-xs font-bold text-amber-900">{formatCurrency(flipTotalFinancingCost)}</span>
+                        </div>
+                        {flipResults.netProfit > 0 && (
+                          <p className="text-xs text-amber-700 mt-1">{Math.round((flipTotalFinancingCost / flipResults.netProfit) * 100)}% of net profit</p>
+                        )}
+                      </div>
+                    )}
+                    {flipStressSupported && flipSensitivity && (
+                      <div className="mt-4">
+                        <div className="border-t border-border" />
+                        <button
+                          type="button"
+                          onClick={() => setStressTestOpen((v) => !v)}
+                          aria-expanded={stressTestOpen}
+                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                        >
+                          <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B] flex items-center gap-1.5">
+                            Sensitivity Analysis
+                            <InfoIcon id="flip-sensitivity-analysis" text="Shows how profit and ROI change under three stress scenarios: refurb costs 10% higher, sale price 5% lower, and one extra month on the project." />
+                          </span>
+                          <ChevronDown
+                            className="h-4 w-4 transition-transform duration-200"
+                            style={{ color: '#1B3A6B', transform: stressTestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                          />
+                        </button>
+                        {stressTestOpen && (
+                          <div className="border-t border-border">
+                            <div className="grid grid-cols-4 px-4 py-2 border-b border-border bg-slate-50">
+                              <span className="text-xs text-muted-foreground col-span-1" />
+                              <span className="text-xs font-semibold text-foreground text-right">Base</span>
+                              <span className="text-xs font-semibold text-foreground text-right">Costs +10%</span>
+                              <span className="text-xs font-semibold text-foreground text-right">GDV −5%</span>
+                            </div>
+                            <div className="grid grid-cols-4 px-4 py-2.5 border-b border-border">
+                              <span className="text-sm text-muted-foreground col-span-1">Net Profit</span>
+                              {([flipSensitivity.base.profit, flipSensitivity.costUp10.profit, flipSensitivity.gdvDown5.profit] as number[]).map((v, i) => (
+                                <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                                  {formatCurrency(v)}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 px-4 py-2.5">
+                              <span className="text-sm text-muted-foreground col-span-1">ROI</span>
+                              {([flipSensitivity.base.roi, flipSensitivity.costUp10.roi, flipSensitivity.gdvDown5.roi] as number[]).map((v, i) => (
+                                <span key={i} className={`text-sm font-semibold tabular-nums text-right ${v > 0 ? 'text-emerald-600' : v < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                                  {formatPercent(v)}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="px-4 py-2 bg-slate-50 border-t border-border">
+                              <p className="text-xs text-muted-foreground">+1 month extends project: profit {formatCurrency(flipSensitivity.extraMonth.profit)} ({formatPercent(flipSensitivity.extraMonth.roi)} ROI)</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -4284,8 +4512,16 @@ export default function HomePage() {
                         <WRow label="Adjusted Refurb Cost" value={formatCurrency(sharedInputs.refurbCost * (1 + flipInputs.contingencyPercent / 100))} bold />
                       )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
-                      {flipInputs.financingMethod === 'Bridging' && flipInputs.flipBridgingRate > 0 && flipInputs.flipBridgingTermMonths > 0 && (
-                        <WRow label={`Bridging Interest (${flipInputs.flipBridgingLTV}% LTV × ${flipInputs.flipBridgingRate}%/mo × ${flipInputs.flipBridgingTermMonths} months)`} value={formatCurrency((sharedInputs.purchasePrice * (flipInputs.flipBridgingLTV / 100)) * (flipInputs.flipBridgingRate / 100) * flipInputs.flipBridgingTermMonths)} />
+                      {flipPurchaseFinancingCost > 0 && (
+                        <WRow
+                          label={financingMethod === 'bridging'
+                            ? `Purchase Bridging (${flipInputs.flipBridgingLTV}% LTV × ${flipInputs.flipBridgingRate}%/mo × ${flipInputs.flipBridgingTermMonths} months)`
+                            : `Purchase Mortgage Interest (${flipInputs.flipMortgageRate}% over ${flipInputs.projectLengthMonths} months)`}
+                          value={formatCurrency(flipPurchaseFinancingCost)}
+                        />
+                      )}
+                      {flipRefurbFinancingCost > 0 && (
+                        <WRow label={`Refurb Bridging Finance`} value={formatCurrency(flipRefurbFinancingCost)} />
                       )}
                       <WRow label={`Holding Costs (${flipInputs.projectLengthMonths} months × ${formatCurrency(flipInputs.holdingCostsPerMonth)})`} value={formatCurrency(flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths)} />
                       <WRow label="TOTAL COST IN" value={formatCurrency(flipResults.totalCost)} bold />

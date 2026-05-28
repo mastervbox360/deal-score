@@ -58,7 +58,11 @@ export interface DealScorePDFProps {
   tierOverride: 'free' | 'pro' | 'pro_plus';
   btlInputs: { monthlyRent: number; monthlyExpenses: number };
   hmoInputs: { rooms: number; rentPerRoom: number; occupancyRate: number; monthlyExpenses: number };
-  flipInputs: { holdingCostsPerMonth: number; projectLengthMonths: number; expectedSalePrice: number; sellingCostsPercent: number };
+  flipInputs: { holdingCostsPerMonth: number; projectLengthMonths: number; expectedSalePrice: number; sellingCostsPercent: number; financingMethod?: string; contingencyPercent?: number };
+  flipPurchaseFinancingCost?: number;
+  flipRefurbFinancingCost?: number;
+  flipTotalFinancingCost?: number;
+  flipRefurbWithContingency?: number;
   saInputs: { nightlyRate: number; occupancyPercent: number; platformFeesPercent: number; monthlyRunningCosts: number };
   brrrInputs: { postRefurbValue: number; refinancePercent: number; newMortgageRate: number; monthlyRent: number; monthlyExpenses: number };
   r2rInputs: R2RInputs;
@@ -768,8 +772,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       rows.push(
         ['Purchase Price', fc(props.purchasePrice)],
         [`${props.taxLabel} (${props.taxCountryLabel}, ${props.buyerLabel.replace(' / Buy-to-Let', '')})`, fc(props.effectiveTax)],
-        ['Refurb Cost', fc(props.refurbCost)],
+        ['Refurb Cost (incl. contingency)', fc(props.flipRefurbWithContingency ?? props.refurbCost)],
         ['Other Costs', fc(props.otherCosts)],
+        ...((props.flipPurchaseFinancingCost ?? 0) > 0 ? [['Purchase Finance Cost', fc(props.flipPurchaseFinancingCost!)]] as [string, string][] : []),
+        ...((props.flipRefurbFinancingCost ?? 0) > 0 ? [['Refurb Finance Cost', fc(props.flipRefurbFinancingCost!)]] as [string, string][] : []),
         ['Holding Costs (per month)', fc(props.flipInputs.holdingCostsPerMonth)],
         ['Project Length', `${props.flipInputs.projectLengthMonths} months`],
         ['Expected Sale Price (GDV)', fc(props.flipInputs.expectedSalePrice)],
@@ -1706,30 +1712,20 @@ export default function DealScorePDF(props: DealScorePDFProps) {
             <SH title="Project Cost Summary" mt={8} mb={8} />
             <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                  <Text style={{ fontSize: 8, color: tintText }}>Purchase Price</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.purchasePrice)}</Text>
-                </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                  <Text style={{ fontSize: 8, color: tintText }}>Stamp Duty</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
-                </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                  <Text style={{ fontSize: 8, color: tintText }}>Refurb Cost</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.refurbCost)}</Text>
-                </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                  <Text style={{ fontSize: 8, color: tintText }}>Holding Costs</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths)}</Text>
-                </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                  <Text style={{ fontSize: 8, color: tintText }}>Selling Costs</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipResults.sellingCosts)}</Text>
-                </View>
-                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                  <Text style={{ fontSize: 8, color: tintText }}>Target GDV</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipInputs.expectedSalePrice)}</Text>
-                </View>
+                {[
+                  ['Purchase Price', fc(props.purchasePrice)],
+                  ['Stamp Duty', fc(props.effectiveTax)],
+                  ['Refurb (incl. contingency)', fc(props.flipRefurbWithContingency ?? props.refurbCost)],
+                  ['Holding Costs', fc(props.flipInputs.holdingCostsPerMonth * props.flipInputs.projectLengthMonths)],
+                  ...((props.flipTotalFinancingCost ?? 0) > 0 ? [['Total Financing Cost', fc(props.flipTotalFinancingCost!)]] : []),
+                  ['Selling Costs', fc(props.flipResults.sellingCosts)],
+                  ['Target GDV', fc(props.flipInputs.expectedSalePrice)],
+                ].map(([lbl, val], i) => (
+                  <View key={i} style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>{lbl}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                  </View>
+                ))}
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>NET PROFIT</Text>
@@ -2443,7 +2439,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                     : props.dealType === 'R2R'
                       ? `Income risk — monthly profit depends on maintaining ${props.r2rInputs.occupancyRate}% occupancy across ${props.r2rInputs.rooms} rooms. A drop to ${Math.round(props.r2rInputs.occupancyRate * 0.85)}% occupancy reduces gross income by ${fc(props.r2rResults.grossMonthlyIncome * 0.15)}/mo.`
                       : props.dealType === 'FLIP'
-                        ? `Cost overrun risk — project budgeted at ${fc(props.flipResults.totalCost)} over ${props.flipInputs.projectLengthMonths} months. A 10% cost overrun reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - props.flipResults.totalCost * 0.1)}.`
+                        ? `Cost overrun risk — refurb budgeted at ${fc(props.flipRefurbWithContingency ?? props.refurbCost)} (incl. contingency). A 10% cost overrun (${fc((props.flipRefurbWithContingency ?? props.refurbCost) * 0.1)}) reduces net profit from ${fc(props.flipResults.netProfit)} to ${fc(props.flipResults.netProfit - (props.flipRefurbWithContingency ?? props.refurbCost) * 0.1)}.`
                         : 'Rate sensitivity: stress test not available for this strategy.'}
                 </Text>
               </View>
@@ -2488,17 +2484,32 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View wrap={false} style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 7, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
                 <Text style={{ fontSize: 7.5, color: tintText, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Key Assumptions</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                  {props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
-                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                      <Text style={{ fontSize: 8, color: tintText }}>{`Deposit`}</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.depositPercent}%`}</Text>
-                    </View>
-                  ) : null}
-                  {props.mortgageRate > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
-                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
-                      <Text style={{ fontSize: 8, color: tintText }}>Mortgage Rate</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.mortgageRate}%`}</Text>
-                    </View>
+                  {props.dealType === 'FLIP' ? (
+                    <>
+                      <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                        <Text style={{ fontSize: 8, color: tintText }}>Financing</Text>
+                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{(props.flipInputs.financingMethod ?? 'cash').charAt(0).toUpperCase() + (props.flipInputs.financingMethod ?? 'cash').slice(1)}</Text>
+                      </View>
+                      {(props.flipTotalFinancingCost ?? 0) > 0 && (
+                        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                          <Text style={{ fontSize: 8, color: tintText }}>Total Finance Cost</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipTotalFinancingCost!)}</Text>
+                        </View>
+                      )}
+                    </>
+                  ) : props.dealType !== 'R2R' ? (
+                    <>
+                      <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                        <Text style={{ fontSize: 8, color: tintText }}>Deposit</Text>
+                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.depositPercent}%`}</Text>
+                      </View>
+                      {props.mortgageRate > 0 && (
+                        <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                          <Text style={{ fontSize: 8, color: tintText }}>Mortgage Rate</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.mortgageRate}%`}</Text>
+                        </View>
+                      )}
+                    </>
                   ) : null}
                   <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                     <Text style={{ fontSize: 8, color: tintText }}>{rentLabel}</Text>
