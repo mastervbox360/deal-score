@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
+  isProfileLoading: boolean
   tier: UserTier
   signOut: () => Promise<void>
 }
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
+  isProfileLoading: true,
   tier: 'free',
   signOut: async () => {}
 })
@@ -65,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, tier, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, isProfileLoading: loading, tier, signOut }}>
       {children}
     </AuthContext.Provider>
   )

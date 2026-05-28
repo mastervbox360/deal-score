@@ -262,7 +262,7 @@ export default function HomePage() {
   const [iosGenerating, setIosGenerating] = useState(false);
   const [currentDealId, setCurrentDealId] = useState<string | null>(null)
 
-  const { user, tier } = useAuth()
+  const { user, tier, isProfileLoading } = useAuth()
 
   useEffect(() => {
     const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
@@ -4393,7 +4393,7 @@ export default function HomePage() {
           <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
             PREPARED BY
           </h3>
-          {tier === 'pro_plus' && (
+          {(!isProfileLoading && tier === 'pro_plus') && (
           <div className="mb-4 space-y-1.5">
             <Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label>
             <Input
@@ -4531,7 +4531,7 @@ export default function HomePage() {
 
 
           {/* Pack Format (Portrait / Landscape) */}
-          {tier === 'pro_plus' && (
+          {(!isProfileLoading && tier === 'pro_plus') && (
           <div className="mt-4 space-y-1.5">
             <div className="flex items-center gap-1">
               <Label className="text-xs">Pack Format</Label>
@@ -4563,7 +4563,7 @@ export default function HomePage() {
           )}
 
           {/* Cover Style */}
-          {tier === 'pro_plus' && (
+          {(!isProfileLoading && tier === 'pro_plus') && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your {pdfOrientation} pack cover style)</span></Label>
             <div className="flex flex-wrap gap-4">
@@ -4649,7 +4649,7 @@ export default function HomePage() {
           )}
 
           {/* Brand Colour */}
-          {tier === 'pro_plus' && (
+          {(!isProfileLoading && tier === 'pro_plus') && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Brand Colour</Label>
             <p className="text-xs text-slate-400 -mt-0.5">Used for cover background and section headers</p>
@@ -4692,7 +4692,7 @@ export default function HomePage() {
           )}
 
           {/* Accent Colour */}
-          {tier === 'pro_plus' && (
+          {(!isProfileLoading && tier === 'pro_plus') && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Accent Colour</Label>
             <p className="text-xs text-slate-400 -mt-0.5">Used for decorative rules and highlights</p>
@@ -4738,7 +4738,7 @@ export default function HomePage() {
           )}
 
           {/* Your Logo */}
-          {tier === 'pro_plus' && (
+          {(!isProfileLoading && tier === 'pro_plus') && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Your Logo <span className="text-slate-400 font-normal">(appears on PDF cover)</span></Label>
             {logoBase64 ? (
@@ -4788,7 +4788,7 @@ export default function HomePage() {
 
           {/* Buttons */}
           <div className="mt-6 flex flex-col gap-3">
-            {tier !== 'free' && (
+            {(!isProfileLoading && tier !== 'free') && (
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -4800,7 +4800,7 @@ export default function HomePage() {
                 <span className="text-xs text-slate-600">Include full calculation workings as a PDF appendix</span>
               </label>
             )}
-            {tier !== 'free' && (
+            {(!isProfileLoading && tier !== 'free') && (
               <button
                 type="button"
                 onClick={isIOS ? handlePreviewIOS : () => setPdfPreviewOpen(true)}
@@ -4811,7 +4811,7 @@ export default function HomePage() {
                 {iosGenerating ? 'Generating…' : 'Preview PDF'}
               </button>
             )}
-            {tier !== 'free' && (
+            {(!isProfileLoading && tier !== 'free') && (
               <PdfDownloadButton
                 pdfProps={pdfProps}
                 fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
