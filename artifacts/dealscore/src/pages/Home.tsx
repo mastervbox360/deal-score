@@ -2460,33 +2460,44 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="hmo-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={hmoInputs.occupancyRate} onChange={(e) => handleHmoChange('occupancyRate', e.target.value)} />
                     </div>
-                    {sharedInputs.refurbCost > 0 && (
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>How is the refurb funded?</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'bridging'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setHmoRefurbFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              hmoRefurbFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {hmoRefurbFinancingMethod === 'bridging' && (
                       <>
-                        <div className="md:col-span-2 mt-2">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Financing</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Rate (% per month)</Label><InfoIcon id="hmo-ref-bridge-rate" text="Monthly rate for the refurb bridging facility. Typical UK rates: 0.5–1.5%/month." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 0.9" value={hmoRefurbBridgingRate || ''} onChange={(e) => setHmoRefurbBridgingRate(Number(e.target.value) || 0)} />
                         </div>
-                        <div className="md:col-span-2">
-                          <div className="flex gap-2">
-                            <button type="button" onClick={() => setHmoRefurbFinancingMethod('cash')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${hmoRefurbFinancingMethod === 'cash' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Cash</button>
-                            <button type="button" onClick={() => setHmoRefurbFinancingMethod('bridging')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${hmoRefurbFinancingMethod === 'bridging' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Bridging Loan</button>
-                          </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Term (months)</Label><InfoIcon id="hmo-ref-bridge-term" text="How long the refurb bridging facility runs. Typically matches your construction programme." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 6" value={hmoRefurbBridgingTermMonths || ''} onChange={(e) => setHmoRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
                         </div>
-                        {hmoRefurbFinancingMethod === 'bridging' && (
-                          <>
-                            <div className="space-y-2">
-                              <Label>Bridging Rate (%/mo)</Label>
-                              <Input type="number" step="0.1" placeholder="e.g. 0.75" value={hmoRefurbBridgingRate || ''} onChange={(e) => setHmoRefurbBridgingRate(Number(e.target.value) || 0)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Term (months)</Label>
-                              <Input type="number" placeholder="e.g. 6" value={hmoRefurbBridgingTermMonths || ''} onChange={(e) => setHmoRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>LTV (%)</Label>
-                              <Input type="number" placeholder="e.g. 70" value={hmoRefurbBridgingLTV || ''} onChange={(e) => setHmoRefurbBridgingLTV(Number(e.target.value) || 70)} />
-                            </div>
-                          </>
-                        )}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="hmo-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
+                          <Input type="number" step="1" value={hmoRefurbBridgingLTV} onChange={(e) => setHmoRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                        </div>
                       </>
                     )}
                   </div>
@@ -2678,33 +2689,44 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Platform Fees (%)</Label><InfoIcon id="sa-pfees" text={TT.platformFees} /></div>
                       <Input type="number" step="0.5" placeholder="Enter platform fees %" value={saInputs.platformFeesPercent || ''} onChange={(e) => handleSaChange('platformFeesPercent', e.target.value)} data-testid="input-sa-platform-fees" />
                     </div>
-                    {sharedInputs.refurbCost > 0 && (
+                    {/* Refurb Financing */}
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <div className="h-px w-full bg-border mb-3" />
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                      <Label>How is the refurb funded?</Label>
+                      <div className="flex w-full rounded-md overflow-hidden border border-input">
+                        {(['cash', 'bridging'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSaRefurbFinancingMethod(m)}
+                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                              saRefurbFinancingMethod === m
+                                ? 'bg-[#1B3A6B] text-white'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {saRefurbFinancingMethod === 'bridging' && (
                       <>
-                        <div className="md:col-span-2 mt-2">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Financing</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Rate (% per month)</Label><InfoIcon id="sa-ref-bridge-rate" text="Monthly rate for the refurb bridging facility. Typical UK rates: 0.5–1.5%/month." /></div>
+                          <Input type="number" step="0.1" placeholder="e.g. 0.9" value={saRefurbBridgingRate || ''} onChange={(e) => setSaRefurbBridgingRate(Number(e.target.value) || 0)} />
                         </div>
-                        <div className="md:col-span-2">
-                          <div className="flex gap-2">
-                            <button type="button" onClick={() => setSaRefurbFinancingMethod('cash')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${saRefurbFinancingMethod === 'cash' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Cash</button>
-                            <button type="button" onClick={() => setSaRefurbFinancingMethod('bridging')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${saRefurbFinancingMethod === 'bridging' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Bridging Loan</button>
-                          </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging Term (months)</Label><InfoIcon id="sa-ref-bridge-term" text="How long the refurb bridging facility runs. Typically matches your construction programme." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 6" value={saRefurbBridgingTermMonths || ''} onChange={(e) => setSaRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
                         </div>
-                        {saRefurbFinancingMethod === 'bridging' && (
-                          <>
-                            <div className="space-y-2">
-                              <Label>Bridging Rate (%/mo)</Label>
-                              <Input type="number" step="0.1" placeholder="e.g. 0.75" value={saRefurbBridgingRate || ''} onChange={(e) => setSaRefurbBridgingRate(Number(e.target.value) || 0)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Term (months)</Label>
-                              <Input type="number" placeholder="e.g. 6" value={saRefurbBridgingTermMonths || ''} onChange={(e) => setSaRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>LTV (%)</Label>
-                              <Input type="number" placeholder="e.g. 70" value={saRefurbBridgingLTV || ''} onChange={(e) => setSaRefurbBridgingLTV(Number(e.target.value) || 70)} />
-                            </div>
-                          </>
-                        )}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="sa-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
+                          <Input type="number" step="1" value={saRefurbBridgingLTV} onChange={(e) => setSaRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                        </div>
                       </>
                     )}
                   </div>
