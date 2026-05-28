@@ -239,6 +239,15 @@ export default function HomePage() {
   const [hasAnalysed, setHasAnalysed] = useState(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
+  const [financingDetailOpen, setFinancingDetailOpen] = useState<boolean>(false);
+  const [hmoRefurbFinancingMethod, setHmoRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
+  const [hmoRefurbBridgingRate, setHmoRefurbBridgingRate] = useState(0);
+  const [hmoRefurbBridgingTermMonths, setHmoRefurbBridgingTermMonths] = useState(0);
+  const [hmoRefurbBridgingLTV, setHmoRefurbBridgingLTV] = useState(70);
+  const [saRefurbFinancingMethod, setSaRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
+  const [saRefurbBridgingRate, setSaRefurbBridgingRate] = useState(0);
+  const [saRefurbBridgingTermMonths, setSaRefurbBridgingTermMonths] = useState(0);
+  const [saRefurbBridgingLTV, setSaRefurbBridgingLTV] = useState(70);
   const [whyScoreOpen, setWhyScoreOpen] = useState<boolean>(false);
   const [showAnnual, setShowAnnual] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
@@ -818,10 +827,18 @@ export default function HomePage() {
       setBtlInputs({ monthlyRent: 0 });
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
+      setHmoRefurbFinancingMethod('cash');
+      setHmoRefurbBridgingRate(0);
+      setHmoRefurbBridgingTermMonths(0);
+      setHmoRefurbBridgingLTV(70);
     } else if (dealType === 'FLIP') {
       setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, contingencyPercent: 10, financingMethod: 'cash', flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO', refurbFinancingMethod: 'cash', refurbSameAsPurchase: true, refurbBridgingRate: 0, refurbBridgingTermMonths: 0, refurbBridgingLTV: 70 });
     } else if (dealType === 'SA') {
       setSaInputs({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
+      setSaRefurbFinancingMethod('cash');
+      setSaRefurbBridgingRate(0);
+      setSaRefurbBridgingTermMonths(0);
+      setSaRefurbBridgingLTV(70);
     } else if (dealType === 'BRRR') {
       setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
     } else if (dealType === 'R2R') {
@@ -867,7 +884,10 @@ export default function HomePage() {
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
-  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs });
+  const hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
+    ? refurbCost * (hmoRefurbBridgingLTV / 100) * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
+    : 0;
+  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost + hmoRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, refurbFinancingMethod, refurbSameAsPurchase, refurbBridgingRate, refurbBridgingTermMonths, refurbBridgingLTV } = flipInputs;
   const purchaseFinancingCost = (() => {
     if (financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
@@ -907,7 +927,10 @@ export default function HomePage() {
     expectedSalePrice: flipInputs.expectedSalePrice,
     sellingCostsPercent: flipInputs.sellingCostsPercent,
   });
-  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const saRefurbBridgingCost = saRefurbFinancingMethod === 'bridging' && saRefurbBridgingRate > 0 && saRefurbBridgingTermMonths > 0
+    ? refurbCost * (saRefurbBridgingLTV / 100) * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
+    : 0;
+  const saResults = calculateSA({ ...sharedInputs, ...saInputs, otherCosts: sharedInputs.otherCosts + saRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
   const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
     ? (purchasePrice * (brrBridgingLTV / 100)) * (brrBridgingRate / 100) * brrBridgingTerm
@@ -1545,8 +1568,14 @@ export default function HomePage() {
     const _sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
-    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
-    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
+      ? sharedInputs.refurbCost * (hmoRefurbBridgingLTV / 100) * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
+      : 0;
+    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost + _hmoRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _saRefurbBridgingCost = saRefurbFinancingMethod === 'bridging' && saRefurbBridgingRate > 0 && saRefurbBridgingTermMonths > 0
+      ? sharedInputs.refurbCost * (saRefurbBridgingLTV / 100) * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
+      : 0;
+    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, otherCosts: sharedInputs.otherCosts + _saRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { bridgingRate: _brrBridgingRate, bridgingTermMonths: _brrBridgingTerm, bridgingLTV: _brrBridgingLTV, ...brrrInputsForPdfCalc } = brrrInputs;
     const _brrrBridgingInterest = sharedInputs.purchasePrice > 0 && _brrBridgingRate > 0 && _brrBridgingTerm > 0
       ? (sharedInputs.purchasePrice * (_brrBridgingLTV / 100)) * (_brrBridgingRate / 100) * _brrBridgingTerm
@@ -1825,6 +1854,8 @@ export default function HomePage() {
     isAuctionPurchase, auctionDate, auctionCompletionDate, buyersPremiumPct, buyersPremiumAmount,
     buyersPremiumMode, auctionReservationFee, buyersPremiumValue, auctionReservationFeeValue,
     protectAddress, protectedAddressDescription, paymentTerms,
+    hmoRefurbFinancingMethod, hmoRefurbBridgingRate, hmoRefurbBridgingTermMonths, hmoRefurbBridgingLTV,
+    saRefurbFinancingMethod, saRefurbBridgingRate, saRefurbBridgingTermMonths, saRefurbBridgingLTV,
   ]);
 
   const hasMinimumData =
@@ -2429,6 +2460,35 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Occupancy Rate (%)</Label><InfoIcon id="hmo-occ" text={TT.occupancyRate} /></div>
                       <Input type="number" value={hmoInputs.occupancyRate} onChange={(e) => handleHmoChange('occupancyRate', e.target.value)} />
                     </div>
+                    {sharedInputs.refurbCost > 0 && (
+                      <>
+                        <div className="md:col-span-2 mt-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Financing</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setHmoRefurbFinancingMethod('cash')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${hmoRefurbFinancingMethod === 'cash' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Cash</button>
+                            <button type="button" onClick={() => setHmoRefurbFinancingMethod('bridging')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${hmoRefurbFinancingMethod === 'bridging' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Bridging Loan</button>
+                          </div>
+                        </div>
+                        {hmoRefurbFinancingMethod === 'bridging' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label>Bridging Rate (%/mo)</Label>
+                              <Input type="number" step="0.1" placeholder="e.g. 0.75" value={hmoRefurbBridgingRate || ''} onChange={(e) => setHmoRefurbBridgingRate(Number(e.target.value) || 0)} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Term (months)</Label>
+                              <Input type="number" placeholder="e.g. 6" value={hmoRefurbBridgingTermMonths || ''} onChange={(e) => setHmoRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>LTV (%)</Label>
+                              <Input type="number" placeholder="e.g. 70" value={hmoRefurbBridgingLTV || ''} onChange={(e) => setHmoRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -2618,6 +2678,35 @@ export default function HomePage() {
                       <div className="flex items-center gap-1"><Label>Platform Fees (%)</Label><InfoIcon id="sa-pfees" text={TT.platformFees} /></div>
                       <Input type="number" step="0.5" placeholder="Enter platform fees %" value={saInputs.platformFeesPercent || ''} onChange={(e) => handleSaChange('platformFeesPercent', e.target.value)} data-testid="input-sa-platform-fees" />
                     </div>
+                    {sharedInputs.refurbCost > 0 && (
+                      <>
+                        <div className="md:col-span-2 mt-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Financing</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setSaRefurbFinancingMethod('cash')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${saRefurbFinancingMethod === 'cash' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Cash</button>
+                            <button type="button" onClick={() => setSaRefurbFinancingMethod('bridging')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${saRefurbFinancingMethod === 'bridging' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-muted-foreground hover:bg-slate-200'}`}>Bridging Loan</button>
+                          </div>
+                        </div>
+                        {saRefurbFinancingMethod === 'bridging' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label>Bridging Rate (%/mo)</Label>
+                              <Input type="number" step="0.1" placeholder="e.g. 0.75" value={saRefurbBridgingRate || ''} onChange={(e) => setSaRefurbBridgingRate(Number(e.target.value) || 0)} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Term (months)</Label>
+                              <Input type="number" placeholder="e.g. 6" value={saRefurbBridgingTermMonths || ''} onChange={(e) => setSaRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>LTV (%)</Label>
+                              <Input type="number" placeholder="e.g. 70" value={saRefurbBridgingLTV || ''} onChange={(e) => setSaRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -3609,6 +3698,47 @@ export default function HomePage() {
                         <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{formatCurrency(hmoResults.monthlyMortgageInterest + hmoResults.totalOperatingCosts)}/mo</span>
                       </div>
                     </div>
+                    {hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingCost > 0 && (
+                      <div className="mt-3 p-3 rounded-md border border-amber-300" style={{ backgroundColor: '#FEF3C7' }}>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#92400E' }}>Refurb Financing Summary</p>
+                        <div className="flex items-center justify-between py-1">
+                          <span className="text-xs text-amber-800">Method</span>
+                          <span className="text-xs font-medium text-amber-900">Bridging Loan</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 mt-1 pt-2 border-t border-amber-300">
+                          <span className="text-xs font-semibold text-amber-900">Refurb Finance Cost</span>
+                          <span className="text-xs font-bold text-amber-900">{formatCurrency(hmoRefurbBridgingCost)}</span>
+                        </div>
+                        {hmoResults.totalCashInvested > 0 && (
+                          <p className="text-xs text-amber-700 mt-1">{Math.round((hmoRefurbBridgingCost / hmoResults.totalCashInvested) * 100)}% of total cash invested</p>
+                        )}
+                      </div>
+                    )}
+                    {hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingCost > 0 && (
+                      <div className="mt-4">
+                        <div className="border-t border-border" />
+                        <button
+                          type="button"
+                          onClick={() => setFinancingDetailOpen((v) => !v)}
+                          aria-expanded={financingDetailOpen}
+                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                        >
+                          <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: financingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </button>
+                        {financingDetailOpen && (
+                          <div className="pb-4 space-y-3">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
+                              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                                <span className="text-sm text-muted-foreground">{`Bridging (${hmoRefurbBridgingLTV}% LTV × ${hmoRefurbBridgingRate}%/mo × ${hmoRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm font-medium">{formatCurrency(hmoRefurbBridgingCost)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -3716,6 +3846,53 @@ export default function HomePage() {
                         </div>
                         {flipResults.netProfit > 0 && (
                           <p className="text-xs text-amber-700 mt-1">{Math.round((flipTotalFinancingCost / flipResults.netProfit) * 100)}% of net profit</p>
+                        )}
+                      </div>
+                    )}
+                    {(flipPurchaseFinancingCost > 0 || flipRefurbFinancingCost > 0) && (
+                      <div className="mt-4">
+                        <div className="border-t border-border" />
+                        <button
+                          type="button"
+                          onClick={() => setFinancingDetailOpen((v) => !v)}
+                          aria-expanded={financingDetailOpen}
+                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                        >
+                          <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: financingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </button>
+                        {financingDetailOpen && (
+                          <div className="pb-4 space-y-3">
+                            {flipPurchaseFinancingCost > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Purchase Finance</p>
+                                <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                                  <span className="text-sm text-muted-foreground">
+                                    {financingMethod === 'bridging'
+                                      ? `Bridging (${flipBridgingLTV}% LTV × ${flipBridgingRate}%/mo × ${flipBridgingTermMonths} months)`
+                                      : `Mortgage interest over ${flipInputs.projectLengthMonths} months`}
+                                  </span>
+                                  <span className="text-sm font-medium">{formatCurrency(flipPurchaseFinancingCost)}</span>
+                                </div>
+                              </div>
+                            )}
+                            {flipRefurbFinancingCost > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
+                                <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                                  <span className="text-sm text-muted-foreground">
+                                    {refurbSameAsPurchase && financingMethod === 'bridging'
+                                      ? `Rolled into purchase bridge (${flipBridgingRate}%/mo × ${flipBridgingTermMonths} months)`
+                                      : `Bridging (${refurbBridgingLTV}% LTV × ${refurbBridgingRate}%/mo × ${refurbBridgingTermMonths} months)`}
+                                  </span>
+                                  <span className="text-sm font-medium">{formatCurrency(flipRefurbFinancingCost)}</span>
+                                </div>
+                              </div>
+                            )}
+                            {financingMethod === 'bridging' && (
+                              <p className="text-xs text-muted-foreground">Bridging loan note: interest is computed monthly on the outstanding loan balance at the LTV specified. Ensure you have an exit strategy (sale or refinance) in place before the term ends.</p>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
@@ -3868,6 +4045,47 @@ export default function HomePage() {
                         <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{(() => { const totalCosts = saResults.monthlyMortgage + saResults.totalOperatingCosts; const grossDailyRate = saInputs.nightlyRate * 30.4; const pct = grossDailyRate > 0 ? (totalCosts / grossDailyRate) * 100 : 0; return pct > 0 ? formatPercent(Math.min(pct, 100)) : '—'; })()}</span>
                       </div>
                     </div>
+                    {saRefurbFinancingMethod === 'bridging' && saRefurbBridgingCost > 0 && (
+                      <div className="mt-3 p-3 rounded-md border border-amber-300" style={{ backgroundColor: '#FEF3C7' }}>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#92400E' }}>Refurb Financing Summary</p>
+                        <div className="flex items-center justify-between py-1">
+                          <span className="text-xs text-amber-800">Method</span>
+                          <span className="text-xs font-medium text-amber-900">Bridging Loan</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 mt-1 pt-2 border-t border-amber-300">
+                          <span className="text-xs font-semibold text-amber-900">Refurb Finance Cost</span>
+                          <span className="text-xs font-bold text-amber-900">{formatCurrency(saRefurbBridgingCost)}</span>
+                        </div>
+                        {saResults.totalCashInvested > 0 && (
+                          <p className="text-xs text-amber-700 mt-1">{Math.round((saRefurbBridgingCost / saResults.totalCashInvested) * 100)}% of total cash invested</p>
+                        )}
+                      </div>
+                    )}
+                    {saRefurbFinancingMethod === 'bridging' && saRefurbBridgingCost > 0 && (
+                      <div className="mt-4">
+                        <div className="border-t border-border" />
+                        <button
+                          type="button"
+                          onClick={() => setFinancingDetailOpen((v) => !v)}
+                          aria-expanded={financingDetailOpen}
+                          className="w-full flex items-center justify-between py-4 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                        >
+                          <span className="text-sm font-semibold" style={{ color: '#1B3A6B' }}>Financing Detail</span>
+                          <ChevronDown className="h-4 w-4" style={{ color: '#1B3A6B', transform: financingDetailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        </button>
+                        {financingDetailOpen && (
+                          <div className="pb-4 space-y-3">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
+                              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                                <span className="text-sm text-muted-foreground">{`Bridging (${saRefurbBridgingLTV}% LTV × ${saRefurbBridgingRate}%/mo × ${saRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm font-medium">{formatCurrency(saRefurbBridgingCost)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -4477,9 +4695,12 @@ export default function HomePage() {
                       <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      {hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingCost > 0 && (
+                        <WRow label={`Refurb Bridging (${hmoRefurbBridgingLTV}% LTV × ${hmoRefurbBridgingRate}%/mo × ${hmoRefurbBridgingTermMonths} months)`} value={formatCurrency(hmoRefurbBridgingCost)} />
+                      )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {hmoInputs.licenceCost > 0 && (
-                        <WRow label="HMO Licence Cost" value={formatCurrency(hmoInputs.licenceCost)} />
+                        <WRow label="HMO Licence Cost (one-off, incl. in Cash Invested)" value={formatCurrency(hmoInputs.licenceCost)} />
                       )}
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
@@ -4548,6 +4769,9 @@ export default function HomePage() {
                       <WRow label={`Deposit (${sharedInputs.depositPercent}% of ${formatCurrency(sharedInputs.purchasePrice)})`} value={formatCurrency(sharedInputs.purchasePrice * sharedInputs.depositPercent / 100)} />
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
+                      {saRefurbFinancingMethod === 'bridging' && saRefurbBridgingCost > 0 && (
+                        <WRow label={`Refurb Bridging (${saRefurbBridgingLTV}% LTV × ${saRefurbBridgingRate}%/mo × ${saRefurbBridgingTermMonths} months)`} value={formatCurrency(saRefurbBridgingCost)} />
+                      )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}

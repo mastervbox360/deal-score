@@ -1,0 +1,55 @@
+Read these files in full before planning anything:
+
+src/Home.tsx
+src/components/DealScorePDF.tsx
+src/components/DealScorePDFProPlus.tsx
+
+Then plan all edits explicitly before executing. Execute in parallel where possible.
+
+CHANGE 1 — HMO Refurb Bridging Section
+In Home.tsx, find the HMO tab inputs section.
+Add an optional refurb bridging UI block that only renders when refurbCost > 0:
+
+Label: "Refurb Financing"
+Selector: [Cash] [Bridging] — default Cash
+When Bridging selected, show three fields: Rate (%/mo), Term (months), LTV (%)
+Pre-compute: hmoRefurbBridgingCost = refurbCost × (ltv/100) × (rate/100) × term
+When Cash: hmoRefurbBridgingCost = 0
+Pass hmoRefurbBridgingCost into calculateHMO as part of otherCosts (or as a named param — match the existing pattern used for FLIP refurb bridging exactly)
+
+Add a Tier 2 amber financing summary box below the HMO Group 3 results — mirror the FLIP Tier 2 box pattern exactly. Show: refurb method (Cash / Bridging) and cost when Bridging.
+Add a refurb bridging interest line to HMO Show Workings when bridging is selected.
+Add a note in HMO Show Workings clarifying that HMO Licence Cost is a one-off cost included in Cash Invested (it currently appears inside otherCosts but is displayed separately — add a clarifying label).
+
+CHANGE 2 — SA Refurb Bridging Section
+Identical pattern to Change 1. Apply to the SA tab.
+
+saRefurbBridgingCost = refurbCost × (ltv/100) × (rate/100) × term
+Tier 2 amber summary box, Show Workings line — all mirror HMO treatment exactly.
+
+
+CHANGE 3 — Tier 3 Collapsible Financing Detail (FLIP + HMO + SA)
+Add a collapsible "Financing Detail" section below the Tier 2 amber summary box in FLIP, HMO, and SA tabs.
+
+Collapsed by default. Expand/collapse with a chevron. Same UX pattern as Show Workings.
+FLIP shows: Purchase financing section header + cost line. Refurb financing section header + cost line. Amortisation note if bridging selected.
+HMO shows: Refurb financing section header + cost line (only when refurb bridging selected).
+SA shows: same as HMO.
+
+
+CHANGE 4 — p2CiTotal PDF Fix
+In DealScorePDF.tsx, find the line (~line 1006) where p2CiTotal is calculated as an independent inline formula.
+Replace it with: p2CiTotal = results.totalCashInvested
+This applies to all strategies (BTL/HMO/SA/SOCIAL/BRRR). Use whichever strategy's results object is in scope at that point — do not recalculate inline.
+
+CHANGE 5 — Photo Section Heading Colour Fix
+In both DealScorePDF.tsx and DealScorePDFProPlus.tsx:
+Find all <Text> elements that are photo page section headings. They currently use a hardcoded colour value. Replace those hardcoded colour values with the structureColour variable (already defined and used elsewhere in both files).
+Do not change any other text elements — only the photo section heading elements.
+
+After all changes:
+
+Zero TypeScript errors
+No new console errors
+Confirm HMO and SA refurb bridging sections only appear when refurbCost > 0
+Confirm Tier 3 is collapsed by default in all three strategies

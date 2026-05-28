@@ -697,7 +697,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     </View>
   );
   const WPdfSec = ({ title }: { title: string }) => (
-    <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1B3A6B', marginTop: 7, marginBottom: 2 }}>{title}</Text>
+    <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, marginTop: 7, marginBottom: 2 }}>{title}</Text>
   );
 
   // FIX 2: hero metric values use #333333, not brand colour
@@ -1009,7 +1009,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const p2CiDeposit = props.purchasePrice * props.depositPercent / 100;
   const p2CiAuctionFees = (props.isAuctionPurchase ? (props.buyersPremiumValue ?? 0) : 0) + (props.auctionReservationFeeValue ?? 0);
   const p2CiLeaseExt = props.leaseExtensionCost ?? 0;
-  const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts + p2CiAuctionFees + p2CiLeaseExt;
+  const p2CiTotal =
+    props.dealType === 'BTL' ? props.btlResults.totalCashInvested :
+    props.dealType === 'HMO' ? props.hmoResults.totalCashInvested :
+    props.dealType === 'SA' ? props.saResults.totalCashInvested :
+    props.socialResults.totalCashInvested;
 
   // ── Financial Detail page derived values ──────────────────────────────────
   const activeResults =
