@@ -2248,6 +2248,27 @@ export default function HomePage() {
                       )}
                     </>
                   )}
+                  {(dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR') && (
+                    <div className="md:col-span-2 space-y-3 pt-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="uninhabitable"
+                          checked={isUninhabitable}
+                          onChange={(e) => setIsUninhabitable(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+                        />
+                        <label htmlFor="uninhabitable" className="text-sm font-medium text-slate-700 cursor-pointer">
+                          Uninhabitable property
+                        </label>
+                      </div>
+                      {isUninhabitable && (
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
+                          Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {dealType !== 'R2R' && (
                     <>
                       <div className="space-y-2">
@@ -2267,6 +2288,98 @@ export default function HomePage() {
                         onConfirmOverride={(v) => { setManualTaxValue(v); setTaxOverrideActive(true); setTaxOverrideEditing(false); }}
                         onResetOverride={() => { setTaxOverrideActive(false); setTaxOverrideEditing(false); setManualTaxValue(0); }}
                       />
+                      {dealType !== 'SOCIAL' && (
+                        <div className="md:col-span-2 space-y-3 pt-3 border-t border-slate-100 mt-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="auction-purchase"
+                              checked={isAuctionPurchase}
+                              onChange={(e) => setIsAuctionPurchase(e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
+                            />
+                            <label htmlFor="auction-purchase" className="text-sm font-medium text-slate-700 cursor-pointer">
+                              Auction purchase
+                            </label>
+                          </div>
+                          {isAuctionPurchase && (
+                            <>
+                              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
+                                Auction purchases require exchange on the fall of the hammer. Ensure bridging finance or cash funds are pre-arranged before bidding. You cannot renegotiate after the gavel falls.
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-1">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">Auction date</Label>
+                                  <Input type="date" value={auctionDate} onChange={(e) => setAuctionDate(e.target.value)} />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <Label className="text-xs">Completion deadline</Label>
+                                    <InfoIcon id="auction-completion" text="Traditional auction: completion typically required within 28 days of the auction date. Modern Method of Auction (MMoA): typically 56 days. Exchange occurs on the fall of the hammer — ensure finance is pre-arranged before bidding." />
+                                  </div>
+                                  <Input type="date" value={auctionCompletionDate} onChange={(e) => setAuctionCompletionDate(e.target.value)} />
+                                  <p className="text-xs text-slate-400">Traditional auction: 28 days from auction date. Modern Method of Auction: 56 days.</p>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <Label className="text-xs">Buyer's premium</Label>
+                                    <InfoIcon id="buyers-premium" text="Auction houses charge the buyer a fee on top of the purchase price. Typically 1.5–3% + VAT for traditional auctions. Always check the legal pack before bidding — this cost is non-negotiable once the hammer falls." />
+                                  </div>
+                                  <div className="flex gap-2 items-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => setBuyersPremiumMode('pct')}
+                                      className={`px-2.5 py-1.5 text-xs rounded font-medium transition-colors ${buyersPremiumMode === 'pct' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                    >%</button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setBuyersPremiumMode('fixed')}
+                                      className={`px-2.5 py-1.5 text-xs rounded font-medium transition-colors ${buyersPremiumMode === 'fixed' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                    >£</button>
+                                    {buyersPremiumMode === 'pct' ? (
+                                      <Input
+                                        type="number"
+                                        min={0}
+                                        max={10}
+                                        step={0.1}
+                                        placeholder="e.g. 2.5"
+                                        value={buyersPremiumPct === '' ? '' : buyersPremiumPct}
+                                        onChange={(e) => setBuyersPremiumPct(e.target.value === '' ? '' : Number(e.target.value))}
+                                        className="flex-1"
+                                      />
+                                    ) : (
+                                      <Input
+                                        type="number"
+                                        min={0}
+                                        placeholder="e.g. 4500"
+                                        value={buyersPremiumAmount === '' ? '' : buyersPremiumAmount}
+                                        onChange={(e) => setBuyersPremiumAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                                        className="flex-1"
+                                      />
+                                    )}
+                                  </div>
+                                  {buyersPremiumValue > 0 && (
+                                    <p className="text-xs text-slate-500">= {formatCurrency(buyersPremiumValue)}</p>
+                                  )}
+                                </div>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <Label className="text-xs">Reservation fee (if MMoA)</Label>
+                                    <InfoIcon id="reservation-fee" text="Modern Method of Auction charges a non-refundable reservation fee (typically £5,000–£6,000 inc VAT) payable on acceptance of the winning bid. This is in addition to any buyer's premium." />
+                                  </div>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    placeholder="e.g. 5000"
+                                    value={auctionReservationFee === '' ? '' : auctionReservationFee}
+                                    onChange={(e) => setAuctionReservationFee(e.target.value === '' ? '' : Number(e.target.value))}
+                                  />
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <div className="flex items-center gap-1"><Label>Refurb Cost (£)</Label><InfoIcon id="shared-refurb" text={TT.refurbCost} /></div>
                         <Input type="number" placeholder="Enter refurb cost" value={sharedInputs.refurbCost || ''} onChange={(e) => handleSharedChange('refurbCost', e.target.value)} />
@@ -2294,23 +2407,6 @@ export default function HomePage() {
                             <InfoIcon id="cash-buyer-info" text="Cash purchases use the full purchase price as capital deployed. ROI is calculated on total cash invested including purchase price, tax, and all costs." />
                           </label>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id="uninhabitable"
-                            checked={isUninhabitable}
-                            onChange={(e) => setIsUninhabitable(e.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
-                          />
-                          <label htmlFor="uninhabitable" className="text-sm font-medium text-slate-700 cursor-pointer">
-                            Uninhabitable property
-                          </label>
-                        </div>
-                        {isUninhabitable && (
-                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
-                            Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
-                          </p>
-                        )}
                       </div>
                       {!isCashBuyer && (
                         <div className="space-y-2">
@@ -2337,97 +2433,6 @@ export default function HomePage() {
                     </>
                   )}
 
-                  {/* Auction Purchase — universal across all strategies */}
-                  <div className="md:col-span-2 space-y-3 pt-3 border-t border-slate-100 mt-1">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="auction-purchase"
-                        checked={isAuctionPurchase}
-                        onChange={(e) => setIsAuctionPurchase(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
-                      />
-                      <label htmlFor="auction-purchase" className="text-sm font-medium text-slate-700 cursor-pointer">
-                        Auction purchase
-                      </label>
-                    </div>
-                    {isAuctionPurchase && (
-                      <>
-                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
-                          Auction purchases require exchange on the fall of the hammer. Ensure bridging finance or cash funds are pre-arranged before bidding. You cannot renegotiate after the gavel falls.
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-1">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">Auction date</Label>
-                            <Input type="date" value={auctionDate} onChange={(e) => setAuctionDate(e.target.value)} />
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-1">
-                              <Label className="text-xs">Completion deadline</Label>
-                              <InfoIcon id="auction-completion" text="Traditional auction: completion typically required within 28 days of the auction date. Modern Method of Auction (MMoA): typically 56 days. Exchange occurs on the fall of the hammer — ensure finance is pre-arranged before bidding." />
-                            </div>
-                            <Input type="date" value={auctionCompletionDate} onChange={(e) => setAuctionCompletionDate(e.target.value)} />
-                            <p className="text-xs text-slate-400">Traditional auction: 28 days from auction date. Modern Method of Auction: 56 days.</p>
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-1">
-                              <Label className="text-xs">Buyer's premium</Label>
-                              <InfoIcon id="buyers-premium" text="Auction houses charge the buyer a fee on top of the purchase price. Typically 1.5–3% + VAT for traditional auctions. Always check the legal pack before bidding — this cost is non-negotiable once the hammer falls." />
-                            </div>
-                            <div className="flex gap-2 items-center">
-                              <button
-                                type="button"
-                                onClick={() => setBuyersPremiumMode('pct')}
-                                className={`px-2.5 py-1.5 text-xs rounded font-medium transition-colors ${buyersPremiumMode === 'pct' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                              >%</button>
-                              <button
-                                type="button"
-                                onClick={() => setBuyersPremiumMode('fixed')}
-                                className={`px-2.5 py-1.5 text-xs rounded font-medium transition-colors ${buyersPremiumMode === 'fixed' ? 'bg-[#1B3A6B] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                              >£</button>
-                              {buyersPremiumMode === 'pct' ? (
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  max={10}
-                                  step={0.1}
-                                  placeholder="e.g. 2.5"
-                                  value={buyersPremiumPct === '' ? '' : buyersPremiumPct}
-                                  onChange={(e) => setBuyersPremiumPct(e.target.value === '' ? '' : Number(e.target.value))}
-                                  className="flex-1"
-                                />
-                              ) : (
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  placeholder="e.g. 4500"
-                                  value={buyersPremiumAmount === '' ? '' : buyersPremiumAmount}
-                                  onChange={(e) => setBuyersPremiumAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                                  className="flex-1"
-                                />
-                              )}
-                            </div>
-                            {buyersPremiumValue > 0 && (
-                              <p className="text-xs text-slate-500">= {formatCurrency(buyersPremiumValue)}</p>
-                            )}
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-1">
-                              <Label className="text-xs">Reservation fee (if MMoA)</Label>
-                              <InfoIcon id="reservation-fee" text="Modern Method of Auction charges a non-refundable reservation fee (typically £5,000–£6,000 inc VAT) payable on acceptance of the winning bid. This is in addition to any buyer's premium." />
-                            </div>
-                            <Input
-                              type="number"
-                              min={0}
-                              placeholder="e.g. 5000"
-                              value={auctionReservationFee === '' ? '' : auctionReservationFee}
-                              onChange={(e) => setAuctionReservationFee(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
                 </div>
 
                 {/* Tab-specific inputs */}
@@ -2479,17 +2484,18 @@ export default function HomePage() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="hmo-mort-rate" text={TT.mortgageRate} /></div>
                           <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Term (years)</Label><InfoIcon id="hmo-mort-term" text="Length of mortgage in years." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.mortgageTerm || ''} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Repayment Type</Label><InfoIcon id="hmo-mort-type" text="Interest Only keeps monthly payments lower. Repayment reduces the loan balance over time." /></div>
                           <MortgageTypeToggle
                             value={sharedInputs.mortgageType}
                             onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
                           />
                         </div>
-                        {sharedInputs.mortgageType === 'REPAYMENT' && (
-                          <div className="space-y-2">
-                            <Label>Mortgage Term (years)</Label>
-                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
-                          </div>
-                        )}
                       </>
                     )}
                     {/* Refurb Financing */}
@@ -2532,26 +2538,6 @@ export default function HomePage() {
                         </div>
                       </>
                     )}
-                    {/* Uninhabitable */}
-                    <div className="col-span-1 md:col-span-2 space-y-3 pt-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="uninhabitable-hmo"
-                          checked={isUninhabitable}
-                          onChange={(e) => setIsUninhabitable(e.target.checked)}
-                          className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
-                        />
-                        <label htmlFor="uninhabitable-hmo" className="text-sm font-medium text-slate-700 cursor-pointer">
-                          Uninhabitable property
-                        </label>
-                      </div>
-                      {isUninhabitable && (
-                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
-                          Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
-                        </p>
-                      )}
-                    </div>
                     <div className="md:col-span-2 pt-2">
                       <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">One-off Costs</p>
@@ -2661,24 +2647,32 @@ export default function HomePage() {
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
                       <Label>How is the refurb funded?</Label>
-                      <div className="flex w-full rounded-md overflow-hidden border border-input">
-                        {(['cash', 'bridging'] as const).map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => handleFlipChange('refurbFinancingMethod', m)}
-                            className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                              flipInputs.refurbFinancingMethod === m
-                                ? 'bg-[#1B3A6B] text-white'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                      {flipInputs.financingMethod === 'bridging' ? (
+                        <div className="flex w-full rounded-md overflow-hidden border border-input">
+                          {(['cash', 'bridging'] as const).map((m) => (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => handleFlipChange('refurbFinancingMethod', m)}
+                              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                                flipInputs.refurbFinancingMethod === m
+                                  ? 'bg-[#1B3A6B] text-white'
+                                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex w-full rounded-md overflow-hidden border border-input">
+                          <button type="button" disabled className="flex-1 py-2 text-sm font-medium bg-[#1B3A6B] text-white cursor-default">
+                            Own Funds
                           </button>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
-                    {flipInputs.refurbFinancingMethod === 'bridging' && (
+                    {flipInputs.financingMethod === 'bridging' && flipInputs.refurbFinancingMethod === 'bridging' && (
                       <>
                         <div className="col-span-1 md:col-span-2 space-y-2">
                           <Label>Use same bridging terms as purchase?</Label>
@@ -2714,11 +2708,6 @@ export default function HomePage() {
                               <Input type="number" step="1" value={flipInputs.refurbBridgingLTV} onChange={(e) => handleFlipChange('refurbBridgingLTV', e.target.value)} />
                             </div>
                           </>
-                        )}
-                        {flipInputs.refurbSameAsPurchase && flipInputs.financingMethod !== 'bridging' && (
-                          <div className="md:col-span-2">
-                            <p className="text-xs text-amber-600">⚠️ "Same facility" requires Bridging selected for purchase financing above. Switch purchase to Bridging or choose a separate facility.</p>
-                          </div>
                         )}
                       </>
                     )}
@@ -2790,17 +2779,18 @@ export default function HomePage() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-1"><Label>Mortgage Rate (%)</Label><InfoIcon id="sa-mort-rate" text={TT.mortgageRate} /></div>
                           <Input type="number" step="0.1" placeholder="e.g. 5.5" value={sharedInputs.mortgageRate || ''} onChange={(e) => handleSharedChange('mortgageRate', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Mortgage Term (years)</Label><InfoIcon id="sa-mort-term" text="Length of mortgage in years." /></div>
+                          <Input type="number" step="1" placeholder="e.g. 25" value={sharedInputs.mortgageTerm || ''} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1"><Label>Repayment Type</Label><InfoIcon id="sa-mort-type" text="Interest Only keeps monthly payments lower. Repayment reduces the loan balance over time." /></div>
                           <MortgageTypeToggle
                             value={sharedInputs.mortgageType}
                             onChange={(v) => setSharedInputs(prev => ({ ...prev, mortgageType: v }))}
                           />
                         </div>
-                        {sharedInputs.mortgageType === 'REPAYMENT' && (
-                          <div className="space-y-2">
-                            <Label>Mortgage Term (years)</Label>
-                            <Input type="number" value={sharedInputs.mortgageTerm} onChange={(e) => handleSharedChange('mortgageTerm', e.target.value)} />
-                          </div>
-                        )}
                       </>
                     )}
                     {/* Refurb Financing */}
@@ -2843,26 +2833,6 @@ export default function HomePage() {
                         </div>
                       </>
                     )}
-                    {/* Uninhabitable */}
-                    <div className="col-span-1 md:col-span-2 space-y-3 pt-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="uninhabitable-sa"
-                          checked={isUninhabitable}
-                          onChange={(e) => setIsUninhabitable(e.target.checked)}
-                          className="h-4 w-4 rounded border-slate-300 text-[#1B3A6B] cursor-pointer"
-                        />
-                        <label htmlFor="uninhabitable-sa" className="text-sm font-medium text-slate-700 cursor-pointer">
-                          Uninhabitable property
-                        </label>
-                      </div>
-                      {isUninhabitable && (
-                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 leading-relaxed">
-                          Uninhabitable properties cannot be mortgaged on standard terms. Bridging finance or cash purchase is required. SDLT may not apply if the property has no value as a dwelling — seek advice.
-                        </p>
-                      )}
-                    </div>
                     <div className="col-span-1 md:col-span-2 pt-2">
                       <div className="h-px w-full bg-border mb-3" />
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Revenue</p>
