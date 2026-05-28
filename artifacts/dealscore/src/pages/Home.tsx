@@ -2504,7 +2504,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>How is the refurb funded?</Label>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="hmo-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
                       <div className="flex w-full rounded-md overflow-hidden border border-input">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2517,7 +2517,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
                           </button>
                         ))}
                       </div>
@@ -2646,7 +2646,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>How is the refurb funded?</Label>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
                       {flipInputs.financingMethod === 'bridging' ? (
                         <div className="flex w-full rounded-md overflow-hidden border border-input">
                           {(['cash', 'bridging'] as const).map((m) => (
@@ -2660,14 +2660,14 @@ export default function HomePage() {
                                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                               }`}
                             >
-                              {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                              {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
                             </button>
                           ))}
                         </div>
                       ) : (
                         <div className="flex w-full rounded-md overflow-hidden border border-input">
                           <button type="button" disabled className="flex-1 py-2 text-sm font-medium bg-[#1B3A6B] text-white cursor-default">
-                            Own Funds
+                            Cash (Own Funds)
                           </button>
                         </div>
                       )}
@@ -2799,7 +2799,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>How is the refurb funded?</Label>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="sa-refurb-fund" text="Choose how the refurb cost is funded. Cash (Own Funds) means you fund it yourself. Bridging (rolled up) means interest is added to the loan and repaid on exit." /></div>
                       <div className="flex w-full rounded-md overflow-hidden border border-input">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2812,7 +2812,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Own Funds' : 'Bridging (rolled up)'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Bridging (rolled up)'}
                           </button>
                         ))}
                       </div>
