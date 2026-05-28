@@ -2470,7 +2470,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Cash' : 'Mortgage'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
                           </button>
                         ))}
                       </div>
@@ -2590,7 +2590,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Cash' : m === 'bridging' ? 'Bridging' : 'Mortgage'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : m === 'bridging' ? 'Bridging Loan' : 'Mortgage'}
                           </button>
                         ))}
                       </div>
@@ -2757,7 +2757,7 @@ export default function HomePage() {
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }`}
                           >
-                            {m === 'cash' ? 'Cash' : 'Mortgage'}
+                            {m === 'cash' ? 'Cash (Own Funds)' : 'Mortgage'}
                           </button>
                         ))}
                       </div>
