@@ -84,16 +84,10 @@ export default function DashboardPage() {
 
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
         {/* Page header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: 0 }}>
             My Deals {!loading && <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '18px' }}>({deals.length})</span>}
           </h1>
-          <button
-            onClick={() => navigate('/app')}
-            style={{ backgroundColor: NAVY, color: '#fff', border: 'none', borderRadius: '6px', padding: '9px 18px', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
-          >
-            + New deal
-          </button>
         </div>
 
         {/* Loading */}

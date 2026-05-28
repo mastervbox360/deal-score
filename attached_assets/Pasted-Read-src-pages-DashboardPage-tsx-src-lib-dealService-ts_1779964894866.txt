@@ -1,0 +1,34 @@
+Read src/pages/DashboardPage.tsx, src/lib/dealService.ts, and src/pages/Home.tsx in full before making any changes. Plan all edits explicitly, then execute in parallel.
+Task: Three targeted fixes.
+
+Fix 1 — Remove duplicate "+ New deal" button from DashboardPage.
+In src/pages/DashboardPage.tsx, find the "+ New deal" button in the page body (below the AppHeader, in the "My Deals (N)" header row) and remove it. The AppHeader already has this button. Keep the "My Deals (N)" heading — just remove the button next to it.
+
+Fix 2 — Wire deal_score, cash_flow, coc_roi, gross_yield when saving a deal.
+In src/lib/dealService.ts, update createDeal and updateDeal to accept and write these four additional fields:
+typescript// Add to createDeal and updateDeal signatures:
+dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null
+cashFlow: number | null
+cocRoi: number | null
+grossYield: number | null
+Write them to the matching Supabase columns: deal_score, cash_flow, coc_roi, gross_yield.
+In src/hooks/useDealSync.ts, update the hook signature to accept and forward the same four fields.
+In src/pages/Home.tsx:
+
+Find where useDealSync is called and add the four calculated values
+Find where handleSaveDeal is called and add the four calculated values
+The deal score verdict is already calculated in the component — find the variable that holds 'RECOMMENDED', 'REVIEW', or 'AVOID' for the current strategy and pass it through
+Cash flow, CoC ROI, and Gross Yield are also already calculated — find the correct variables for the active strategy and pass them through
+
+
+Fix 3 — Add "← Dashboard" link to /app when user is logged in.
+In src/pages/Home.tsx, find the existing DealScore header at the top of the JSX. When user is not null, add a small "← Dashboard" link on the left side of the header that navigates to /dashboard using a standard <a href="/dashboard"> tag. Style it as white text, small font (12px), muted opacity (0.75). Do not change the header for logged-out users.
+
+Do not touch:
+
+DealScorePDF.tsx
+DealScorePDFProPlus.tsx
+calculations.ts
+Any other page or component
+
+After completing, run npx tsc --noEmit and confirm zero TypeScript errors. Confirm all three fixes are applied.

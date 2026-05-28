@@ -373,6 +373,8 @@ export default function HomePage() {
 
   const dealPostcode = propertyAddress.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i)?.[0]?.toUpperCase().replace(/\s/g, '') ?? null
 
+  const dealMetricsRef = useRef<{ dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null; cashFlow: number | null; cocRoi: number | null; grossYield: number | null }>({ dealScore: null, cashFlow: null, cocRoi: null, grossYield: null })
+
   useDealSync(
     currentDealId,
     propertyAddress || null,
@@ -380,7 +382,8 @@ export default function HomePage() {
     sharedInputs.purchasePrice || null,
     marketValue || null,
     allInputs,
-    !!user
+    !!user,
+    dealMetricsRef
   )
 
   const [searchParams] = useSearchParams()
@@ -480,6 +483,7 @@ export default function HomePage() {
   async function handleSaveDeal() {
     if (!user) return
     if (currentDealId) return
+    const m = dealMetricsRef.current
     const deal = await createDeal(
       user.id,
       dealType as Deal['strategy'],
@@ -487,7 +491,11 @@ export default function HomePage() {
       dealPostcode,
       sharedInputs.purchasePrice || null,
       marketValue || null,
-      allInputs
+      allInputs,
+      m.dealScore,
+      m.cashFlow,
+      m.cocRoi,
+      m.grossYield
     )
     if (deal) setCurrentDealId(deal.id)
   }
@@ -1149,6 +1157,30 @@ export default function HomePage() {
     dealType === 'FLIP' ? flipResults.profitPerMonth :
     r2rResults.monthlyProfit;
 
+  // Update ref with latest derived metrics so useDealSync and handleSaveDeal always write current values
+  dealMetricsRef.current = {
+    dealScore: currentScore === 'Incomplete' ? null :
+      currentScore === 'Strong' ? 'RECOMMENDED' :
+      currentScore === 'Average' ? 'REVIEW' : 'AVOID',
+    cashFlow: currentMonthlyCF,
+    cocRoi:
+      dealType === 'BTL'    ? btlResults.cashOnCashROI :
+      dealType === 'HMO'    ? hmoResults.cashOnCashROI :
+      dealType === 'FLIP'   ? flipResults.annualisedROI :
+      dealType === 'SA'     ? saResults.cashOnCashROI :
+      dealType === 'BRRR'   ? (brrrResults.moneyOut ? null : brrrResults.cashOnCashROI) :
+      dealType === 'R2R'    ? r2rResults.roi :
+      socialResults.cashOnCashROI,
+    grossYield:
+      dealType === 'BTL'    ? btlResults.grossYield :
+      dealType === 'HMO'    ? hmoResults.grossYield :
+      dealType === 'FLIP'   ? flipResults.roi :
+      dealType === 'SA'     ? saResults.netYield :
+      dealType === 'BRRR'   ? brrrResults.grossYield :
+      dealType === 'R2R'    ? r2rResults.grossYield :
+      socialResults.grossYield,
+  }
+
   const missingFields = React.useMemo(() => {
     const missing: string[] = [];
     if (dealType === 'BTL') {
@@ -1750,6 +1782,9 @@ export default function HomePage() {
     <div className="min-h-screen pb-20 overflow-visible" style={{ backgroundColor: '#EDEEF2' }}>
       <header className="text-primary-foreground py-6 shadow-md sticky top-0 z-50" style={{ backgroundColor: '#1B3A6B' }}>
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 flex items-center gap-3">
+          {user && (
+            <a href="/dashboard" style={{ color: '#fff', fontSize: '12px', opacity: 0.75, textDecoration: 'none', whiteSpace: 'nowrap', marginRight: '4px' }}>← Dashboard</a>
+          )}
           <TrendingUp className="w-8 h-8 text-accent" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">DealScore</h1>

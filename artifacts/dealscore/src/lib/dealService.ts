@@ -14,7 +14,11 @@ export async function createDeal(
   postcode: string | null,
   purchasePrice: number | null,
   marketValue: number | null,
-  inputs: Record<string, unknown>
+  inputs: Record<string, unknown>,
+  dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null,
+  cashFlow: number | null,
+  cocRoi: number | null,
+  grossYield: number | null
 ): Promise<Deal | null> {
   const { data, error } = await supabase
     .from('deals')
@@ -27,7 +31,11 @@ export async function createDeal(
       postcode: postcode || null,
       purchase_price: purchasePrice || null,
       market_value: marketValue || null,
-      inputs
+      inputs,
+      deal_score: dealScore,
+      cash_flow: cashFlow,
+      coc_roi: cocRoi,
+      gross_yield: grossYield,
     })
     .select()
     .single()
@@ -42,7 +50,11 @@ export async function updateDeal(
   postcode: string | null,
   purchasePrice: number | null,
   marketValue: number | null,
-  inputs: Record<string, unknown>
+  inputs: Record<string, unknown>,
+  dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null,
+  cashFlow: number | null,
+  cocRoi: number | null,
+  grossYield: number | null
 ): Promise<boolean> {
   const { error } = await supabase
     .from('deals')
@@ -52,6 +64,10 @@ export async function updateDeal(
       purchase_price: purchasePrice || null,
       market_value: marketValue || null,
       inputs,
+      deal_score: dealScore,
+      cash_flow: cashFlow,
+      coc_roi: cocRoi,
+      gross_yield: grossYield,
       updated_at: new Date().toISOString()
     })
     .eq('id', dealId)

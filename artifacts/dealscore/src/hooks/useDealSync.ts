@@ -1,6 +1,15 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { updateDeal } from '../lib/dealService'
 
+type DealMetrics = {
+  dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null
+  cashFlow: number | null
+  cocRoi: number | null
+  grossYield: number | null
+}
+
+export type { DealMetrics }
+
 export function useDealSync(
   dealId: string | null,
   address: string | null,
@@ -8,7 +17,8 @@ export function useDealSync(
   purchasePrice: number | null,
   marketValue: number | null,
   inputs: Record<string, unknown>,
-  enabled: boolean
+  enabled: boolean,
+  metricsRef: { current: DealMetrics }
 ) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedRef = useRef<string>('')
@@ -18,8 +28,9 @@ export function useDealSync(
     const serialised = JSON.stringify(inputs)
     if (serialised === lastSavedRef.current) return
     lastSavedRef.current = serialised
-    await updateDeal(dealId, address, postcode, purchasePrice, marketValue, inputs)
-  }, [dealId, address, postcode, purchasePrice, marketValue, inputs, enabled])
+    const m = metricsRef.current
+    await updateDeal(dealId, address, postcode, purchasePrice, marketValue, inputs, m.dealScore, m.cashFlow, m.cocRoi, m.grossYield)
+  }, [dealId, address, postcode, purchasePrice, marketValue, inputs, enabled, metricsRef])
 
   useEffect(() => {
     if (!dealId || !enabled) return
