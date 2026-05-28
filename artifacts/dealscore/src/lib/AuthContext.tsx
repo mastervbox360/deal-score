@@ -1,13 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User } from '@supabase/supabase-js'
 import { supabase } from './supabase'
-import { Profile } from './database.types'
+import { Profile, UserTier } from './database.types'
 
 interface AuthContextType {
   session: Session | null
   user: User | null
   profile: Profile | null
   loading: boolean
+  tier: UserTier
   signOut: () => Promise<void>
 }
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
+  tier: 'free',
   signOut: async () => {}
 })
 
@@ -24,6 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const tier: UserTier = profile?.tier ?? 'free'
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, tier, signOut }}>
       {children}
     </AuthContext.Provider>
   )

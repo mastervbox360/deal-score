@@ -251,7 +251,6 @@ export default function HomePage() {
   const [logoSize, setLogoSize] = useState<'S' | 'M' | 'L'>('M');
   const [coverStyle, setCoverStyle] = useState<'classic' | 'clean' | 'bold'>('classic');
   const [pdfOrientation, setPdfOrientation] = useState<'portrait' | 'landscape'>('portrait');
-  const [tierOverride, setTierOverride] = useState<'free' | 'pro' | 'pro_plus'>('pro_plus');
   const [brandColourDraft, setBrandColourDraft] = useState('#1B3A6B');
   const [brandColour, setBrandColour] = useState('#1B3A6B');
   const [accentColour, setAccentColour] = useState<string>('#00C896');
@@ -263,7 +262,7 @@ export default function HomePage() {
   const [iosGenerating, setIosGenerating] = useState(false);
   const [currentDealId, setCurrentDealId] = useState<string | null>(null)
 
-  const { user } = useAuth()
+  const { user, tier } = useAuth()
 
   useEffect(() => {
     const timer = setTimeout(() => setBrandColour(brandColourDraft), 500);
@@ -1625,7 +1624,7 @@ export default function HomePage() {
       accentColour,
       logoSize,
       coverStyle,
-      tierOverride,
+      tierOverride: tier,
       btlInputs: { ...btlInputs, ..._sharedCostInputs, monthlyExpenses: _btlResults.totalOperatingCosts },
       hmoInputs: { ...hmoInputs, ..._sharedCostInputs, monthlyExpenses: _hmoResults.totalOperatingCosts },
       flipInputs,
@@ -1696,7 +1695,7 @@ export default function HomePage() {
     brrrInputs, r2rInputs, socialInputs,
     taxCountry, taxOverrideActive, manualTaxValue, buyerType,
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
-    accentColour, logoSize, coverStyle, tierOverride,
+    accentColour, logoSize, coverStyle, tier,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
     comparables, listingLinks, photoFiles, heroPhotoIndex,
     includeWorkingsInPDF,
@@ -2671,7 +2670,7 @@ export default function HomePage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="strategy-notes" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why This Strategy?</Label>
-                      {tierOverride === 'free' && aiGenCount >= 3 ? (
+                      {tier === 'free' && aiGenCount >= 3 ? (
                         <p className="text-xs text-amber-600 font-medium text-right">
                           You've used your 3 free AI generations. Upgrade to Pro for unlimited.
                         </p>
@@ -2727,7 +2726,7 @@ export default function HomePage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="executive-summary" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Executive Summary</Label>
-                      {tierOverride === 'free' && aiGenCount >= 3 ? (
+                      {tier === 'free' && aiGenCount >= 3 ? (
                         <p className="text-xs text-amber-600 font-medium text-right">
                           You've used your 3 free AI generations. Upgrade to Pro for unlimited.
                         </p>
@@ -4394,7 +4393,7 @@ export default function HomePage() {
           <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
             PREPARED BY
           </h3>
-          {tierOverride === 'pro_plus' && (
+          {tier === 'pro_plus' && (
           <div className="mb-4 space-y-1.5">
             <Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label>
             <Input
@@ -4530,29 +4529,9 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Dev Tier Testing */}
-          <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">🛠 Dev Tier Testing</p>
-            <div className="flex gap-2">
-              {(['free', 'pro', 'pro_plus'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTierOverride(t)}
-                  className={`px-3 py-1 rounded text-xs font-medium border transition ${
-                    tierOverride === t
-                      ? 'bg-slate-600 text-white border-slate-600'
-                      : 'bg-white text-slate-500 border-slate-300 hover:border-slate-500'
-                  }`}
-                >
-                  {t === 'free' ? 'Free' : t === 'pro' ? 'Pro' : 'Pro Plus'}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Pack Format (Portrait / Landscape) */}
-          {tierOverride === 'pro_plus' && (
+          {tier === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <div className="flex items-center gap-1">
               <Label className="text-xs">Pack Format</Label>
@@ -4584,7 +4563,7 @@ export default function HomePage() {
           )}
 
           {/* Cover Style */}
-          {tierOverride === 'pro_plus' && (
+          {tier === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Cover Style <span className="text-slate-400 font-normal">(choose your {pdfOrientation} pack cover style)</span></Label>
             <div className="flex flex-wrap gap-4">
@@ -4670,7 +4649,7 @@ export default function HomePage() {
           )}
 
           {/* Brand Colour */}
-          {tierOverride === 'pro_plus' && (
+          {tier === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Brand Colour</Label>
             <p className="text-xs text-slate-400 -mt-0.5">Used for cover background and section headers</p>
@@ -4713,7 +4692,7 @@ export default function HomePage() {
           )}
 
           {/* Accent Colour */}
-          {tierOverride === 'pro_plus' && (
+          {tier === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Accent Colour</Label>
             <p className="text-xs text-slate-400 -mt-0.5">Used for decorative rules and highlights</p>
@@ -4759,7 +4738,7 @@ export default function HomePage() {
           )}
 
           {/* Your Logo */}
-          {tierOverride === 'pro_plus' && (
+          {tier === 'pro_plus' && (
           <div className="mt-4 space-y-1.5">
             <Label className="text-xs">Your Logo <span className="text-slate-400 font-normal">(appears on PDF cover)</span></Label>
             {logoBase64 ? (
@@ -4809,7 +4788,7 @@ export default function HomePage() {
 
           {/* Buttons */}
           <div className="mt-6 flex flex-col gap-3">
-            {tierOverride !== 'free' && (
+            {tier !== 'free' && (
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -4821,7 +4800,7 @@ export default function HomePage() {
                 <span className="text-xs text-slate-600">Include full calculation workings as a PDF appendix</span>
               </label>
             )}
-            {tierOverride !== 'free' && (
+            {tier !== 'free' && (
               <button
                 type="button"
                 onClick={isIOS ? handlePreviewIOS : () => setPdfPreviewOpen(true)}
@@ -4832,7 +4811,7 @@ export default function HomePage() {
                 {iosGenerating ? 'Generating…' : 'Preview PDF'}
               </button>
             )}
-            {tierOverride !== 'free' && (
+            {tier !== 'free' && (
               <PdfDownloadButton
                 pdfProps={pdfProps}
                 fileName={`DealScore-${(propertyAddress || 'Property').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)}-${dealLabel.replace(/[\s/]+/g, '-')}.pdf`}
