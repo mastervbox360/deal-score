@@ -3367,7 +3367,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-6 w-full pb-0 mb-0">
+                <div className="w-full pb-0 mb-0">
                   <button
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
