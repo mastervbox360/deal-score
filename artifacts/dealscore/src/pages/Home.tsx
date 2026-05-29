@@ -2546,7 +2546,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="btl-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="btl-refurb-fund" text="Choose how the refurbishment is being financed. Bridging loan interest is included in your total cash invested. Cash-funded refurb has no additional financing cost." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2651,7 +2651,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="hmo-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="hmo-refurb-fund" text="Choose how the refurbishment is being financed. Bridging loan interest is included in your total cash invested. Cash-funded refurb has no additional financing cost." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2793,7 +2793,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="flip-refurb-fund" text="Choose how the refurbishment is being financed. Bridging loan interest is included in your total cash invested. Cash-funded refurb has no additional financing cost." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -2938,7 +2938,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="sa-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="sa-refurb-fund" text="Choose how the refurbishment is being financed. Bridging loan interest is included in your total cash invested. Cash-funded refurb has no additional financing cost." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
@@ -3203,7 +3203,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Refurb Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="soc-refurb-fund" text="A short-term bridging loan used to fund the refurb cost. Interest is typically charged monthly and repaid in full when the loan term ends." /></div>
+                      <div className="flex items-center gap-1"><Label>How is the refurb funded?</Label><InfoIcon id="soc-refurb-fund" text="Choose how the refurbishment is being financed. Bridging loan interest is included in your total cash invested. Cash-funded refurb has no additional financing cost." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging'] as const).map((m) => (
                           <button
