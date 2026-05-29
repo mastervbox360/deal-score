@@ -1,0 +1,62 @@
+PROMPT 8 — Remove Financing Detail, Fix Padding, Complete Show Workings (UI + PDF)
+Read the following files in full before planning anything:
+
+artifacts/dealscore/src/pages/Home.tsx
+artifacts/dealscore/src/components/DealScorePDF.tsx
+
+Plan all edits explicitly before executing.
+
+TASK 1 — Remove Financing Detail collapsible
+Remove the Financing Detail collapsible section entirely from all 7 strategies in Home.tsx. This includes:
+
+The collapsible toggle button/header
+The content panel inside it
+The open/close state variables: flipFinancingDetailOpen, hmoFinancingDetailOpen, saFinancingDetailOpen, btlFinancingDetailOpen, socialFinancingDetailOpen, and any equivalent for BRRR and R2R
+Do not touch the amber Financing Summary box — that stays
+
+
+TASK 2 — Fix Payment Terms padding
+Find the Payment Terms & Cooling Off Period collapsible section in Home.tsx. Adjust its padding/styling to match the visual weight of Recommended Strategy and Sensitivity Analysis collapsibles — tighter, no excess whitespace around it.
+
+TASK 3 — Complete Show Workings in UI
+For every strategy, verify Show Workings contains the following lines where applicable. Add any that are missing:
+Financing lines (all strategies with financing):
+
+Purchase financing cost line — method, amount, formula, result
+Refurb bridging interest line — Bridging Amount × Rate × Term = £X (already added in Prompts 3/6 for some strategies — verify all)
+Mortgage holding cost line where applicable (FLIP, BRRR purchase mortgage)
+
+Mortgage workings (BTL, HMO, SA, SOCIAL, BRRR Phase 2):
+
+Mortgage Amount: Purchase Price × (1 - Deposit%) = £X
+Monthly Mortgage Payment: £X (Rate Y% / Repayment over Z years)
+
+These lines should appear in the Show Workings section under a clear FINANCING sub-heading if not already there.
+
+TASK 4 — Mirror into PDF Show Workings / Calculations section
+In DealScorePDF.tsx, for every strategy's Show Workings / Calculations section, verify and add where missing:
+
+Refurb bridging interest line: Bridging Amount × Rate × Term = £X
+Mortgage workings: Mortgage Amount and Monthly Payment breakdown
+Purchase financing cost line where applicable
+
+Same structure as Task 3 — add a FINANCING sub-section in the PDF workings block for each strategy if not already present.
+Do not touch DealScorePDFProPlus.tsx.
+
+DO NOT TOUCH:
+
+Amber Financing Summary boxes — keep these exactly as they are
+Any calculation logic
+calculations.ts
+DealScorePDFProPlus.tsx
+Any results rendering or score logic
+
+
+When complete:
+
+Confirm Financing Detail collapsible removed from all strategies
+Confirm Payment Terms padding fixed
+List exactly which Show Workings lines were added per strategy in UI
+List exactly which PDF workings lines were added per strategy
+Run git add -A && git commit -m "Prompt 8: Remove financing detail, fix padding, complete show workings UI + PDF" && git push origin stage-6 from ~/workspace root
+Confirm push succeeded

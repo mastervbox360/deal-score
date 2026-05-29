@@ -3196,6 +3196,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including mortgage.</Text>
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Net Operating Income - Mortgage Payment</Text>
 
+              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Mortgage Amount</Text>
+              <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan amount based on deposit percentage.</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Purchase Price × (1 − Deposit % ÷ 100)</Text>
+
               <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Monthly Mortgage (Interest-Only)</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly interest payment.</Text>
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>(Mortgage Amount × Annual Rate %) ÷ 12</Text>
@@ -3240,6 +3244,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to value ratio.</Text>
               <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>(Mortgage Amount ÷ Property Value) × 100</Text>
+
+              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Refurb Bridging Interest</Text>
+              <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly interest charged on the bridging loan during the refurbishment term.</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Bridging Amount × Monthly Rate % × Term (months)</Text>
 
               {props.dealType === 'BRRR' && (
                 <>
