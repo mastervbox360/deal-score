@@ -1,0 +1,51 @@
+PROMPT 6 — Refurb Bridging: Replace LTV % with Auto-Populated £ Amount
+Read the following files in full before planning anything:
+
+artifacts/dealscore/src/pages/Home.tsx
+artifacts/dealscore/src/lib/calculations.ts
+artifacts/dealscore/src/components/DealScorePDF.tsx
+
+Plan all edits explicitly before executing.
+
+TASK 1 — Home.tsx: Replace Refurb Bridging LTV field with £ Amount field
+For every strategy that has a Refurb Financing Bridging Loan option (BTL, HMO, SA, SOCIAL, BRRR), make the following changes:
+
+Remove the Refurb Bridging LTV (%) field
+Add a new field: Bridging Amount (£)
+This field auto-populates from refurbCost when the user selects Bridging Loan for refurb financing — i.e. when refurbFinancingMethod === "bridging" (or equivalent state var per strategy), set the bridging amount to equal refurbCost
+The field must remain fully editable — auto-populate is a default only, user can override
+Re-populate if refurbCost changes and the user has not manually overridden (use a flag or useEffect with dependency on refurbCost)
+State variable naming: btlRefurbBridgingAmount, hmoRefurbBridgingAmount, saRefurbBridgingAmount, socialRefurbBridgingAmount, brrrRefurbBridgingAmount
+
+Updated tooltip text for each Bridging Amount field:
+"The amount drawn from the bridging facility to fund the refurbishment. Defaults to your full refurb cost — adjust if your lender caps the draw or you are part-funding with cash."
+Purchase Bridging LTV: Do not change. Keep as LTV % field. Confirm default is 70% everywhere it appears (BRRR and FLIP). If any instance is missing a 70% default, add it.
+
+TASK 2 — calculations.ts: Update refurb bridging cost formula
+Find every place where refurb bridging cost is calculated using an LTV % on refurb cost. Replace with:
+refurbBridgingCost = refurbBridgingAmount × (rate/100) × termMonths
+Where refurbBridgingAmount is the new £ field value passed in. Ensure all 5 strategies are updated consistently.
+
+TASK 3 — DealScorePDF.tsx: Update Show Workings + labels
+In the portrait PDF Show Workings section, for every strategy that shows a refurb bridging interest line:
+
+Update the formula label from the LTV-based description to: "Refurb Bridging Interest: Bridging Amount × Rate × Term"
+Update any tooltip or info text that references LTV % for refurb bridging
+Do not touch any other PDF sections
+
+
+DO NOT TOUCH:
+
+FLIP refurb bridging — FLIP has its own separate refurb bridging architecture (same/separate facility toggle) — leave it entirely unchanged
+Purchase bridging LTV fields — do not change these anywhere
+DealScorePDFProPlus.tsx — out of scope
+Any results rendering, score logic, or other calculations
+
+
+When complete:
+
+Confirm exactly which state vars were added and which were removed
+Confirm all 5 strategies updated consistently
+Confirm PDF Show Workings lines updated
+Run git add -A && git commit -m "Prompt 6: Refurb bridging — replace LTV % with auto-populated £ amount across BTL, HMO, SA, SOCIAL, BRRR" && git push origin stage-6 from ~/workspace root
+Confirm push succeeded

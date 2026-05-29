@@ -245,24 +245,28 @@ export default function HomePage() {
   const [hmoRefurbFinancingMethod, setHmoRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
   const [hmoRefurbBridgingRate, setHmoRefurbBridgingRate] = useState(0);
   const [hmoRefurbBridgingTermMonths, setHmoRefurbBridgingTermMonths] = useState(0);
-  const [hmoRefurbBridgingLTV, setHmoRefurbBridgingLTV] = useState(70);
+  const [hmoRefurbBridgingAmount, setHmoRefurbBridgingAmount] = useState(0);
+  const [hmoRefurbBridgingAmountOverridden, setHmoRefurbBridgingAmountOverridden] = useState(false);
   const [saRefurbFinancingMethod, setSaRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
   const [saRefurbBridgingRate, setSaRefurbBridgingRate] = useState(0);
   const [saRefurbBridgingTermMonths, setSaRefurbBridgingTermMonths] = useState(0);
-  const [saRefurbBridgingLTV, setSaRefurbBridgingLTV] = useState(70);
+  const [saRefurbBridgingAmount, setSaRefurbBridgingAmount] = useState(0);
+  const [saRefurbBridgingAmountOverridden, setSaRefurbBridgingAmountOverridden] = useState(false);
   const [hmoPurchaseFinancingMethod, setHmoPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
   const [saPurchaseFinancingMethod, setSaPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
   const [btlPurchaseFinancingMethod, setBtlPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
   const [btlRefurbFinancingMethod, setBtlRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
   const [btlRefurbBridgingRate, setBtlRefurbBridgingRate] = useState(0);
   const [btlRefurbBridgingTermMonths, setBtlRefurbBridgingTermMonths] = useState(0);
-  const [btlRefurbBridgingLTV, setBtlRefurbBridgingLTV] = useState(70);
+  const [btlRefurbBridgingAmount, setBtlRefurbBridgingAmount] = useState(0);
+  const [btlRefurbBridgingAmountOverridden, setBtlRefurbBridgingAmountOverridden] = useState(false);
   const [btlFinancingDetailOpen, setBtlFinancingDetailOpen] = useState<boolean>(false);
   const [socialPurchaseFinancingMethod, setSocialPurchaseFinancingMethod] = useState<'cash' | 'mortgage'>('mortgage');
   const [socialRefurbFinancingMethod, setSocialRefurbFinancingMethod] = useState<'cash' | 'bridging'>('cash');
   const [socialRefurbBridgingRate, setSocialRefurbBridgingRate] = useState(0);
   const [socialRefurbBridgingTermMonths, setSocialRefurbBridgingTermMonths] = useState(0);
-  const [socialRefurbBridgingLTV, setSocialRefurbBridgingLTV] = useState(70);
+  const [socialRefurbBridgingAmount, setSocialRefurbBridgingAmount] = useState(0);
+  const [socialRefurbBridgingAmountOverridden, setSocialRefurbBridgingAmountOverridden] = useState(false);
   const [socialFinancingDetailOpen, setSocialFinancingDetailOpen] = useState<boolean>(false);
   const [whyScoreOpen, setWhyScoreOpen] = useState<boolean>(false);
   const [showAnnual, setShowAnnual] = useState<boolean>(false);
@@ -374,6 +378,8 @@ export default function HomePage() {
   const [brrrPurchaseMortgageTerm, setBrrrPurchaseMortgageTerm] = useState<number>(25);
   const [brrrPurchaseMortgageType, setBrrrPurchaseMortgageType] = useState<'IO' | 'Repayment'>('IO');
   const [brrrRefurbFinancingMethod, setBrrrRefurbFinancingMethod] = useState<'cash' | 'bridging'>('bridging');
+  const [brrrRefurbBridgingAmount, setBrrrRefurbBridgingAmount] = useState(0);
+  const [brrrRefurbBridgingAmountOverridden, setBrrrRefurbBridgingAmountOverridden] = useState(false);
 
   const [r2rLandlordDepositMonths, setR2rLandlordDepositMonths] = useState<number>(1);
 
@@ -395,6 +401,36 @@ export default function HomePage() {
   const [buildingsInsurance, setBuildingsInsurance] = useState(30);
   const [serviceCharge, setServiceCharge] = useState(0);
   const [groundRentAnnual, setGroundRentAnnual] = useState(0);
+
+  useEffect(() => {
+    if (btlRefurbFinancingMethod === 'bridging' && !btlRefurbBridgingAmountOverridden) {
+      setBtlRefurbBridgingAmount(sharedInputs.refurbCost);
+    }
+  }, [sharedInputs.refurbCost, btlRefurbFinancingMethod, btlRefurbBridgingAmountOverridden]);
+
+  useEffect(() => {
+    if (hmoRefurbFinancingMethod === 'bridging' && !hmoRefurbBridgingAmountOverridden) {
+      setHmoRefurbBridgingAmount(sharedInputs.refurbCost);
+    }
+  }, [sharedInputs.refurbCost, hmoRefurbFinancingMethod, hmoRefurbBridgingAmountOverridden]);
+
+  useEffect(() => {
+    if (saRefurbFinancingMethod === 'bridging' && !saRefurbBridgingAmountOverridden) {
+      setSaRefurbBridgingAmount(sharedInputs.refurbCost);
+    }
+  }, [sharedInputs.refurbCost, saRefurbFinancingMethod, saRefurbBridgingAmountOverridden]);
+
+  useEffect(() => {
+    if (socialRefurbFinancingMethod === 'bridging' && !socialRefurbBridgingAmountOverridden) {
+      setSocialRefurbBridgingAmount(sharedInputs.refurbCost);
+    }
+  }, [sharedInputs.refurbCost, socialRefurbFinancingMethod, socialRefurbBridgingAmountOverridden]);
+
+  useEffect(() => {
+    if (brrrRefurbFinancingMethod === 'bridging' && !brrrRefurbBridgingAmountOverridden) {
+      setBrrrRefurbBridgingAmount(sharedInputs.refurbCost);
+    }
+  }, [sharedInputs.refurbCost, brrrRefurbFinancingMethod, brrrRefurbBridgingAmountOverridden]);
 
   const allInputs = serializeInputs({
     strategy: dealType,
@@ -855,14 +891,16 @@ export default function HomePage() {
       setBtlRefurbFinancingMethod('cash');
       setBtlRefurbBridgingRate(0);
       setBtlRefurbBridgingTermMonths(0);
-      setBtlRefurbBridgingLTV(70);
+      setBtlRefurbBridgingAmount(0);
+      setBtlRefurbBridgingAmountOverridden(false);
       setBtlFinancingDetailOpen(false);
     } else if (dealType === 'HMO') {
       setHmoInputs({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
       setHmoRefurbFinancingMethod('cash');
       setHmoRefurbBridgingRate(0);
       setHmoRefurbBridgingTermMonths(0);
-      setHmoRefurbBridgingLTV(70);
+      setHmoRefurbBridgingAmount(0);
+      setHmoRefurbBridgingAmountOverridden(false);
       setHmoPurchaseFinancingMethod('mortgage');
     } else if (dealType === 'FLIP') {
       setFlipInputs({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, contingencyPercent: 10, financingMethod: 'cash', flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO', refurbFinancingMethod: 'cash', refurbSameAsPurchase: true, refurbBridgingRate: 0, refurbBridgingTermMonths: 0, refurbBridgingLTV: 70 });
@@ -871,10 +909,13 @@ export default function HomePage() {
       setSaRefurbFinancingMethod('cash');
       setSaRefurbBridgingRate(0);
       setSaRefurbBridgingTermMonths(0);
-      setSaRefurbBridgingLTV(70);
+      setSaRefurbBridgingAmount(0);
+      setSaRefurbBridgingAmountOverridden(false);
       setSaPurchaseFinancingMethod('mortgage');
     } else if (dealType === 'BRRR') {
       setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
+      setBrrrRefurbBridgingAmount(0);
+      setBrrrRefurbBridgingAmountOverridden(false);
     } else if (dealType === 'R2R') {
       setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
     } else {
@@ -883,7 +924,8 @@ export default function HomePage() {
       setSocialRefurbFinancingMethod('cash');
       setSocialRefurbBridgingRate(0);
       setSocialRefurbBridgingTermMonths(0);
-      setSocialRefurbBridgingLTV(70);
+      setSocialRefurbBridgingAmount(0);
+      setSocialRefurbBridgingAmountOverridden(false);
       setSocialFinancingDetailOpen(false);
     }
     setManagementFeePercent(10);
@@ -928,12 +970,12 @@ export default function HomePage() {
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
   const btlRefurbBridgingCost = btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingRate > 0 && btlRefurbBridgingTermMonths > 0
-    ? refurbCost * (btlRefurbBridgingLTV / 100) * (btlRefurbBridgingRate / 100) * btlRefurbBridgingTermMonths
+    ? btlRefurbBridgingAmount * (btlRefurbBridgingRate / 100) * btlRefurbBridgingTermMonths
     : 0;
   const btlResults = calculateBTL({ ...sharedInputs, ...(btlPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...btlInputs, otherCosts: sharedInputs.otherCosts + btlRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
   const hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
-    ? refurbCost * (hmoRefurbBridgingLTV / 100) * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
+    ? hmoRefurbBridgingAmount * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
     : 0;
   const hmoResults = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost + hmoRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, refurbFinancingMethod, refurbSameAsPurchase, refurbBridgingRate, refurbBridgingTermMonths, refurbBridgingLTV } = flipInputs;
@@ -976,7 +1018,7 @@ export default function HomePage() {
     sellingCostsPercent: flipInputs.sellingCostsPercent,
   });
   const saRefurbBridgingCost = saRefurbFinancingMethod === 'bridging' && saRefurbBridgingRate > 0 && saRefurbBridgingTermMonths > 0
-    ? refurbCost * (saRefurbBridgingLTV / 100) * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
+    ? saRefurbBridgingAmount * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
     : 0;
   const saResults = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...saInputs, otherCosts: sharedInputs.otherCosts + saRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
@@ -996,13 +1038,13 @@ export default function HomePage() {
     }
     return 0;
   })();
-  const brrrRefurbBridgingCost = brrrRefurbFinancingMethod === 'bridging' && refurbCost > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
-    ? refurbCost * (brrBridgingRate / 100) * brrBridgingTerm
+  const brrrRefurbBridgingCost = brrrRefurbFinancingMethod === 'bridging' && brrBridgingRate > 0 && brrBridgingTerm > 0
+    ? brrrRefurbBridgingAmount * (brrBridgingRate / 100) * brrBridgingTerm
     : 0;
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs });
   const r2rResults = calculateR2R(r2rInputs);
   const socialRefurbBridgingCost = socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingRate > 0 && socialRefurbBridgingTermMonths > 0
-    ? refurbCost * (socialRefurbBridgingLTV / 100) * (socialRefurbBridgingRate / 100) * socialRefurbBridgingTermMonths
+    ? socialRefurbBridgingAmount * (socialRefurbBridgingRate / 100) * socialRefurbBridgingTermMonths
     : 0;
   const socialResults = calculateSocialHousing({ ...sharedInputs, ...(socialPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...socialInputs, otherCosts: sharedInputs.otherCosts + socialRefurbBridgingCost, stampDuty: effectiveTax, ...sharedCostInputs });
 
@@ -1636,11 +1678,11 @@ export default function HomePage() {
     const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
     const _hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
-      ? sharedInputs.refurbCost * (hmoRefurbBridgingLTV / 100) * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
+      ? hmoRefurbBridgingAmount * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
       : 0;
     const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost + _hmoRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const _saRefurbBridgingCost = saRefurbFinancingMethod === 'bridging' && saRefurbBridgingRate > 0 && saRefurbBridgingTermMonths > 0
-      ? sharedInputs.refurbCost * (saRefurbBridgingLTV / 100) * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
+      ? saRefurbBridgingAmount * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
       : 0;
     const _saResults = calculateSA({ ...sharedInputs, ...saInputs, otherCosts: sharedInputs.otherCosts + _saRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { bridgingRate: _brrBridgingRate, bridgingTermMonths: _brrBridgingTerm, bridgingLTV: _brrBridgingLTV, ...brrrInputsForPdfCalc } = brrrInputs;
@@ -1921,8 +1963,8 @@ export default function HomePage() {
     isAuctionPurchase, auctionDate, auctionCompletionDate, buyersPremiumPct, buyersPremiumAmount,
     buyersPremiumMode, auctionReservationFee, buyersPremiumValue, auctionReservationFeeValue,
     protectAddress, protectedAddressDescription, paymentTerms,
-    hmoRefurbFinancingMethod, hmoRefurbBridgingRate, hmoRefurbBridgingTermMonths, hmoRefurbBridgingLTV,
-    saRefurbFinancingMethod, saRefurbBridgingRate, saRefurbBridgingTermMonths, saRefurbBridgingLTV,
+    hmoRefurbFinancingMethod, hmoRefurbBridgingRate, hmoRefurbBridgingTermMonths, hmoRefurbBridgingAmount,
+    saRefurbFinancingMethod, saRefurbBridgingRate, saRefurbBridgingTermMonths, saRefurbBridgingAmount,
   ]);
 
   const hasMinimumData =
@@ -2545,8 +2587,8 @@ export default function HomePage() {
                           <Input type="number" step="1" placeholder="e.g. 6" value={btlRefurbBridgingTermMonths || ''} onChange={(e) => setBtlRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="btl-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
-                          <Input type="number" step="1" value={btlRefurbBridgingLTV} onChange={(e) => setBtlRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                          <div className="flex items-center gap-1"><Label>Bridging Amount (£)</Label><InfoIcon id="btl-ref-bridge-amount" text="The loan amount drawn from the bridging facility for the refurbishment. Auto-populated from refurb cost — edit to override." /></div>
+                          <Input type="number" step="1000" placeholder="e.g. 50000" value={btlRefurbBridgingAmount || ''} onChange={(e) => { setBtlRefurbBridgingAmount(Number(e.target.value) || 0); setBtlRefurbBridgingAmountOverridden(true); }} />
                         </div>
                       </>
                     )}
@@ -2650,8 +2692,8 @@ export default function HomePage() {
                           <Input type="number" step="1" placeholder="e.g. 6" value={hmoRefurbBridgingTermMonths || ''} onChange={(e) => setHmoRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="hmo-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
-                          <Input type="number" step="1" value={hmoRefurbBridgingLTV} onChange={(e) => setHmoRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                          <div className="flex items-center gap-1"><Label>Bridging Amount (£)</Label><InfoIcon id="hmo-ref-bridge-amount" text="The loan amount drawn from the bridging facility for the refurbishment. Auto-populated from refurb cost — edit to override." /></div>
+                          <Input type="number" step="1000" placeholder="e.g. 50000" value={hmoRefurbBridgingAmount || ''} onChange={(e) => { setHmoRefurbBridgingAmount(Number(e.target.value) || 0); setHmoRefurbBridgingAmountOverridden(true); }} />
                         </div>
                       </>
                     )}
@@ -2937,8 +2979,8 @@ export default function HomePage() {
                           <Input type="number" step="1" placeholder="e.g. 6" value={saRefurbBridgingTermMonths || ''} onChange={(e) => setSaRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="sa-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
-                          <Input type="number" step="1" value={saRefurbBridgingLTV} onChange={(e) => setSaRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                          <div className="flex items-center gap-1"><Label>Bridging Amount (£)</Label><InfoIcon id="sa-ref-bridge-amount" text="The loan amount drawn from the bridging facility for the refurbishment. Auto-populated from refurb cost — edit to override." /></div>
+                          <Input type="number" step="1000" placeholder="e.g. 50000" value={saRefurbBridgingAmount || ''} onChange={(e) => { setSaRefurbBridgingAmount(Number(e.target.value) || 0); setSaRefurbBridgingAmountOverridden(true); }} />
                         </div>
                       </>
                     )}
@@ -3024,7 +3066,11 @@ export default function HomePage() {
                         ))}
                       </div>
                       {brrrRefurbFinancingMethod === 'bridging' && (
-                        <p className="text-xs text-muted-foreground mt-2">Shared facility — uses the same bridging rate and holding period as purchase finance above.</p>
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center gap-1"><Label>Bridging Amount (£)</Label><InfoIcon id="brrr-ref-bridge-amount" text="The loan amount drawn for the refurb. Defaults to refurb cost. Shared rate and holding period with purchase bridging above." /></div>
+                          <Input type="number" step="1000" placeholder="e.g. 50000" value={brrrRefurbBridgingAmount || ''} onChange={(e) => { setBrrrRefurbBridgingAmount(Number(e.target.value) || 0); setBrrrRefurbBridgingAmountOverridden(true); }} />
+                          <p className="text-xs text-muted-foreground">Shared facility — uses the same bridging rate and holding period as purchase finance above.</p>
+                        </div>
                       )}
                     </div>
                     <div className="col-span-1 md:col-span-2 pt-2">
@@ -3198,8 +3244,8 @@ export default function HomePage() {
                           <Input type="number" step="1" placeholder="e.g. 6" value={socialRefurbBridgingTermMonths || ''} onChange={(e) => setSocialRefurbBridgingTermMonths(Number(e.target.value) || 0)} />
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center gap-1"><Label>Refurb Bridging LTV (%)</Label><InfoIcon id="soc-ref-bridge-ltv" text="The % of the refurb cost advanced by the lender. Typically 70–75% of costs." /></div>
-                          <Input type="number" step="1" value={socialRefurbBridgingLTV} onChange={(e) => setSocialRefurbBridgingLTV(Number(e.target.value) || 70)} />
+                          <div className="flex items-center gap-1"><Label>Bridging Amount (£)</Label><InfoIcon id="soc-ref-bridge-amount" text="The loan amount drawn from the bridging facility for the refurbishment. Auto-populated from refurb cost — edit to override." /></div>
+                          <Input type="number" step="1000" placeholder="e.g. 50000" value={socialRefurbBridgingAmount || ''} onChange={(e) => { setSocialRefurbBridgingAmount(Number(e.target.value) || 0); setSocialRefurbBridgingAmountOverridden(true); }} />
                         </div>
                       </>
                     )}
@@ -4034,7 +4080,7 @@ export default function HomePage() {
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
                               <div className="flex items-center justify-between py-1.5 border-b border-border/40">
-                                <span className="text-sm text-muted-foreground">{`Bridging (${btlRefurbBridgingLTV}% LTV × ${btlRefurbBridgingRate}%/mo × ${btlRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm text-muted-foreground">{`Refurb Bridging (${formatCurrency(btlRefurbBridgingAmount)} × ${btlRefurbBridgingRate}%/mo × ${btlRefurbBridgingTermMonths} months)`}</span>
                                 <span className="text-sm font-medium">{formatCurrency(btlRefurbBridgingCost)}</span>
                               </div>
                             </div>
@@ -4180,7 +4226,7 @@ export default function HomePage() {
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
                               <div className="flex items-center justify-between py-1.5 border-b border-border/40">
-                                <span className="text-sm text-muted-foreground">{`Bridging (${hmoRefurbBridgingLTV}% LTV × ${hmoRefurbBridgingRate}%/mo × ${hmoRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm text-muted-foreground">{`Refurb Bridging (${formatCurrency(hmoRefurbBridgingAmount)} × ${hmoRefurbBridgingRate}%/mo × ${hmoRefurbBridgingTermMonths} months)`}</span>
                                 <span className="text-sm font-medium">{formatCurrency(hmoRefurbBridgingCost)}</span>
                               </div>
                             </div>
@@ -4527,7 +4573,7 @@ export default function HomePage() {
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
                               <div className="flex items-center justify-between py-1.5 border-b border-border/40">
-                                <span className="text-sm text-muted-foreground">{`Bridging (${saRefurbBridgingLTV}% LTV × ${saRefurbBridgingRate}%/mo × ${saRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm text-muted-foreground">{`Refurb Bridging (${formatCurrency(saRefurbBridgingAmount)} × ${saRefurbBridgingRate}%/mo × ${saRefurbBridgingTermMonths} months)`}</span>
                                 <span className="text-sm font-medium">{formatCurrency(saRefurbBridgingCost)}</span>
                               </div>
                             </div>
@@ -4575,7 +4621,7 @@ export default function HomePage() {
                         )}
                         {brrrRefurbFinancingMethod === 'bridging' && brrrRefurbBridgingCost > 0 && (
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-amber-900">Refurb Bridging ({brrBridgingRate}%/mo × {brrBridgingTerm} months)</span>
+                            <span className="text-xs text-amber-900">Refurb Bridging ({formatCurrency(brrrRefurbBridgingAmount)} × {brrBridgingRate}%/mo × {brrBridgingTerm} months)</span>
                             <span className="text-xs font-medium text-amber-900">{formatCurrency(brrrRefurbBridgingCost)}</span>
                           </div>
                         )}
@@ -4889,7 +4935,7 @@ export default function HomePage() {
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Refurb Finance</p>
                               <div className="flex items-center justify-between py-1.5 border-b border-border/40">
-                                <span className="text-sm text-muted-foreground">{`Bridging (${socialRefurbBridgingLTV}% LTV × ${socialRefurbBridgingRate}%/mo × ${socialRefurbBridgingTermMonths} months)`}</span>
+                                <span className="text-sm text-muted-foreground">{`Refurb Bridging (${formatCurrency(socialRefurbBridgingAmount)} × ${socialRefurbBridgingRate}%/mo × ${socialRefurbBridgingTermMonths} months)`}</span>
                                 <span className="text-sm font-medium">{formatCurrency(socialRefurbBridgingCost)}</span>
                               </div>
                             </div>
@@ -5200,7 +5246,7 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       {btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingCost > 0 && (
-                        <WRow label={`Refurb Bridging (${btlRefurbBridgingLTV}% LTV × ${btlRefurbBridgingRate}%/mo × ${btlRefurbBridgingTermMonths} months)`} value={formatCurrency(btlRefurbBridgingCost)} />
+                        <WRow label={`Refurb Bridging Interest (${formatCurrency(btlRefurbBridgingAmount)} × ${btlRefurbBridgingRate}%/mo × ${btlRefurbBridgingTermMonths} months)`} value={formatCurrency(btlRefurbBridgingCost)} />
                       )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
@@ -5233,7 +5279,7 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       {hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingCost > 0 && (
-                        <WRow label={`Refurb Bridging (${hmoRefurbBridgingLTV}% LTV × ${hmoRefurbBridgingRate}%/mo × ${hmoRefurbBridgingTermMonths} months)`} value={formatCurrency(hmoRefurbBridgingCost)} />
+                        <WRow label={`Refurb Bridging Interest (${formatCurrency(hmoRefurbBridgingAmount)} × ${hmoRefurbBridgingRate}%/mo × ${hmoRefurbBridgingTermMonths} months)`} value={formatCurrency(hmoRefurbBridgingCost)} />
                       )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {hmoInputs.licenceCost > 0 && (
@@ -5307,7 +5353,7 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />
                       {saRefurbFinancingMethod === 'bridging' && saRefurbBridgingCost > 0 && (
-                        <WRow label={`Refurb Bridging (${saRefurbBridgingLTV}% LTV × ${saRefurbBridgingRate}%/mo × ${saRefurbBridgingTermMonths} months)`} value={formatCurrency(saRefurbBridgingCost)} />
+                        <WRow label={`Refurb Bridging Interest (${formatCurrency(saRefurbBridgingAmount)} × ${saRefurbBridgingRate}%/mo × ${saRefurbBridgingTermMonths} months)`} value={formatCurrency(saRefurbBridgingCost)} />
                       )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
@@ -5348,7 +5394,7 @@ export default function HomePage() {
                         <WRow label={`Purchase Mortgage holding (${brrrPurchaseMortgageRate}% ${brrrPurchaseMortgageType} × ${brrBridgingTerm} months)`} value={formatCurrency(brrrPurchaseFinancingCost)} />
                       )}
                       {brrrRefurbFinancingMethod === 'bridging' && brrrRefurbBridgingCost > 0 && (
-                        <WRow label={`Refurb Bridging Interest (${brrBridgingRate}%/mo × ${brrBridgingTerm} months)`} value={formatCurrency(brrrRefurbBridgingCost)} />
+                        <WRow label={`Refurb Bridging Interest (${formatCurrency(brrrRefurbBridgingAmount)} × ${brrBridgingRate}%/mo × ${brrBridgingTerm} months)`} value={formatCurrency(brrrRefurbBridgingCost)} />
                       )}
                       <WRow label="TOTAL COST IN" value={formatCurrency(brrrResults.totalCostIn)} bold />
                       <WSec title="B  REFINANCE" />
@@ -5397,7 +5443,7 @@ export default function HomePage() {
                       <WRow label="Stamp Duty / Tax" value={formatCurrency(effectiveTax)} />
                       {sharedInputs.refurbCost > 0 && <WRow label="Refurb Cost" value={formatCurrency(sharedInputs.refurbCost)} />}
                       {socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingCost > 0 && (
-                        <WRow label={`Refurb Bridging (${socialRefurbBridgingLTV}% LTV × ${socialRefurbBridgingRate}%/mo × ${socialRefurbBridgingTermMonths} months)`} value={formatCurrency(socialRefurbBridgingCost)} />
+                        <WRow label={`Refurb Bridging Interest (${formatCurrency(socialRefurbBridgingAmount)} × ${socialRefurbBridgingRate}%/mo × ${socialRefurbBridgingTermMonths} months)`} value={formatCurrency(socialRefurbBridgingCost)} />
                       )}
                       <WRow label="Other Costs" value={formatCurrency(sharedInputs.otherCosts)} />
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
