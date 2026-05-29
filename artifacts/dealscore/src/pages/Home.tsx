@@ -2306,11 +2306,11 @@ export default function HomePage() {
                     {autoFilledPropertyType && <p className="text-xs text-slate-400 mt-1">Auto-suggested — please verify</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Bedrooms</Label>
+                    <div className="flex items-center gap-1"><Label>Bedrooms</Label><InfoIcon id="shared-bedrooms" text="Number of bedrooms in the property. Used in the investor pack and deal summary." /></div>
                     <Input type="number" min={0} max={20} step={1} placeholder="e.g. 3" value={bedrooms === '' ? '' : bedrooms} onChange={(e) => setBedrooms(e.target.value === '' ? '' : Number(e.target.value))} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Bathrooms</Label>
+                    <div className="flex items-center gap-1"><Label>Bathrooms</Label><InfoIcon id="shared-bathrooms" text="Number of bathrooms in the property. Used in the investor pack." /></div>
                     <Input type="number" min={0} max={10} step={1} placeholder="e.g. 1" value={bathrooms === '' ? '' : bathrooms} onChange={(e) => setBathrooms(e.target.value === '' ? '' : Number(e.target.value))} />
                   </div>
                   <TenureSection tenure={tenure} onChange={(v) => { setTenure(v); setAutoFilledTenure(false); setUserSetTenure(true); }} leaseLength={leaseLengthYears} onLeaseLength={(v) => { setLeaseLengthYears(v); setUserSetLeaseLength(true); }} hint={autoFilledTenure ? 'Auto-suggested — please verify' : undefined} />
@@ -2494,7 +2494,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
+                      <div className="flex items-center gap-1"><Label>Financing Method</Label><InfoIcon id="btl-fin-method" text="Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
@@ -2599,7 +2599,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
+                      <div className="flex items-center gap-1"><Label>Financing Method</Label><InfoIcon id="hmo-fin-method" text="Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
@@ -2719,7 +2719,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
+                      <div className="flex items-center gap-1"><Label>Financing Method</Label><InfoIcon id="flip-fin-method" text="Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'bridging', 'mortgage'] as const).map((m) => (
                           <button
@@ -2886,7 +2886,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
+                      <div className="flex items-center gap-1"><Label>Financing Method</Label><InfoIcon id="sa-fin-method" text="Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
@@ -2994,7 +2994,7 @@ export default function HomePage() {
                 {dealType === 'BRRR' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-border">
                     <div className="col-span-1 md:col-span-2">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
+                      <div className="flex items-center gap-1 mb-3"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Purchase Financing</p><InfoIcon id="brrr-fin-method" text="Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI." /></div>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {(['cash', 'bridging', 'mortgage'] as const).map((m) => (
                           <button key={m} type="button" onClick={() => setBrrrPurchaseFinancingMethod(m)} className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${brrrPurchaseFinancingMethod === m ? 'bg-[#1B3A6B] text-white border-[#1B3A6B]' : 'bg-white text-muted-foreground border-border hover:bg-slate-50'}`}>
@@ -3151,7 +3151,7 @@ export default function HomePage() {
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Purchase Financing</p>
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-2">
-                      <Label>Financing Method</Label>
+                      <div className="flex items-center gap-1"><Label>Financing Method</Label><InfoIcon id="soc-fin-method" text="Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI." /></div>
                       <div className="flex flex-wrap gap-2">
                         {(['cash', 'mortgage'] as const).map((m) => (
                           <button
@@ -5363,7 +5363,7 @@ export default function HomePage() {
           </h3>
           {(!isProfileLoading && (tier === 'pro' || tier === 'pro_plus')) && (
           <div className="mb-4 space-y-1.5">
-            <Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label>
+            <div className="flex items-center gap-1"><Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label><InfoIcon id="prepared-company-info" text="Your company or trading name as it appears on the investor pack cover. Optional." /></div>
             <Input
               id="prepared-company"
               type="text"
@@ -5376,7 +5376,7 @@ export default function HomePage() {
           )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="prepared-name" className="text-xs">Name</Label>
+              <div className="flex items-center gap-1"><Label htmlFor="prepared-name" className="text-xs">Name</Label><InfoIcon id="prepared-name-info" text="Your full name as it appears on the investor pack and legal disclosure page." /></div>
               <Input
                 id="prepared-name"
                 type="text"
@@ -5387,7 +5387,7 @@ export default function HomePage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="prepared-email" className="text-xs">Email</Label>
+              <div className="flex items-center gap-1"><Label htmlFor="prepared-email" className="text-xs">Email</Label><InfoIcon id="prepared-email-info" text="Your contact email shown on the investor pack and legal disclosure page." /></div>
               <Input
                 id="prepared-email"
                 type="email"
@@ -5398,7 +5398,7 @@ export default function HomePage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="prepared-phone" className="text-xs">Phone Number</Label>
+              <div className="flex items-center gap-1"><Label htmlFor="prepared-phone" className="text-xs">Phone Number</Label><InfoIcon id="prepared-phone-info" text="Your contact number shown on the investor pack and legal disclosure page." /></div>
               <Input
                 id="prepared-phone"
                 type="tel"

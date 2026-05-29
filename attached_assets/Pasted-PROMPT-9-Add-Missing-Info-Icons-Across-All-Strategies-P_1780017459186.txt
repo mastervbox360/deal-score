@@ -1,0 +1,46 @@
+PROMPT 9 — Add Missing Info Icons Across All Strategies + Prepared By Section
+Read artifacts/dealscore/src/pages/Home.tsx in full before planning anything. Plan all edits explicitly before executing.
+Goal: Add info icons with tooltip text to every field currently missing one. Do not touch any field that already has an icon.
+
+TASK 1 — Universal fields (appear once, affect all strategies)
+Add info icons to the following fields:
+
+Bedrooms — "Number of bedrooms in the property. Used in the investor pack and deal summary."
+Bathrooms — "Number of bathrooms in the property. Used in the investor pack."
+
+
+TASK 2 — Purchase Financing section (all applicable strategies)
+Add info icon to the Financing Method label/header in the Purchase Financing block across BTL, HMO, SA, SOCIAL, BRRR, FLIP:
+
+"Choose how the purchase is being funded. This affects your total cost in and cash-on-cash ROI."
+
+
+TASK 3 — Refurb Financing section (all applicable strategies)
+Add info icon to the "How is the refurb funded?" label across BTL, HMO, SA, SOCIAL, BRRR, FLIP:
+
+"Choose how the refurbishment is being financed. Bridging loan interest is included in your total cash invested."
+
+
+TASK 4 — Prepared By section
+Add info icons to the following fields:
+
+Company / Trading Name — "Your company or trading name as it appears on the investor pack cover. Optional."
+Name — "Your full name as it appears on the investor pack and legal disclosure page."
+Email — "Your contact email shown on the investor pack and legal disclosure page."
+Phone Number — "Your contact number shown on the investor pack and legal disclosure page."
+
+
+Implementation notes:
+
+Use the exact same info icon component and pattern already used elsewhere in the file — do not introduce any new icon components or tooltip libraries
+Icons should sit inline with the field label, same position and style as existing icons throughout the app
+Do not touch any field that already has an icon
+Do not touch any calculation logic, results rendering, PDF files, or any file other than Home.tsx
+
+
+When complete:
+
+Confirm exactly which fields were updated and in which sections
+Confirm the same icon component was used throughout
+Run git add -A && git commit -m "Prompt 9: Add missing info icons — bedrooms, bathrooms, financing method, refurb funding, prepared by fields" && git push origin stage-6 from ~/workspace root
+Confirm push succeeded
