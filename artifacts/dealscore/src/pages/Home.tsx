@@ -3345,12 +3345,12 @@ export default function HomePage() {
                       className="w-full flex items-center justify-between py-3 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-medium text-slate-700">Payment terms &amp; cooling off period</span>
+                        <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">Payment terms &amp; cooling off period</span>
                         <InfoIcon id="payment-terms-info" text="Payment terms are shown on the legal page of your investor pack. The 14-day cooling off period is standard practice recommended by the Property Ombudsman for deal sourcers." />
                       </div>
                       <ChevronDown
-                        size={16}
-                        style={{ color: '#1B3A6B', transform: paymentTermsExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                        className="h-4 w-4 transition-transform duration-200"
+                        style={{ color: '#1B3A6B', transform: paymentTermsExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
                       />
                     </button>
                     {paymentTermsExpanded && (
