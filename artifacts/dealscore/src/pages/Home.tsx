@@ -5485,7 +5485,7 @@ export default function HomePage() {
           <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
             PREPARED BY
           </h3>
-          {(!isProfileLoading && tier === 'pro_plus') && (
+          {(!isProfileLoading && (tier === 'pro' || tier === 'pro_plus')) && (
           <div className="mb-4 space-y-1.5">
             <Label htmlFor="prepared-company" className="text-xs">Company / Trading Name</Label>
             <Input
