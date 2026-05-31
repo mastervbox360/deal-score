@@ -147,7 +147,7 @@ export default function HomePage() {
     depositPercent: 25,
     mortgageRate: 0,
     mortgageTerm: 25,
-    mortgageType: 'IO' as 'IO' | 'REPAYMENT',
+    mortgageType: 'REPAYMENT' as 'IO' | 'REPAYMENT',
   });
 
   const [btlInputs, setBtlInputs] = useState({ monthlyRent: 0 });
@@ -879,7 +879,7 @@ export default function HomePage() {
     setOfferDeadline('');
     setViewingAvailable(false);
     setRefurbScope('');
-    setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'IO' });
+    setSharedInputs({ purchasePrice: 0, refurbCost: 0, otherCosts: 0, depositPercent: 25, mortgageRate: 0, mortgageTerm: 25, mortgageType: 'REPAYMENT' });
     if (dealType === 'BTL') {
       setBtlInputs({ monthlyRent: 0 });
       setBtlPurchaseFinancingMethod('mortgage');
@@ -1030,7 +1030,10 @@ export default function HomePage() {
     ? brrrRefurbBridgingAmount * (brrBridgingRate / 100) * brrBridgingTerm
     : 0;
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs });
-  const r2rResults = calculateR2R(r2rInputs);
+  const r2rResults = calculateR2R({
+    ...r2rInputs,
+    setupCosts: r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths),
+  });
   const socialRefurbBridgingCost = socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingRate > 0 && socialRefurbBridgingTermMonths > 0
     ? socialRefurbBridgingAmount * (socialRefurbBridgingRate / 100) * socialRefurbBridgingTermMonths
     : 0;
@@ -1242,7 +1245,22 @@ export default function HomePage() {
       return { profit: r.netProfit, roi: r.roi };
     })(),
     extraMonth: (() => {
-      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency, otherCosts: otherCosts + flipTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: flipInputs.projectLengthMonths + 1, expectedSalePrice: flipInputs.expectedSalePrice, sellingCostsPercent: flipInputs.sellingCostsPercent });
+      const extraMonthsLen = flipInputs.projectLengthMonths + 1;
+      let extraPurchaseFinancingCost = 0;
+      if (financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
+        extraPurchaseFinancingCost = (purchasePrice * flipBridgingLTV / 100) * (flipBridgingRate / 100) * Math.max(flipBridgingTermMonths, extraMonthsLen);
+      } else if (financingMethod === 'mortgage' && flipMortgageRate > 0) {
+        const loan = purchasePrice * (1 - flipMortgageDeposit / 100);
+        if (flipMortgageType === 'IO') extraPurchaseFinancingCost = loan * (flipMortgageRate / 100 / 12) * extraMonthsLen;
+        else {
+          const rr = flipMortgageRate / 100 / 12;
+          const nn = flipMortgageTerm * 12;
+          const mp = rr > 0 ? loan * (rr * Math.pow(1 + rr, nn)) / (Math.pow(1 + rr, nn) - 1) : loan / nn;
+          extraPurchaseFinancingCost = mp * extraMonthsLen;
+        }
+      }
+      const extraTotalFinancingCost = extraPurchaseFinancingCost + flipRefurbFinancingCost;
+      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency, otherCosts: otherCosts + extraTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: extraMonthsLen, expectedSalePrice: flipInputs.expectedSalePrice, sellingCostsPercent: flipInputs.sellingCostsPercent });
       return { profit: r.netProfit, roi: r.roi };
     })(),
   } : null;
@@ -1261,7 +1279,7 @@ export default function HomePage() {
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
-      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs });
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SOCIAL') {
@@ -1285,7 +1303,7 @@ export default function HomePage() {
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
-      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SOCIAL') {
@@ -1293,6 +1311,79 @@ export default function HomePage() {
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
+
+  const stressCombined = (() => {
+    if (dealType === 'BTL') {
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'HMO') {
+      const r = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : { mortgageRate: sharedInputs.mortgageRate + 1.5 }), ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SA') {
+      const r = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : { mortgageRate: sharedInputs.mortgageRate + 1.5 }), ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, monthlyRent: brrrInputs.monthlyRent * 0.9, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SOCIAL') {
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
+
+  const stressCostsUp = (() => {
+    const costsUpInputs = { ...sharedCostInputs, maintenanceReserve: maintenanceReserve * 1.5, buildingsInsurance: buildingsInsurance * 1.15 };
+    if (dealType === 'BTL') {
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'HMO') {
+      const r = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...hmoInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SA') {
+      const r = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...saInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SOCIAL') {
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
+
+  const capitalValueStress = (() => {
+    if (dealType === 'R2R' || dealType === 'FLIP') return null;
+    const mv = marketValue > 0 ? marketValue : sharedInputs.purchasePrice;
+    const stressedValue = mv * 0.9;
+    const loanAmt = dealType === 'BRRR'
+      ? brrrResults.refinanceLoan
+      : sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+    const stressedLTV = stressedValue > 0 ? (loanAmt / stressedValue) * 100 : 0;
+    const stressedEquity = stressedValue - loanAmt;
+    return { stressedValue, stressedLTV, stressedEquity };
+  })();
+
+  const cashRequiredAtCompletion = (() => {
+    if (dealType === 'R2R') return null;
+    const pp = sharedInputs.purchasePrice;
+    if (pp <= 0) return null;
+    const exchangeDeposit = pp * 0.10;
+    const completionBalance = (pp * sharedInputs.depositPercent / 100) - exchangeDeposit;
+    const sdlt = effectiveTax;
+    const legalFees = sharedInputs.otherCosts;
+    const totalAtCompletion = exchangeDeposit + completionBalance + sdlt + legalFees;
+    return { exchangeDeposit, completionBalance, sdlt, legalFees, totalAtCompletion };
   })();
 
   const taxLabel = TAX_LABEL[taxCountry];
@@ -1376,7 +1467,7 @@ export default function HomePage() {
       dealType === 'FLIP'   ? flipResults.roi :
       dealType === 'SA'     ? saResults.netYield :
       dealType === 'BRRR'   ? brrrResults.grossYield :
-      dealType === 'R2R'    ? r2rResults.roi :
+      dealType === 'R2R'    ? null :
       socialResults.grossYield,
   }
 
@@ -1458,7 +1549,7 @@ export default function HomePage() {
     dealType === 'BTL' ? formatPercent(btlResults.cashOnCashROI) :
     dealType === 'HMO' ? formatPercent(hmoResults.cashOnCashROI) :
     dealType === 'SA' ? formatPercent(saResults.cashOnCashROI) :
-    dealType === 'BRRR' ? (brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI)) :
+    dealType === 'BRRR' ? (brrrResults.cashOnCashROI === -Infinity ? '⚠ Neg. CF' : brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI)) :
     dealType === 'SOCIAL' ? formatPercent(socialResults.cashOnCashROI) :
     dealType === 'FLIP' ? formatPercent(flipResults.annualisedROI) :
     formatPercent(r2rResults.roi);
@@ -1494,9 +1585,9 @@ export default function HomePage() {
         dealType === 'BTL' ? { grossYield: formatPercent(btlResults.grossYield), cashFlow: btlResults.monthlyCashFlow, roi: formatPercent(btlResults.cashOnCashROI) } :
         dealType === 'HMO' ? { grossYield: formatPercent(hmoResults.grossYield), cashFlow: hmoResults.monthlyCashFlow, roi: formatPercent(hmoResults.cashOnCashROI) } :
         dealType === 'FLIP' ? { grossYield: formatPercent(flipResults.roi), cashFlow: flipResults.profitPerMonth, roi: formatPercent(flipResults.annualisedROI) } :
-        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield) + ' (net yield)', cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
         dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
-        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.roi), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+        dealType === 'R2R' ? { grossYield: 'N/A (R2R — no property ownership)', cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
         { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
 
       const response = await fetch('/.netlify/functions/generate-summary', {
@@ -1536,9 +1627,9 @@ export default function HomePage() {
         dealType === 'BTL' ? { grossYield: formatPercent(btlResults.grossYield), cashFlow: btlResults.monthlyCashFlow, roi: formatPercent(btlResults.cashOnCashROI) } :
         dealType === 'HMO' ? { grossYield: formatPercent(hmoResults.grossYield), cashFlow: hmoResults.monthlyCashFlow, roi: formatPercent(hmoResults.cashOnCashROI) } :
         dealType === 'FLIP' ? { grossYield: formatPercent(flipResults.roi), cashFlow: flipResults.profitPerMonth, roi: formatPercent(flipResults.annualisedROI) } :
-        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield) + ' (net yield)', cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
         dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
-        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.roi), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+        dealType === 'R2R' ? { grossYield: 'N/A (R2R — no property ownership)', cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
         { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
 
       const response = await fetch('/.netlify/functions/generate-summary', {
@@ -1574,6 +1665,9 @@ export default function HomePage() {
 
   const floodDetected = !!(propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No'));
   const leaseholdWarning = tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85;
+  const epcRating = propertyData?.epcRating ?? null;
+  const epcUnlettable = epcRating === 'F' || epcRating === 'G';
+  const epcUpgradeRisk = epcRating === 'D' || epcRating === 'E';
 
   const currentRiskFlags: string[] = (() => {
     const flags: (string | null)[] = [];
@@ -1581,14 +1675,38 @@ export default function HomePage() {
       flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
       flags.push(sharedInputs.purchasePrice > 0 && btlResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review rent or mortgage assumptions' : null);
       flags.push(sharedInputs.purchasePrice > 0 && btlResults.grossYield < 5 && btlResults.grossYield > 0 ? '⚠️ Gross yield below 5% — may not meet lender stress tests' : null);
+      flags.push(epcUnlettable ? `⚠️ EPC rating ${epcRating} — this property is currently unlettable under Minimum Energy Efficiency Standards. Significant upgrade works required before letting.` : null);
+      flags.push(!epcUnlettable && epcUpgradeRisk ? `⚠️ EPC rating ${epcRating} — planned government changes may require upgrade to EPC C by 2028. Budget for potential improvement works.` : null);
+      flags.push(areaAverageYield > 0 && btlResults.grossYield > 0 && btlResults.grossYield < areaAverageYield * 0.8 ? `⚠️ Gross yield ${formatPercent(btlResults.grossYield)} is significantly below the area average of ${formatPercent(areaAverageYield)} — verify rent assumption or review purchase price.` : null);
+      flags.push(btlPurchaseFinancingMethod === 'mortgage' && sharedInputs.mortgageRate > 0 && sharedInputs.purchasePrice > 0 ? (() => {
+        const loanAmt = sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+        const stressedRate = Math.max(sharedInputs.mortgageRate, 5.5);
+        const stressedMonthly = loanAmt * (stressedRate / 100 / 12);
+        const icr = stressedMonthly > 0 ? btlInputs.monthlyRent / stressedMonthly : 99;
+        return icr < 1.25 ? `⚠️ Rent may not meet lender stress test (ICR ${icr.toFixed(2)}x at ${stressedRate}% stressed rate — lenders typically require 1.25x minimum). Mortgage availability should be verified with a broker.` : null;
+      })() : null);
+      flags.push(sharedInputs.purchasePrice > 0 ? '📋 Figures shown are pre-income-tax. Section 24 applies to individual landlords — mortgage interest is not fully deductible. Actual returns depend on your tax position and ownership structure.' : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'HMO') {
       flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
       flags.push(sharedInputs.purchasePrice > 0 && hmoResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review room rates or costs' : null);
+      flags.push(epcUnlettable ? `⚠️ EPC rating ${epcRating} — this property is currently unlettable under Minimum Energy Efficiency Standards. Significant upgrade works required before letting.` : null);
+      flags.push(!epcUnlettable && epcUpgradeRisk ? `⚠️ EPC rating ${epcRating} — planned government changes may require upgrade to EPC C by 2028. Budget for potential improvement works.` : null);
+      flags.push(areaAverageYield > 0 && hmoResults.grossYield > 0 && hmoResults.grossYield < areaAverageYield * 0.8 ? `⚠️ Gross yield ${formatPercent(hmoResults.grossYield)} is significantly below the area average of ${formatPercent(areaAverageYield)} — verify rent assumption or review purchase price.` : null);
+      flags.push(hmoPurchaseFinancingMethod === 'mortgage' && sharedInputs.mortgageRate > 0 && sharedInputs.purchasePrice > 0 ? (() => {
+        const loanAmt = sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+        const stressedRate = Math.max(sharedInputs.mortgageRate, 5.5);
+        const stressedMonthly = loanAmt * (stressedRate / 100 / 12);
+        const icr = stressedMonthly > 0 ? hmoResults.grossMonthlyRent / stressedMonthly : 99;
+        return icr < 1.25 ? `⚠️ Rent may not meet lender stress test (ICR ${icr.toFixed(2)}x at ${stressedRate}% stressed rate — lenders typically require 1.25x minimum). Mortgage availability should be verified with a broker.` : null;
+      })() : null);
+      flags.push(sharedInputs.purchasePrice > 0 ? '📋 Figures shown are pre-income-tax. Section 24 applies to individual landlords — mortgage interest is not fully deductible. Actual returns depend on your tax position and ownership structure.' : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'FLIP') {
       flags.push(leaseholdWarning ? '⚠️ Leasehold under 85 years — most lenders will not mortgage this property' : null);
       flags.push(sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
+      flags.push(flipInputs.expectedSalePrice > 0 && flipInputs.expectedSalePrice < sharedInputs.purchasePrice ? '⚠️ Sale price is below purchase price — deal shows a loss before refurb costs are considered.' : null);
+      flags.push(flipInputs.expectedSalePrice > 0 && flipInputs.expectedSalePrice < sharedInputs.purchasePrice + sharedInputs.refurbCost ? '⚠️ Sale price does not cover purchase price and refurb costs — review your GDV assumption.' : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
       flags.push(financingMethod === 'bridging' && flipInputs.flipBridgingTermMonths > 0 && flipInputs.projectLengthMonths > flipInputs.flipBridgingTermMonths
         ? `⚠️ Bridging term (${flipInputs.flipBridgingTermMonths} months) is shorter than project length (${flipInputs.projectLengthMonths} months) — you will need to extend or refinance before the project completes`
@@ -1610,6 +1728,19 @@ export default function HomePage() {
         : null);
       flags.push(sharedInputs.purchasePrice > 0 && saResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — review nightly rate or occupancy assumptions' : null);
       flags.push(sharedInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60 ? `⚠️ Occupancy at ${saInputs.occupancyPercent}% — most SA deals require 70%+ to stack.` : null);
+      flags.push('⚠️ Short-term lets may require planning permission or be subject to local restrictions. London properties are limited to 90 nights/year short-term without planning consent. Verify local rules before proceeding.');
+      flags.push('⚠️ The Furnished Holiday Let tax regime was abolished from 6 April 2025. SA income is now taxed as standard rental income — mortgage interest relief under Section 24 applies. Seek accountant advice.');
+      flags.push(epcUnlettable ? `⚠️ EPC rating ${epcRating} — this property is currently unlettable under Minimum Energy Efficiency Standards. Significant upgrade works required before letting.` : null);
+      flags.push(!epcUnlettable && epcUpgradeRisk ? `⚠️ EPC rating ${epcRating} — planned government changes may require upgrade to EPC C by 2028. Budget for potential improvement works.` : null);
+      flags.push(areaAverageYield > 0 && saResults.grossYield > 0 && saResults.grossYield < areaAverageYield * 0.8 ? `⚠️ Gross yield ${formatPercent(saResults.grossYield)} is significantly below the area average of ${formatPercent(areaAverageYield)} — verify rent assumption or review purchase price.` : null);
+      flags.push(saPurchaseFinancingMethod === 'mortgage' && sharedInputs.mortgageRate > 0 && sharedInputs.purchasePrice > 0 ? (() => {
+        const loanAmt = sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+        const stressedRate = Math.max(sharedInputs.mortgageRate, 5.5);
+        const stressedMonthly = loanAmt * (stressedRate / 100 / 12);
+        const icr = stressedMonthly > 0 ? saResults.grossMonthlyRevenue / stressedMonthly : 99;
+        return icr < 1.25 ? `⚠️ Rent may not meet lender stress test (ICR ${icr.toFixed(2)}x at ${stressedRate}% stressed rate — lenders typically require 1.25x minimum). Mortgage availability should be verified with a broker.` : null;
+      })() : null);
+      flags.push(sharedInputs.purchasePrice > 0 ? '📋 Figures shown are pre-income-tax. Section 24 applies to individual landlords — mortgage interest is not fully deductible. Actual returns depend on your tax position and ownership structure.' : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'BRRR') {
       flags.push(leaseholdWarning
@@ -1619,6 +1750,7 @@ export default function HomePage() {
         : null);
       flags.push(sharedInputs.purchasePrice > 0 && brrrResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow after refinance — deal does not self-fund' : null);
       flags.push(sharedInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? `⚠️ £${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits your ability to repeat the strategy.` : null);
+      flags.push(brrrInputs.refinancePercent > 75 ? `⚠️ Refinance at ${brrrInputs.refinancePercent}% LTV — most UK BTL lenders cap at 75%. Verify with a specialist broker before proceeding.` : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else if (dealType === 'R2R') {
       flags.push(r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
@@ -1626,6 +1758,8 @@ export default function HomePage() {
           ? `⚠️ Monthly profit at £${Math.round(r2rResults.monthlyProfit).toLocaleString()} — thin margin for R2R.`
           : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold.')
         : null);
+      flags.push('⚠️ R2R requires the landlord\'s mortgage lender consent and freeholder consent where applicable. Confirm both in writing before completing any R2R agreement.');
+      flags.push(r2rResults.leaseBreakEvenRisk ? `⚠️ Setup costs may not be recovered within 60% of the lease term — high termination risk. Negotiate a longer lease or reduce setup costs.` : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     } else {
       flags.push(leaseholdWarning
@@ -1634,6 +1768,17 @@ export default function HomePage() {
           : '⚠️ Leasehold under 85 years — most lenders will not mortgage this property')
         : null);
       flags.push(sharedInputs.purchasePrice > 0 && socialResults.monthlyCashFlow < 0 ? '⚠️ Negative cash flow — lease income does not cover mortgage and costs' : null);
+      flags.push(epcUnlettable ? `⚠️ EPC rating ${epcRating} — this property is currently unlettable under Minimum Energy Efficiency Standards. Significant upgrade works required before letting.` : null);
+      flags.push(!epcUnlettable && epcUpgradeRisk ? `⚠️ EPC rating ${epcRating} — planned government changes may require upgrade to EPC C by 2028. Budget for potential improvement works.` : null);
+      flags.push(areaAverageYield > 0 && socialResults.grossYield > 0 && socialResults.grossYield < areaAverageYield * 0.8 ? `⚠️ Gross yield ${formatPercent(socialResults.grossYield)} is significantly below the area average of ${formatPercent(areaAverageYield)} — verify rent assumption or review purchase price.` : null);
+      flags.push(socialPurchaseFinancingMethod === 'mortgage' && sharedInputs.mortgageRate > 0 && sharedInputs.purchasePrice > 0 ? (() => {
+        const loanAmt = sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+        const stressedRate = Math.max(sharedInputs.mortgageRate, 5.5);
+        const stressedMonthly = loanAmt * (stressedRate / 100 / 12);
+        const icr = stressedMonthly > 0 ? socialInputs.leaseIncomePerMonth / stressedMonthly : 99;
+        return icr < 1.25 ? `⚠️ Rent may not meet lender stress test (ICR ${icr.toFixed(2)}x at ${stressedRate}% stressed rate — lenders typically require 1.25x minimum). Mortgage availability should be verified with a broker.` : null;
+      })() : null);
+      flags.push(sharedInputs.purchasePrice > 0 ? '📋 Figures shown are pre-income-tax. Section 24 applies to individual landlords — mortgage interest is not fully deductible. Actual returns depend on your tax position and ownership structure.' : null);
       flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
     }
     return flags.filter(Boolean) as string[];
@@ -1663,7 +1808,10 @@ export default function HomePage() {
     const _buyerLabel = BUYER_LABEL[buyerType];
 
     const _sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
-    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _btlRefurbBridgingCost = btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingRate > 0 && btlRefurbBridgingTermMonths > 0
+      ? btlRefurbBridgingAmount * (btlRefurbBridgingRate / 100) * btlRefurbBridgingTermMonths
+      : 0;
+    const _btlResults = calculateBTL({ ...sharedInputs, ...(btlPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...btlInputs, otherCosts: sharedInputs.otherCosts + _btlRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
     const _hmoRefurbBridgingCost = hmoRefurbFinancingMethod === 'bridging' && hmoRefurbBridgingRate > 0 && hmoRefurbBridgingTermMonths > 0
       ? hmoRefurbBridgingAmount * (hmoRefurbBridgingRate / 100) * hmoRefurbBridgingTermMonths
@@ -1672,21 +1820,40 @@ export default function HomePage() {
     const _saRefurbBridgingCost = saRefurbFinancingMethod === 'bridging' && saRefurbBridgingRate > 0 && saRefurbBridgingTermMonths > 0
       ? saRefurbBridgingAmount * (saRefurbBridgingRate / 100) * saRefurbBridgingTermMonths
       : 0;
-    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, otherCosts: sharedInputs.otherCosts + _saRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _saResults = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...saInputs, otherCosts: sharedInputs.otherCosts + _saRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
     const { bridgingRate: _brrBridgingRate, bridgingTermMonths: _brrBridgingTerm, bridgingLTV: _brrBridgingLTV, ...brrrInputsForPdfCalc } = brrrInputs;
     const _brrrBridgingInterest = sharedInputs.purchasePrice > 0 && _brrBridgingRate > 0 && _brrBridgingTerm > 0
       ? (sharedInputs.purchasePrice * (_brrBridgingLTV / 100)) * (_brrBridgingRate / 100) * _brrBridgingTerm
       : 0;
+    const _brrrPurchaseFinancingCost = (() => {
+      const { bridgingRate: _br, bridgingTermMonths: _bt, bridgingLTV: _bl } = brrrInputs;
+      if (brrrPurchaseFinancingMethod === 'bridging' && sharedInputs.purchasePrice > 0 && _br > 0 && _bt > 0) {
+        return (sharedInputs.purchasePrice * (_bl / 100)) * (_br / 100) * _bt;
+      }
+      if (brrrPurchaseFinancingMethod === 'mortgage' && sharedInputs.purchasePrice > 0 && brrrPurchaseMortgageRate > 0 && _bt > 0) {
+        const loan = sharedInputs.purchasePrice * (1 - brrrPurchaseMortgageDepositPct / 100);
+        const mr = brrrPurchaseMortgageRate / 100 / 12;
+        const mp = brrrPurchaseMortgageType === 'IO' ? loan * mr : brrrPurchaseMortgageTerm > 0 ? (loan * mr) / (1 - Math.pow(1 + mr, -(brrrPurchaseMortgageTerm * 12))) : 0;
+        return mp * _bt;
+      }
+      return 0;
+    })();
+    const _brrrRefurbBridgingCost = brrrRefurbFinancingMethod === 'bridging' && brrrInputs.bridgingRate > 0 && brrrInputs.bridgingTermMonths > 0
+      ? brrrRefurbBridgingAmount * (brrrInputs.bridgingRate / 100) * brrrInputs.bridgingTermMonths
+      : 0;
     const _brrrResults = calculateBRRR({
       purchasePrice: sharedInputs.purchasePrice,
       refurbCost: sharedInputs.refurbCost,
-      otherCosts: sharedInputs.otherCosts + _brrrBridgingInterest,
+      otherCosts: sharedInputs.otherCosts + _brrrPurchaseFinancingCost + _brrrRefurbBridgingCost,
       stampDuty: _effectiveTax,
       ...brrrInputsForPdfCalc,
       ..._sharedCostInputs,
     });
     const _r2rResults = calculateR2R(r2rInputs);
-    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _socialSocialRefurbBridgingCost = socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingRate > 0 && socialRefurbBridgingTermMonths > 0
+      ? socialRefurbBridgingAmount * (socialRefurbBridgingRate / 100) * socialRefurbBridgingTermMonths
+      : 0;
+    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...(socialPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...socialInputs, otherCosts: sharedInputs.otherCosts + _socialSocialRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
 
     const _stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
 
@@ -1704,7 +1871,7 @@ export default function HomePage() {
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'BRRR') {
-        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs });
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts + _brrrPurchaseFinancingCost + _brrrRefurbBridgingCost, stampDuty: _effectiveTax, ...brrrInputsForPdfCalc, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SOCIAL') {
@@ -1728,7 +1895,7 @@ export default function HomePage() {
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'BRRR') {
-        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs });
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts + _brrrPurchaseFinancingCost + _brrrRefurbBridgingCost, stampDuty: _effectiveTax, ...brrrInputsForPdfCalc, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SOCIAL') {
@@ -1901,6 +2068,10 @@ export default function HomePage() {
         rentDownCoC: _stressRentDown.cashOnCashROI,
         rateUpCashFlow: _stressRateUp.monthlyCashFlow,
         rateUpCoC: _stressRateUp.cashOnCashROI,
+        combinedCashFlow: stressCombined.monthlyCashFlow,
+        combinedCoC: stressCombined.cashOnCashROI,
+        costsUpCashFlow: stressCostsUp.monthlyCashFlow,
+        costsUpCoC: stressCostsUp.cashOnCashROI,
       } : undefined,
       includeWorkings: includeWorkingsInPDF,
       managementFeePercent,
@@ -4203,6 +4374,11 @@ export default function HomePage() {
                           <span className="text-lg font-bold" style={{ color: flipResults.netProfit >= 0 ? '#10B981' : '#EF4444' }}>{formatCurrency(flipResults.netProfit)}</span>
                         </div>
                       </div>
+                      {dealType === 'FLIP' && flipResults.netProfit > 0 && (
+                        <p style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                          Pre-CGT figure. CGT on residential property: 18% (basic rate) or 24% (higher rate) on gains above the £3,000 annual exemption, payable within 60 days of completion.
+                        </p>
+                      )}
                     </div>
                     {/* Group 2 — MONTHLY · ANNUAL */}
                     <div className="mb-4">
@@ -4512,6 +4688,9 @@ export default function HomePage() {
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">Cash Left In<InfoIcon id="g1-brrr-left" text="Cash remaining in deal after refinance. Target: as close to £0 as possible. £0 means capital fully recycled." /></span>
                           <span className="text-lg font-bold" style={{ color: brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 10000 ? '#10B981' : brrrResults.cashLeftInDeal <= 25000 ? '#F59E0B' : '#EF4444' }}>{brrrResults.moneyOut ? '∞ recycled' : formatCurrency(brrrResults.cashLeftInDeal)}</span>
+                          {brrrResults.moneyOut && Math.abs(brrrResults.cashLeftInDeal) > 0 && (
+                            <div className="text-xs text-green-700 font-medium mt-1">Cash released: {formatCurrency(Math.abs(brrrResults.cashLeftInDeal))}</div>
+                          )}
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">Refinance Loan<InfoIcon id="g1-brrr-refi" text="The new long-term mortgage taken out after refinancing. Calculated as refinance % × post-refurb value." /></span>
@@ -4554,7 +4733,7 @@ export default function HomePage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">CoC ROI<InfoIcon id="g3-brrr-coc" text="Annual cash flow ÷ cash left in deal × 100. The lower the cash left in, the higher this number. Infinite when capital is fully recycled." /></span>
-                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}</span>
+                          <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{brrrResults.cashOnCashROI === -Infinity ? '⚠ Neg. CF' : brrrResults.moneyOut ? '∞ (money out!)' : formatPercent(brrrResults.cashOnCashROI)}</span>
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">Gross Yield<InfoIcon id="g3-brrr-gy" text="Annual rent ÷ post-refurb value × 100." /></span>

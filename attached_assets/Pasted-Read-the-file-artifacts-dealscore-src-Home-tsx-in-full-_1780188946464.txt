@@ -1,0 +1,580 @@
+Read the file artifacts/dealscore/src/Home.tsx in full before making any changes. Plan all edits explicitly before executing. Execute all changes in parallel where possible.
+
+This prompt makes 38 fixes to Home.tsx. Do not modify any other file except as noted in EDIT 1 which also touches saInputs state.
+
+---
+
+EDIT 1 — Wire R2R landlord deposit into setupCosts calculation
+
+r2rLandlordDepositMonths state exists and is tracked but is never added to setupCosts. This means R2R ROI and payback are overstated.
+
+FIND:
+  const r2rResults = calculateR2R(r2rInputs);
+
+REPLACE WITH:
+  const r2rResults = calculateR2R({
+    ...r2rInputs,
+    setupCosts: r2rInputs.setupCosts + (r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths),
+  });
+
+---
+
+EDIT 2 — Fix BRRR stress tests: add financing costs to otherCosts
+
+Both stressRentDown and stressRateUp for BRRR omit brrrPurchaseFinancingCost and brrrRefurbBridgingCost, making stress results too optimistic.
+
+FIND in stressRentDown:
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+
+REPLACE WITH:
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+
+FIND in stressRateUp:
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+
+REPLACE WITH:
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+
+---
+
+EDIT 3 — Fix Flip extraMonth stress scenario to recalculate financing cost
+
+Currently the extraMonth scenario uses the static flipTotalFinancingCost. For bridging deals, one extra month means more interest. Recalculate financing cost with projectLengthMonths + 1.
+
+FIND:
+    extraMonth: (() => {
+      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency, otherCosts: otherCosts + flipTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: flipInputs.projectLengthMonths + 1, expectedSalePrice: flipInputs.expectedSalePrice, sellingCostsPercent: flipInputs.sellingCostsPercent });
+      return { profit: r.netProfit, roi: r.roi };
+    })(),
+
+REPLACE WITH:
+    extraMonth: (() => {
+      const extraMonthsLen = flipInputs.projectLengthMonths + 1;
+      let extraPurchaseFinancingCost = 0;
+      if (financingMethod === 'bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0) {
+        extraPurchaseFinancingCost = (purchasePrice * flipBridgingLTV / 100) * (flipBridgingRate / 100) * Math.max(flipBridgingTermMonths, extraMonthsLen);
+      } else if (financingMethod === 'mortgage' && flipMortgageRate > 0) {
+        const loan = purchasePrice * (1 - flipMortgageDeposit / 100);
+        if (flipMortgageType === 'IO') extraPurchaseFinancingCost = loan * (flipMortgageRate / 100 / 12) * extraMonthsLen;
+        else {
+          const rr = flipMortgageRate / 100 / 12;
+          const nn = flipMortgageTerm * 12;
+          const mp = rr > 0 ? loan * (rr * Math.pow(1 + rr, nn)) / (Math.pow(1 + rr, nn) - 1) : loan / nn;
+          extraPurchaseFinancingCost = mp * extraMonthsLen;
+        }
+      }
+      const extraTotalFinancingCost = extraPurchaseFinancingCost + flipRefurbFinancingCost;
+      const r = calculateFlip({ purchasePrice, refurbCost: flipRefurbWithContingency, otherCosts: otherCosts + extraTotalFinancingCost, stampDuty: effectiveTax, holdingCostsPerMonth: flipInputs.holdingCostsPerMonth, projectLengthMonths: extraMonthsLen, expectedSalePrice: flipInputs.expectedSalePrice, sellingCostsPercent: flipInputs.sellingCostsPercent });
+      return { profit: r.netProfit, roi: r.roi };
+    })(),
+
+---
+
+EDIT 4 — Fix Gross Yield label and value for R2R in live bar
+
+R2R grossYield was removed from calculations.ts (Prompt A). Replace remaining references with roi (return on setup).
+
+FIND:
+  const currentYieldValue: string =
+    dealType === 'BTL' ? formatPercent(btlResults.grossYield) :
+    dealType === 'HMO' ? formatPercent(hmoResults.grossYield) :
+    dealType === 'SA' ? formatPercent(saResults.netYield) :
+    dealType === 'BRRR' ? formatPercent(brrrResults.grossYield) :
+    dealType === 'SOCIAL' ? formatPercent(socialResults.grossYield) :
+    dealType === 'FLIP' ? formatPercent(flipResults.roi) :
+    formatPercent(r2rResults.grossYield);
+
+REPLACE WITH:
+  const currentYieldValue: string =
+    dealType === 'BTL' ? formatPercent(btlResults.grossYield) :
+    dealType === 'HMO' ? formatPercent(hmoResults.grossYield) :
+    dealType === 'SA' ? formatPercent(saResults.netYield) :
+    dealType === 'BRRR' ? formatPercent(brrrResults.grossYield) :
+    dealType === 'SOCIAL' ? formatPercent(socialResults.grossYield) :
+    dealType === 'FLIP' ? formatPercent(flipResults.roi) :
+    formatPercent(r2rResults.roi);
+
+---
+
+EDIT 5 — Fix Supabase grossYield stored for R2R and fix optimiser R2R currentYield reference
+
+FIND in dealMetricsRef.current:
+      dealType === 'R2R'    ? r2rResults.grossYield :
+
+REPLACE WITH:
+      dealType === 'R2R'    ? null :
+
+FIND in optimalOffer R2R already_meets return:
+        return { type: 'already_meets' as const, currentROI: r2rResults.roi, currentCF: r2rResults.monthlyProfit, currentYield: r2rResults.grossYield };
+
+REPLACE WITH:
+        return { type: 'already_meets' as const, currentROI: r2rResults.roi, currentCF: r2rResults.monthlyProfit, currentYield: r2rResults.roi };
+
+---
+
+EDIT 6 — Fix AI summary for SA (sends netYield labelled as grossYield) and R2R (sends meaningless yield)
+
+FIND in handleGenerateSummary:
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
+        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+
+REPLACE WITH:
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield) + ' (net yield)', cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
+        dealType === 'R2R' ? { grossYield: 'N/A (R2R — no property ownership)', cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+
+FIND in handleGenerateStrategy (same pattern, same fix):
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
+        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+
+REPLACE WITH:
+        dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield) + ' (net yield)', cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
+        dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
+        dealType === 'R2R' ? { grossYield: 'N/A (R2R — no property ownership)', cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+
+---
+
+EDIT 7 — Add Social Housing mortgageRate to missingFields validation
+
+Currently Social Housing does not check mortgageRate > 0, allowing 0% rate to produce silently wrong results.
+
+FIND:
+    } else {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(socialInputs.leaseIncomePerMonth > 0)) missing.push('Lease Income');
+      if (socialPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+    }
+
+REPLACE WITH:
+    } else {
+      if (!(purchasePrice > 0)) missing.push('Purchase Price');
+      if (!(socialInputs.leaseIncomePerMonth > 0)) missing.push('Lease Income');
+      if (socialPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.mortgageRate > 0)) missing.push('Mortgage Rate');
+      if (socialPurchaseFinancingMethod === 'mortgage' && !(sharedInputs.depositPercent > 0)) missing.push('Deposit %');
+    }
+
+---
+
+EDIT 8 — Add BRRR refinance LTV > 75% risk flag
+
+FIND in currentRiskFlags BRRR section:
+      flags.push(sharedInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? `⚠️ £${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits your ability to repeat the strategy.` : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+    } else if (dealType === 'R2R') {
+
+REPLACE WITH:
+      flags.push(sharedInputs.purchasePrice > 0 && brrrResults.cashLeftInDeal > 25000 ? `⚠️ £${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits your ability to repeat the strategy.` : null);
+      flags.push(brrrInputs.refinancePercent > 75 ? `⚠️ Refinance at ${brrrInputs.refinancePercent}% LTV — most UK BTL lenders cap at 75%. Verify with a specialist broker before proceeding.` : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+    } else if (dealType === 'R2R') {
+
+---
+
+EDIT 9 — Add R2R subletting consent risk flag
+
+FIND in currentRiskFlags R2R section:
+      flags.push(r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
+        ? (r2rResults.score === 'Average'
+          ? `⚠️ Monthly profit at £${Math.round(r2rResults.monthlyProfit).toLocaleString()} — thin margin for R2R.`
+          : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold.')
+        : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+    } else {
+
+REPLACE WITH:
+      flags.push(r2rInputs.setupCosts > 0 && r2rResults.monthlyProfit < 200
+        ? (r2rResults.score === 'Average'
+          ? `⚠️ Monthly profit at £${Math.round(r2rResults.monthlyProfit).toLocaleString()} — thin margin for R2R.`
+          : '⚠️ Monthly profit below £200 — does not meet typical R2R threshold.')
+        : null);
+      flags.push('⚠️ R2R requires the landlord\'s mortgage lender consent and freeholder consent where applicable. Confirm both in writing before completing any R2R agreement.');
+      flags.push(r2rResults.leaseBreakEvenRisk ? `⚠️ Setup costs may not be recovered within 60% of the lease term — high termination risk. Negotiate a longer lease or reduce setup costs.` : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+    } else {
+
+---
+
+EDIT 10 — Add SA 90-day rule and FHL abolition risk flags
+
+FIND in currentRiskFlags SA section:
+      flags.push(sharedInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60 ? `⚠️ Occupancy at ${saInputs.occupancyPercent}% — most SA deals require 70%+ to stack.` : null);
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+    } else if (dealType === 'BRRR') {
+
+REPLACE WITH:
+      flags.push(sharedInputs.purchasePrice > 0 && saInputs.occupancyPercent < 60 ? `⚠️ Occupancy at ${saInputs.occupancyPercent}% — most SA deals require 70%+ to stack.` : null);
+      flags.push('⚠️ Short-term lets may require planning permission or be subject to local restrictions. London properties are limited to 90 nights/year short-term without planning consent. Verify local rules before proceeding.');
+      flags.push('⚠️ The Furnished Holiday Let tax regime was abolished from 6 April 2025. SA income is now taxed as standard rental income — mortgage interest relief under Section 24 applies. Seek accountant advice.');
+      flags.push(floodDetected ? '⚠️ Flood risk area detected nearby — verify with Environment Agency before proceeding' : null);
+    } else if (dealType === 'BRRR') {
+
+---
+
+EDIT 11 — Add EPC lettability risk flag (uses existing propertyData.epcRating)
+
+FIND the line immediately after floodDetected is computed:
+  const floodDetected = !!(propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No'));
+  const leaseholdWarning = tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85;
+
+REPLACE WITH:
+  const floodDetected = !!(propertyData?.floodRisk && propertyData.floodRisk.includes('detected') && !propertyData.floodRisk.includes('No'));
+  const leaseholdWarning = tenure === 'Leasehold' && leaseLengthYears > 0 && leaseLengthYears < 85;
+  const epcRating = propertyData?.epcRating ?? null;
+  const epcUnlettable = epcRating === 'F' || epcRating === 'G';
+  const epcUpgradeRisk = epcRating === 'D' || epcRating === 'E';
+
+Then add EPC flags to BTL, HMO, SA, and Social sections of currentRiskFlags. In each of those strategy sections, immediately before the floodDetected push, add:
+
+      flags.push(epcUnlettable ? `⚠️ EPC rating ${epcRating} — this property is currently unlettable under Minimum Energy Efficiency Standards. Significant upgrade works required before letting.` : null);
+      flags.push(!epcUnlettable && epcUpgradeRisk ? `⚠️ EPC rating ${epcRating} — planned government changes may require upgrade to EPC C by 2028. Budget for potential improvement works.` : null);
+
+---
+
+EDIT 12 — Add areaAverageYield comparison risk flags
+
+areaAverageYield is already in state and passed to pdfProps but never used for validation. Add comparison flags to BTL, HMO, SA, and Social sections of currentRiskFlags.
+
+In each of those four strategy sections, immediately before the floodDetected push, add:
+
+      flags.push(areaAverageYield > 0 && btlResults.grossYield > 0 && btlResults.grossYield < areaAverageYield * 0.8 ? `⚠️ Gross yield ${formatPercent(btlResults.grossYield)} is significantly below the area average of ${formatPercent(areaAverageYield)} — verify rent assumption or review purchase price.` : null);
+
+(Adjust for each strategy: use hmoResults.grossYield for HMO, saResults.grossYield for SA, socialResults.grossYield for Social — and use the relevant results variable in each branch.)
+
+---
+
+EDIT 13 — Add Flip GDV below purchase price validation flag
+
+FIND in currentRiskFlags FLIP section:
+      flags.push(sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
+
+REPLACE WITH:
+      flags.push(sharedInputs.purchasePrice > 0 && flipResults.netProfit < 0 ? '⚠️ Deal shows a net loss — review costs or expected sale price' : null);
+      flags.push(flipInputs.expectedSalePrice > 0 && flipInputs.expectedSalePrice < sharedInputs.purchasePrice ? '⚠️ Sale price is below purchase price — deal shows a loss before refurb costs are considered.' : null);
+      flags.push(flipInputs.expectedSalePrice > 0 && flipInputs.expectedSalePrice < sharedInputs.purchasePrice + sharedInputs.refurbCost ? '⚠️ Sale price does not cover purchase price and refurb costs — review your GDV assumption.' : null);
+
+---
+
+EDIT 14 — Add Section 24 pre-tax disclaimer and ICR lender stress flag to BTL/HMO/SA/Social risk flags
+
+In BTL currentRiskFlags section, after the existing flags, before the closing of that block:
+
+      flags.push(btlPurchaseFinancingMethod === 'mortgage' && sharedInputs.mortgageRate > 0 && sharedInputs.purchasePrice > 0 ? (() => {
+        const loanAmt = sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+        const stressedRate = Math.max(sharedInputs.mortgageRate, 5.5);
+        const stressedMonthly = loanAmt * (stressedRate / 100 / 12);
+        const icr = stressedMonthly > 0 ? btlInputs.monthlyRent / stressedMonthly : 99;
+        return icr < 1.25 ? `⚠️ Rent may not meet lender stress test (ICR ${icr.toFixed(2)}x at ${stressedRate}% stressed rate — lenders typically require 1.25x minimum). Mortgage availability should be verified with a broker.` : null;
+      })() : null);
+
+Apply the same ICR pattern to HMO (using grossMonthlyRent from hmoResults.grossMonthlyRent), SA (using saResults.grossMonthlyRevenue as rent), and Social (using socialInputs.leaseIncomePerMonth as rent).
+
+Add the pre-tax notice to BTL, HMO, SA, and Social sections:
+      flags.push(sharedInputs.purchasePrice > 0 ? '📋 Figures shown are pre-income-tax. Section 24 applies to individual landlords — mortgage interest is not fully deductible. Actual returns depend on your tax position and ownership structure.' : null);
+
+---
+
+EDIT 15 — Add combined and costs-increase stress scenarios
+
+After the existing stressRateUp block, add a combined stress calculation and a costs increase stress:
+
+FIND the line:
+  const taxLabel = TAX_LABEL[taxCountry];
+
+ADD BEFORE IT:
+  const stressCombined = (() => {
+    if (dealType === 'BTL') {
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'HMO') {
+      const r = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : { mortgageRate: sharedInputs.mortgageRate + 1.5 }), ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SA') {
+      const r = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : { mortgageRate: sharedInputs.mortgageRate + 1.5 }), ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, monthlyRent: brrrInputs.monthlyRent * 0.9, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SOCIAL') {
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
+
+  const stressCostsUp = (() => {
+    const costsUpInputs = { ...sharedCostInputs, maintenanceReserve: maintenanceReserve * 1.5, buildingsInsurance: buildingsInsurance * 1.15 };
+    if (dealType === 'BTL') {
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'HMO') {
+      const r = calculateHMO({ ...sharedInputs, ...(hmoPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...hmoInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SA') {
+      const r = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...saInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'BRRR') {
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrPurchaseFinancingCost + brrrRefurbBridgingCost, stampDuty: effectiveTax, ...brrrInputsForCalc, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    if (dealType === 'SOCIAL') {
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...costsUpInputs });
+      return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+    }
+    return { monthlyCashFlow: 0, cashOnCashROI: 0 };
+  })();
+
+---
+
+EDIT 16 — Fix pdfProps _btlResults to apply cash purchase override
+
+FIND in pdfProps useMemo:
+    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+
+REPLACE WITH:
+    const _btlRefurbBridgingCost = btlRefurbFinancingMethod === 'bridging' && btlRefurbBridgingRate > 0 && btlRefurbBridgingTermMonths > 0
+      ? btlRefurbBridgingAmount * (btlRefurbBridgingRate / 100) * btlRefurbBridgingTermMonths
+      : 0;
+    const _btlResults = calculateBTL({ ...sharedInputs, ...(btlPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...btlInputs, otherCosts: sharedInputs.otherCosts + _btlRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+
+---
+
+EDIT 17 — Fix pdfProps _saResults to apply cash purchase override
+
+FIND in pdfProps useMemo:
+    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, otherCosts: sharedInputs.otherCosts + _saRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+
+REPLACE WITH:
+    const _saResults = calculateSA({ ...sharedInputs, ...(saPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...saInputs, otherCosts: sharedInputs.otherCosts + _saRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+
+---
+
+EDIT 18 — Fix pdfProps _socialResults to apply cash purchase override
+
+FIND in pdfProps useMemo:
+    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+
+REPLACE WITH:
+    const _socialSocialRefurbBridgingCost = socialRefurbFinancingMethod === 'bridging' && socialRefurbBridgingRate > 0 && socialRefurbBridgingTermMonths > 0
+      ? socialRefurbBridgingAmount * (socialRefurbBridgingRate / 100) * socialRefurbBridgingTermMonths
+      : 0;
+    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...(socialPurchaseFinancingMethod === 'cash' ? { depositPercent: 100, mortgageRate: 0 } : {}), ...socialInputs, otherCosts: sharedInputs.otherCosts + _socialSocialRefurbBridgingCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+
+---
+
+EDIT 19 — Fix pdfProps _brrrResults to include all financing costs
+
+FIND in pdfProps useMemo:
+    const _brrrResults = calculateBRRR({
+      purchasePrice: sharedInputs.purchasePrice,
+      refurbCost: sharedInputs.refurbCost,
+      otherCosts: sharedInputs.otherCosts + _brrrBridgingInterest,
+      stampDuty: _effectiveTax,
+      ...brrrInputsForPdfCalc,
+      ..._sharedCostInputs,
+    });
+
+REPLACE WITH:
+    const _brrrPurchaseFinancingCost = (() => {
+      const { bridgingRate: _br, bridgingTermMonths: _bt, bridgingLTV: _bl } = brrrInputs;
+      if (brrrPurchaseFinancingMethod === 'bridging' && sharedInputs.purchasePrice > 0 && _br > 0 && _bt > 0) {
+        return (sharedInputs.purchasePrice * (_bl / 100)) * (_br / 100) * _bt;
+      }
+      if (brrrPurchaseFinancingMethod === 'mortgage' && sharedInputs.purchasePrice > 0 && brrrPurchaseMortgageRate > 0 && _bt > 0) {
+        const loan = sharedInputs.purchasePrice * (1 - brrrPurchaseMortgageDepositPct / 100);
+        const mr = brrrPurchaseMortgageRate / 100 / 12;
+        const mp = brrrPurchaseMortgageType === 'IO' ? loan * mr : brrrPurchaseMortgageTerm > 0 ? (loan * mr) / (1 - Math.pow(1 + mr, -(brrrPurchaseMortgageTerm * 12))) : 0;
+        return mp * _bt;
+      }
+      return 0;
+    })();
+    const _brrrRefurbBridgingCost = brrrRefurbFinancingMethod === 'bridging' && brrrInputs.bridgingRate > 0 && brrrInputs.bridgingTermMonths > 0
+      ? brrrRefurbBridgingAmount * (brrrInputs.bridgingRate / 100) * brrrInputs.bridgingTermMonths
+      : 0;
+    const _brrrResults = calculateBRRR({
+      purchasePrice: sharedInputs.purchasePrice,
+      refurbCost: sharedInputs.refurbCost,
+      otherCosts: sharedInputs.otherCosts + _brrrPurchaseFinancingCost + _brrrRefurbBridgingCost,
+      stampDuty: _effectiveTax,
+      ...brrrInputsForPdfCalc,
+      ..._sharedCostInputs,
+    });
+
+---
+
+EDIT 20 — Fix pdfProps BRRR stress tests to include financing costs
+
+FIND in pdfProps _stressRentDown:
+      if (dealType === 'BRRR') {
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+
+REPLACE WITH:
+      if (dealType === 'BRRR') {
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts + _brrrPurchaseFinancingCost + _brrrRefurbBridgingCost, stampDuty: _effectiveTax, ...brrrInputsForPdfCalc, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+
+FIND in pdfProps _stressRateUp:
+      if (dealType === 'BRRR') {
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+
+REPLACE WITH:
+      if (dealType === 'BRRR') {
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts + _brrrPurchaseFinancingCost + _brrrRefurbBridgingCost, stampDuty: _effectiveTax, ...brrrInputsForPdfCalc, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs });
+        return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
+      }
+
+---
+
+EDIT 21 — Add stressCombined and stressCostsUp to pdfProps stressTest object and to the stressTest prop passed to PDF
+
+FIND in pdfProps:
+      stressTest: _stressSupported ? {
+        baseCashFlow: _baseCashFlow,
+        baseCoC: _baseCoC,
+        rentDownCashFlow: _stressRentDown.monthlyCashFlow,
+        rentDownCoC: _stressRentDown.cashOnCashROI,
+        rateUpCashFlow: _stressRateUp.monthlyCashFlow,
+        rateUpCoC: _stressRateUp.cashOnCashROI,
+      } : undefined,
+
+REPLACE WITH:
+      stressTest: _stressSupported ? {
+        baseCashFlow: _baseCashFlow,
+        baseCoC: _baseCoC,
+        rentDownCashFlow: _stressRentDown.monthlyCashFlow,
+        rentDownCoC: _stressRentDown.cashOnCashROI,
+        rateUpCashFlow: _stressRateUp.monthlyCashFlow,
+        rateUpCoC: _stressRateUp.cashOnCashROI,
+        combinedCashFlow: stressCombined.monthlyCashFlow,
+        combinedCoC: stressCombined.cashOnCashROI,
+        costsUpCashFlow: stressCostsUp.monthlyCashFlow,
+        costsUpCoC: stressCostsUp.cashOnCashROI,
+      } : undefined,
+
+---
+
+EDIT 22 — Add capital value stress metric (BTL/HMO/SA/Social/BRRR)
+
+After the stressCostsUp block and before const taxLabel, add:
+
+  const capitalValueStress = (() => {
+    if (dealType === 'R2R' || dealType === 'FLIP') return null;
+    const mv = marketValue > 0 ? marketValue : sharedInputs.purchasePrice;
+    const stressedValue = mv * 0.9;
+    const loanAmt = dealType === 'BRRR'
+      ? brrrResults.refinanceLoan
+      : sharedInputs.purchasePrice * (1 - sharedInputs.depositPercent / 100);
+    const stressedLTV = stressedValue > 0 ? (loanAmt / stressedValue) * 100 : 0;
+    const stressedEquity = stressedValue - loanAmt;
+    return { stressedValue, stressedLTV, stressedEquity };
+  })();
+
+---
+
+EDIT 23 — Add total cash required at completion metric
+
+After capitalValueStress, add:
+
+  const cashRequiredAtCompletion = (() => {
+    if (dealType === 'R2R') return null;
+    const pp = sharedInputs.purchasePrice;
+    if (pp <= 0) return null;
+    const exchangeDeposit = pp * 0.10;
+    const completionBalance = (pp * sharedInputs.depositPercent / 100) - exchangeDeposit;
+    const sdlt = effectiveTax;
+    const legalFees = sharedInputs.otherCosts;
+    const totalAtCompletion = exchangeDeposit + completionBalance + sdlt + legalFees;
+    return { exchangeDeposit, completionBalance, sdlt, legalFees, totalAtCompletion };
+  })();
+
+---
+
+EDIT 24 — Fix paybackPeriod display for BRRR money-out deals (paybackPeriod = -1 sentinel)
+
+Find all places in the JSX where paybackPeriod is displayed for BRRR results. Add a guard:
+
+When rendering brrrResults.paybackPeriod, replace any direct display with:
+  {brrrResults.paybackPeriod === -1 ? 'Capital recycled' : brrrResults.paybackPeriod === Infinity || brrrResults.paybackPeriod > 99 ? 'N/A' : `${brrrResults.paybackPeriod.toFixed(1)} years`}
+
+Similarly for all other strategies where paybackPeriod is displayed, replace direct number display with:
+  {result.paybackPeriod === Infinity || result.paybackPeriod > 99 ? 'N/A — negative cashflow' : `${result.paybackPeriod.toFixed(1)} years`}
+
+---
+
+EDIT 25 — Add BRRR cash released display when moneyOut
+
+Find the BRRR results section in the JSX that displays cashLeftInDeal. When brrrResults.moneyOut is true, the cashLeftInDeal value is negative. Add a companion display:
+
+After or near where cashLeftInDeal is displayed for BRRR, add:
+  {brrrResults.moneyOut && Math.abs(brrrResults.cashLeftInDeal) > 0 && (
+    <div>Cash released: {formatCurrency(Math.abs(brrrResults.cashLeftInDeal))}</div>
+  )}
+
+---
+
+EDIT 26 — Add BRRR CoC ROI display guard for -Infinity (money-out + negative cashflow)
+
+Find where brrrResults.cashOnCashROI is displayed. Currently it shows '∞' for moneyOut. Add handling for the -Infinity case:
+
+FIND pattern (approximate — adapt to exact code):
+  dealType === 'BRRR' ? (brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI))
+
+REPLACE WITH:
+  dealType === 'BRRR' ? (brrrResults.cashOnCashROI === -Infinity ? '⚠ Neg. CF' : brrrResults.moneyOut ? '∞' : formatPercent(brrrResults.cashOnCashROI))
+
+Apply this pattern everywhere brrrResults.cashOnCashROI is conditionally displayed.
+
+---
+
+EDIT 27 — Add Flip CGT disclosure note
+
+Find in the JSX where Flip net profit is displayed in the results panel. After the net profit row, add a small informational note:
+
+  {dealType === 'FLIP' && flipResults.netProfit > 0 && (
+    <p style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+      Pre-CGT figure. CGT on residential property: 18% (basic rate) or 24% (higher rate) on gains above the £3,000 annual exemption, payable within 60 days of completion.
+    </p>
+  )}
+
+---
+
+EDIT 28 — Change default mortgageType from IO to REPAYMENT
+
+FIND:
+    mortgageType: 'IO' as 'IO' | 'REPAYMENT',
+
+REPLACE WITH:
+    mortgageType: 'REPAYMENT' as 'IO' | 'REPAYMENT',
+
+Also update the reset handler to use REPAYMENT as default.
+
+---
+
+AFTER ALL EDITS: Run TypeScript check. Verify zero errors. Confirm stressCombined and stressCostsUp are referenced in the pdfProps stressTest object (EDIT 21 depends on EDIT 15). Confirm _brrrPurchaseFinancingCost and _brrrRefurbBridgingCost are declared before they are used in the BRRR stress tests in pdfProps (EDIT 20 depends on EDIT 19).
+
+Do not modify calculations.ts, DealScorePDF.tsx, DealScorePDFProPlus.tsx, or inputsSerializer.ts in this prompt.
