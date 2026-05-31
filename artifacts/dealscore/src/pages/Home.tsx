@@ -4692,7 +4692,7 @@ export default function HomePage() {
                       </div>
                       <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
                         <span className="text-sm text-muted-foreground flex items-center gap-1">Break-even Occupancy<InfoIcon id="row-sa-breakeven" text="Minimum occupancy rate needed to cover all costs. Compare against your local market average to assess risk." /></span>
-                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{(() => { const totalCosts = saResults.monthlyMortgage + saResults.totalOperatingCosts; const grossDailyRate = saInputs.nightlyRate * 30.4; const pct = grossDailyRate > 0 ? (totalCosts / grossDailyRate) * 100 : 0; return pct > 0 ? formatPercent(Math.min(pct, 100)) : '—'; })()}</span>
+                        <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{saResults.breakEvenOccupancy > 0 ? formatPercent(Math.min(saResults.breakEvenOccupancy, 100)) : '—'}</span>
                       </div>
                     </div>
                     {saRefurbFinancingMethod === 'bridging' && saRefurbBridgingCost > 0 && (
@@ -4908,7 +4908,7 @@ export default function HomePage() {
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
-                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">ROI on Setup<InfoIcon id="g3-r2r-roi" text="Annual profit ÷ setup costs × 100. Benchmark: 50%+ strong, 25%+ average." /></span>
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground h-8 flex items-start gap-1">ROI on Setup<InfoIcon id="g3-r2r-roi" text="Annual profit ÷ (setup costs + landlord deposit) × 100. Benchmark: 50%+ strong, 25%+ average." /></span>
                           <span className="text-lg font-bold" style={{ color: '#1B3A6B' }}>{formatPercent(r2rResults.roi)}</span>
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-border/60 p-3 flex flex-col justify-between min-h-[72px]">
@@ -4939,7 +4939,7 @@ export default function HomePage() {
                       {r2rInputs.rooms > 0 && r2rInputs.rentPerRoom > 0 && (
                         <div className="flex items-center justify-between py-2.5 border-b border-border/40 last:border-0">
                           <span className="text-sm text-muted-foreground flex items-center gap-1">Occupancy Break-Even<InfoIcon id="row-r2r-obe" text="The minimum occupancy rate needed to cover all costs — below this you are loss-making." /></span>
-                          <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{(() => { const monthlyCost = r2rInputs.monthlyRentPaid + r2rResults.managementFees + (r2rInputs.monthlyRunningCosts || 0); const breakEven = (monthlyCost / (r2rInputs.rooms * r2rInputs.rentPerRoom)) * 100; return breakEven > 0 && breakEven <= 100 ? `${breakEven.toFixed(1)}%` : '—'; })()}</span>
+                          <span className="text-sm font-medium" style={{ color: '#F59E0B' }}>{r2rResults.occupancyBreakEven > 0 && r2rResults.occupancyBreakEven <= 100 ? `${r2rResults.occupancyBreakEven.toFixed(1)}%` : '—'}</span>
                         </div>
                       )}
                     </div>

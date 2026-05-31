@@ -464,6 +464,10 @@ export function calculateSA(inputs: SAInputs) {
   const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
     ? (monthlyMortgage + fixedCostsSA) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
     : 0;
+  const netNightlyRate = inputs.nightlyRate * (1 - inputs.platformFeesPercent / 100);
+  const breakEvenOccupancy = (netNightlyRate * 30.42 * (1 - inputs.managementFeePercent / 100)) > 0
+    ? ((monthlyMortgage + fixedCostsSA) / (netNightlyRate * 30.42 * (1 - inputs.managementFeePercent / 100))) * 100
+    : 0;
   const paybackPeriod = annualNetCashFlow > 0 ? totalCashInvested / annualNetCashFlow : Infinity;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
@@ -494,6 +498,7 @@ export function calculateSA(inputs: SAInputs) {
     totalOperatingCosts,
     netOperatingIncome,
     breakEvenRent,
+    breakEvenOccupancy,
     paybackPeriod,
   };
 }
@@ -543,6 +548,11 @@ export function calculateR2R(inputs: R2RInputs) {
   const leaseBreakEvenRisk = inputs.leaseLengthMonths && inputs.leaseLengthMonths > 0 && breakEvenMonths !== Infinity
     ? breakEvenMonths > inputs.leaseLengthMonths * 0.6
     : false;
+  const fixedCostsR2R = inputs.monthlyRentPaid + inputs.monthlyRunningCosts;
+  const netRentPerRoom = inputs.rentPerRoom * (1 - inputs.managementFeesPercent / 100);
+  const occupancyBreakEven = (inputs.rooms > 0 && netRentPerRoom > 0)
+    ? (fixedCostsR2R / (inputs.rooms * netRentPerRoom)) * 100
+    : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.rooms || !inputs.rentPerRoom || !inputs.monthlyRentPaid) {
@@ -564,6 +574,7 @@ export function calculateR2R(inputs: R2RInputs) {
     spreadPerRoom,
     breakEvenMonths,
     leaseBreakEvenRisk,
+    occupancyBreakEven,
     score,
   };
 }
