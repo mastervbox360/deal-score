@@ -1,0 +1,290 @@
+Read the files artifacts/dealscore/src/components/DealScorePDF.tsx and artifacts/dealscore/src/components/DealScorePDFProPlus.tsx in full before making any changes. Plan all edits explicitly before executing. Execute all changes in parallel.
+
+This prompt makes 10 fixes across both PDF files. Do not modify any other file.
+
+---
+
+EDIT 1 — Expand DealScorePDFProps stressTest interface to include new scenarios
+
+The stressTest object in DealScorePDFProps (defined in DealScorePDF.tsx and imported by ProPlus) now has combinedCashFlow, combinedCoC, costsUpCashFlow, costsUpCoC fields from Prompt B. Update the interface so TypeScript recognises them.
+
+FIND in DealScorePDF.tsx:
+  stressTest?: {
+    baseCashFlow: number;
+    baseCoC: number;
+    rentDownCashFlow: number;
+    rentDownCoC: number;
+    rateUpCashFlow: number;
+    rateUpCoC: number;
+  };
+
+REPLACE WITH:
+  stressTest?: {
+    baseCashFlow: number;
+    baseCoC: number;
+    rentDownCashFlow: number;
+    rentDownCoC: number;
+    rateUpCashFlow: number;
+    rateUpCoC: number;
+    combinedCashFlow?: number;
+    combinedCoC?: number;
+    costsUpCashFlow?: number;
+    costsUpCoC?: number;
+  };
+
+---
+
+EDIT 2 — Fix BTL monthly mortgage derivation in generateWhatThisMeans (portrait PDF)
+
+Current formula: monthlyMortgage = max(0, monthlyRent − cashFlow − monthlyExpenses)
+This overstates mortgage by the void allowance amount because monthlyRent is gross (pre-void) but the formula uses post-void cashFlow and operating costs. The result in the narrative is wrong.
+
+Correct approach: calculate the actual mortgage payment from the available props.
+
+FIND in generateWhatThisMeans in DealScorePDF.tsx:
+  if (dt === 'BTL') {
+    const r = props.btlResults;
+    const monthlyMortgage = Math.max(0, props.btlInputs.monthlyRent - r.monthlyCashFlow - props.btlInputs.monthlyExpenses);
+    const mortgageTypeStr = props.mortgageType === 'IO' ? 'interest-only' : 'repayment';
+    const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. The ${mortgageTypeStr} mortgage at ${props.mortgageRate}% produces a monthly payment of ${fc(monthlyMortgage)}, leaving ${fc(r.monthlyCashFlow)} net cash flow after expenses. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for this market.`;
+  }
+
+REPLACE WITH:
+  if (dt === 'BTL') {
+    const r = props.btlResults;
+    const mortgageTypeStr = props.mortgageType === 'IO' ? 'interest-only' : 'repayment';
+    const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. The ${mortgageTypeStr} mortgage at ${props.mortgageRate}% produces a monthly payment of ${fc(r.monthlyMortgageInterest)}, leaving ${fc(r.monthlyCashFlow)} net cash flow after expenses. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for this market.`;
+  }
+
+---
+
+EDIT 3 — Fix the second BTL mortgage derivation in the Show Workings section (portrait PDF)
+
+Same wrong derivation exists in the Show Workings financial breakdown.
+
+FIND in DealScorePDF.tsx:
+          const btlMortgage = Math.max(0, props.btlInputs.monthlyRent - props.btlResults.monthlyCashFlow - props.btlInputs.monthlyExpenses);
+          const mortgageVal: string | null = (dt === 'FLIP' || dt === 'R2R') ? null
+            : g(fc(dt === 'BTL' ? btlMortgage
+              : dt === 'HMO' ? props.hmoResults.monthlyMortgageInterest
+              : dt === 'SA' ? props.saResults.monthlyMortgage
+              : dt === 'BRRR' ? props.brrrResults.monthlyMortgage
+              : props.socialResults.monthlyMortgage));
+
+REPLACE WITH:
+          const mortgageVal: string | null = (dt === 'FLIP' || dt === 'R2R') ? null
+            : g(fc(dt === 'BTL' ? props.btlResults.monthlyMortgageInterest
+              : dt === 'HMO' ? props.hmoResults.monthlyMortgageInterest
+              : dt === 'SA' ? props.saResults.monthlyMortgage
+              : dt === 'BRRR' ? props.brrrResults.monthlyMortgage
+              : props.socialResults.monthlyMortgage));
+
+---
+
+EDIT 4 — Add combined and costs-increase stress rows to portrait PDF sensitivity table
+
+The stress table currently shows 3 columns (Base, Rent −10%, Rate +1.5%). Add two new rows showing the combined scenario and costs increase scenario when those values are available.
+
+FIND the sensitivity table closing in DealScorePDF.tsx:
+              <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
+                {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
+                  <Text key={i} style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {hasMeaningfulInputs(props) ? (isFinite(v) ? fp(v) : '\u221E') : '\u2014'}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
+
+REPLACE WITH:
+              <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                <Text style={{ flex: 1.8, fontSize: 8.5, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
+                {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
+                  <Text key={i} style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {hasMeaningfulInputs(props) ? (isFinite(v) ? fp(v) : '\u221E') : '\u2014'}
+                  </Text>
+                ))}
+              </View>
+              {props.stressTest.combinedCashFlow !== undefined && (
+                <View style={{ flexDirection: 'row', backgroundColor: '#FEF9C3', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                  <Text style={{ flex: 1.8, fontSize: 8, color: '#92400E', fontFamily: 'Helvetica-Bold' }}>Worst case (rent −10% + rate +1.5%)</Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: props.stressTest.combinedCashFlow < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {fc(props.stressTest.combinedCashFlow)}
+                  </Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: (props.stressTest.combinedCoC ?? 0) < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {isFinite(props.stressTest.combinedCoC ?? 0) ? fp(props.stressTest.combinedCoC ?? 0) : '\u221E'}
+                  </Text>
+                </View>
+              )}
+              {props.stressTest.costsUpCashFlow !== undefined && (
+                <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                  <Text style={{ flex: 1.8, fontSize: 8, color: '#6B7280', fontFamily: 'Helvetica-Bold' }}>Costs +15% (maintenance &amp; insurance)</Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: props.stressTest.costsUpCashFlow < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {fc(props.stressTest.costsUpCashFlow)}
+                  </Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: (props.stressTest.costsUpCoC ?? 0) < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {isFinite(props.stressTest.costsUpCoC ?? 0) ? fp(props.stressTest.costsUpCoC ?? 0) : '\u221E'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+---
+
+EDIT 5 — Add R2R Spread Per Room and Break-Even Months to portrait PDF R2R metrics
+
+Portrait PDF already calculates _r2rSpreadPerRoom inline. Replace that inline calculation with the new spreadPerRoom from results, and add breakEvenMonths. Also add the lease break-even risk note.
+
+FIND in DealScorePDF.tsx the R2R show workings section (around line 944):
+      const _r2rMonthlyCost = props.r2rInputs.monthlyRentPaid + props.r2rResults.managementFees + props.r2rInputs.monthlyRunningCosts;
+      const _r2rSpreadPerRoom = props.r2rInputs.rooms > 0
+        ? (props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms
+        : 0;
+
+REPLACE WITH:
+      const _r2rMonthlyCost = props.r2rInputs.monthlyRentPaid + props.r2rResults.managementFees + props.r2rInputs.monthlyRunningCosts;
+      const _r2rSpreadPerRoom = props.r2rResults.spreadPerRoom ?? (props.r2rInputs.rooms > 0 ? (props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms : 0);
+      const _r2rBreakEvenMonths = props.r2rResults.breakEvenMonths;
+
+Then find where Spread Per Room is rendered in R2R metrics and add Break-Even Months immediately after it:
+
+FIND in DealScorePDF.tsx (R2R metrics list, approximately):
+        ['Spread Per Room', fc(_r2rSpreadPerRoom)],
+
+REPLACE WITH:
+        ['Spread Per Room', fc(_r2rSpreadPerRoom)],
+        ['Months to break even on setup', _r2rBreakEvenMonths && isFinite(_r2rBreakEvenMonths) ? `${Math.ceil(_r2rBreakEvenMonths)} months` : 'N/A'],
+
+---
+
+EDIT 6 — Add R2R Spread Per Room and Break-Even Months to ProPlus PDF
+
+ProPlus PDF currently shows Monthly Spread but not Spread Per Room or Break-Even Months.
+
+FIND in DealScorePDFProPlus.tsx the R2R detail rows (around line 310):
+    ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+    ['Net Return on Setup', fp(props.r2rResults.roi), true],
+
+REPLACE WITH:
+    ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+    ['Spread Per Room', props.r2rInputs.rooms > 0 ? fc((props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms) : '—'],
+    ['Months to break even', props.r2rResults.breakEvenMonths && isFinite(props.r2rResults.breakEvenMonths) ? `${Math.ceil(props.r2rResults.breakEvenMonths)} months` : 'N/A'],
+    ['Net Return on Setup', fp(props.r2rResults.roi), true],
+
+Also find the second R2R metrics location in ProPlus (around line 1408) and add the same:
+
+FIND:
+                      ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
+                      ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+
+REPLACE WITH:
+                      ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
+                      ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+                      ['Spread Per Room', props.r2rInputs.rooms > 0 ? fc((props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms) : '—'],
+                      ['Break-even months', props.r2rResults.breakEvenMonths && isFinite(props.r2rResults.breakEvenMonths) ? `${Math.ceil(props.r2rResults.breakEvenMonths)} months` : 'N/A'],
+
+---
+
+EDIT 7 — Add combined and costs-increase stress rows to ProPlus PDF sensitivity tables
+
+ProPlus has two sensitivity table instances (landscape has two page layouts). Add the new rows to both.
+
+In DealScorePDFProPlus.tsx, find the first sensitivity table's CoC ROI row:
+
+FIND (first instance around line 1744):
+                    {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                        {hasMeaningfulInputs(props) ? (isFinite(v) ? fp(v) : '\u221E') : '\u2014'}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )}
+
+ADD AFTER THE CLOSING VIEW of the CoC row (before the closing of the stressTest block):
+              {props.stressTest.combinedCashFlow !== undefined && (
+                <View style={{ flexDirection: 'row', backgroundColor: '#FEF9C3', paddingVertical: 4, paddingHorizontal: 6, borderTop: '0.5pt solid #E5E7EB', marginTop: 2 }}>
+                  <Text style={{ flex: 2, fontSize: 7, color: '#92400E', fontFamily: 'Helvetica-Bold' }}>Worst case (rent −10% + rate +1.5%): {fc(props.stressTest.combinedCashFlow)}/mo · {isFinite(props.stressTest.combinedCoC ?? 0) ? fp(props.stressTest.combinedCoC ?? 0) : '\u221E'} CoC</Text>
+                </View>
+              )}
+              {props.stressTest.costsUpCashFlow !== undefined && (
+                <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 4, paddingHorizontal: 6, borderTop: '0.5pt solid #E5E7EB' }}>
+                  <Text style={{ flex: 2, fontSize: 7, color: '#6B7280', fontFamily: 'Helvetica-Bold' }}>Costs +15%: {fc(props.stressTest.costsUpCashFlow)}/mo · {isFinite(props.stressTest.costsUpCoC ?? 0) ? fp(props.stressTest.costsUpCoC ?? 0) : '\u221E'} CoC</Text>
+                </View>
+              )}
+
+Apply the same addition to the second sensitivity table instance (around line 1933) using the same pattern.
+
+---
+
+EDIT 8 — Fix Flip break-even sale price formula in both PDFs
+
+Current: totalCost + sellingCosts (where sellingCosts is based on GDV, not break-even price).
+Correct: totalCost / (1 − sellingCostsPct/100) — self-consistent formula.
+
+Search both DealScorePDF.tsx and DealScorePDFProPlus.tsx for wherever the Flip break-even sale price is calculated or displayed. It appears as: flipResults.totalCost + flipResults.sellingCosts
+
+In DealScorePDF.tsx FIND all instances of:
+{fc(flipResults.totalCost + flipResults.sellingCosts)}
+
+REPLACE WITH:
+{fc(props.flipInputs.sellingCostsPercent > 0 ? props.flipResults.totalCost / (1 - props.flipInputs.sellingCostsPercent / 100) : props.flipResults.totalCost)}
+
+In DealScorePDFProPlus.tsx apply the same replacement for any equivalent expression. Note: in the ProPlus file use props.flipResults and props.flipInputs.
+
+---
+
+EDIT 9 — Add pre-tax disclaimer note to Social Housing narrative in generateWhatThisMeans (portrait PDF)
+
+FIND:
+  const r = props.socialResults;
+  const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+  return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy.`;
+
+REPLACE WITH:
+  const r = props.socialResults;
+  const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
+  const leaseTotal = r.totalLeaseIncome ?? (props.socialInputs.leaseIncomePerMonth * 12 * props.socialInputs.leaseLengthYears);
+  return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)} and total lease income of ${fc(leaseTotal)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy. Figures are pre-income-tax.`;
+
+---
+
+EDIT 10 — Add BRRR equity created note clarifying SDLT is now deducted
+
+The BRRR equityCreated formula now deducts stampDuty (from Prompt A). Update the label in both PDFs to be accurate.
+
+In DealScorePDF.tsx and DealScorePDFProPlus.tsx, find where Equity Created is labelled in the BRRR metrics and add a sub-label or tooltip text indicating the basis:
+
+In DealScorePDF.tsx find the BRRR equity created row:
+FIND:
+        ['Equity Created', g(fc(props.brrrResults.equityCreated))],
+
+REPLACE WITH:
+        ['Equity Created (after all acq. costs)', g(fc(props.brrrResults.equityCreated))],
+
+In DealScorePDFProPlus.tsx find:
+FIND:
+    { label: 'Equity Created', value: fc(props.brrrResults.equityCreated) },
+
+REPLACE WITH:
+    { label: 'Equity Created (after all costs)', value: fc(props.brrrResults.equityCreated) },
+
+Also find the second ProPlus instance:
+FIND:
+                ['Equity Created', fc(props.brrrResults.equityCreated)],
+
+REPLACE WITH:
+                ['Equity Created (after all costs)', fc(props.brrrResults.equityCreated)],
+
+---
+
+AFTER ALL EDITS: Run TypeScript check across both PDF files. Verify zero errors. Confirm props.r2rResults.spreadPerRoom and props.r2rResults.breakEvenMonths are used with optional chaining or nullish fallbacks since they are newly added fields — existing saved deals without them should not crash. Confirm props.stressTest.combinedCashFlow and costsUpCashFlow are accessed with optional chaining (already typed as optional in EDIT 1). Confirm the Flip break-even formula change does not reference any undefined variable.
+
+Do not modify Home.tsx, calculations.ts, or inputsSerializer.ts in this prompt.

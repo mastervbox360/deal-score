@@ -95,6 +95,10 @@ export interface DealScorePDFProps {
     rentDownCoC: number;
     rateUpCashFlow: number;
     rateUpCoC: number;
+    combinedCashFlow?: number;
+    combinedCoC?: number;
+    costsUpCashFlow?: number;
+    costsUpCoC?: number;
   };
   includeWorkings?: boolean;
   managementFeePercent?: number;
@@ -463,10 +467,9 @@ function generateWhatThisMeans(props: DealScorePDFProps): string {
   const dt = props.dealType;
   if (dt === 'BTL') {
     const r = props.btlResults;
-    const monthlyMortgage = Math.max(0, props.btlInputs.monthlyRent - r.monthlyCashFlow - props.btlInputs.monthlyExpenses);
     const mortgageTypeStr = props.mortgageType === 'IO' ? 'interest-only' : 'repayment';
     const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
-    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. The ${mortgageTypeStr} mortgage at ${props.mortgageRate}% produces a monthly payment of ${fc(monthlyMortgage)}, leaving ${fc(r.monthlyCashFlow)} net cash flow after expenses. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for this market.`;
+    return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. The ${mortgageTypeStr} mortgage at ${props.mortgageRate}% produces a monthly payment of ${fc(r.monthlyMortgageInterest)}, leaving ${fc(r.monthlyCashFlow)} net cash flow after expenses. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for this market.`;
   }
   if (dt === 'HMO') {
     const r = props.hmoResults;
@@ -500,7 +503,8 @@ function generateWhatThisMeans(props: DealScorePDFProps): string {
   }
   const r = props.socialResults;
   const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
-  return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy.`;
+  const leaseTotal = r.totalLeaseIncome ?? (props.socialInputs.leaseIncomePerMonth * 12 * props.socialInputs.leaseLengthYears);
+  return `At a ${props.depositPercent}% deposit on a ${fc(props.purchasePrice)} purchase, total cash invested is ${fc(r.totalCashInvested)}. Guaranteed lease income of ${fc(props.socialInputs.leaseIncomePerMonth)}/mo over a ${props.socialInputs.leaseLengthYears}-year term produces monthly cash flow of ${fc(r.monthlyCashFlow)} and total lease income of ${fc(leaseTotal)}. Gross yield of ${fp(r.grossYield)} ${yieldVs} the 6% benchmark for social housing strategy. Figures are pre-income-tax.`;
 }
 
 const base = StyleSheet.create({
@@ -942,9 +946,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ];
     if (props.dealType === 'R2R') {
       const _r2rMonthlyCost = props.r2rInputs.monthlyRentPaid + props.r2rResults.managementFees + props.r2rInputs.monthlyRunningCosts;
-      const _r2rSpreadPerRoom = props.r2rInputs.rooms > 0
-        ? (props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms
-        : 0;
+      const _r2rSpreadPerRoom = props.r2rResults.spreadPerRoom ?? (props.r2rInputs.rooms > 0 ? (props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms : 0);
+      const _r2rBreakEvenMonths = props.r2rResults.breakEvenMonths;
       const _r2rOccupancyBE = (props.r2rInputs.rooms > 0 && props.r2rInputs.rentPerRoom > 0)
         ? (_r2rMonthlyCost / (props.r2rInputs.rooms * props.r2rInputs.rentPerRoom)) * 100
         : 0;
@@ -957,6 +960,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
         ['Setup Costs', fc(props.r2rInputs.setupCosts)],
         ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
         ['Spread Per Room', fc(_r2rSpreadPerRoom)],
+        ['Months to break even on setup', _r2rBreakEvenMonths && isFinite(_r2rBreakEvenMonths) ? `${Math.ceil(_r2rBreakEvenMonths)} months` : 'N/A'],
         ['Occupancy Break-Even', fp(_r2rOccupancyBE)],
         ['Net Return on Setup Costs', fp(props.r2rResults.roi), true],
       ];
@@ -1878,7 +1882,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               return [
                 ['Cash Invested', g(fc(props.brrrResults.totalCostIn))],
                 ['Cash Left In', mh ? (mo ? '\u221E recycled' : fc(props.brrrResults.cashLeftInDeal)) : '\u2014'],
-                ['Equity Created', g(fc(props.brrrResults.equityCreated))],
+                ['Equity Created (after all acq. costs)', g(fc(props.brrrResults.equityCreated))],
                 ['Refinance Loan', g(fc(props.brrrResults.refinanceLoan))],
               ];
             }
@@ -1886,9 +1890,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           })();
 
           // Group 2 — Monthly
-          const btlMortgage = Math.max(0, props.btlInputs.monthlyRent - props.btlResults.monthlyCashFlow - props.btlInputs.monthlyExpenses);
           const mortgageVal: string | null = (dt === 'FLIP' || dt === 'R2R') ? null
-            : g(fc(dt === 'BTL' ? btlMortgage
+            : g(fc(dt === 'BTL' ? props.btlResults.monthlyMortgageInterest
               : dt === 'HMO' ? props.hmoResults.monthlyMortgageInterest
               : dt === 'SA' ? props.saResults.monthlyMortgage
               : dt === 'BRRR' ? props.brrrResults.monthlyMortgage
@@ -2049,6 +2052,28 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   </Text>
                 ))}
               </View>
+              {props.stressTest.combinedCashFlow !== undefined && (
+                <View style={{ flexDirection: 'row', backgroundColor: '#FEF9C3', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                  <Text style={{ flex: 1.8, fontSize: 8, color: '#92400E', fontFamily: 'Helvetica-Bold' }}>Worst case (rent −10% + rate +1.5%)</Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: props.stressTest.combinedCashFlow < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {fc(props.stressTest.combinedCashFlow)}
+                  </Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: (props.stressTest.combinedCoC ?? 0) < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {isFinite(props.stressTest.combinedCoC ?? 0) ? fp(props.stressTest.combinedCoC ?? 0) : '\u221E'}
+                  </Text>
+                </View>
+              )}
+              {props.stressTest.costsUpCashFlow !== undefined && (
+                <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 5, paddingHorizontal: 8, borderTop: '0.5pt solid #E5E7EB' }}>
+                  <Text style={{ flex: 1.8, fontSize: 8, color: '#6B7280', fontFamily: 'Helvetica-Bold' }}>Costs +15% (maintenance &amp; insurance)</Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: props.stressTest.costsUpCashFlow < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {fc(props.stressTest.costsUpCashFlow)}
+                  </Text>
+                  <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: (props.stressTest.costsUpCoC ?? 0) < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                    {isFinite(props.stressTest.costsUpCoC ?? 0) ? fp(props.stressTest.costsUpCoC ?? 0) : '\u221E'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         )}

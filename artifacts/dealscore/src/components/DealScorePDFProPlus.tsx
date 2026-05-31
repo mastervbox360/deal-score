@@ -221,7 +221,7 @@ function computeHeroMetrics(props: DealScorePDFProps): { label: string; value: s
   if (dt === 'BRRR') return [
     { label: 'Cash Left In', value: (props.brrrResults.moneyOut && props.purchasePrice > 0) ? 'Money Out' : fc(props.brrrResults.cashLeftInDeal) },
     { label: 'Monthly Cash Flow', value: fc(props.brrrResults.monthlyCashFlow) },
-    { label: 'Equity Created', value: fc(props.brrrResults.equityCreated) },
+    { label: 'Equity Created (after all costs)', value: fc(props.brrrResults.equityCreated) },
   ];
   if (dt === 'R2R') return [
     { label: 'Monthly Profit', value: fc(props.r2rResults.monthlyProfit) },
@@ -293,7 +293,7 @@ function computeResultsRows(props: DealScorePDFProps): RowData[] {
     ['Refinance Loan', fc(props.brrrResults.refinanceLoan)],
     ['Monthly Mortgage', fc(props.brrrResults.monthlyMortgage)],
     ['Cash Left in Deal', (props.brrrResults.moneyOut && props.purchasePrice > 0) ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT` : fc(props.brrrResults.cashLeftInDeal)],
-    ['Equity Created', fc(props.brrrResults.equityCreated)],
+    ['Equity Created (after all costs)', fc(props.brrrResults.equityCreated)],
     ['Monthly Cash Flow', fc(props.brrrResults.monthlyCashFlow), true],
     ['Annual Cash Flow', fc(props.brrrResults.annualCashFlow)],
     ['Gross Yield (on GDV)', fp(props.brrrResults.grossYield)],
@@ -308,6 +308,8 @@ function computeResultsRows(props: DealScorePDFProps): RowData[] {
     ['Annual Profit', fc(props.r2rResults.annualProfit)],
     ['Setup Costs', fc(props.r2rInputs.setupCosts)],
     ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+    ['Spread Per Room', props.r2rInputs.rooms > 0 ? fc((props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms) : '—'],
+    ['Months to break even', props.r2rResults.breakEvenMonths && isFinite(props.r2rResults.breakEvenMonths) ? `${Math.ceil(props.r2rResults.breakEvenMonths)} months` : 'N/A'],
     ['Net Return on Setup', fp(props.r2rResults.roi), true],
   ];
   return [
@@ -1407,6 +1409,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                       ['Rent to Landlord', fc(props.r2rInputs.monthlyRentPaid)],
                       ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
                       ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
+                      ['Spread Per Room', props.r2rInputs.rooms > 0 ? fc((props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid) / props.r2rInputs.rooms) : '—'],
+                      ['Break-even months', props.r2rResults.breakEvenMonths && isFinite(props.r2rResults.breakEvenMonths) ? `${Math.ceil(props.r2rResults.breakEvenMonths)} months` : 'N/A'],
                       ['Running Costs', fc(props.r2rInputs.monthlyRunningCosts)],
                     ].map(([lbl, val], i) => (
                       <View key={i} style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
@@ -1747,6 +1751,16 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                       </Text>
                     ))}
                   </View>
+                  {props.stressTest.combinedCashFlow !== undefined && (
+                    <View style={{ flexDirection: 'row', backgroundColor: '#FEF9C3', paddingVertical: 4, paddingHorizontal: 6, borderTop: '0.5pt solid #E5E7EB', marginTop: 2 }}>
+                      <Text style={{ flex: 2, fontSize: 7, color: '#92400E', fontFamily: 'Helvetica-Bold' }}>Worst case (rent −10% + rate +1.5%): {fc(props.stressTest.combinedCashFlow)}/mo · {isFinite(props.stressTest.combinedCoC ?? 0) ? fp(props.stressTest.combinedCoC ?? 0) : '\u221E'} CoC</Text>
+                    </View>
+                  )}
+                  {props.stressTest.costsUpCashFlow !== undefined && (
+                    <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 4, paddingHorizontal: 6, borderTop: '0.5pt solid #E5E7EB' }}>
+                      <Text style={{ flex: 2, fontSize: 7, color: '#6B7280', fontFamily: 'Helvetica-Bold' }}>Costs +15%: {fc(props.stressTest.costsUpCashFlow)}/mo · {isFinite(props.stressTest.costsUpCoC ?? 0) ? fp(props.stressTest.costsUpCoC ?? 0) : '\u221E'} CoC</Text>
+                    </View>
+                  )}
                 </View>
               </View>
             )}
@@ -1934,6 +1948,16 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                       <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{isFinite(v) ? fp(v) : '\u221E'}</Text>
                     ))}
                   </View>
+                  {props.stressTest.combinedCashFlow !== undefined && (
+                    <View style={{ flexDirection: 'row', backgroundColor: '#FEF9C3', paddingVertical: 4, paddingHorizontal: 6, borderTop: '0.5pt solid #E5E7EB', marginTop: 2 }}>
+                      <Text style={{ flex: 2, fontSize: 7, color: '#92400E', fontFamily: 'Helvetica-Bold' }}>Worst case (rent −10% + rate +1.5%): {fc(props.stressTest.combinedCashFlow)}/mo · {isFinite(props.stressTest.combinedCoC ?? 0) ? fp(props.stressTest.combinedCoC ?? 0) : '\u221E'} CoC</Text>
+                    </View>
+                  )}
+                  {props.stressTest.costsUpCashFlow !== undefined && (
+                    <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 4, paddingHorizontal: 6, borderTop: '0.5pt solid #E5E7EB' }}>
+                      <Text style={{ flex: 2, fontSize: 7, color: '#6B7280', fontFamily: 'Helvetica-Bold' }}>Costs +15%: {fc(props.stressTest.costsUpCashFlow)}/mo · {isFinite(props.stressTest.costsUpCoC ?? 0) ? fp(props.stressTest.costsUpCoC ?? 0) : '\u221E'} CoC</Text>
+                    </View>
+                  )}
                 </View>
               )}
 
