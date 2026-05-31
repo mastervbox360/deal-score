@@ -13,7 +13,30 @@ export interface SerializedInputs {
   bathrooms?: number
   tenure?: string
   taxRegion?: string
-  // All strategy-specific inputs stored as a flat map
+  // Financing method fields (all strategies)
+  btlPurchaseFinancingMethod?: string
+  btlRefurbFinancingMethod?: string
+  hmoPurchaseFinancingMethod?: string
+  hmoRefurbFinancingMethod?: string
+  saPurchaseFinancingMethod?: string
+  saRefurbFinancingMethod?: string
+  socialPurchaseFinancingMethod?: string
+  socialRefurbFinancingMethod?: string
+  brrrPurchaseFinancingMethod?: string
+  brrrRefurbFinancingMethod?: string
+  // Auction fields
+  isAuctionPurchase?: boolean
+  auctionDate?: string
+  auctionCompletionDate?: string
+  buyersPremiumPct?: number
+  buyersPremiumAmount?: number
+  buyersPremiumMode?: string
+  auctionReservationFee?: number
+  // Tax and buyer fields
+  buyerType?: string
+  taxOverrideActive?: boolean
+  manualTaxValue?: number
+  // All other strategy-specific inputs stored as a flat map
   [key: string]: unknown
 }
 
