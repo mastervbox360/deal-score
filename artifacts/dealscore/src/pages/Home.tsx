@@ -1205,7 +1205,7 @@ export default function HomePage() {
         ? (r2rInputs.setupCosts <= 0 || r2rResults.roi >= r2rOfferROI)
         : r2rResults.monthlyProfit >= r2rOfferProfit;
       if (r2rAlreadyMeets)
-        return { type: 'already_meets' as const, currentROI: r2rResults.roi, currentCF: r2rResults.monthlyProfit, currentYield: r2rResults.grossYield };
+        return { type: 'already_meets' as const, currentROI: r2rResults.roi, currentCF: r2rResults.monthlyProfit, currentYield: r2rResults.roi };
       return { type: 'r2r' as const, maxLandlordRent, maxSetupCosts, currentLandlordRent: r2rInputs.monthlyRentPaid };
     }
 
@@ -1376,7 +1376,7 @@ export default function HomePage() {
       dealType === 'FLIP'   ? flipResults.roi :
       dealType === 'SA'     ? saResults.netYield :
       dealType === 'BRRR'   ? brrrResults.grossYield :
-      dealType === 'R2R'    ? r2rResults.grossYield :
+      dealType === 'R2R'    ? r2rResults.roi :
       socialResults.grossYield,
   }
 
@@ -1447,7 +1447,7 @@ export default function HomePage() {
     dealType === 'BRRR' ? formatPercent(brrrResults.grossYield) :
     dealType === 'SOCIAL' ? formatPercent(socialResults.grossYield) :
     dealType === 'FLIP' ? formatPercent(flipResults.roi) :
-    formatPercent(r2rResults.grossYield);
+    formatPercent(r2rResults.roi);
 
   const currentROILabel: string =
     dealType === 'FLIP' ? 'Ann. ROI' :
@@ -1496,7 +1496,7 @@ export default function HomePage() {
         dealType === 'FLIP' ? { grossYield: formatPercent(flipResults.roi), cashFlow: flipResults.profitPerMonth, roi: formatPercent(flipResults.annualisedROI) } :
         dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
         dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
-        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.roi), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
         { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
 
       const response = await fetch('/.netlify/functions/generate-summary', {
@@ -1538,7 +1538,7 @@ export default function HomePage() {
         dealType === 'FLIP' ? { grossYield: formatPercent(flipResults.roi), cashFlow: flipResults.profitPerMonth, roi: formatPercent(flipResults.annualisedROI) } :
         dealType === 'SA' ? { grossYield: formatPercent(saResults.netYield), cashFlow: saResults.monthlyCashFlow, roi: formatPercent(saResults.cashOnCashROI) } :
         dealType === 'BRRR' ? { grossYield: formatPercent(brrrResults.grossYield), cashFlow: brrrResults.monthlyCashFlow, roi: brrrResults.moneyOut ? '∞ (money out)' : formatPercent(brrrResults.cashOnCashROI) } :
-        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.grossYield), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
+        dealType === 'R2R' ? { grossYield: formatPercent(r2rResults.roi), cashFlow: r2rResults.monthlyProfit, roi: formatPercent(r2rResults.roi) } :
         { grossYield: formatPercent(socialResults.grossYield), cashFlow: socialResults.monthlyCashFlow, roi: formatPercent(socialResults.cashOnCashROI) };
 
       const response = await fetch('/.netlify/functions/generate-summary', {

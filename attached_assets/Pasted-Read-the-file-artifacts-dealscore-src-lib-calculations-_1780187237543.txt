@@ -1,0 +1,344 @@
+Read the file artifacts/dealscore/src/lib/calculations.ts in full before making any changes. Plan all edits explicitly below before executing. Execute all changes in parallel in a single pass.
+
+This prompt fixes 10 confirmed calculation errors in calculations.ts. Do not change any other file.
+
+---
+
+EDIT 1 — Add new fields to BRRRInputs interface
+
+Add refinanceMortgageType and refinanceMortgageTerm to BRRRInputs:
+
+FIND:
+export interface BRRRInputs extends BaseInputs {
+  postRefurbValue: number;
+  refinancePercent: number;
+  newMortgageRate: number;
+  monthlyRent: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
+}
+
+REPLACE WITH:
+export interface BRRRInputs extends BaseInputs {
+  postRefurbValue: number;
+  refinancePercent: number;
+  newMortgageRate: number;
+  refinanceMortgageType?: MortgageType;
+  refinanceMortgageTerm?: number;
+  monthlyRent: number;
+  managementFeePercent: number;
+  voidAllowancePercent: number;
+  maintenanceReserve: number;
+  buildingsInsurance: number;
+  serviceCharge: number;
+  groundRentAnnual: number;
+}
+
+---
+
+EDIT 2 — Add leaseLengthMonths to R2RInputs interface
+
+FIND:
+export interface R2RInputs {
+  monthlyRentPaid: number;
+  rooms: number;
+  rentPerRoom: number;
+  occupancyRate: number;
+  managementFeesPercent: number;
+  monthlyRunningCosts: number;
+  setupCosts: number;
+}
+
+REPLACE WITH:
+export interface R2RInputs {
+  monthlyRentPaid: number;
+  rooms: number;
+  rentPerRoom: number;
+  occupancyRate: number;
+  managementFeesPercent: number;
+  monthlyRunningCosts: number;
+  setupCosts: number;
+  leaseLengthMonths?: number;
+}
+
+---
+
+EDIT 3 — Fix HMO grossYield to use full occupancy rent (RICS standard)
+
+Currently annualRent = grossMonthlyRent * 12 where grossMonthlyRent already has occupancyRate applied. Gross yield must use full theoretical rent at 100% occupancy per RICS standard. Cash flow calculations are unchanged.
+
+FIND in calculateHMO:
+  const grossMonthlyRent = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
+  const annualRent = grossMonthlyRent * 12;
+
+REPLACE WITH:
+  const grossMonthlyRent = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
+  const fullOccupancyMonthlyRent = inputs.rooms * inputs.rentPerRoom;
+  const annualRent = fullOccupancyMonthlyRent * 12;
+
+---
+
+EDIT 4 — Fix SA grossYield to use post-platform-fee revenue
+
+Currently annualRevenue = grossMonthlyRevenue * 12 (pre-platform-fee). Gross yield must use the revenue the operator actually receives after platform fees are deducted.
+
+FIND in calculateSA:
+  const annualRevenue = grossMonthlyRevenue * 12;
+
+REPLACE WITH:
+  const annualNetRevenue = netMonthlyRevenue * 12;
+
+FIND in calculateSA:
+  const grossYield = inputs.purchasePrice > 0 ? (annualRevenue / inputs.purchasePrice) * 100 : 0;
+
+REPLACE WITH:
+  const grossYield = inputs.purchasePrice > 0 ? (annualNetRevenue / inputs.purchasePrice) * 100 : 0;
+
+---
+
+EDIT 5 — Fix breakEvenRent formula across all five strategies (BTL, HMO, SA, Social, BRRR)
+
+Current formula (mortgage + totalOperatingCosts) / (1 - voidPct) is wrong because totalOperatingCosts includes management fee calculated at the entered rent, not at the break-even rent. This creates a circular dependency that overstates break-even rent.
+
+Correct formula: (mortgage + fixedCosts) / ((1 - voidPct/100) * (1 - mgmtPct/100))
+where fixedCosts = maintenanceReserve + buildingsInsurance + serviceCharge + groundRentMonthly
+(management fee excluded from fixed costs because it scales with rent)
+
+Apply this fix to calculateBTL, calculateHMO, calculateSA, calculateSocialHousing, and calculateBRRR.
+
+FIND in calculateBTL:
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgageInterest + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+
+REPLACE WITH:
+  const fixedCostsBTL = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
+    ? (monthlyMortgageInterest + fixedCostsBTL) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
+    : 0;
+
+FIND in calculateHMO:
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgageInterest + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+
+REPLACE WITH:
+  const fixedCostsHMO = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
+    ? (monthlyMortgageInterest + fixedCostsHMO) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
+    : 0;
+
+FIND in calculateSA:
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgage + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+
+REPLACE WITH:
+  const fixedCostsSA = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
+    ? (monthlyMortgage + fixedCostsSA) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
+    : 0;
+
+FIND in calculateSocialHousing:
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgage + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+
+REPLACE WITH:
+  const fixedCostsSocial = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
+    ? (monthlyMortgage + fixedCostsSocial) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
+    : 0;
+
+FIND in calculateBRRR:
+  const breakEvenRent = inputs.voidAllowancePercent < 100
+    ? (monthlyMortgage + totalOperatingCosts) / (1 - inputs.voidAllowancePercent / 100)
+    : 0;
+
+REPLACE WITH:
+  const fixedCostsBRRR = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
+    ? (monthlyMortgage + fixedCostsBRRR) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
+    : 0;
+
+---
+
+EDIT 6 — Fix BRRR equityCreated to include stampDuty in deduction
+
+Currently equityCreated excludes stampDuty while totalCostIn includes it. Equity created must reflect all costs of acquisition.
+
+FIND in calculateBRRR:
+  const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.refurbCost - inputs.otherCosts;
+
+REPLACE WITH:
+  const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.stampDuty - inputs.refurbCost - inputs.otherCosts;
+
+---
+
+EDIT 7 — Fix BRRR cashOnCashROI for money-out + negative cashflow case, and add float guard
+
+Currently returns 0 when cashLeftInDeal <= 0 AND annualNetCashFlow <= 0. Should return -Infinity to signal a loss. Also add a float precision guard: treat cashLeftInDeal < 1 as moneyOut to prevent absurd CoC ROI from float precision errors.
+
+FIND in calculateBRRR:
+  const cashOnCashROI = cashLeftInDeal > 0
+    ? (annualNetCashFlow / cashLeftInDeal) * 100
+    : cashLeftInDeal <= 0 && annualNetCashFlow > 0
+    ? Infinity
+    : 0;
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
+  const moneyOut = cashLeftInDeal <= 0;
+
+REPLACE WITH:
+  const moneyOut = cashLeftInDeal < 1;
+  const cashOnCashROI = !moneyOut
+    ? (annualNetCashFlow / cashLeftInDeal) * 100
+    : annualNetCashFlow > 0
+    ? Infinity
+    : -Infinity;
+  const monthlyCashFlow = netCashFlow;
+  const annualCashFlow = annualNetCashFlow;
+
+---
+
+EDIT 8 — Fix BRRR paybackPeriod for money-out deals
+
+Currently returns negative number when cashLeftInDeal is negative and cashflow is positive. Should return -1 as a sentinel value meaning "capital fully recycled — not applicable".
+
+FIND in calculateBRRR:
+  const paybackPeriod = annualNetCashFlow <= 0 ? Infinity : cashLeftInDeal / annualNetCashFlow;
+
+REPLACE WITH:
+  const paybackPeriod = annualNetCashFlow <= 0 ? Infinity : moneyOut ? -1 : cashLeftInDeal / annualNetCashFlow;
+
+---
+
+EDIT 9 — Fix BRRR refinance mortgage to support IO and repayment
+
+Currently monthlyMortgage = refinanceLoan * rate / 12 (hardcoded IO). Use the existing calculateMonthlyMortgagePayment function with the new optional fields, defaulting to IO and 25 years for backward compatibility with existing saved deals.
+
+FIND in calculateBRRR:
+  const monthlyMortgage = refinanceLoan * (inputs.newMortgageRate / 100) / 12;
+
+REPLACE WITH:
+  const refinanceMortgageType: MortgageType = inputs.refinanceMortgageType ?? 'IO';
+  const refinanceMortgageTerm: number = inputs.refinanceMortgageTerm ?? 25;
+  const monthlyMortgage = calculateMonthlyMortgagePayment(
+    refinanceLoan,
+    inputs.newMortgageRate,
+    refinanceMortgageTerm,
+    refinanceMortgageType,
+  );
+
+---
+
+EDIT 10 — Fix calculateR2R: remove meaningless grossYield/netYield, add breakEvenMonths and spreadPerRoom
+
+grossYield and netYield on setupCosts produce 300-600% figures that are meaningless as yields. Remove them. Add breakEvenMonths (months to recoup setup costs) and spreadPerRoom (monthly spread per room at current occupancy) as the correct R2R metrics.
+
+FIND in calculateR2R:
+  const roi = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+  const grossYield = inputs.setupCosts > 0 ? (annualGrossIncome / inputs.setupCosts) * 100 : 0;
+  const netYield = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+
+REPLACE WITH:
+  const roi = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+  const spreadPerRoom = inputs.rooms > 0
+    ? (grossMonthlyIncome - inputs.monthlyRentPaid) / inputs.rooms
+    : 0;
+  const breakEvenMonths = monthlyProfit > 0 ? inputs.setupCosts / monthlyProfit : Infinity;
+  const leaseBreakEvenRisk = inputs.leaseLengthMonths && inputs.leaseLengthMonths > 0 && breakEvenMonths !== Infinity
+    ? breakEvenMonths > inputs.leaseLengthMonths * 0.6
+    : false;
+
+FIND in calculateR2R return statement:
+  return {
+    grossMonthlyIncome,
+    managementFees,
+    netMonthlyIncome,
+    monthlyProfit,
+    annualProfit,
+    annualGrossIncome,
+    roi,
+    grossYield,
+    netYield,
+    score,
+  };
+
+REPLACE WITH:
+  return {
+    grossMonthlyIncome,
+    managementFees,
+    netMonthlyIncome,
+    monthlyProfit,
+    annualProfit,
+    annualGrossIncome,
+    roi,
+    spreadPerRoom,
+    breakEvenMonths,
+    leaseBreakEvenRisk,
+    score,
+  };
+
+---
+
+EDIT 11 — Add leaseLengthYears to calculateSocialHousing return
+
+leaseLengthYears is in the interface and passed in but never returned or used. Return it so results panels can display total lease income projections.
+
+FIND in calculateSocialHousing return statement:
+  return {
+    totalCashInvested,
+    mortgageAmount,
+    monthlyMortgage,
+    monthlyCashFlow,
+    annualCashFlow,
+    grossYield,
+    netYield,
+    cashOnCashROI,
+    score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
+  };
+
+REPLACE WITH:
+  const totalLeaseIncome = inputs.leaseIncomePerMonth * 12 * inputs.leaseLengthYears;
+  return {
+    totalCashInvested,
+    mortgageAmount,
+    monthlyMortgage,
+    monthlyCashFlow,
+    annualCashFlow,
+    grossYield,
+    netYield,
+    cashOnCashROI,
+    score,
+    voidAllowanceAmount,
+    effectiveRent,
+    managementFeeAmount,
+    totalOperatingCosts,
+    netOperatingIncome,
+    breakEvenRent,
+    paybackPeriod,
+    totalLeaseIncome,
+    leaseLengthYears: inputs.leaseLengthYears,
+  };
+
+---
+
+AFTER ALL EDITS: Verify the file compiles with no TypeScript errors by checking that:
+- All return types still match ReturnType<typeof calculateX> usage in DealScorePDF.tsx (the PDF imports these types directly)
+- R2R: grossYield and netYield are removed from both the calculation and the return — search for any remaining references to r2rResults.grossYield or r2rResults.netYield in the file and confirm none exist (they are only in calculateR2R itself)
+- BRRR: moneyOut is now declared before cashOnCashROI (moved up) — confirm variable order is correct
+- SA: annualRevenue variable is no longer declared (replaced by annualNetRevenue) — confirm no remaining reference to annualRevenue in calculateSA
+
+Do not modify any other file. Do not change the SDLT/tax calculation functions. Do not change calculateFlip or calculateBTL beyond the breakEvenRent fix.
