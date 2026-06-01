@@ -2282,20 +2282,64 @@ export default function HomePage() {
     Weak: 'AVOID',
   };
 
-  const renderScoreBadge = (score: string) => {
-    if (score === 'Incomplete') return null;
-
+  const renderScoreBadge = (verdict?: 'RECOMMENDED' | 'REVIEW' | 'AVOID') => {
+    if (!verdict) return null;
     const colors = {
-      Strong: 'bg-emerald-500 text-white',
-      Average: 'bg-amber-500 text-white',
-      Weak: 'bg-red-500 text-white'
+      RECOMMENDED: 'bg-emerald-500 text-white',
+      REVIEW: 'bg-amber-500 text-white',
+      AVOID: 'bg-red-500 text-white',
     };
-
     return (
-      <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${colors[score as keyof typeof colors]}`}>
-        {VERDICT_LABELS[score] ?? score}
+      <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${colors[verdict]}`}>
+        {verdict}
       </div>
     );
+  };
+
+  const getDealScoreDescriptor = (): string => {
+    if (!compositeScore) return '';
+    const v = compositeScore.verdict;
+
+    if (dealType === 'BTL') {
+      if (v === 'RECOMMENDED') return `${formatPercent(btlResults.cashOnCashROI)} CoC ROI and ${formatCurrency(btlResults.monthlyCashFlow)}/mo cash flow — this deal stacks.`;
+      if (v === 'REVIEW') return `CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below the 8% strong threshold. Negotiate purchase price to strengthen returns.`;
+      return `Negative cash flow of ${formatCurrency(btlResults.monthlyCashFlow)}/mo — does not meet investor thresholds. Review price or rent assumption.`;
+    }
+    if (dealType === 'HMO') {
+      if (v === 'RECOMMENDED') return `${formatPercent(hmoResults.cashOnCashROI)} CoC ROI with ${formatCurrency(hmoResults.monthlyCashFlow)}/mo cash flow — strong room-level returns.`;
+      if (v === 'REVIEW') return `CoC ROI at ${formatPercent(hmoResults.cashOnCashROI)} — below the 15% HMO strong threshold. Review room rates or purchase price.`;
+      return `${formatPercent(hmoResults.grossYield)} gross yield — below the 8% HMO minimum. This deal does not stack at current numbers.`;
+    }
+    if (dealType === 'FLIP') {
+      if (v === 'RECOMMENDED') return `${formatPercent(flipResults.roi)} ROI and ${formatCurrency(flipResults.netProfit)} net profit — strong flip at current numbers.`;
+      if (v === 'REVIEW') return `Net profit ${formatCurrency(flipResults.netProfit)} and ${formatPercent(flipResults.roi)} ROI — below the 15%/£30k strong threshold. Thin margin.`;
+      return `Net profit ${formatCurrency(flipResults.netProfit)} — below minimum threshold. Reduce purchase price or refurb costs.`;
+    }
+    if (dealType === 'SA') {
+      if (v === 'RECOMMENDED') return `${formatPercent(saResults.cashOnCashROI)} CoC ROI and ${formatCurrency(saResults.monthlyCashFlow)}/mo cash flow — strong SA returns.`;
+      if (v === 'REVIEW') return `CoC ROI at ${formatPercent(saResults.cashOnCashROI)} — below the 20% SA strong threshold. Review nightly rate or occupancy assumption.`;
+      return `Negative cash flow of ${formatCurrency(saResults.monthlyCashFlow)}/mo — SA does not stack at current occupancy and rate.`;
+    }
+    if (dealType === 'BRRR') {
+      if (v === 'RECOMMENDED') return brrrResults.moneyOut
+        ? `Money out — capital fully recycled with ${formatCurrency(brrrResults.monthlyCashFlow)}/mo cash flow. Ideal BRRR outcome.`
+        : `${formatCurrency(brrrResults.cashLeftInDeal)} left in deal with ${formatCurrency(brrrResults.monthlyCashFlow)}/mo cash flow — strong capital efficiency.`;
+      if (v === 'REVIEW') return `${formatCurrency(brrrResults.cashLeftInDeal)} left in deal — over £25k tied up limits ability to repeat. Review post-refurb value or refinance terms.`;
+      return brrrResults.monthlyCashFlow < 0
+        ? `Negative cash flow of ${formatCurrency(brrrResults.monthlyCashFlow)}/mo after refinance — deal does not self-fund.`
+        : `${formatCurrency(brrrResults.cashLeftInDeal)} left in deal with weak returns — BRRR strategy not working at current numbers.`;
+    }
+    if (dealType === 'R2R') {
+      if (v === 'RECOMMENDED') return `${formatCurrency(r2rResults.monthlyProfit)}/mo profit at ${formatPercent(r2rResults.roi)} ROI on setup — setup costs recovered in ${Math.ceil(r2rResults.breakEvenMonths)} months.`;
+      if (v === 'REVIEW') return `${formatCurrency(r2rResults.monthlyProfit)}/mo profit — below the £800 strong threshold. One void month would significantly impact returns.`;
+      return `${formatCurrency(r2rResults.monthlyProfit)}/mo profit — below £200 minimum. Negotiate landlord rent down or increase rooms.`;
+    }
+    if (dealType === 'SOCIAL') {
+      if (v === 'RECOMMENDED') return `${formatPercent(socialResults.cashOnCashROI)} CoC ROI and ${formatCurrency(socialResults.monthlyCashFlow)}/mo cash flow — stable long-term income with strong returns.`;
+      if (v === 'REVIEW') return `CoC ROI at ${formatPercent(socialResults.cashOnCashROI)} — below the 6% strong threshold. Stable income but limited return on capital.`;
+      return `Lease income does not cover costs — ${formatCurrency(socialResults.monthlyCashFlow)}/mo cash flow. Review lease terms or purchase price.`;
+    }
+    return '';
   };
 
   return (
@@ -4123,8 +4167,8 @@ export default function HomePage() {
                   </h2>
                 </div>
                 {missingFields.length === 0 && dealType === 'BTL' && (<>
-                  {renderScoreBadge(btlResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{btlResults.score === 'Strong' ? 'Strong cash flow and ROI — this deal stacks.' : btlResults.score === 'Average' ? `CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below the 5% strong threshold. Cash flow is positive but marginal.` : `Negative cash flow of ${formatCurrency(btlResults.monthlyCashFlow)}/mo. CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below minimum investor threshold.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -4154,8 +4198,8 @@ export default function HomePage() {
                   )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'HMO' && (<>
-                  {renderScoreBadge(hmoResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{hmoResults.score === 'Strong' ? 'Strong yield and cash flow — good room-level returns.' : hmoResults.score === 'Average' ? `Gross yield at ${formatPercent(hmoResults.grossYield)} — below the 10% strong threshold but above the 7% average minimum.` : `Gross yield at ${formatPercent(hmoResults.grossYield)} — below the 7% HMO minimum. Review room rates or purchase price.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -4185,8 +4229,8 @@ export default function HomePage() {
                   )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'FLIP' && (<>
-                  {renderScoreBadge(flipResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{flipResults.score === 'Strong' ? 'Strong profit margin — flip stacks at current numbers.' : flipResults.score === 'Average' ? `Profit on cost at ${formatPercent(flipResults.profitOnCost)} — below the 18% planning benchmark. Thin margin for this deal.` : `Net profit ${formatCurrency(flipResults.netProfit)} — below minimum threshold. Review purchase price or refurb costs.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -4216,8 +4260,8 @@ export default function HomePage() {
                   )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'SA' && (<>
-                  {renderScoreBadge(saResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{saResults.score === 'Strong' ? 'Strong SA yield and cash flow — good occupancy combination.' : saResults.score === 'Average' ? `Net yield at ${formatPercent(saResults.netYield)} — below the 10% average threshold. Increase nightly rate or occupancy to improve.` : `SA yield below threshold or negative cash flow of ${formatCurrency(saResults.monthlyCashFlow)}/mo. Review nightly rate and occupancy assumptions.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -4247,8 +4291,8 @@ export default function HomePage() {
                   )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'BRRR' && (<>
-                  {renderScoreBadge(brrrResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{brrrResults.score === 'Strong' ? 'Capital recycled efficiently with positive cash flow.' : brrrResults.score === 'Average' ? `£${Math.round(brrrResults.cashLeftInDeal).toLocaleString()} left in deal — over £25,000 tied up limits capital recycling efficiency.` : `Too much capital left in deal or negative cash flow of ${formatCurrency(brrrResults.monthlyCashFlow)}/mo. Review post-refurb value or refinance terms.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -4278,8 +4322,8 @@ export default function HomePage() {
                   )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'R2R' && (<>
-                  {renderScoreBadge(r2rResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{r2rResults.score === 'Strong' ? 'Strong margins — setup costs recovered quickly.' : r2rResults.score === 'Average' ? `Monthly profit at ${formatCurrency(r2rResults.monthlyProfit)}/mo — below the £500 strong threshold. One void month would significantly impact returns.` : `Monthly profit at ${formatCurrency(r2rResults.monthlyProfit)}/mo — below £200 minimum threshold. Review landlord rent or room rates.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -4309,8 +4353,8 @@ export default function HomePage() {
                   )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'SOCIAL' && (<>
-                  {renderScoreBadge(socialResults.score)}
-                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{socialResults.score === 'Strong' ? 'Stable lease income with strong ROI — long-term low-management investment.' : socialResults.score === 'Average' ? `CoC ROI at ${formatPercent(socialResults.cashOnCashROI)} — below the 5% strong threshold. Stable income but limited return on capital.` : `Lease income does not cover costs — negative cash flow of ${formatCurrency(socialResults.monthlyCashFlow)}/mo. Review lease terms or purchase price.`}</p>
+                  {renderScoreBadge(compositeScore?.verdict)}
+                  <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
                   <button type="button" onClick={() => setWhyScoreOpen(v => !v)} className="flex items-center gap-1.5 px-6 pt-1 pb-2 text-[10px] font-medium uppercase tracking-wider text-[#1B3A6B]/70 hover:bg-slate-50 rounded-lg transition-colors w-full text-left">
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />

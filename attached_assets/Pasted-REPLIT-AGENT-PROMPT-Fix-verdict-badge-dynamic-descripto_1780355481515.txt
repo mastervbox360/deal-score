@@ -1,0 +1,76 @@
+REPLIT AGENT PROMPT — Fix verdict badge + dynamic descriptors
+Read artifacts/dealscore/src/pages/Home.tsx. Make the following targeted changes only.
+CHANGE 1 — Replace renderScoreBadge function
+Find the renderScoreBadge function (around line 2285). Replace it entirely with:
+typescriptconst renderScoreBadge = (verdict?: 'RECOMMENDED' | 'REVIEW' | 'AVOID') => {
+  if (!verdict) return null;
+  const colors = {
+    RECOMMENDED: 'bg-emerald-500 text-white',
+    REVIEW: 'bg-amber-500 text-white',
+    AVOID: 'bg-red-500 text-white',
+  };
+  return (
+    <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${colors[verdict]}`}>
+      {verdict}
+    </div>
+  );
+};
+CHANGE 2 — Add a getDealScoreDescriptor helper function
+Add this function immediately after renderScoreBadge:
+typescriptconst getDealScoreDescriptor = (): string => {
+  if (!compositeScore) return '';
+  const v = compositeScore.verdict;
+
+  if (dealType === 'BTL') {
+    if (v === 'RECOMMENDED') return `${formatPercent(btlResults.cashOnCashROI)} CoC ROI and ${formatCurrency(btlResults.monthlyCashFlow)}/mo cash flow — this deal stacks.`;
+    if (v === 'REVIEW') return `CoC ROI at ${formatPercent(btlResults.cashOnCashROI)} — below the 8% strong threshold. Negotiate purchase price to strengthen returns.`;
+    return `Negative cash flow of ${formatCurrency(btlResults.monthlyCashFlow)}/mo — does not meet investor thresholds. Review price or rent assumption.`;
+  }
+  if (dealType === 'HMO') {
+    if (v === 'RECOMMENDED') return `${formatPercent(hmoResults.cashOnCashROI)} CoC ROI with ${formatCurrency(hmoResults.monthlyCashFlow)}/mo cash flow — strong room-level returns.`;
+    if (v === 'REVIEW') return `CoC ROI at ${formatPercent(hmoResults.cashOnCashROI)} — below the 15% HMO strong threshold. Review room rates or purchase price.`;
+    return `${formatPercent(hmoResults.grossYield)} gross yield — below the 8% HMO minimum. This deal does not stack at current numbers.`;
+  }
+  if (dealType === 'FLIP') {
+    if (v === 'RECOMMENDED') return `${formatPercent(flipResults.roi)} ROI and ${formatCurrency(flipResults.netProfit)} net profit — strong flip at current numbers.`;
+    if (v === 'REVIEW') return `Net profit ${formatCurrency(flipResults.netProfit)} and ${formatPercent(flipResults.roi)} ROI — below the 15%/£30k strong threshold. Thin margin.`;
+    return `Net profit ${formatCurrency(flipResults.netProfit)} — below minimum threshold. Reduce purchase price or refurb costs.`;
+  }
+  if (dealType === 'SA') {
+    if (v === 'RECOMMENDED') return `${formatPercent(saResults.cashOnCashROI)} CoC ROI and ${formatCurrency(saResults.monthlyCashFlow)}/mo cash flow — strong SA returns.`;
+    if (v === 'REVIEW') return `CoC ROI at ${formatPercent(saResults.cashOnCashROI)} — below the 20% SA strong threshold. Review nightly rate or occupancy assumption.`;
+    return `Negative cash flow of ${formatCurrency(saResults.monthlyCashFlow)}/mo — SA does not stack at current occupancy and rate.`;
+  }
+  if (dealType === 'BRRR') {
+    if (v === 'RECOMMENDED') return brrrResults.moneyOut
+      ? `Money out — capital fully recycled with ${formatCurrency(brrrResults.monthlyCashFlow)}/mo cash flow. Ideal BRRR outcome.`
+      : `${formatCurrency(brrrResults.cashLeftInDeal)} left in deal with ${formatCurrency(brrrResults.monthlyCashFlow)}/mo cash flow — strong capital efficiency.`;
+    if (v === 'REVIEW') return `${formatCurrency(brrrResults.cashLeftInDeal)} left in deal — over £25k tied up limits ability to repeat. Review post-refurb value or refinance terms.`;
+    return brrrResults.monthlyCashFlow < 0
+      ? `Negative cash flow of ${formatCurrency(brrrResults.monthlyCashFlow)}/mo after refinance — deal does not self-fund.`
+      : `${formatCurrency(brrrResults.cashLeftInDeal)} left in deal with weak returns — BRRR strategy not working at current numbers.`;
+  }
+  if (dealType === 'R2R') {
+    if (v === 'RECOMMENDED') return `${formatCurrency(r2rResults.monthlyProfit)}/mo profit at ${formatPercent(r2rResults.roi)} ROI on setup — setup costs recovered in ${Math.ceil(r2rResults.breakEvenMonths)} months.`;
+    if (v === 'REVIEW') return `${formatCurrency(r2rResults.monthlyProfit)}/mo profit — below the £800 strong threshold. One void month would significantly impact returns.`;
+    return `${formatCurrency(r2rResults.monthlyProfit)}/mo profit — below £200 minimum. Negotiate landlord rent down or increase rooms.`;
+  }
+  if (dealType === 'SOCIAL') {
+    if (v === 'RECOMMENDED') return `${formatPercent(socialResults.cashOnCashROI)} CoC ROI and ${formatCurrency(socialResults.monthlyCashFlow)}/mo cash flow — stable long-term income with strong returns.`;
+    if (v === 'REVIEW') return `CoC ROI at ${formatPercent(socialResults.cashOnCashROI)} — below the 6% strong threshold. Stable income but limited return on capital.`;
+    return `Lease income does not cover costs — ${formatCurrency(socialResults.monthlyCashFlow)}/mo cash flow. Review lease terms or purchase price.`;
+  }
+  return '';
+};
+CHANGE 3 — Update all 7 badge and descriptor calls
+For each of the 7 strategy blocks, make two changes:
+
+Replace renderScoreBadge(xyzResults.score) with renderScoreBadge(compositeScore?.verdict)
+Replace the existing hardcoded <p> descriptor string with <p className="text-xs text-muted-foreground italic px-6 pb-2 leading-relaxed">{getDealScoreDescriptor()}</p>
+
+Apply to: BTL (lines ~4126–4127), HMO (~4157–4158), FLIP (~4188–4189), SA (~4219–4220), BRRR (~4250–4251), R2R (~4281–4282), SOCIAL (~4312–4313).
+DO NOT TOUCH anything else — no calculation logic, no PDF files, no other components.
+Run npx tsc --noEmit — zero errors required.
+Then run:
+cd ~/workspace && git add -A && git commit -m "Fix verdict badge + dynamic deal score descriptors across all 7 strategies" && git push origin stage-6
+Report: TypeScript error count and push confirmation.
