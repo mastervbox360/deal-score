@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
+import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, calculateDealScore, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType, type DealScoreResult } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
@@ -502,7 +502,7 @@ export default function HomePage() {
 
   const dealPostcode = propertyAddress.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i)?.[0]?.toUpperCase().replace(/\s/g, '') ?? null
 
-  const dealMetricsRef = useRef<{ dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null; cashFlow: number | null; cocRoi: number | null; grossYield: number | null }>({ dealScore: null, cashFlow: null, cocRoi: null, grossYield: null })
+  const dealMetricsRef = useRef<{ dealScore: 'RECOMMENDED' | 'REVIEW' | 'AVOID' | null; numericScore?: number | null; cashFlow: number | null; cocRoi: number | null; grossYield: number | null }>({ dealScore: null, numericScore: null, cashFlow: null, cocRoi: null, grossYield: null })
 
   useDealSync(
     currentDealId,
@@ -1522,6 +1522,54 @@ export default function HomePage() {
     dealType === 'R2R' ? r2rResults.score :
     socialResults.score;
 
+  const compositeScore: DealScoreResult | null = (() => {
+    if (currentScore === 'Incomplete') return null;
+    if (dealType === 'BTL') return calculateDealScore({
+      strategy: 'BTL',
+      cashOnCashROI: btlResults.cashOnCashROI,
+      monthlyCashFlow: btlResults.monthlyCashFlow,
+      grossYield: btlResults.grossYield,
+    });
+    if (dealType === 'HMO') return calculateDealScore({
+      strategy: 'HMO',
+      cashOnCashROI: hmoResults.cashOnCashROI,
+      monthlyCashFlow: hmoResults.monthlyCashFlow,
+      grossYield: hmoResults.grossYield,
+    });
+    if (dealType === 'FLIP') return calculateDealScore({
+      strategy: 'FLIP',
+      roi: flipResults.roi,
+      netProfit: flipResults.netProfit,
+      annualisedROI: flipResults.annualisedROI,
+    });
+    if (dealType === 'SA') return calculateDealScore({
+      strategy: 'SA',
+      cashOnCashROI: saResults.cashOnCashROI,
+      monthlyCashFlow: saResults.monthlyCashFlow,
+      netYield: saResults.netYield,
+    });
+    if (dealType === 'BRRR') return calculateDealScore({
+      strategy: 'BRRR',
+      cashLeftInDeal: brrrResults.cashLeftInDeal,
+      moneyOut: brrrResults.moneyOut,
+      monthlyCashFlow: brrrResults.monthlyCashFlow,
+      cashOnCashROI: brrrResults.cashOnCashROI,
+    });
+    if (dealType === 'R2R') return calculateDealScore({
+      strategy: 'R2R',
+      monthlyProfit: r2rResults.monthlyProfit,
+      roi: r2rResults.roi,
+      spreadPerRoom: r2rResults.spreadPerRoom,
+    });
+    if (dealType === 'SOCIAL') return calculateDealScore({
+      strategy: 'SOCIAL',
+      cashOnCashROI: socialResults.cashOnCashROI,
+      monthlyCashFlow: socialResults.monthlyCashFlow,
+      grossYield: socialResults.grossYield,
+    });
+    return null;
+  })();
+
   React.useEffect(() => {
     if (currentScore !== 'Incomplete') setHasAnalysed(true);
   }, [currentScore]);
@@ -1537,9 +1585,8 @@ export default function HomePage() {
 
   // Update ref with latest derived metrics so useDealSync and handleSaveDeal always write current values
   dealMetricsRef.current = {
-    dealScore: currentScore === 'Incomplete' ? null :
-      currentScore === 'Strong' ? 'RECOMMENDED' :
-      currentScore === 'Average' ? 'REVIEW' : 'AVOID',
+    dealScore: compositeScore?.verdict ?? null,
+    numericScore: compositeScore?.score ?? null,
     cashFlow: currentMonthlyCF,
     cocRoi:
       dealType === 'BTL'    ? btlResults.cashOnCashROI :
@@ -2363,7 +2410,13 @@ export default function HomePage() {
                   <div className="h-5 w-px bg-border/60 mx-1 shrink-0 self-center" />
                   <div className="flex flex-col justify-center gap-0.5 px-3">
                     <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">Deal Score</span>
-                    <span className="text-sm font-medium" style={{ color: scoreColour }}>{scoreLabel}</span>
+                    {compositeScore ? (
+                      <span className="text-sm font-medium" style={{ color: compositeScore.verdict === 'RECOMMENDED' ? '#10B981' : compositeScore.verdict === 'REVIEW' ? '#F59E0B' : '#EF4444' }}>
+                        <span className="text-base font-bold">{compositeScore.score}</span>{' — '}{compositeScore.verdict}
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium" style={{ color: scoreColour }}>{scoreLabel}</span>
+                    )}
                   </div>
                 </>)}
 
@@ -4076,10 +4129,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 3% (Average)</span><span style={{ color: btlResults.cashOnCashROI >= 3 ? '#10B981' : '#EF4444' }}>{btlResults.cashOnCashROI >= 3 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Monthly CF ≥ £100</span><span style={{ color: btlResults.monthlyCashFlow >= 100 ? '#10B981' : '#EF4444' }}>{btlResults.monthlyCashFlow >= 100 ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'HMO' && (<>
                   {renderScoreBadge(hmoResults.score)}
@@ -4088,10 +4160,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Gross Yield ≥ 10% (Strong) / ≥ 7% (Average)</span><span style={{ color: hmoResults.grossYield >= 7 ? '#10B981' : '#EF4444' }}>{hmoResults.grossYield >= 7 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: hmoResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{hmoResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'FLIP' && (<>
                   {renderScoreBadge(flipResults.score)}
@@ -4100,10 +4191,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">ROI ≥ 12% (Strong) / ≥ 8% (Average)</span><span style={{ color: flipResults.roi >= 8 ? '#10B981' : '#EF4444' }}>{flipResults.roi >= 8 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Net Profit ≥ £18k (Strong)</span><span style={{ color: flipResults.netProfit >= 18000 ? '#10B981' : '#EF4444' }}>{flipResults.netProfit >= 18000 ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'SA' && (<>
                   {renderScoreBadge(saResults.score)}
@@ -4112,10 +4222,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Net Yield ≥ 15% (Strong) / ≥ 10% (Average)</span><span style={{ color: saResults.netYield >= 10 ? '#10B981' : '#EF4444' }}>{saResults.netYield >= 10 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: saResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{saResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'BRRR' && (<>
                   {renderScoreBadge(brrrResults.score)}
@@ -4124,10 +4253,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Positive cash flow</span><span style={{ color: brrrResults.monthlyCashFlow > 0 ? '#10B981' : '#EF4444' }}>{brrrResults.monthlyCashFlow > 0 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Cash Left In ≤ £10k (Strong) / ≤ £25k (Average)</span><span style={{ color: (brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 25000) ? '#10B981' : '#EF4444' }}>{(brrrResults.moneyOut || brrrResults.cashLeftInDeal <= 25000) ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'R2R' && (<>
                   {renderScoreBadge(r2rResults.score)}
@@ -4136,10 +4284,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">Monthly Profit ≥ £500 (Strong) / ≥ £200 (Average)</span><span style={{ color: r2rResults.monthlyProfit >= 200 ? '#10B981' : '#EF4444' }}>{r2rResults.monthlyProfit >= 200 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">ROI on Setup ≥ 50% (Strong) / ≥ 25% (Average)</span><span style={{ color: r2rResults.roi >= 25 ? '#10B981' : '#EF4444' }}>{r2rResults.roi >= 25 ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
                 {missingFields.length === 0 && dealType === 'SOCIAL' && (<>
                   {renderScoreBadge(socialResults.score)}
@@ -4148,10 +4315,29 @@ export default function HomePage() {
                     Score Breakdown
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200" style={{ transform: whyScoreOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                   </button>
-                  {whyScoreOpen && (<div className="pb-3 space-y-1">
-                    <div className="flex items-center justify-between px-6 py-0.5"><span className="text-xs text-muted-foreground">CoC ROI ≥ 5% (Strong) / ≥ 2% (Average)</span><span style={{ color: socialResults.cashOnCashROI >= 2 ? '#10B981' : '#EF4444' }}>{socialResults.cashOnCashROI >= 2 ? '✓' : '✗'}</span></div>
-                    <div className="flex items-center justify-between px-6 py-0.5 pb-3"><span className="text-xs text-muted-foreground">Monthly CF ≥ £100</span><span style={{ color: socialResults.monthlyCashFlow >= 100 ? '#10B981' : '#EF4444' }}>{socialResults.monthlyCashFlow >= 100 ? '✓' : '✗'}</span></div>
-                  </div>)}
+                  {whyScoreOpen && compositeScore && (
+                  <div className="pb-3 px-6 space-y-1">
+                    {compositeScore.dimensions.map((dim) => (
+                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
+                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
+                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
+                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
+                            ? `£${Math.round(dim.value).toLocaleString()}`
+                            : `${dim.value.toFixed(1)}%`}
+                        </div>
+                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
+                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        </div>
+                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                    </div>
+                  </div>
+                  )}
                 </>)}
 
 
