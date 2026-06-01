@@ -715,3 +715,127 @@ export function calculateBRRR(inputs: BRRRInputs) {
     paybackPeriod,
   };
 }
+
+export type DealScoreInput =
+  | { strategy: 'BTL'; cashOnCashROI: number; monthlyCashFlow: number; grossYield: number }
+  | { strategy: 'HMO'; cashOnCashROI: number; monthlyCashFlow: number; grossYield: number }
+  | { strategy: 'SA'; cashOnCashROI: number; monthlyCashFlow: number; netYield: number }
+  | { strategy: 'FLIP'; roi: number; netProfit: number; annualisedROI: number }
+  | { strategy: 'BRRR'; cashLeftInDeal: number; moneyOut: boolean; monthlyCashFlow: number; cashOnCashROI: number }
+  | { strategy: 'R2R'; monthlyProfit: number; roi: number; spreadPerRoom: number }
+  | { strategy: 'SOCIAL'; cashOnCashROI: number; monthlyCashFlow: number; grossYield: number };
+
+export interface DealScoreResult {
+  score: number;
+  verdict: 'RECOMMENDED' | 'REVIEW' | 'AVOID';
+  dimensions: {
+    label: string;
+    value: number;
+    points: number;
+    maxPoints: number;
+    strongThreshold: string;
+    averageThreshold: string;
+  }[];
+}
+
+function interpolate(value: number, weakThreshold: number, strongThreshold: number, maxPoints: number, invert = false): number {
+  if (invert) {
+    if (value <= weakThreshold) return maxPoints;
+    if (value >= strongThreshold) return 0;
+    return Math.round(maxPoints * (strongThreshold - value) / (strongThreshold - weakThreshold));
+  } else {
+    if (value >= strongThreshold) return maxPoints;
+    if (value <= 0) return 0;
+    if (value >= weakThreshold) {
+      return Math.round((maxPoints / 2) + (maxPoints / 2) * (value - weakThreshold) / (strongThreshold - weakThreshold));
+    }
+    return Math.round((maxPoints / 2) * (value / weakThreshold));
+  }
+}
+
+export function calculateDealScore(input: DealScoreInput): DealScoreResult {
+  let dimensions: DealScoreResult['dimensions'] = [];
+  let totalPoints = 0;
+
+  if (input.strategy === 'BTL' || input.strategy === 'HMO' || input.strategy === 'SOCIAL') {
+    const cocStrong = input.strategy === 'BTL' ? 8 : input.strategy === 'HMO' ? 15 : 6;
+    const cocAverage = input.strategy === 'BTL' ? 3 : input.strategy === 'HMO' ? 8 : 2;
+    const cfStrong = input.strategy === 'BTL' ? 300 : input.strategy === 'HMO' ? 800 : 200;
+    const cfAverage = input.strategy === 'BTL' ? 100 : input.strategy === 'HMO' ? 500 : 50;
+    const yieldStrong = input.strategy === 'BTL' ? 7 : input.strategy === 'HMO' ? 12 : 6;
+    const yieldAverage = input.strategy === 'BTL' ? 5 : input.strategy === 'HMO' ? 8 : 4;
+
+    const cocPts = interpolate(input.cashOnCashROI, cocAverage, cocStrong, 45);
+    const cfPts = interpolate(input.monthlyCashFlow, cfAverage, cfStrong, 30);
+    const yieldPts = interpolate(input.grossYield, yieldAverage, yieldStrong, 25);
+
+    dimensions = [
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 45, strongThreshold: `≥ ${cocStrong}%`, averageThreshold: `≥ ${cocAverage}%` },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 30, strongThreshold: `≥ £${cfStrong}`, averageThreshold: `≥ £${cfAverage}` },
+      { label: 'Gross Yield', value: input.grossYield, points: yieldPts, maxPoints: 25, strongThreshold: `≥ ${yieldStrong}%`, averageThreshold: `≥ ${yieldAverage}%` },
+    ];
+    totalPoints = cocPts + cfPts + yieldPts;
+  }
+
+  else if (input.strategy === 'SA') {
+    const cocPts = interpolate(input.cashOnCashROI, 8, 20, 45);
+    const cfPts = interpolate(input.monthlyCashFlow, 500, 800, 30);
+    const yieldPts = interpolate(input.netYield, 7, 12, 25);
+
+    dimensions = [
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 45, strongThreshold: '≥ 20%', averageThreshold: '≥ 8%' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 30, strongThreshold: '≥ £800', averageThreshold: '≥ £500' },
+      { label: 'Net Yield', value: input.netYield, points: yieldPts, maxPoints: 25, strongThreshold: '≥ 12%', averageThreshold: '≥ 7%' },
+    ];
+    totalPoints = cocPts + cfPts + yieldPts;
+  }
+
+  else if (input.strategy === 'FLIP') {
+    const roiPts = interpolate(input.roi, 8, 15, 40);
+    const profitPts = interpolate(input.netProfit, 18000, 30000, 35);
+    const annPts = interpolate(input.annualisedROI, 12, 25, 25);
+
+    dimensions = [
+      { label: 'Total ROI', value: input.roi, points: roiPts, maxPoints: 40, strongThreshold: '≥ 15%', averageThreshold: '≥ 8%' },
+      { label: 'Net Profit', value: input.netProfit, points: profitPts, maxPoints: 35, strongThreshold: '≥ £30,000', averageThreshold: '≥ £18,000' },
+      { label: 'Annualised ROI', value: input.annualisedROI, points: annPts, maxPoints: 25, strongThreshold: '≥ 25%', averageThreshold: '≥ 12%' },
+    ];
+    totalPoints = roiPts + profitPts + annPts;
+  }
+
+  else if (input.strategy === 'BRRR') {
+    const cashLeftValue = input.moneyOut ? 0 : input.cashLeftInDeal;
+    const cashLeftPts = interpolate(cashLeftValue, 5000, 25000, 40, true);
+    const cfPts = interpolate(input.monthlyCashFlow, 0, 300, 30);
+    const cocValue = input.cashOnCashROI === Infinity ? 100 : input.cashOnCashROI === -Infinity ? -100 : input.cashOnCashROI;
+    const cocPts = interpolate(cocValue, 5, 15, 30);
+
+    dimensions = [
+      { label: 'Cash Left in Deal', value: cashLeftValue, points: cashLeftPts, maxPoints: 40, strongThreshold: '≤ £5,000 (or money out)', averageThreshold: '≤ £25,000' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 30, strongThreshold: '≥ £300', averageThreshold: '≥ £0' },
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 30, strongThreshold: '≥ 15% (or ∞)', averageThreshold: '≥ 5%' },
+    ];
+    totalPoints = cashLeftPts + cfPts + cocPts;
+  }
+
+  else if (input.strategy === 'R2R') {
+    const profitPts = interpolate(input.monthlyProfit, 200, 800, 40);
+    const roiPts = interpolate(input.roi, 25, 75, 35);
+    const spreadPts = interpolate(input.spreadPerRoom, 100, 250, 25);
+
+    dimensions = [
+      { label: 'Monthly Profit', value: input.monthlyProfit, points: profitPts, maxPoints: 40, strongThreshold: '≥ £800', averageThreshold: '≥ £200' },
+      { label: 'ROI on Setup', value: input.roi, points: roiPts, maxPoints: 35, strongThreshold: '≥ 75%', averageThreshold: '≥ 25%' },
+      { label: 'Spread Per Room', value: input.spreadPerRoom, points: spreadPts, maxPoints: 25, strongThreshold: '≥ £250', averageThreshold: '≥ £100' },
+    ];
+    totalPoints = profitPts + roiPts + spreadPts;
+  }
+
+  const score = Math.min(100, Math.max(0, totalPoints));
+  const verdict: DealScoreResult['verdict'] =
+    score >= 65 ? 'RECOMMENDED' :
+    score >= 40 ? 'REVIEW' :
+    'AVOID';
+
+  return { score, verdict, dimensions };
+}
