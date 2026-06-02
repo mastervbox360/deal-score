@@ -1,0 +1,243 @@
+REPLIT AGENT PROMPT — Update calculateDealScore to 4-dimension model with threshold transparency
+Read artifacts/dealscore/src/lib/calculations.ts and artifacts/dealscore/src/pages/Home.tsx in full before making any changes. Plan all edits explicitly before executing.
+Two files to edit. Execute in order — calculations.ts first, Home.tsx second.
+
+FILE 1 — calculations.ts
+TASK 1A — Replace DealScoreInput type
+Find the existing export type DealScoreInput union type. Replace it entirely with:
+typescriptexport type DealScoreInput =
+  | { strategy: 'BTL'; cashOnCashROI: number; monthlyCashFlow: number; grossYield: number }
+  | { strategy: 'HMO'; cashOnCashROI: number; monthlyCashFlow: number; grossYield: number; cashFlowPerRoom: number }
+  | { strategy: 'SA'; cashOnCashROI: number; monthlyCashFlow: number; netYield: number; breakEvenOccupancy: number }
+  | { strategy: 'FLIP'; roi: number; netProfit: number; annualisedROI: number }
+  | { strategy: 'BRRR'; cashLeftInDeal: number; moneyOut: boolean; monthlyCashFlow: number; cashOnCashROI: number; equityUpliftPct: number }
+  | { strategy: 'R2R'; monthlyProfit: number; roi: number; spreadPerRoom: number; occupancyBreakEven: number }
+  | { strategy: 'SOCIAL'; cashOnCashROI: number; monthlyCashFlow: number; grossYield: number; leaseLengthYears: number };
+TASK 1B — Replace calculateDealScore function
+Find the existing export function calculateDealScore function. Replace it entirely with:
+typescriptexport function calculateDealScore(input: DealScoreInput): DealScoreResult {
+  let dimensions: DealScoreResult['dimensions'] = [];
+  let totalPoints = 0;
+
+  if (input.strategy === 'BTL') {
+    const cocPts = interpolate(input.cashOnCashROI, 3, 8, 45);
+    const cfPts = interpolate(input.monthlyCashFlow, 100, 300, 30);
+    const yieldPts = interpolate(input.grossYield, 5, 7, 25);
+    dimensions = [
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 45, strongThreshold: '≥ 8%', averageThreshold: '≥ 3%' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 30, strongThreshold: '≥ £300', averageThreshold: '≥ £100' },
+      { label: 'Gross Yield', value: input.grossYield, points: yieldPts, maxPoints: 25, strongThreshold: '≥ 7%', averageThreshold: '≥ 5%' },
+    ];
+    totalPoints = cocPts + cfPts + yieldPts;
+  }
+
+  else if (input.strategy === 'HMO') {
+    const cocPts = interpolate(input.cashOnCashROI, 8, 15, 35);
+    const cfPts = interpolate(input.monthlyCashFlow, 500, 800, 25);
+    const yieldPts = interpolate(input.grossYield, 8, 12, 20);
+    const cfrPts = interpolate(input.cashFlowPerRoom, 150, 250, 20);
+    dimensions = [
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 35, strongThreshold: '≥ 15%', averageThreshold: '≥ 8%' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 25, strongThreshold: '≥ £800', averageThreshold: '≥ £500' },
+      { label: 'Gross Yield', value: input.grossYield, points: yieldPts, maxPoints: 20, strongThreshold: '≥ 12%', averageThreshold: '≥ 8%' },
+      { label: 'Cash Flow Per Room', value: input.cashFlowPerRoom, points: cfrPts, maxPoints: 20, strongThreshold: '≥ £250/room', averageThreshold: '≥ £150/room' },
+    ];
+    totalPoints = cocPts + cfPts + yieldPts + cfrPts;
+  }
+
+  else if (input.strategy === 'FLIP') {
+    const roiPts = interpolate(input.roi, 8, 15, 40);
+    const profitPts = interpolate(input.netProfit, 18000, 30000, 35);
+    const annPts = interpolate(input.annualisedROI, 12, 25, 25);
+    dimensions = [
+      { label: 'Total ROI', value: input.roi, points: roiPts, maxPoints: 40, strongThreshold: '≥ 15%', averageThreshold: '≥ 8%' },
+      { label: 'Net Profit', value: input.netProfit, points: profitPts, maxPoints: 35, strongThreshold: '≥ £30,000', averageThreshold: '≥ £18,000' },
+      { label: 'Annualised ROI', value: input.annualisedROI, points: annPts, maxPoints: 25, strongThreshold: '≥ 25%', averageThreshold: '≥ 12%' },
+    ];
+    totalPoints = roiPts + profitPts + annPts;
+  }
+
+  else if (input.strategy === 'SA') {
+    const cocPts = interpolate(input.cashOnCashROI, 8, 20, 35);
+    const cfPts = interpolate(input.monthlyCashFlow, 500, 800, 25);
+    const yieldPts = interpolate(input.netYield, 7, 12, 20);
+    // Occupancy break-even — inverted, lower is better
+    const bePts = interpolate(input.breakEvenOccupancy, 65, 50, 20, true);
+    dimensions = [
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 35, strongThreshold: '≥ 20%', averageThreshold: '≥ 8%' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 25, strongThreshold: '≥ £800', averageThreshold: '≥ £500' },
+      { label: 'Net Yield', value: input.netYield, points: yieldPts, maxPoints: 20, strongThreshold: '≥ 12%', averageThreshold: '≥ 7%' },
+      { label: 'Occupancy Break-Even', value: input.breakEvenOccupancy, points: bePts, maxPoints: 20, strongThreshold: '≤ 50%', averageThreshold: '≤ 65%' },
+    ];
+    totalPoints = cocPts + cfPts + yieldPts + bePts;
+  }
+
+  else if (input.strategy === 'BRRR') {
+    const cashLeftValue = input.moneyOut ? 0 : input.cashLeftInDeal;
+    const cashLeftPts = interpolate(cashLeftValue, 25000, 5000, 35, true);
+    const cfPts = interpolate(input.monthlyCashFlow, 0, 300, 25);
+    const equityPts = interpolate(input.equityUpliftPct, 10, 20, 25);
+    const cocValue = input.cashOnCashROI === Infinity ? 100 : input.cashOnCashROI === -Infinity ? -100 : input.cashOnCashROI;
+    const cocPts = interpolate(cocValue, 5, 15, 15);
+    dimensions = [
+      { label: 'Cash Left in Deal', value: cashLeftValue, points: cashLeftPts, maxPoints: 35, strongThreshold: '≤ £5,000 (or money out)', averageThreshold: '≤ £25,000' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 25, strongThreshold: '≥ £300', averageThreshold: '≥ £0' },
+      { label: 'Equity Uplift', value: input.equityUpliftPct, points: equityPts, maxPoints: 25, strongThreshold: '≥ 20%', averageThreshold: '≥ 10%' },
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 15, strongThreshold: '≥ 15% (or ∞)', averageThreshold: '≥ 5%' },
+    ];
+    totalPoints = cashLeftPts + cfPts + equityPts + cocPts;
+  }
+
+  else if (input.strategy === 'R2R') {
+    const profitPts = interpolate(input.monthlyProfit, 200, 800, 35);
+    const roiPts = interpolate(input.roi, 25, 75, 30);
+    const spreadPts = interpolate(input.spreadPerRoom, 100, 250, 20);
+    // Occupancy break-even — inverted, lower is better
+    const bePts = interpolate(input.occupancyBreakEven, 75, 60, 15, true);
+    dimensions = [
+      { label: 'Monthly Profit', value: input.monthlyProfit, points: profitPts, maxPoints: 35, strongThreshold: '≥ £800', averageThreshold: '≥ £200' },
+      { label: 'ROI on Setup', value: input.roi, points: roiPts, maxPoints: 30, strongThreshold: '≥ 75%', averageThreshold: '≥ 25%' },
+      { label: 'Spread Per Room', value: input.spreadPerRoom, points: spreadPts, maxPoints: 20, strongThreshold: '≥ £250', averageThreshold: '≥ £100' },
+      { label: 'Occupancy Break-Even', value: input.occupancyBreakEven, points: bePts, maxPoints: 15, strongThreshold: '≤ 60%', averageThreshold: '≤ 75%' },
+    ];
+    totalPoints = profitPts + roiPts + spreadPts + bePts;
+  }
+
+  else if (input.strategy === 'SOCIAL') {
+    const cocPts = interpolate(input.cashOnCashROI, 2, 6, 35);
+    const cfPts = interpolate(input.monthlyCashFlow, 50, 200, 25);
+    const yieldPts = interpolate(input.grossYield, 4, 6, 20);
+    const leasePts = interpolate(input.leaseLengthYears, 5, 10, 20);
+    dimensions = [
+      { label: 'Cash-on-Cash ROI', value: input.cashOnCashROI, points: cocPts, maxPoints: 35, strongThreshold: '≥ 6%', averageThreshold: '≥ 2%' },
+      { label: 'Monthly Cash Flow', value: input.monthlyCashFlow, points: cfPts, maxPoints: 25, strongThreshold: '≥ £200', averageThreshold: '≥ £50' },
+      { label: 'Gross Yield', value: input.grossYield, points: yieldPts, maxPoints: 20, strongThreshold: '≥ 6%', averageThreshold: '≥ 4%' },
+      { label: 'Lease Length', value: input.leaseLengthYears, points: leasePts, maxPoints: 20, strongThreshold: '≥ 10 years', averageThreshold: '≥ 5 years' },
+    ];
+    totalPoints = cocPts + cfPts + yieldPts + leasePts;
+  }
+
+  const score = Math.min(100, Math.max(0, totalPoints));
+  const verdict: DealScoreResult['verdict'] =
+    score >= 65 ? 'RECOMMENDED' :
+    score >= 40 ? 'REVIEW' :
+    'AVOID';
+
+  return { score, verdict, dimensions };
+}
+
+FILE 2 — Home.tsx
+TASK 2A — Update compositeScore IIFE
+Find the existing compositeScore IIFE. Replace the 7 strategy branches with updated versions that pass the new fields:
+typescriptif (dealType === 'BTL') return calculateDealScore({
+  strategy: 'BTL',
+  cashOnCashROI: btlResults.cashOnCashROI,
+  monthlyCashFlow: btlResults.monthlyCashFlow,
+  grossYield: btlResults.grossYield,
+});
+if (dealType === 'HMO') return calculateDealScore({
+  strategy: 'HMO',
+  cashOnCashROI: hmoResults.cashOnCashROI,
+  monthlyCashFlow: hmoResults.monthlyCashFlow,
+  grossYield: hmoResults.grossYield,
+  cashFlowPerRoom: hmoInputs.rooms > 0 ? hmoResults.monthlyCashFlow / hmoInputs.rooms : 0,
+});
+if (dealType === 'FLIP') return calculateDealScore({
+  strategy: 'FLIP',
+  roi: flipResults.roi,
+  netProfit: flipResults.netProfit,
+  annualisedROI: flipResults.annualisedROI,
+});
+if (dealType === 'SA') return calculateDealScore({
+  strategy: 'SA',
+  cashOnCashROI: saResults.cashOnCashROI,
+  monthlyCashFlow: saResults.monthlyCashFlow,
+  netYield: saResults.netYield,
+  breakEvenOccupancy: saResults.breakEvenOccupancy,
+});
+if (dealType === 'BRRR') return calculateDealScore({
+  strategy: 'BRRR',
+  cashLeftInDeal: brrrResults.cashLeftInDeal,
+  moneyOut: brrrResults.moneyOut,
+  monthlyCashFlow: brrrResults.monthlyCashFlow,
+  cashOnCashROI: brrrResults.cashOnCashROI,
+  equityUpliftPct: brrrResults.totalCostIn > 0 ? (brrrResults.equityCreated / brrrResults.totalCostIn) * 100 : 0,
+});
+if (dealType === 'R2R') return calculateDealScore({
+  strategy: 'R2R',
+  monthlyProfit: r2rResults.monthlyProfit,
+  roi: r2rResults.roi,
+  spreadPerRoom: r2rResults.spreadPerRoom,
+  occupancyBreakEven: r2rResults.occupancyBreakEven,
+});
+if (dealType === 'SOCIAL') return calculateDealScore({
+  strategy: 'SOCIAL',
+  cashOnCashROI: socialResults.cashOnCashROI,
+  monthlyCashFlow: socialResults.monthlyCashFlow,
+  grossYield: socialResults.grossYield,
+  leaseLengthYears: socialResults.leaseLengthYears,
+});
+TASK 2B — Update score breakdown panel display
+Find every instance of the score breakdown dimensions renderer — the compositeScore.dimensions.map(...) block. It currently shows: label · value · strongThreshold · progress bar · pts/max.
+Update the layout to show thresholds more clearly in each row:
+tsx{compositeScore.dimensions.map((dim) => (
+  <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+    <div className="flex items-center gap-2 mb-1">
+      <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+      <div className="text-xs font-medium text-[#1B3A6B]">
+        {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+          ? `£${Math.round(dim.value).toLocaleString()}`
+          : dim.label.includes('Lease')
+          ? `${dim.value} yrs`
+          : `${dim.value.toFixed(1)}%`}
+      </div>
+      <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
+    </div>
+    <div className="flex items-center gap-2">
+      <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+        Strong: {dim.strongThreshold}
+      </div>
+      <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-[#1B3A6B]"
+          style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }}
+        />
+      </div>
+      <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+        Avg: {dim.averageThreshold}
+      </div>
+    </div>
+  </div>
+))}
+{compositeScore && (
+  <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+    <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+    <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+  </div>
+)}
+Apply this updated renderer to all 7 strategy breakdown sections.
+
+AFTER ALL EDITS:
+Run npx tsc --noEmit — zero TypeScript errors required.
+Spot-check three cases in the terminal by temporarily adding console.log at end of calculations.ts:
+typescript// Temp spot-check — remove after
+console.log('HMO 4-dim:', calculateDealScore({ strategy: 'HMO', cashOnCashROI: 14, monthlyCashFlow: 750, grossYield: 11, cashFlowPerRoom: 187 }));
+console.log('BRRR equity:', calculateDealScore({ strategy: 'BRRR', cashLeftInDeal: 0, moneyOut: true, monthlyCashFlow: 400, cashOnCashROI: Infinity, equityUpliftPct: 22 }));
+console.log('SA occupancy:', calculateDealScore({ strategy: 'SA', cashOnCashROI: 18, monthlyCashFlow: 700, netYield: 11, breakEvenOccupancy: 48 }));
+Expected results:
+
+HMO: score ~75-85, RECOMMENDED (strong CoC ROI slightly below 15%, strong CF slightly below £800, all dimensions firing)
+BRRR money-out with 22% equity uplift: score 100, RECOMMENDED
+SA with 48% break-even occupancy (below 50% strong): score ~85-95, RECOMMENDED
+
+Remove the console.log lines after verifying. Then run:
+cd ~/workspace && git add -A && git commit -m "Update calculateDealScore to 4-dimension model with threshold transparency" && git push origin stage-6
+DO NOT TOUCH:
+
+Any existing calculate* function
+Any PDF file
+inputsSerializer.ts
+dealService.ts
+Any other file
+
+Report: TypeScript error count, spot-check output for all 3 test cases, push confirmation.

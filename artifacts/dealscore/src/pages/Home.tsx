@@ -1535,6 +1535,7 @@ export default function HomePage() {
       cashOnCashROI: hmoResults.cashOnCashROI,
       monthlyCashFlow: hmoResults.monthlyCashFlow,
       grossYield: hmoResults.grossYield,
+      cashFlowPerRoom: hmoInputs.rooms > 0 ? hmoResults.monthlyCashFlow / hmoInputs.rooms : 0,
     });
     if (dealType === 'FLIP') return calculateDealScore({
       strategy: 'FLIP',
@@ -1547,6 +1548,7 @@ export default function HomePage() {
       cashOnCashROI: saResults.cashOnCashROI,
       monthlyCashFlow: saResults.monthlyCashFlow,
       netYield: saResults.netYield,
+      breakEvenOccupancy: saResults.breakEvenOccupancy,
     });
     if (dealType === 'BRRR') return calculateDealScore({
       strategy: 'BRRR',
@@ -1554,18 +1556,21 @@ export default function HomePage() {
       moneyOut: brrrResults.moneyOut,
       monthlyCashFlow: brrrResults.monthlyCashFlow,
       cashOnCashROI: brrrResults.cashOnCashROI,
+      equityUpliftPct: brrrResults.totalCostIn > 0 ? (brrrResults.equityCreated / brrrResults.totalCostIn) * 100 : 0,
     });
     if (dealType === 'R2R') return calculateDealScore({
       strategy: 'R2R',
       monthlyProfit: r2rResults.monthlyProfit,
       roi: r2rResults.roi,
       spreadPerRoom: r2rResults.spreadPerRoom,
+      occupancyBreakEven: r2rResults.occupancyBreakEven,
     });
     if (dealType === 'SOCIAL') return calculateDealScore({
       strategy: 'SOCIAL',
       cashOnCashROI: socialResults.cashOnCashROI,
       monthlyCashFlow: socialResults.monthlyCashFlow,
       grossYield: socialResults.grossYield,
+      leaseLengthYears: socialResults.leaseLengthYears,
     });
     return null;
   })();
@@ -4176,23 +4181,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
@@ -4207,23 +4223,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
@@ -4238,23 +4265,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
@@ -4269,23 +4307,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
@@ -4300,23 +4349,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
@@ -4331,23 +4391,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
@@ -4362,23 +4433,34 @@ export default function HomePage() {
                   {whyScoreOpen && compositeScore && (
                   <div className="pb-3 px-6 space-y-1">
                     {compositeScore.dimensions.map((dim) => (
-                      <div key={dim.label} className="flex items-center gap-3 py-1.5 border-b border-border/30 last:border-0">
-                        <div className="flex-1 text-sm text-muted-foreground">{dim.label}</div>
-                        <div className="text-sm font-medium text-[#1B3A6B] w-16 text-right">
-                          {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread')
-                            ? `£${Math.round(dim.value).toLocaleString()}`
-                            : `${dim.value.toFixed(1)}%`}
+                      <div key={dim.label} className="py-2 border-b border-border/30 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex-1 text-xs font-medium text-[#1B3A6B]">{dim.label}</div>
+                          <div className="text-xs font-medium text-[#1B3A6B]">
+                            {dim.label.includes('Cash Flow') || dim.label.includes('Profit') || dim.label.includes('Cash Left') || dim.label.includes('Spread') || dim.label.includes('Per Room')
+                              ? `£${Math.round(dim.value).toLocaleString()}`
+                              : dim.label.includes('Lease')
+                              ? `${dim.value} yrs`
+                              : `${dim.value.toFixed(1)}%`}
+                          </div>
+                          <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground w-20 text-right">{dim.strongThreshold}</div>
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[10px] text-muted-foreground w-28 flex-shrink-0">
+                            Strong: {dim.strongThreshold}
+                          </div>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full rounded-full bg-[#1B3A6B]" style={{ width: `${Math.round((dim.points / dim.maxPoints) * 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-muted-foreground w-28 text-right flex-shrink-0">
+                            Avg: {dim.averageThreshold}
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-[#1B3A6B] w-12 text-right">{dim.points}/{dim.maxPoints}</div>
                       </div>
                     ))}
                     <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
-                      <span className="text-sm font-semibold text-[#1B3A6B]">Total score</span>
-                      <span className="text-lg font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
+                      <span className="text-xs font-semibold text-[#1B3A6B]">Total score</span>
+                      <span className="text-sm font-bold text-[#1B3A6B]">{compositeScore.score}/100</span>
                     </div>
                   </div>
                   )}
