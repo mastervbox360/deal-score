@@ -1,0 +1,51 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_deal_overview.html and focus on the chrome elements at the top: header, info strip, live bar, tab nav. Also read the CSS for .hdr, .info-strip, .livebar, .tabs classes.
+
+Create a reusable DealChrome component (or equivalent layout wrapper) used by all 5 deal tab screens. It receives the deal data and current tab as props.
+
+DO NOT CHANGE:
+- Deal data fetching (loadDeal, useDealSync)
+- Routing or URL structure
+- Auth logic
+
+IMPLEMENT:
+
+1. HEADER (56px, navy-dark #152d55)
+   - Logo → navigate to HQ/home screen
+   - Centre: deal reference pill (e.g. DS-004) + tab indicator
+   - Right: Notes button (opens Notes drawer) · Privacy toggle · Avatar dropdown
+
+2. INFO STRIP (48px, white, border-bottom)
+   - Left: deal address (PII class — hidden in privacy mode) · strategy badge · status pill
+   - Right cluster: Seller name (PII) · collapse/restore toggle for live bar (.lb-hide-toggle pill)
+   The collapse/restore toggle hides/shows the live bar by toggling a CSS variable --livebar-h between 44px and 0px. All sticky elements below it recalculate their top offset automatically via calc().
+
+3. LIVE BAR (44px, background #0f2040 dark navy)
+   Adaptive content per tab — each tab provides its own live bar data as a prop.
+   Content format: 4–6 key metrics spread across the bar, highlighted values in teal.
+   Default bar for each tab:
+   - Overview: Stage · Cooling-off countdown · Next milestone · Deal score · Investors count
+   - Analysis: Cash invested · Monthly CF (highlighted) · CoC ROI · Gross yield · Deal score
+   - Content: Content type label · Pack completeness % · Last edited
+   - Seller: Asking price · Current offer · Discount % (highlighted) · Status · Next step
+   - Investors: Funding target · Pledged · % funded (highlighted) · Investors shared/interested/pledged · Days to close (highlighted)
+
+4. TAB NAV (42px, white, border-bottom)
+   5 tabs: Overview · Analysis · Content · Seller · Investors
+   Active tab underlined with var(--teal). Clicking each tab navigates to the correct route.
+   All 5 tabs always visible regardless of which is active.
+
+5. PRIVACY MODE
+   Header contains a privacy toggle. When active, body gets class "privacy".
+   All elements with class "pii" become opacity:0. This masks addresses, seller names, and investor names.
+
+6. NOTES DRAWER (slide-over from right, 380px)
+   Opened via "Notes" button in header. Close button + backdrop click to close.
+   Contents:
+   - Composer: textarea + "Add note" button (disabled until text entered). On submit: adds note to top of list, clears textarea.
+   - Note list: chronological, each item has author, relative timestamp, note text, delete button.
+   - Empty state: "No notes yet — add the first one above."
+   Notes are deal-scoped. Persist in deal data if the notes field exists in the database schema; otherwise store in local state for now.
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.
