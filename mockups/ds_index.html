@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DealScore — Review Tool</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a2e;font-size:13px;}
+
+/* ── HEADER ── */
+.hdr{
+  height:48px;
+  background:#152d55;
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  gap:12px;
+  flex-shrink:0;
+  z-index:10;
+  position:relative;
+}
+.hdr-logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;white-space:nowrap;}
+.hdr-logo span{color:#10B981;}
+.hdr-divider{width:.5px;height:20px;background:rgba(255,255,255,.15);flex-shrink:0;}
+.hdr-page-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-section{font-size:10px;color:rgba(255,255,255,.35);font-weight:400;margin-left:6px;}
+.hdr-nav{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.nav-btn{width:28px;height:28px;border-radius:6px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.65);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .12s;}
+.nav-btn:hover:not(:disabled){background:rgba(255,255,255,.16);}
+.nav-btn:disabled{opacity:.25;cursor:default;}
+.hdr-counter{font-size:10px;color:rgba(255,255,255,.35);padding:0 6px;white-space:nowrap;}
+.hdr-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.hdr-btn{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit;border:none;white-space:nowrap;transition:opacity .12s;}
+.hdr-btn:hover{opacity:.85;}
+.hdr-btn-list{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);}
+.hdr-btn-export{background:#1D9E75;color:#fff;}
+.hdr-btn-clear{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);border:.5px solid rgba(255,255,255,.1)!important;}
+.saved-badge{font-size:10px;color:rgba(255,255,255,.25);display:flex;align-items:center;gap:3px;transition:color .3s;white-space:nowrap;}
+.saved-badge.show{color:rgba(29,158,117,.9);}
+.reviewed-count{font-size:10px;color:rgba(255,255,255,.3);white-space:nowrap;}
+.reviewed-count strong{color:rgba(255,255,255,.6);}
+
+/* ── LAYOUT ── */
+.main{
+  display:flex;
+  height:calc(100vh - 48px);
+  overflow:hidden;
+}
+
+/* ── IFRAME PANE ── */
+.preview-pane{
+  flex:1;
+  min-width:0;
+  position:relative;
+  background:#e8e9ec;
+}
+.preview-pane iframe{
+  width:100%;
+  height:100%;
+  border:none;
+  display:block;
+}
+.preview-placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  gap:14px;
+  color:#9ca3af;
+}
+.preview-placeholder i{font-size:48px;opacity:.3;}
+.preview-placeholder p{font-size:13px;opacity:.5;}
+
+/* ── NOTES PANEL ── */
+.notes-pane{
+  width:320px;
+  min-width:280px;
+  max-width:400px;
+  background:#fff;
+  border-left:.5px solid #e3e5e9;
+  display:flex;
+  flex-direction:column;
+  flex-shrink:0;
+  overflow:hidden;
+  resize:horizontal;
+}
+
+.np-header{
+  padding:14px 16px 12px;
+  border-bottom:.5px solid #e3e5e9;
+  flex-shrink:0;
+}
+.np-page-name{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:2px;line-height:1.3;}
+.np-page-desc{font-size:11px;color:#6c757d;line-height:1.4;}
+.np-section-badge{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:20px;margin-bottom:6px;}
+.badge-navy{background:#eef3fb;color:#1B3A6B;}
+.badge-teal{background:rgba(29,158,117,.1);color:#1D9E75;}
+.badge-amber{background:rgba(217,119,6,.08);color:#D97706;}
+.badge-purple{background:rgba(124,58,237,.08);color:#7c3aed;}
+.badge-grey{background:#f3f4f6;color:#6b7280;}
+
+.np-notes-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:12px 16px;
+  gap:8px;
+  overflow:hidden;
+}
+.np-notes-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#bbb;display:flex;align-items:center;justify-content:space-between;}
+.np-notes-label-right{font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#10B981;opacity:0;transition:opacity .3s;}
+.np-notes-label-right.show{opacity:1;}
+
+textarea#note-input{
+  flex:1;
+  width:100%;
+  border:.5px solid #e3e5e9;
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:12px;
+  font-family:inherit;
+  color:#1a1a2e;
+  line-height:1.6;
+  resize:none;
+  outline:none;
+  background:#f9fafb;
+  transition:border-color .13s, background .13s;
+  min-height:0;
+}
+textarea#note-input:focus{border-color:#1B3A6B;background:#fff;}
+textarea#note-input.has-content{background:#fffef8;border-color:#fde68a;}
+textarea#note-input.has-content:focus{border-color:#D97706;}
+textarea#note-input::placeholder{color:#c0c4cc;}
+
+.np-char-count{font-size:10px;color:#d1d5db;text-align:right;flex-shrink:0;}
+.np-char-count.warn{color:#D97706;}
+
+/* ── PAGE LIST PANEL ── */
+.np-list{
+  border-top:.5px solid #e3e5e9;
+  overflow-y:auto;
+  flex-shrink:0;
+  max-height:240px;
+}
+.np-list-header{
+  padding:10px 16px 6px;
+  font-size:9px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#bbb;
+  background:#fff;
+  position:sticky;
+  top:0;
+  border-bottom:.5px solid #f3f4f6;
+}
+.page-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 16px;
+  cursor:pointer;
+  transition:background .1s;
+  border-bottom:.5px solid #f9fafb;
+}
+.page-item:hover{background:#f5f6f8;}
+.page-item.active{background:#eef3fb;}
+.page-item-dot{
+  width:6px;height:6px;border-radius:50%;background:#e3e5e9;flex-shrink:0;transition:background .2s;
+}
+.page-item.has-notes .page-item-dot{background:#D97706;}
+.page-item.active .page-item-dot{background:#1B3A6B;}
+.page-item.active.has-notes .page-item-dot{background:#D97706;}
+.page-item-name{font-size:11px;font-weight:500;color:#374151;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.page-item.active .page-item-name{color:#1B3A6B;font-weight:700;}
+.page-item-sec{font-size:9px;color:#bbb;}
+
+/* ── SCROLLBAR ── */
+.np-list::-webkit-scrollbar{width:4px;}
+.np-list::-webkit-scrollbar-track{background:transparent;}
+.np-list::-webkit-scrollbar-thumb{background:#e3e5e9;border-radius:2px;}
+
+/* ── RESIZE HANDLE ── */
+.resize-handle{
+  width:4px;
+  background:transparent;
+  cursor:ew-resize;
+  flex-shrink:0;
+  transition:background .15s;
+  position:relative;
+  z-index:5;
+}
+.resize-handle:hover,.resize-handle.dragging{background:rgba(29,158,117,.35);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">Deal<span>Score</span></div>
+  <div class="hdr-divider"></div>
+  <div class="hdr-page-name" id="hdr-page-name">
+    Select a page to begin
+    <span class="hdr-section" id="hdr-section"></span>
+  </div>
+  <div class="hdr-nav">
+    <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" disabled title="Previous page"><i class="ti ti-chevron-left"></i></button>
+    <span class="hdr-counter" id="hdr-counter">— / 16</span>
+    <button class="nav-btn" id="btn-next" onclick="navigate(1)" disabled title="Next page"><i class="ti ti-chevron-right"></i></button>
+  </div>
+  <div class="hdr-divider"></div>
+  <div class="hdr-actions">
+    <span class="reviewed-count" id="reviewed-count"></span>
+    <span class="saved-badge" id="saved-badge"><i class="ti ti-check" style="font-size:10px;"></i> Saved</span>
+    <button class="hdr-btn hdr-btn-clear" onclick="clearAllNotes()" title="Clear all notes"><i class="ti ti-trash" style="font-size:11px;"></i></button>
+    <button class="hdr-btn hdr-btn-export" onclick="exportNotes()"><i class="ti ti-download" style="font-size:11px;"></i> Export notes</button>
+  </div>
+</div>
+
+<!-- MAIN SPLIT -->
+<div class="main">
+
+  <!-- LEFT: PAGE PREVIEW -->
+  <div class="preview-pane" id="preview-pane">
+    <div class="preview-placeholder" id="preview-placeholder">
+      <i class="ti ti-layout-sidebar-right"></i>
+      <p>Click a page in the list →</p>
+    </div>
+    <iframe id="preview-frame" style="display:none;" title="Page preview"></iframe>
+  </div>
+
+  <!-- RESIZE HANDLE -->
+  <div class="resize-handle" id="resize-handle"></div>
+
+  <!-- RIGHT: NOTES PANEL -->
+  <div class="notes-pane" id="notes-pane">
+
+    <!-- Page info -->
+    <div class="np-header" id="np-header">
+      <div class="np-page-name" id="np-page-name">DealScore Mockup Review</div>
+      <div class="np-page-desc" id="np-page-desc">Click a page from the list below to open it and start reviewing</div>
+    </div>
+
+    <!-- Notes textarea -->
+    <div class="np-notes-area">
+      <div class="np-notes-label">
+        Notes
+        <span class="np-notes-label-right" id="notes-saved-indicator"><i class="ti ti-check" style="font-size:10px;"></i> saved</span>
+      </div>
+      <textarea id="note-input" placeholder="What needs fixing on this page? Layout issues, missing content, wrong behaviour, copy errors…" oninput="onNoteChange(this)" disabled></textarea>
+      <div class="np-char-count" id="char-count"></div>
+    </div>
+
+    <!-- Page list -->
+    <div class="np-list">
+      <div class="np-list-header">All pages</div>
+      <div id="page-list-items"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── PAGE DATA ──────────────────────────────────────────────────────────────
+var PAGES = [
+  // Core dashboard
+  {name:'Dashboard',          file:'ds_deals_v1_legacy.html', section:'Core dashboard',    badge:'teal',   desc:'Deal grid, kanban, list view, stats bar, onboarding rail'},
+  {name:'Pipeline View',      file:'ds_pipeline_view.html',          section:'Core dashboard',    badge:'teal',   desc:'Business-level funnel, stalled deals, targets'},
+  {name:'Compare View',       file:'ds_compare_view.html',           section:'Core dashboard',    badge:'teal',   desc:'Side-by-side comparison of 2–4 deals'},
+  // Per-deal screens
+  {name:'Deal Overview',      file:'ds_deal_overview.html',          section:'Per-deal screens',  badge:'navy',   desc:'Inputs, Results, Sensitivity, Workings, Notes drawer'},
+  {name:'Analysis Hub',       file:'ds_analysis_hub.html',           section:'Per-deal screens',  badge:'navy',   desc:'Full analysis workspace with all strategy tabs'},
+  {name:'Content Hub',        file:'ds_content_hub.html',            section:'Per-deal screens',  badge:'navy',   desc:'Pack creator, content library, composer'},
+  {name:'Seller Tab',         file:'ds_seller_tab.html',             section:'Per-deal screens',  badge:'navy',   desc:'Seller profile, motivated sellers form, outreach'},
+  {name:'Investors Tab',      file:'ds_investor_tab.html',           section:'Per-deal screens',  badge:'navy',   desc:'Deal-level investor pipeline and actions'},
+  // Content creation
+  {name:'Advert Builder',     file:'ds_advert_builder.html',      section:'Content creation',  badge:'amber',  desc:'Multi-strategy advert with nearby locations + portfolio mode'},
+  {name:'Cover Designer',     file:'ds_cover_designer.html',         section:'Content creation',  badge:'amber',  desc:'3 cover styles for deal pack PDF'},
+  {name:'Investor Share Page',file:'ds_investor_share_page.html',    section:'Content creation',  badge:'amber',  desc:'Branded public-facing deal summary'},
+  // CRM
+  {name:'Investors CRM',      file:'ds_investors_crm.html',          section:'CRM',               badge:'purple', desc:'Top-level investor contacts database'},
+  {name:'Sellers CRM',        file:'ds_sellers_crm.html',            section:'CRM',               badge:'purple', desc:'Motivated seller pipeline and follow-ups'},
+  // Pro+ features
+  {name:'Recommendation Engine', file:'ds_recommendation_engine.html', section:'Pro+ features',  badge:'grey',   desc:'4-step wizard: area → strategy → property → action plan'},
+  // Account & onboarding
+  {name:'Profile & Settings', file:'ds_profile_settings.html',       section:'Account',           badge:'grey',   desc:'Account, branding, integrations, billing'},
+  {name:'Upgrade Modal',      file:'ds_upgrade_modal.html',    section:'Account',           badge:'grey',   desc:'Pro vs Pro+ tier comparison + CTA'}
+];
+
+var NOTES_KEY = 'ds_review_notes_v2';
+var notes = {};
+var currentIdx = -1;
+var saveTimer = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function init(){
+  // Load saved notes
+  try{ notes = JSON.parse(localStorage.getItem(NOTES_KEY)||'{}'); }catch(e){ notes={}; }
+
+  // Build page list
+  buildPageList();
+
+  // Keyboard nav
+  document.addEventListener('keydown', function(e){
+    var tag = document.activeElement && document.activeElement.tagName;
+    if(tag==='TEXTAREA' || tag==='INPUT') return;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp') navigate(-1);
+  });
+
+  // Resize handle
+  initResize();
+
+  // Update header count
+  updateReviewedCount();
+
+  // Auto-open first page
+  openPage(0);
+}
+
+// ── PAGE LIST ─────────────────────────────────────────────────────────────
+function buildPageList(){
+  var container = document.getElementById('page-list-items');
+  container.innerHTML = '';
+  PAGES.forEach(function(p, i){
+    var div = document.createElement('div');
+    div.className = 'page-item' + (notes[p.name] ? ' has-notes' : '') + (i===currentIdx ? ' active' : '');
+    div.id = 'pi-'+i;
+    div.onclick = function(){ openPage(i); };
+    div.innerHTML =
+      '<div class="page-item-dot"></div>' +
+      '<div class="page-item-name">'+escHtml(p.name)+'</div>' +
+      '<div class="page-item-sec">'+escHtml(p.section)+'</div>';
+    container.appendChild(div);
+  });
+}
+
+function refreshListItem(i){
+  var p = PAGES[i];
+  var el = document.getElementById('pi-'+i);
+  if(!el) return;
+  var hasNotes = !!(notes[p.name] && notes[p.name].trim());
+  el.className = 'page-item' + (hasNotes ? ' has-notes' : '') + (i===currentIdx ? ' active' : '');
+}
+
+// ── OPEN PAGE ─────────────────────────────────────────────────────────────
+function openPage(i){
+  if(i<0||i>=PAGES.length) return;
+
+  // Deactivate old
+  if(currentIdx >= 0){
+    var old = document.getElementById('pi-'+currentIdx);
+    if(old) old.classList.remove('active');
+  }
+
+  currentIdx = i;
+  var p = PAGES[i];
+
+  // Activate in list
+  var el = document.getElementById('pi-'+i);
+  if(el){ el.classList.add('active'); el.scrollIntoView({block:'nearest'}); }
+
+  // Update header
+  document.getElementById('hdr-page-name').innerHTML =
+    escHtml(p.name) +
+    ' <span class="hdr-section" id="hdr-section">· '+escHtml(p.section)+'</span>';
+  document.getElementById('hdr-counter').textContent = (i+1)+' / '+PAGES.length;
+
+  // Enable nav buttons
+  document.getElementById('btn-prev').disabled = (i===0);
+  document.getElementById('btn-next').disabled = (i===PAGES.length-1);
+
+  // Update notes panel header
+  document.getElementById('np-page-name').innerHTML =
+    '<span class="np-section-badge badge-'+p.badge+'">'+escHtml(p.section)+'</span><br>'+escHtml(p.name);
+  document.getElementById('np-page-desc').textContent = p.desc;
+
+  // Load notes for this page
+  var ta = document.getElementById('note-input');
+  ta.disabled = false;
+  var val = notes[p.name] || '';
+  ta.value = val;
+  ta.className = val.trim() ? 'has-content' : '';
+  updateCharCount(val);
+  document.getElementById('notes-saved-indicator').classList.remove('show');
+
+  // Load iframe
+  var frame = document.getElementById('preview-frame');
+  var placeholder = document.getElementById('preview-placeholder');
+  frame.style.display = 'block';
+  placeholder.style.display = 'none';
+  frame.src = p.file;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function navigate(dir){
+  var next = currentIdx + dir;
+  if(next>=0 && next<PAGES.length) openPage(next);
+}
+
+// ── NOTES ─────────────────────────────────────────────────────────────────
+function onNoteChange(ta){
+  var val = ta.value;
+  var pageName = PAGES[currentIdx] && PAGES[currentIdx].name;
+  if(!pageName) return;
+
+  ta.className = val.trim() ? 'has-content' : '';
+  updateCharCount(val);
+
+  // Update in-memory
+  notes[pageName] = val;
+
+  // Refresh list item
+  refreshListItem(currentIdx);
+  updateReviewedCount();
+
+  // Debounce save
+  clearTimeout(saveTimer);
+  document.getElementById('notes-saved-indicator').classList.remove('show');
+  saveTimer = setTimeout(function(){
+    saveNotes();
+    document.getElementById('notes-saved-indicator').classList.add('show');
+    flashSavedBadge();
+  }, 600);
+}
+
+function saveNotes(){
+  try{ localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }catch(e){}
+}
+
+function updateCharCount(val){
+  var el = document.getElementById('char-count');
+  var len = val.length;
+  if(len===0){ el.textContent=''; return; }
+  el.textContent = len + ' char' + (len===1?'':'s');
+  el.className = 'np-char-count' + (len>1500?' warn':'');
+}
+
+function flashSavedBadge(){
+  var b = document.getElementById('saved-badge');
+  b.classList.add('show');
+  clearTimeout(b._t);
+  b._t = setTimeout(function(){ b.classList.remove('show'); }, 2000);
+}
+
+// ── REVIEWED COUNT ────────────────────────────────────────────────────────
+function updateReviewedCount(){
+  var count = PAGES.filter(function(p){ return notes[p.name] && notes[p.name].trim(); }).length;
+  var el = document.getElementById('reviewed-count');
+  if(count===0){ el.innerHTML=''; return; }
+  el.innerHTML = '<strong>'+count+'</strong> / '+PAGES.length+' reviewed';
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────
+function exportNotes(){
+  var lines = [];
+  lines.push('DEALSCORE MOCKUP REVIEW NOTES');
+  lines.push('Exported: ' + new Date().toLocaleString());
+  lines.push('═'.repeat(60));
+  lines.push('');
+
+  var hasNotes = PAGES.filter(function(p){ return notes[p.name] && notes[p.name].trim(); });
+  var noNotes  = PAGES.filter(function(p){ return !notes[p.name] || !notes[p.name].trim(); });
+
+  var currentSection = '';
+  hasNotes.forEach(function(p){
+    if(p.section !== currentSection){
+      lines.push('');
+      lines.push('── ' + p.section.toUpperCase() + ' ──');
+      currentSection = p.section;
+    }
+    lines.push('');
+    lines.push('PAGE: ' + p.name);
+    lines.push('─'.repeat(40));
+    lines.push(notes[p.name].trim());
+  });
+
+  if(noNotes.length){
+    lines.push('');
+    lines.push('');
+    lines.push('── PAGES WITH NO NOTES ──');
+    noNotes.forEach(function(p){ lines.push('  · ' + p.name + ' (' + p.section + ')'); });
+  }
+
+  var blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var d = new Date();
+  a.download = 'dealscore_review_notes_'+d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'.txt';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+}
+
+// ── CLEAR ─────────────────────────────────────────────────────────────────
+function clearAllNotes(){
+  if(!confirm('Clear all review notes? This cannot be undone.')) return;
+  notes = {};
+  try{ localStorage.removeItem(NOTES_KEY); }catch(e){}
+  buildPageList();
+  updateReviewedCount();
+  if(currentIdx>=0){
+    var ta = document.getElementById('note-input');
+    ta.value='';
+    ta.className='';
+    updateCharCount('');
+  }
+}
+
+// ── RESIZE HANDLE ─────────────────────────────────────────────────────────
+function initResize(){
+  var handle = document.getElementById('resize-handle');
+  var pane = document.getElementById('notes-pane');
+  var dragging = false;
+  var startX, startW;
+
+  handle.addEventListener('mousedown', function(e){
+    dragging=true;
+    startX=e.clientX;
+    startW=pane.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.userSelect='none';
+    document.body.style.cursor='ew-resize';
+  });
+  document.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    var dx = startX - e.clientX;
+    var newW = Math.max(260, Math.min(520, startW + dx));
+    pane.style.width = newW+'px';
+    pane.style.minWidth = newW+'px';
+    pane.style.maxWidth = newW+'px';
+  });
+  document.addEventListener('mouseup', function(){
+    if(!dragging) return;
+    dragging=false;
+    handle.classList.remove('dragging');
+    document.body.style.userSelect='';
+    document.body.style.cursor='';
+  });
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function pad2(n){ return n<10?'0'+n:String(n); }
+
+// ── START ─────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

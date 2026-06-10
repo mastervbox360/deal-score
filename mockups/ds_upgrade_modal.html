@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Upgrade Modal (4 states)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px; --istrip-h:48px; --livebar-h:44px; --tabs-h:42px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+.logo{font-size:14px;font-weight:600;color:#fff;display:flex;align-items:center;gap:6px;}
+.logo span{color:var(--teal-mid);}
+.hdrbc{font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px;}
+.bclnk{color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;font-size:12px;font-family:inherit;}
+.bccurr{color:#fff;font-weight:500;}
+.hdrr{display:flex;align-items:center;gap:8px;}
+.bdgs{font-size:11px;color:#34D399;display:flex;align-items:center;gap:3px;}
+
+/* ── INFO STRIP ── */
+.istrip{background:#fff;border-bottom:.5px solid var(--border);display:flex;align-items:center;height:var(--istrip-h);padding:0 20px;}
+.isc-addr{display:flex;flex-direction:column;justify-content:center;padding:0 20px 0 0;border-right:.5px solid var(--border);flex-shrink:0;gap:2px;}
+.isc-addr-top{font-size:13px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:5px;}
+.isc-addr-sub{font-size:10px;color:var(--text-2);}
+.isc{padding:0 20px;border-right:.5px solid var(--border);display:flex;flex-direction:column;justify-content:center;gap:2px;flex-shrink:0;}
+.isl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#ccc;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.autosaved{font-size:11px;color:#10B981;display:flex;align-items:center;gap:4px;margin-left:auto;padding-right:16px;font-weight:500;}
+
+/* ── LIVE BAR ── */
+.livebar{background:var(--navy-deep);display:flex;align-items:center;height:var(--livebar-h);padding:0 24px;gap:0;overflow-x:auto;}
+.lb-item{display:flex;flex-direction:column;gap:1px;padding:0 14px;border-right:.5px solid rgba(255,255,255,.08);flex:1;}
+.lb-item:last-child{border-right:none;}
+.lb-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);}
+.lb-val{font-size:13px;font-weight:500;color:#fff;}
+.lb-val.hl{color:#34D399;}
+.lbsep{width:.5px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0;margin:0 1px;}
+
+/* ── TABS ── */
+.tabwrap{background:#fff;border-bottom:.5px solid var(--border);height:var(--tabs-h);}
+.tabrow{display:flex;height:100%;overflow-x:auto;}
+.vt{font-size:12px;padding:0 16px;border-bottom:2px solid transparent;color:#999;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit;white-space:nowrap;display:flex;align-items:center;}
+.vt.on{color:var(--navy);border-bottom-color:var(--navy);font-weight:500;}
+.tdiv{width:.5px;height:20px;background:var(--border);align-self:center;flex-shrink:0;margin:0 2px;}
+
+/* ── MOCK APP CONTENT (blurred/dimmed) ── */
+.app-bg{padding:20px 24px;max-width:1280px;margin:0 auto;opacity:.3;pointer-events:none;user-select:none;}
+.mock-card{background:#fff;border-radius:12px;border:.5px solid var(--border);padding:16px 18px;margin-bottom:12px;height:80px;}
+.mock-card.tall{height:140px;}
+
+/* ── MODAL STATES SECTION ── */
+.states-section{padding:32px 24px 60px;max-width:1280px;margin:0 auto;}
+.states-header{margin-bottom:24px;}
+.states-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;margin-bottom:4px;}
+.states-desc{font-size:12px;color:var(--text-2);}
+.states{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.state-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;margin-bottom:10px;}
+
+/* ── MODAL ── */
+.modal-wrap{position:relative;}
+.modal-overlay{position:absolute;inset:0;background:rgba(10,20,40,.45);border-radius:var(--r-lg);pointer-events:none;}
+.modal{background:#fff;border:.5px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.16);border-radius:var(--r-lg);padding:22px;}
+.modal-icon{font-size:26px;margin-bottom:10px;display:block;}
+.modal-title{font-size:16px;font-weight:600;color:var(--text-1);margin-bottom:5px;}
+.modal-sub{font-size:12px;color:var(--text-2);line-height:1.6;margin-bottom:14px;}
+
+/* ── CONTEXTUAL FLAG ── */
+.ctx-flag{background:rgba(27,58,107,.06);border:.5px solid rgba(27,58,107,.15);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* ── TIER CARDS ── */
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.tier{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:12px;}
+.tier.hl{border-color:var(--navy);background:var(--navy-light);}
+.tier.hl-gold{border-color:#D97706;background:rgba(217,119,6,.04);}
+.tier-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;color:var(--text-2);}
+.tier.hl .tier-name{color:var(--navy);}
+.tier.hl-gold .tier-name{color:#854F0B;}
+.tier-price{font-size:22px;font-weight:500;color:var(--text-1);margin-bottom:1px;}
+.tier.hl .tier-price{color:var(--navy);}
+.tier.hl-gold .tier-price{color:#854F0B;}
+.tier-period{font-size:10px;color:#9ca3af;margin-bottom:10px;}
+.feat-list{margin-bottom:10px;}
+.feat{font-size:11px;color:var(--text-2);display:flex;gap:5px;padding:2px 0;}
+.feat-check{color:#1D9E75;font-size:10px;margin-top:1px;flex-shrink:0;}
+.feat-check.dim{color:#9ca3af;}
+.tier-btn{width:100%;padding:8px;border-radius:var(--r-md);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-gold{background:#D97706;color:#fff;}
+.btn-outline{background:#fff;border:.5px solid var(--border);color:var(--text-2);}
+
+.trial-note{font-size:10px;color:#9ca3af;text-align:center;margin-top:8px;}
+.maybe-later{font-size:11px;color:#9ca3af;text-align:center;margin-top:10px;cursor:pointer;text-decoration:underline;display:block;background:none;border:none;font-family:inherit;width:100%;}
+
+/* ── STATE B ── */
+.single-tier{background:var(--bg-sec);border:.5px solid #D97706;border-radius:var(--r-md);padding:14px;margin-bottom:12px;}
+
+/* ── STATE C AGENCY ── */
+.agency-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,.08);border:.5px solid rgba(124,58,237,.2);color:#7C3AED;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:12px;letter-spacing:.06em;}
+.av-item{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:.5px solid #f3f4f6;}
+.av-item:last-child{border-bottom:none;}
+.av-dot{width:5px;height:5px;background:#7C3AED;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.av-text{font-size:12px;color:var(--text-2);line-height:1.5;}
+.av-text strong{color:var(--text-1);font-weight:500;}
+.email-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.email-in{flex:1 1 160px;min-width:0;border:.5px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;color:var(--text-1);font-family:inherit;}
+.btn-purple{flex:1 1 200px;background:#7C3AED;color:#fff;border:none;border-radius:var(--r-sm);padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- CHROME (shown dimmed — modal appears above this) -->
+<div class="hdr">
+  <div class="logo">Deal<span>Score</span></div>
+  <div class="hdrbc">
+    <button class="bclnk"><i class="ti ti-arrow-left"></i> Deals</button>
+    <i class="ti ti-chevron-right" style="font-size:10px;opacity:.4;"></i>
+    <span class="bccurr">14 Roath Court Rd, Cardiff CF24</span>
+  </div>
+  <div class="hdrr">
+    <span class="bdgs"><i class="ti ti-circle-check-filled"></i> Autosaved</span>
+  </div>
+</div>
+<div class="istrip">
+  <div class="isc-addr">
+    <div class="isc-addr-top"><span style="font-size:10px;color:#aaa;margin-right:4px;">DS-004</span>14 Roath Court Rd, Cardiff CF24</div>
+    <div class="isc-addr-sub">Buy to Let</div>
+  </div>
+  <div class="isc" style="padding-left:20px;">
+    <div class="isl">Status</div>
+    <div><span class="status-pill">Viewing</span></div>
+  </div>
+  <div class="autosaved"><i class="ti ti-circle-check" style="font-size:13px;"></i> Autosaved</div>
+</div>
+<div class="livebar">
+  <div class="lb-item"><div class="lb-lbl">Cash invested</div><div class="lb-val">£57,850</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Monthly CF</div><div class="lb-val hl">+£312/mo</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">CoC ROI</div><div class="lb-val">8.2%</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Gross yield</div><div class="lb-val">7.4%</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Break-even rent</div><div class="lb-val">£838/mo</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Deal score</div><div class="lb-val hl">RECOMMENDED</div></div>
+</div>
+<div class="tabwrap">
+  <div class="tabrow">
+    <button class="vt">Overview</button>
+    <div class="tdiv"></div>
+    <button class="vt on">Analysis</button>
+    <div class="tdiv"></div>
+    <button class="vt">Content</button>
+    <div class="tdiv"></div>
+    <button class="vt">Seller</button>
+    <div class="tdiv"></div>
+    <button class="vt">Investors</button>
+  </div>
+</div>
+
+<!-- MOCK APP BG -->
+<div class="app-bg">
+  <div class="mock-card tall"></div>
+  <div class="mock-card"></div>
+  <div class="mock-card"></div>
+</div>
+
+<!-- 4 MODAL STATES -->
+<div class="states-section">
+  <div class="states-header">
+    <div class="states-title">Upgrade Modal — 4 States</div>
+    <div class="states-desc">A1: Generic Free→Pro · A2: Contextual Free→Pro · B: Pro→Pro Plus · C: Pro Plus→Agency interest capture</div>
+  </div>
+
+  <div class="states">
+
+    <!-- State A1: Generic -->
+    <div>
+      <div class="state-label">State A1 — Generic (from Upgrade nav button)</div>
+      <div class="modal">
+        <span class="modal-icon">🔒</span>
+        <div class="modal-title">Unlock DealScore Pro</div>
+        <div class="modal-sub">Save deals, generate investor packs, and manage your pipeline professionally.</div>
+        <div class="tier-grid">
+          <div class="tier hl">
+            <div class="tier-name">Pro</div>
+            <div class="tier-price">£29</div>
+            <div class="tier-period">/month after trial</div>
+            <div class="feat-list">
+              <div class="feat"><span class="feat-check">✓</span>Up to 10 active deals</div>
+              <div class="feat"><span class="feat-check">✓</span>Single-strategy analysis — all 7 strategies</div>
+              <div class="feat"><span class="feat-check">✓</span>Investor pack PDF — portrait, DealScore branded</div>
+              <div class="feat"><span class="feat-check">✓</span>Investors + Sellers CRM</div>
+              <div class="feat"><span class="feat-check">✓</span>AI pack generation</div>
+            </div>
+            <button class="tier-btn btn-navy">Start free trial</button>
+          </div>
+          <div class="tier">
+            <div class="tier-name">Pro Plus</div>
+            <div class="tier-price">£59</div>
+            <div class="tier-period">/month</div>
+            <div class="feat-list">
+              <div class="feat"><span class="feat-check dim">+</span>Everything in Pro</div>
+              <div class="feat"><span class="feat-check dim">+</span>Smart Capture — one form, all 7 strategies</div>
+              <div class="feat"><span class="feat-check dim">+</span>Unlimited active deals</div>
+              <div class="feat"><span class="feat-check dim">+</span>White-label branding</div>
+              <div class="feat"><span class="feat-check dim">+</span>Deal Optimiser + Compare</div>
+            </div>
+            <button class="tier-btn btn-outline">Upgrade to Pro Plus</button>
+          </div>
+        </div>
+        <div class="trial-note">7-day free trial on Pro · No card required · Cancel any time</div>
+        <button class="maybe-later">Maybe later</button>
+      </div>
+    </div>
+
+    <!-- State A2: Contextual -->
+    <div>
+      <div class="state-label">State A2 — Contextual (triggered by gated action)</div>
+      <div class="modal">
+        <div class="ctx-flag"><i class="ti ti-lock" style="font-size:12px;"></i> Export investor PDF — Pro feature</div>
+        <span class="modal-icon">📄</span>
+        <div class="modal-title">Unlock Investor Pack PDF</div>
+        <div class="modal-sub">Generate professional investor packs. Portrait PDF with DealScore branding on Pro, full white-label on Pro Plus.</div>
+        <div class="tier-grid">
+          <div class="tier hl">
+            <div class="tier-name">Pro</div>
+            <div class="tier-price">£29</div>
+            <div class="tier-period">/month after trial</div>
+            <div class="feat-list">
+              <div class="feat"><span class="feat-check">✓</span>Up to 10 active deals</div>
+              <div class="feat"><span class="feat-check">✓</span>Investor pack PDF — portrait, DealScore branded</div>
+              <div class="feat"><span class="feat-check">✓</span>Investors + Sellers CRM</div>
+              <div class="feat"><span class="feat-check">✓</span>AI pack generation</div>
+              <div class="feat"><span class="feat-check">✓</span>Sensitivity analysis</div>
+            </div>
+            <button class="tier-btn btn-navy">Start free trial</button>
+          </div>
+          <div class="tier">
+            <div class="tier-name">Pro Plus</div>
+            <div class="tier-price">£59</div>
+            <div class="tier-period">/month</div>
+            <div class="feat-list">
+              <div class="feat"><span class="feat-check dim">+</span>Everything in Pro</div>
+              <div class="feat"><span class="feat-check dim">+</span>Smart Capture — one form, all 7 strategies</div>
+              <div class="feat"><span class="feat-check dim">+</span>White-label branding + landscape PDF</div>
+              <div class="feat"><span class="feat-check dim">+</span>Deal Optimiser + Compare</div>
+              <div class="feat"><span class="feat-check dim">+</span>Unlimited active deals</div>
+            </div>
+            <button class="tier-btn btn-outline">Upgrade to Pro Plus</button>
+          </div>
+        </div>
+        <div class="trial-note">7-day free trial on Pro · No card required · Cancel any time</div>
+        <button class="maybe-later">Maybe later</button>
+      </div>
+    </div>
+
+    <!-- State A3: Contextual — Smart Capture locked -->
+    <div>
+      <div class="state-label">State A3 — Contextual (Smart Capture locked on Pro trial)</div>
+      <div class="modal">
+        <div class="ctx-flag"><i class="ti ti-lock" style="font-size:12px;"></i> Smart Capture — Pro Plus feature</div>
+        <span class="modal-icon">⚡</span>
+        <div class="modal-title">Unlock Smart Capture</div>
+        <div class="modal-sub">Fill in one consolidated form and DealScore analyses all 7 strategies in a single pass — no re-entering data per strategy.</div>
+        <div class="tier-grid">
+          <div class="tier">
+            <div class="tier-name">Pro</div>
+            <div class="tier-price">£29</div>
+            <div class="tier-period">/month — your current plan</div>
+            <div class="feat-list">
+              <div class="feat"><span class="feat-check">✓</span>Single-strategy analysis</div>
+              <div class="feat"><span class="feat-check">✓</span>All 7 strategies available</div>
+              <div class="feat" style="opacity:.45;"><span class="feat-check">✗</span>Smart Capture form</div>
+              <div class="feat" style="opacity:.45;"><span class="feat-check">✗</span>Per-field guidance sidebar</div>
+            </div>
+          </div>
+          <div class="tier hl">
+            <div class="tier-name">Pro Plus</div>
+            <div class="tier-price">£59</div>
+            <div class="tier-period">/month</div>
+            <div class="feat-list">
+              <div class="feat"><span class="feat-check dim">+</span>Smart Capture — one form, all 7 strategies</div>
+              <div class="feat"><span class="feat-check dim">+</span>Per-field guidance sidebar</div>
+              <div class="feat"><span class="feat-check dim">+</span>Unlimited active deals</div>
+              <div class="feat"><span class="feat-check dim">+</span>White-label branding</div>
+              <div class="feat"><span class="feat-check dim">+</span>Deal Optimiser + Compare</div>
+            </div>
+            <button class="tier-btn btn-gold">Upgrade to Pro Plus — £59/mo</button>
+          </div>
+        </div>
+        <div class="trial-note">First Pro Plus month at £29 — offer for trial users</div>
+        <button class="maybe-later">Stay on Pro</button>
+      </div>
+    </div>
+
+    <!-- State B: Pro → Pro Plus -->
+    <div>
+      <div class="state-label">State B — Pro → Pro Plus</div>
+      <div class="modal">
+        <span class="modal-icon">⚡</span>
+        <div class="modal-title">Upgrade to Pro Plus</div>
+        <div class="modal-sub">You're on Pro. Pro Plus unlocks Smart Capture, unlimited deals, white-label branding, Deal Optimiser, and Compare view.</div>
+        <div class="single-tier">
+          <div class="tier-name" style="color:#854F0B;margin-bottom:4px;">Pro Plus</div>
+          <div class="tier-price" style="color:#854F0B;font-size:22px;font-weight:500;">£59 <span style="font-size:11px;color:#9ca3af;font-weight:400;">/month</span></div>
+          <div class="feat-list" style="margin-top:10px;">
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Everything in your current Pro plan</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Smart Capture — one consolidated form, all 7 strategies in one pass</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Per-field guidance sidebar — where to source every data point</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Unlimited active deals (Pro capped at 10)</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>White-label branding — your logo and colours on every pack</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Landscape PDF (10-page institutional format)</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Deal Optimiser — max purchase price calculator</div>
+            <div class="feat"><span style="color:#D97706;font-size:10px;margin-top:1px;">+</span>Compare view + Radar chart</div>
+          </div>
+          <button class="tier-btn btn-gold" style="margin-top:12px;">Upgrade to Pro Plus — £59/mo</button>
+        </div>
+        <div class="trial-note">First Pro Plus month at £29 — offer for existing Pro subscribers</div>
+        <button class="maybe-later">Stay on Pro</button>
+      </div>
+    </div>
+
+    <!-- State C: Pro Plus → Agency -->
+    <div>
+      <div class="state-label">State C — Pro Plus → Agency (interest capture)</div>
+      <div class="modal">
+        <div class="agency-pill">✦ You're on the highest available tier</div>
+        <div class="modal-title">Agency is coming</div>
+        <div class="modal-sub">Pro Plus is currently the top tier. Agency — with full app white-labelling, team seats, and custom domain — is on its way.</div>
+        <div style="margin-bottom:12px;">
+          <div class="av-item"><div class="av-dot"></div><div class="av-text"><strong>Full app white-label</strong> — your brand replaces DealScore everywhere. Your investors see your product, not ours.</div></div>
+          <div class="av-item"><div class="av-dot"></div><div class="av-text"><strong>Team seats + deal assignment</strong> — manage sourcers and VAs under one Agency account.</div></div>
+          <div class="av-item"><div class="av-dot"></div><div class="av-text"><strong>Custom domain</strong> — your deals at deals.yourbrand.co.uk</div></div>
+        </div>
+        <div class="email-row">
+          <input class="email-in" placeholder="your@email.com" />
+          <button class="btn-purple">Notify me when Agency launches</button>
+        </div>
+        <div class="trial-note" style="margin-top:10px;">No commitment. We'll reach out when Agency is ready for early access.</div>
+        <button class="maybe-later">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="ds-toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1B3A6B;color:#fff;font-size:12px;font-weight:500;padding:9px 18px;border-radius:8px;opacity:0;transition:all .25s;pointer-events:none;z-index:9999;white-space:nowrap;"></div>
+
+<script>
+function showToast(msg){
+  var t=document.getElementById('ds-toast');
+  t.textContent=msg; t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; },3000);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+
+  /* "Start free trial" buttons */
+  document.querySelectorAll('.tier-btn.btn-navy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      showToast('Free trial — payment flow coming in build');
+    });
+  });
+
+  /* "Upgrade to Pro Plus" / "Upgrade to Pro Plus — £59/mo" buttons */
+  document.querySelectorAll('.tier-btn.btn-gold, .tier-btn.btn-outline').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      showToast('Upgrade — payment flow coming in build');
+    });
+  });
+
+  /* "Maybe later" / "Stay on Pro" / "Close" */
+  document.querySelectorAll('.maybe-later').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(document.referrer){ window.history.back(); }
+      else { window.location.href='ds_deals.html'; }
+    });
+  });
+
+  /* "Notify me when Agency launches" */
+  document.querySelectorAll('.btn-purple').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var inp = btn.closest('.email-row') && btn.closest('.email-row').querySelector('.email-in');
+      if(inp && inp.value.includes('@')){
+        showToast('Got it — we\'ll notify you at '+inp.value);
+      } else {
+        showToast('Enter a valid email address first');
+      }
+    });
+  });
+
+});
+</script>
+</body>
+</html>

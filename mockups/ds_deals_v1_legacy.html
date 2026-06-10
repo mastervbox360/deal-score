@@ -1,0 +1,2407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* ══════════════════════════════════════
+   PRIVACY BANNER
+   ══════════════════════════════════════ */
+.privacy-banner{display:none;background:#92400e;padding:7px 24px;font-size:11px;font-weight:500;color:#fef3c7;align-items:center;gap:8px;}
+.privacy-banner.show{display:flex;}
+.pii{transition:opacity .2s;}
+body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
+
+/* ══════════════════════════════════════
+   STATS BAR
+   ══════════════════════════════════════ */
+.stats{display:grid;grid-template-columns:repeat(7,1fr);background:#fff;border-bottom:.5px solid var(--border);}
+.sc{padding:12px 18px;border-right:.5px solid var(--border);cursor:pointer;transition:background .12s;user-select:none;}
+.sc:last-child{border-right:none;}
+.sc:hover{background:var(--bg-sec);}
+.sc.active{background:var(--navy-light);border-bottom:2px solid var(--navy);}
+.sl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:4px;}
+.sv{font-size:20px;font-weight:500;color:var(--navy);}
+.sv.gr{color:var(--teal);}
+.sv.am{color:#D97706;}
+.sv.sm{font-size:15px;}
+
+/* ══════════════════════════════════════
+   TODAY STRIP (activity / viewings)
+   ══════════════════════════════════════ */
+.today-strip{background:#fff;border-bottom:.5px solid var(--border);padding:10px 24px;}
+.ts-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.ts-row{display:flex;gap:8px;flex-wrap:wrap;}
+.ts-chip{border-radius:var(--r-md);padding:8px 12px;min-width:190px;border:.5px solid;display:flex;flex-direction:column;gap:1px;}
+.ts-chip.viewing{background:#eff6ff;border-color:#bfdbfe;}
+.ts-chip.chase{background:#fef3c7;border-color:#fde68a;}
+.ts-chip.day15{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2);}
+.ts-chip.sens{background:var(--bg-sec);border-color:var(--border);}
+.ts-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.ts-chip.viewing .ts-type{color:#1e40af;}
+.ts-chip.chase .ts-type{color:#92400e;}
+.ts-chip.day15 .ts-type{color:#5B21B6;}
+.ts-chip.sens .ts-type{color:var(--text-2);}
+.ts-addr{font-size:12px;font-weight:500;color:var(--text-1);margin-bottom:1px;}
+.ts-detail{font-size:11px;color:var(--text-2);margin-bottom:6px;}
+/* action button on each chip */
+.ts-action{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;border:.5px solid;cursor:pointer;font-family:inherit;background:#fff;margin-top:2px;transition:opacity .12s;align-self:flex-start;}
+.ts-action:hover{opacity:.8;}
+.ts-chip.viewing .ts-action{color:#1e40af;border-color:#bfdbfe;}
+.ts-chip.chase .ts-action{color:#92400e;border-color:#fde68a;}
+.ts-chip.day15 .ts-action{color:#5B21B6;border-color:rgba(124,58,237,.3);}
+.ts-chip.sens .ts-action{color:var(--navy);border-color:var(--border);}
+
+/* ══════════════════════════════════════
+   TOOLBAR
+   ══════════════════════════════════════ */
+.tbar{background:#fff;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:8px 24px;position:sticky;top:var(--hdr-h);z-index:210;}
+.tbar-left{display:flex;align-items:center;gap:8px;}
+.vgrp{display:flex;gap:2px;background:var(--bg-sec);border:.5px solid var(--border);border-radius:9px;padding:2px;}
+.vbtn{font-size:12px;padding:5px 10px;border-radius:7px;border:none;background:none;color:#666;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .1s;white-space:nowrap;}
+.vbtn:hover{background:#fff;color:var(--navy);}
+.vbtn.on{background:#fff;color:var(--navy);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.vbtn.vb-icon{padding:5px 9px;font-size:14px;}
+.vgrp-sep{width:.5px;height:20px;background:var(--border);align-self:center;margin:0 1px;flex-shrink:0;}
+.tbar-right{display:flex;gap:6px;align-items:center;}
+.fsel{padding:5px 8px;border:.5px solid var(--border);border-radius:7px;font-size:11px;background:#fff;color:#555;outline:none;font-family:inherit;cursor:pointer;}
+.fsel:focus{border-color:var(--navy);}
+.sinp{padding:5px 10px;border:.5px solid var(--border);border-radius:7px;font-size:11px;background:#fff;outline:none;width:140px;font-family:inherit;}
+.sinp:focus{border-color:var(--navy);}
+
+/* ══════════════════════════════════════
+   DEAL STATUS PILLS — confirmed system
+   ══════════════════════════════════════ */
+.ds-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.ds-status.sourcing{border-color:#9ca3af;}
+.ds-status.ready{border-color:#10b981;}
+.ds-status.live{border-color:#1B3A6B;}
+.ds-status.reserved{border-color:#f59e0b;}
+.ds-status.pack-sent{border-color:#8b5cf6;}
+.ds-status.complete{border-color:#10b981;}
+.ds-status.withdrawn{border-color:#9ca3af;}
+.score-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;border:.5px solid;white-space:nowrap;letter-spacing:.02em;}
+.score-badge.rec{background:rgba(29,158,117,.1);color:#065f46;border-color:rgba(29,158,107,.3);}
+.score-badge.rev{background:rgba(217,119,6,.1);color:#92400e;border-color:#fde68a;}
+.score-badge.av{background:rgba(220,38,38,.08);color:#991b1b;border-color:#fca5a5;}
+.score-badge.inc{background:var(--bg-sec);color:#9ca3af;border-color:var(--border);}
+.score-badge.inc{border-color:#9ca3af;}
+
+/* ══════════════════════════════════════
+   DEAL CARDS
+   ══════════════════════════════════════ */
+.cgrid{display:grid;gap:12px;padding:20px 24px 40px;}
+.g3c{grid-template-columns:repeat(3,1fr);}
+.g4c{grid-template-columns:repeat(4,1fr);}
+
+.dc{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--border);overflow:hidden;transition:box-shadow .15s;}
+.dc:hover{box-shadow:0 3px 16px rgba(0,0,0,.08);}
+/* top accent bar driven by score */
+.dc-rec{border-top:2.5px solid var(--teal);}
+.dc-rev{border-top:2.5px solid #D97706;}
+.dc-av{border-top:2.5px solid #DC2626;}
+.dc-inc{border-top:2.5px solid #e5e7eb;}
+
+.ctop{display:flex;align-items:center;justify-content:space-between;padding:11px 13px 5px;}
+.strat-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--navy-light);color:var(--navy);letter-spacing:.04em;}
+.cadr{padding:2px 13px 1px;font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cdid{padding:0 13px 1px;font-size:10px;color:#ccc;letter-spacing:.03em;}
+.cprice{padding:0 13px 7px;font-size:11px;color:var(--text-2);}
+
+/* Seller / status row */
+.cinfo-row{padding:5px 13px;font-size:11px;color:#92400e;background:#fef9ee;border-top:.5px solid #fde68a20;border-bottom:.5px solid #fde68a20;display:flex;align-items:center;gap:5px;}
+.cinfo-row.neutral{color:var(--text-2);background:var(--bg-sec);border-color:var(--border);}
+
+/* cooling off bar */
+.coolc{padding:4px 13px 2px;font-size:11px;color:#92400e;display:flex;align-items:center;gap:5px;}
+.coolp{height:2px;background:var(--border);margin:0 13px 6px;border-radius:2px;overflow:hidden;}
+.coolpf{height:100%;background:#D97706;border-radius:2px;}
+
+/* metrics 2x2 */
+.cmet{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:7px 13px 10px;}
+.cm{background:var(--bg-sec);border-radius:var(--r-sm);padding:7px 9px;}
+.cml{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:2px;}
+.cmv{font-size:13px;font-weight:500;color:var(--navy);}
+.cmv.gr{color:var(--teal);}
+.cmv.re{color:#DC2626;}
+.cmv.am{color:#D97706;}
+.cmv.dim{color:#bbb;}
+
+/* card footer */
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;border-top:.5px solid var(--border);}
+.cacts{display:flex;gap:3px;}
+.cbtn{font-size:11px;font-weight:500;padding:5px 9px;border-radius:6px;cursor:pointer;border:.5px solid;font-family:inherit;display:flex;align-items:center;gap:3px;transition:opacity .12s;white-space:nowrap;}
+.cbtn:hover{opacity:.8;}
+.cbtn-ghost{background:var(--bg-sec);color:#555;border-color:var(--border);}
+.cbtn-primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.cbtn-icon{padding:5px 7px;}
+
+/* ══════════════════════════════════════
+   LIST VIEW
+   ══════════════════════════════════════ */
+.dl{background:#fff;border-radius:var(--r-md);border:.5px solid var(--border);overflow:hidden;}
+.dl-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 140px;align-items:center;padding:9px 14px;border-bottom:.5px solid var(--border);gap:10px;transition:background .12s;}
+.dl-row:last-child{border-bottom:none;}
+.dl-row:hover{background:var(--bg-sec);}
+.dl-head{background:var(--bg-sec);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#bbb;}
+.dl-head:hover{background:var(--bg-sec);}
+.dl-addr{font-size:12px;font-weight:600;color:var(--text-1);}
+.dl-sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+.dl-val{font-size:12px;font-weight:500;color:var(--navy);}
+.dl-val.gr{color:var(--teal);}
+.dl-val.re{color:#DC2626;}
+.dl-acts{display:flex;gap:4px;justify-content:flex-end;}
+
+/* ══════════════════════════════════════
+   EMPTY STATE (filter — no matches)
+   ══════════════════════════════════════ */
+.empty-state{text-align:center;padding:60px 24px;color:var(--text-2);}
+.empty-state i{font-size:32px;color:#ddd;margin-bottom:12px;display:block;}
+.empty-state-title{font-size:14px;font-weight:600;color:var(--text-1);margin-bottom:6px;}
+.empty-state-text{font-size:12px;line-height:1.6;max-width:360px;margin:0 auto 16px;}
+
+/* ══════════════════════════════════════
+   ONBOARDING MODAL
+   ══════════════════════════════════════ */
+#ob-backdrop{position:fixed;inset:0;background:rgba(15,32,64,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .22s;}
+#ob-backdrop.show{opacity:1;pointer-events:all;}
+.ob-modal{background:#fff;border-radius:16px;width:100%;max-width:540px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.22);transform:translateY(12px);transition:transform .22s;}
+#ob-backdrop.show .ob-modal{transform:translateY(0);}
+.ob-top{background:var(--navy-dark);padding:28px 28px 24px;}
+.ob-brand{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.01em;margin-bottom:8px;}
+.ob-brand span{color:var(--teal-mid);}
+.ob-tagline{font-size:13px;color:rgba(255,255,255,.5);line-height:1.5;max-width:380px;}
+.ob-body{padding:20px 28px 24px;}
+.ob-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.ob-tile{border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:all .13s;}
+.ob-tile:hover{border-color:var(--navy);background:var(--navy-light);}
+.ob-tile.cs{cursor:default;opacity:.6;}
+.ob-tile.cs:hover{border-color:var(--border);background:#fff;}
+.ob-tile-icon{width:30px;height:30px;border-radius:8px;background:var(--navy-light);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:6px;}
+.ob-tile.t-teal .ob-tile-icon{background:rgba(29,158,117,.1);color:var(--teal);}
+.ob-tile-name{font-size:11px;font-weight:700;color:var(--text-1);line-height:1.3;}
+.ob-tile-sub{font-size:10px;color:var(--text-2);line-height:1.4;}
+.ob-cs-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:20px;background:var(--bg-sec);color:#bbb;border:.5px solid var(--border);width:fit-content;margin-top:4px;}
+.ob-foot{display:flex;align-items:center;gap:10px;padding-top:4px;}
+.ob-cta{flex:1;background:var(--teal);color:#fff;border:none;border-radius:var(--r-md);padding:11px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s;}
+.ob-cta:hover{opacity:.88;}
+.ob-skip{font-size:11px;color:var(--text-2);cursor:pointer;padding:8px;background:none;border:none;font-family:inherit;white-space:nowrap;transition:color .12s;}
+.ob-skip:hover{color:var(--text-1);}
+
+/* ══════════════════════════════════════
+   DEAL CARD — thumbnail + labelled info
+   ══════════════════════════════════════ */
+.ccard-body{display:flex;align-items:flex-start;gap:10px;padding:0 13px 7px;}
+.cthumb{width:50px;height:50px;border-radius:var(--r-sm);background:var(--bg-sec);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#ccc;font-size:18px;overflow:hidden;cursor:pointer;transition:border-color .12s;}
+.cthumb:hover{border-color:#bbb;}
+.ccard-info{flex:1;min-width:0;}
+.cinfo-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#bbb;margin-right:3px;}
+
+/* ══════════════════════════════════════
+   STATUS KEY PANEL
+   ══════════════════════════════════════ */
+#status-key-panel{position:fixed;top:var(--hdr-h);right:-240px;width:230px;background:#fff;border:.5px solid var(--border);border-radius:0 0 0 var(--r-lg);box-shadow:-4px 8px 24px rgba(0,0,0,.1);z-index:300;transition:right .2s;padding:14px 16px;}
+#status-key-panel.open{right:0;}
+.sk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#bbb;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.sk-close{background:none;border:none;cursor:pointer;color:#bbb;font-size:14px;line-height:1;}
+.sk-item{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.sk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sk-label{font-size:11px;font-weight:600;color:var(--text-1);min-width:76px;}
+.sk-desc{font-size:10px;color:var(--text-2);line-height:1.4;}
+
+/* ══════════════════════════════════════
+   EMPTY STATE PANEL (first-run / no deals)
+   ══════════════════════════════════════ */
+#empty-state-panel{display:none;flex-direction:column;align-items:center;justify-content:center;padding:70px 24px 90px;min-height:50vh;}
+#empty-state-panel.show{display:flex;}
+.es-mark{width:60px;height:60px;border-radius:14px;background:var(--navy);display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.es-mark-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.01em;}
+.es-mark-logo span{color:var(--teal-mid);}
+.es-title{font-size:18px;font-weight:700;color:var(--text-1);margin-bottom:8px;text-align:center;}
+.es-sub{font-size:13px;color:var(--text-2);margin-bottom:24px;text-align:center;max-width:400px;line-height:1.6;}
+.es-cta{display:flex;gap:10px;align-items:center;}
+.es-btn{padding:10px 22px;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:opacity .15s;border:none;}
+.es-btn:hover{opacity:.88;}
+.es-btn-primary{background:var(--teal);color:#fff;}
+.es-btn-ghost{background:var(--bg-sec);color:var(--text-1);border:.5px solid var(--border)!important;}
+.es-hint{margin-top:16px;font-size:11px;color:#bbb;display:flex;align-items:center;gap:5px;}
+
+/* ══════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════ */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a2e;color:#fff;font-size:12px;font-weight:500;padding:9px 18px;border-radius:20px;z-index:9999;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;white-space:nowrap;max-width:90vw;text-align:center;}
+
+/* ══════════════════════════════════════
+   DEAL BOARD — kanban
+   ══════════════════════════════════════ */
+.board-wrap{display:none;padding:16px 24px 40px;overflow-x:auto;min-height:calc(100vh - 300px);}
+.board-wrap.show{display:block;}
+.board{display:flex;gap:10px;align-items:flex-start;min-width:max-content;}
+
+/* Column */
+.kb-col{width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:0;}
+.kb-hdr{padding:10px 12px;border-radius:var(--r-md) var(--r-md) 0 0;border:.5px solid;border-bottom:none;position:sticky;top:0;z-index:5;}
+.kb-hdr.sourcing{background:#f9fafb;border-color:#e5e7eb;}
+.kb-hdr.ready{background:rgba(29,158,117,.07);border-color:rgba(29,158,117,.25);}
+.kb-hdr.live{background:#eff6ff;border-color:#bfdbfe;}
+.kb-hdr.reserved{background:#fefce8;border-color:#fde68a;}
+.kb-hdr.pack-sent{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2);}
+.kb-hdr.complete{background:#f0fdf4;border-color:#86efac;}
+.kb-hdr.withdrawn{background:#f9fafb;border-color:#e5e7eb;}
+
+.kb-stage{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.kb-stage-name{font-size:11px;font-weight:700;letter-spacing:.02em;}
+.kb-stage-name.sourcing{color:#6b7280;}
+.kb-stage-name.ready{color:#065f46;}
+.kb-stage-name.live{color:#1e40af;}
+.kb-stage-name.reserved{color:#92400e;}
+.kb-stage-name.pack-sent{color:#5B21B6;}
+.kb-stage-name.complete{color:#166534;}
+.kb-stage-name.withdrawn{color:#9ca3af;}
+.kb-count{font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:rgba(0,0,0,.07);color:inherit;}
+.kb-meta{font-size:10px;color:var(--text-2);margin-top:1px;}
+
+/* Cards body */
+.kb-body{background:var(--bg-sec);border:.5px solid;border-top:none;border-radius:0 0 var(--r-md) var(--r-md);padding:8px;display:flex;flex-direction:column;gap:7px;min-height:120px;}
+.kb-body.sourcing{border-color:#e5e7eb;}
+.kb-body.ready{border-color:rgba(29,158,117,.2);}
+.kb-body.live{border-color:#bfdbfe;}
+.kb-body.reserved{border-color:#fde68a;}
+.kb-body.pack-sent{border-color:rgba(124,58,237,.18);}
+.kb-body.complete{border-color:#86efac;}
+.kb-body.withdrawn{border-color:#e5e7eb;}
+
+/* Kanban deal card */
+.kc{background:#fff;border-radius:var(--r-sm);border:.5px solid var(--border);padding:10px 10px 8px;cursor:pointer;transition:box-shadow .12s;}
+.kc:hover{box-shadow:0 2px 10px rgba(0,0,0,.09);}
+.kc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.kc-strat{font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;background:var(--navy-light);color:var(--navy);letter-spacing:.04em;}
+.kc-score{font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;}
+.kc-score.rec{background:rgba(29,158,117,.1);color:#065f46;}
+.kc-score.rev{background:rgba(217,119,6,.1);color:#92400e;}
+.kc-score.av{background:rgba(220,38,38,.08);color:#991b1b;}
+.kc-score.inc{background:var(--bg-sec);color:#9ca3af;}
+.kc-addr{font-size:11px;font-weight:600;color:var(--text-1);line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kc-price{font-size:10px;color:var(--text-2);margin-bottom:6px;}
+.kc-metric{display:flex;align-items:baseline;justify-content:space-between;padding:4px 6px;background:var(--bg-sec);border-radius:4px;margin-bottom:6px;}
+.kc-metric-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;}
+.kc-metric-val{font-size:12px;font-weight:600;color:var(--navy);}
+.kc-metric-val.gr{color:var(--teal);}
+.kc-metric-val.re{color:#DC2626;}
+.kc-metric-val.am{color:#D97706;}
+.kc-days{font-size:10px;color:var(--text-2);margin-bottom:6px;display:flex;align-items:center;gap:3px;}
+.kc-days.urgent{color:#92400e;font-weight:600;}
+/* Day countdown bar on reserved */
+.kc-bar{height:2px;background:var(--border);border-radius:2px;margin-bottom:6px;overflow:hidden;}
+.kc-bar-fill{height:100%;border-radius:2px;background:#D97706;}
+.kc-foot{display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:.5px solid var(--border);}
+.kc-stage-sel{font-size:9px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;}
+.kc-stage-sel:hover{color:var(--navy);}
+.kc-open{font-size:10px;font-weight:600;color:var(--navy);background:var(--navy-light);border:.5px solid rgba(27,58,107,.15);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:2px;white-space:nowrap;}
+.kc-open:hover{background:#dce8f8;}
+
+/* Add deal card */
+.kc-add{border:.5px dashed var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;cursor:pointer;color:#bbb;font-size:11px;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.kc-add:hover{border-color:var(--navy);color:var(--navy);background:#f8faff;}
+
+
+
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+
+
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+
+
+
+
+
+.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+.search-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.search-bar:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.search-bar:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.search-bar i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.search-bar input::placeholder{color:rgba(255,255,255,.3);}
+.search-bar .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}.search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.search-icon-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);font-size:15px;transition:all .12s;}
+.search-icon-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.hdr-icon{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;transition:all .12s;position:relative;flex-shrink:0;}
+.hdr-icon:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#D97706;border:1.5px solid var(--navy-dark);}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;transition:all .12s;}
+.avt-wrap-inner:hover .avt{background:rgba(255,255,255,.24);}
+.avt-chevron{font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt.privacy-on{border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.35);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+.mini-toggle{position:relative;width:28px;height:16px;flex-shrink:0;}
+.mini-toggle input{opacity:0;width:0;height:0;}
+.mini-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.mini-toggle input:checked + .mini-track{background:var(--teal);}
+.mini-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.mini-toggle input:checked ~ .mini-thumb{transform:translateX(12px);}
+
+
+/* ══ NOTIFICATION BELL ══ */
+.notif-wrap{position:relative;}
+.notif-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;position:relative;flex-shrink:0;transition:all .12s;}
+.notif-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-badge{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:1.5px solid var(--navy-dark);display:none;}
+.notif-badge.show{display:block;}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);width:320px;z-index:400;display:none;overflow:hidden;}
+.notif-drop.show{display:block;}
+.notif-drop-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.notif-drop-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.notif-mark-all{font-size:10px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;padding:0;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.notif-item:hover{background:var(--bg-sec);}
+.notif-item.unread{background:#fefce8;}
+.notif-item.unread:hover{background:#fef9c3;}
+.notif-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.notif-icon-wrap.amber{background:#fef3c7;color:#d97706;}
+.notif-icon-wrap.navy{background:#e8eef7;color:var(--navy);}
+.notif-icon-wrap.teal{background:#d1fae5;color:#059669;}
+.notif-icon-wrap.red{background:#fee2e2;color:#dc2626;}
+.notif-icon-wrap i{font-size:14px;}
+.notif-body{flex:1;min-width:0;}
+.notif-deal-tag{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.notif-msg{font-size:11px;font-weight:500;color:var(--text-1);line-height:1.4;}
+.notif-time{font-size:9px;color:var(--text-2);margin-top:3px;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:5px;}
+.notif-empty{padding:28px 14px;text-align:center;}
+.notif-empty i{font-size:24px;color:var(--text-2);margin-bottom:6px;display:block;}
+.notif-empty-msg{font-size:11px;color:var(--text-2);}
+.notif-drop-footer{padding:9px 14px;border-top:.5px solid var(--border);text-align:center;}
+.notif-drop-footer button{font-size:11px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;}
+
+
+/* ── Inline header search ── */
+.hdr-search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.hdr-search:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.hdr-search:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.hdr-search i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.hdr-search input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.hdr-search input::placeholder{color:rgba(255,255,255,.3);}
+.hdr-search .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='ds_home.html'" title="Command view" style="cursor:pointer;">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn on" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_compare_view.html'">Compare</button>
+    </nav>
+  </div>
+  <div class="hdr-centre">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Search deals, sellers, addresses…">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+        <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+        <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+        <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+      </div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-right-nav"><button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button><div class="hn-sep"></div><button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button></nav>
+    <div class="logo-sep"></div>
+    <div class="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Notifications">
+        <i class="ti ti-bell"></i>
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-drop" id="notif-drop">
+        <div class="notif-drop-hdr">
+          <span class="notif-drop-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+        <div class="notif-drop-footer"><button onclick="markAllRead()">Clear all notifications</button></div>
+      </div>
+    </div>
+    
+    <div class="logo-sep"></div>
+    <button class="btn-new" onclick="openNewDeal()"><i class="ti ti-plus"></i> New deal</button>
+    <div class="logo-sep"></div>
+    <div class="avt-wrap">
+      <div class="avt-wrap-inner" onclick="hdrToggleDrop()">
+        <div class="avt" id="hdr-avt">VM</div>
+        <i class="ti ti-chevron-down avt-chevron"></i>
+      </div>
+      <div class="avt-drop" id="hdr-avt-drop">
+        <div class="avt-drop-head">
+          <div class="avt-drop-name">Videet Mardania</div>
+          <div class="avt-drop-email">videet@propertysourcing.co.uk</div>
+        </div>
+        <div style="padding:4px 0;">
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-user"></i> Profile</button>
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-settings"></i> Settings</button>
+          <button class="avt-drop-item"><i class="ti ti-credit-card"></i> Billing &amp; plan</button>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <div class="avt-drop-toggle" onclick="hdrTogglePrivacy()">
+          <div class="avt-drop-toggle-left"><i class="ti ti-eye-off"></i> Privacy mode</div>
+          <label class="mini-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="hdr-privacy-chk" onchange="hdrTogglePrivacy()">
+            <span class="mini-track"></span><span class="mini-thumb"></span>
+          </label>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item"><i class="ti ti-keyboard"></i> Keyboard shortcuts</button>
+        <button class="avt-drop-item"><i class="ti ti-sparkles"></i> What's new</button>
+        <button class="avt-drop-item"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item danger"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+    </div>
+  
+  </div>
+</div>
+
+<!-- Privacy banner -->
+<div class="privacy-banner" id="privacy-banner">
+  <i class="ti ti-eye-off" style="font-size:13px;"></i>
+  <span>Privacy mode is on — addresses and seller names are hidden</span>
+  <button onclick="togglePrivacy()" style="margin-left:auto;font-size:10px;font-weight:600;color:#fef3c7;background:none;border:.5px solid rgba(254,243,199,.4);border-radius:20px;padding:2px 10px;cursor:pointer;font-family:inherit;">Turn off</button>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══ ONBOARDING MODAL ══ -->
+<div id="ob-backdrop">
+  <div class="ob-modal">
+    <div class="ob-top">
+      <div class="ob-brand">Deal<span>Score</span></div>
+      <div class="ob-tagline">You're a few steps away from your first scored deal. Let's get you set up.</div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-tiles">
+        <div class="ob-tile t-teal" onclick="dismissOnboarding();openNewDeal();">
+          <div class="ob-tile-icon"><i class="ti ti-plus"></i></div>
+          <div class="ob-tile-name">Add your first deal</div>
+          <div class="ob-tile-sub">Score any UK property across all 7 strategies instantly.</div>
+        </div>
+        <div class="ob-tile" onclick="showToast('Demo video — coming soon!')">
+          <div class="ob-tile-icon"><i class="ti ti-player-play"></i></div>
+          <div class="ob-tile-name">Watch 2-min demo</div>
+          <div class="ob-tile-sub">See how DealScore works from sourcing to investor pack.</div>
+        </div>
+        <div class="ob-tile cs">
+          <div class="ob-tile-icon"><i class="ti ti-table-import"></i></div>
+          <div class="ob-tile-name">Import deals</div>
+          <div class="ob-tile-sub">Bring in existing deals from Excel or CSV.</div>
+          <div class="ob-cs-tag">Coming soon</div>
+        </div>
+      </div>
+      <div class="ob-foot">
+        <button class="ob-cta" onclick="dismissOnboarding();sessionStorage.setItem('ds_ob_dismissed','1');openNewDeal();"><i class="ti ti-plus" style="font-size:14px;"></i> Add your first deal</button>
+        <button class="ob-skip" onclick="dismissOnboarding();sessionStorage.setItem('ds_ob_dismissed','1');">Skip for now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STATUS KEY PANEL ══ -->
+<div id="status-key-panel">
+  <div class="sk-title">Deal Status Key <button class="sk-close" onclick="toggleStatusKey()"><i class="ti ti-x"></i></button></div>
+  <div class="sk-item"><div class="sk-dot" style="background:#6b7280;"></div><div><div class="sk-label">Sourcing</div><div class="sk-desc">Identified — analysis in progress, not yet offered</div></div></div>
+  <div class="sk-item"><div class="sk-dot" style="background:#1D9E75;"></div><div><div class="sk-label">Ready</div><div class="sk-desc">Analysis complete — deal ready to offer to investors</div></div></div>
+  <div class="sk-item"><div class="sk-dot" style="background:#1e40af;"></div><div><div class="sk-label">Live</div><div class="sk-desc">Actively being presented to investors</div></div></div>
+  <div class="sk-item"><div class="sk-dot" style="background:#D97706;"></div><div><div class="sk-label">Reserved</div><div class="sk-desc">Investor has reserved — 14-day cooling-off active</div></div></div>
+  <div class="sk-item"><div class="sk-dot" style="background:#7c3aed;"></div><div><div class="sk-label">Pack sent</div><div class="sk-desc">Full investor pack delivered — awaiting sign-off</div></div></div>
+  <div class="sk-item"><div class="sk-dot" style="background:#166534;"></div><div><div class="sk-label">Complete</div><div class="sk-desc">Deal sold and fee earned</div></div></div>
+  <div class="sk-item" style="margin-bottom:0;"><div class="sk-dot" style="background:#9ca3af;"></div><div><div class="sk-label">Withdrawn</div><div class="sk-desc">Deal pulled — vendor or investor dropped out</div></div></div>
+</div>
+
+<!-- ══ STATS BAR ══ -->
+<div class="stats" id="stats-bar">
+  <div class="sc" id="stat-all" onclick="statFilter('all','stat-all')" title="All deals in your pipeline">
+    <div class="sl">Pipeline</div><div class="sv">8</div>
+  </div>
+  <div class="sc" id="stat-active" onclick="statFilter('active','stat-active')" title="Deals currently live or reserved with investors">
+    <div class="sl">Live with investors</div><div class="sv">3</div>
+  </div>
+  <div class="sc" id="stat-pack" onclick="statFilter('pack-sent','stat-pack')" title="Packs sent — awaiting investor sign-off">
+    <div class="sl">Awaiting sign-off</div><div class="sv am">2</div>
+  </div>
+  <div class="sc" id="stat-complete" onclick="statFilter('complete','stat-complete')" title="Deals completed and fees earned">
+    <div class="sl">Completed</div><div class="sv gr">3</div>
+  </div>
+  <div class="sc" style="cursor:default;" title="Average monthly cash flow across active BTL / HMO / BRRR deals">
+    <div class="sl">Avg monthly CF</div><div class="sv gr sm">+£612</div>
+  </div>
+  <div class="sc" id="stat-fees" onclick="statFilter('pack-sent','stat-fees')" title="Total fees in pipeline (Pack sent deals)">
+    <div class="sl">Fee pipeline</div><div class="sv sm">£14,500</div>
+  </div>
+  <div class="sc" style="cursor:default;" title="Actions due today from your Today strip">
+    <div class="sl">Actions today</div><div class="sv am sm">5</div>
+  </div>
+</div>
+
+<!-- ══ TODAY STRIP ══ -->
+<div class="today-strip">
+  <div class="ts-lbl"><i class="ti ti-calendar-event" style="font-size:11px;"></i> Today &amp; coming up</div>
+  <div class="ts-row">
+
+    <div class="ts-chip viewing">
+      <div class="ts-type">Viewing tomorrow</div>
+      <div class="ts-addr pii">65a Horwood Close, Leeds LS7</div>
+      <div class="ts-detail">10:30am · <span class="pii">Sarah Michaels</span></div>
+      <button class="ts-action" onclick="chipAction('viewing','DS-001')">
+        <i class="ti ti-calendar-check" style="font-size:10px;"></i> View deal →
+      </button>
+    </div>
+
+    <div class="ts-chip chase">
+      <div class="ts-type">Chase due today</div>
+      <div class="ts-addr pii">14 Roath Court Rd, Cardiff CF24</div>
+      <div class="ts-detail">Reserved · Day 8 · <span class="pii">Derek Hassan</span></div>
+      <button class="ts-action" onclick="chipAction('chase','DS-004-cardiff')">
+        <i class="ti ti-phone" style="font-size:10px;"></i> Open Seller tab →
+      </button>
+    </div>
+
+    <div class="ts-chip day15">
+      <div class="ts-type">Day 15 in 7 days</div>
+      <div class="ts-addr pii">65a Horwood Close, Leeds LS7</div>
+      <div class="ts-detail">Cooling off ends — release pack or renegotiate</div>
+      <button class="ts-action" onclick="chipAction('day15','DS-001')">
+        <i class="ti ti-send" style="font-size:10px;"></i> Release pack →
+      </button>
+    </div>
+
+    <div class="ts-chip viewing">
+      <div class="ts-type">Viewing Thu 5 Jun</div>
+      <div class="ts-addr pii">12 Victoria Street, Manchester M1</div>
+      <div class="ts-detail">2:00pm · <span class="pii">David Jones</span></div>
+      <button class="ts-action" onclick="chipAction('viewing','DS-002')">
+        <i class="ti ti-calendar-check" style="font-size:10px;"></i> View deal →
+      </button>
+    </div>
+
+    <div class="ts-chip sens">
+      <div class="ts-type">Sensitivity reminder</div>
+      <div class="ts-addr pii">3 Marina View, Brighton BN1</div>
+      <div class="ts-detail">Rate change flagged — check Sensitivity tab</div>
+      <button class="ts-action" onclick="chipAction('sensitivity','DS-005')">
+        <i class="ti ti-adjustments" style="font-size:10px;"></i> View Sensitivity →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ TOOLBAR ══ -->
+<div class="tbar">
+  <div class="tbar-left">
+    <!-- View mode switcher -->
+    <div class="vgrp" id="view-grp">
+      <button class="vbtn vb-icon on" onclick="setView('grid',this)" title="Grid view"><i class="ti ti-layout-grid"></i></button>
+      <button class="vbtn vb-icon" onclick="setView('list',this)" title="List view"><i class="ti ti-table"></i></button>
+      <div class="vgrp-sep"></div>
+      <button class="vbtn" id="board-btn" onclick="setView('board',this)" title="Kanban board"><i class="ti ti-layout-kanban"></i> Board</button>
+      <button class="vbtn" onclick="window.location.href='./ds_compare_view.html'" title="Compare deals"><i class="ti ti-arrows-diff"></i> Compare</button>
+    </div>
+  </div>
+  <div class="tbar-right">
+    <select class="fsel" onchange="filterDeals()">
+      <option value="">All strategies</option>
+      <option value="BTL">BTL</option>
+      <option value="HMO">HMO</option>
+      <option value="FLIP">FLIP</option>
+      <option value="SA">SA</option>
+      <option value="BRRR">BRRR</option>
+      <option value="R2R">R2R</option>
+    </select>
+    <select class="fsel" onchange="filterDeals()">
+      <option value="">All scores</option>
+      <option value="RECOMMENDED">RECOMMENDED</option>
+      <option value="REVIEW">REVIEW</option>
+      <option value="AVOID">AVOID</option>
+    </select>
+    <select class="fsel" onchange="filterDeals()">
+      <option value="">All statuses</option>
+      <option value="sourcing">Sourcing</option>
+      <option value="ready">Ready</option>
+      <option value="live">Live</option>
+      <option value="reserved">Reserved</option>
+      <option value="pack-sent">Pack sent</option>
+      <option value="complete">Complete</option>
+      <option value="withdrawn">Withdrawn</option>
+    </select>
+    <select class="fsel">
+      <option>Newest first</option>
+      <option>Score: best first</option>
+      <option>Cash flow: high–low</option>
+      <option>Viewings: soonest</option>
+    </select>
+    <input class="sinp" placeholder="&#xF002;  Search deals…" id="search-inp" oninput="filterDeals()">
+    <button class="vbtn" onclick="toggleStatusKey()" title="Status colour key" style="font-size:11px;padding:5px 10px;border-radius:7px;"><i class="ti ti-info-circle"></i> Status key</button>
+  </div>
+</div>
+
+<!-- ══ DEAL GRID (cards) ══ -->
+<div class="cgrid g3c" id="deal-grid">
+
+  <!-- DS-001 · BTL · RECOMMENDED · Reserved -->
+  <div class="dc dc-rec" data-strat="BTL" data-score="RECOMMENDED" data-status="reserved">
+    <div class="ctop">
+      <span class="strat-pill">BTL</span>
+      <span class="score-badge rec">RECOMMENDED</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr pii">65a Horwood Close, Leeds LS7</div>
+        <div class="cdid">DS-001 · 3 bed terraced</div>
+        <div class="cprice">£207,000</div>
+      </div>
+    </div>
+    <div class="cinfo-row"><span class="cinfo-lbl">Vendor</span><span class="pii">Sarah Michaels</span> · <span style="color:#D97706;font-weight:600;">Motivated</span></div>
+    <div class="cinfo-row" style="border-top:none;padding-top:0;"><span class="cinfo-lbl">Viewing</span>Tomorrow · Tue 10:30am</div>
+    <div class="coolc"><i class="ti ti-clock" style="font-size:10px;"></i> Reserved · Day 8 of 14</div>
+    <div class="coolp"><div class="coolpf" style="width:57%"></div></div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Monthly CF</div><div class="cmv gr">+£482</div></div>
+      <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">6.4%</div></div>
+      <div class="cm"><div class="cml">Gross yield</div><div class="cmv">6.4%</div></div>
+      <div class="cm"><div class="cml">Cash in</div><div class="cmv">£63,420</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status reserved"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Reserved · Day 8</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-ghost cbtn-icon" title="Create advert" onclick="window.location.href='./ds_content_hub.html'"><i class="ti ti-speakerphone"></i></button>
+        <button class="cbtn cbtn-ghost" title="Edit inputs" onclick="window.location.href='./ds_analysis_hub.html'"><i class="ti ti-edit"></i> Edit</button>
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DS-002 · HMO · REVIEW · Pack sent -->
+  <div class="dc dc-rev" data-strat="HMO" data-score="REVIEW" data-status="pack-sent">
+    <div class="ctop">
+      <span class="strat-pill">HMO</span>
+      <span class="score-badge rev">REVIEW</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr pii">12 Victoria Street, Manchester M1</div>
+        <div class="cdid">DS-002 · 6 bed HMO</div>
+        <div class="cprice">£310,000</div>
+      </div>
+    </div>
+    <div class="cinfo-row"><span class="cinfo-lbl">Vendor</span><span class="pii">David Jones</span> · Flexible</div>
+    <div class="cinfo-row" style="border-top:none;padding-top:0;"><span class="cinfo-lbl">Viewing</span>Thu 5 Jun · 2:00pm</div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Monthly CF</div><div class="cmv gr">+£1,247</div></div>
+      <div class="cm"><div class="cml">Gross yield</div><div class="cmv">8.9%</div></div>
+      <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">5.2%</div></div>
+      <div class="cm"><div class="cml">Cash in</div><div class="cmv">£97,150</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status pack-sent"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Pack sent</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-ghost cbtn-icon" title="Create advert" onclick="window.location.href='./ds_content_hub.html'"><i class="ti ti-speakerphone"></i></button>
+        <button class="cbtn cbtn-ghost" title="Edit inputs" onclick="window.location.href='./ds_analysis_hub.html'"><i class="ti ti-edit"></i> Edit</button>
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DS-003 · BRRR · RECOMMENDED · Live -->
+  <div class="dc dc-rec" data-strat="BRRR" data-score="RECOMMENDED" data-status="live">
+    <div class="ctop">
+      <span class="strat-pill">BRRR</span>
+      <span class="score-badge rec">RECOMMENDED</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr pii">8 Park Lane, Birmingham B15</div>
+        <div class="cdid">DS-003 · 4 bed semi-detached</div>
+        <div class="cprice">£185,000</div>
+      </div>
+    </div>
+    <div class="cinfo-row neutral"><span class="cinfo-lbl">Vendor</span>No contact recorded</div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Monthly CF</div><div class="cmv gr">+£394</div></div>
+      <div class="cm"><div class="cml">Cash left in</div><div class="cmv">£8,200</div></div>
+      <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">5.8%</div></div>
+      <div class="cm"><div class="cml">Equity created</div><div class="cmv">£34,000</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status live"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Live</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-ghost cbtn-icon" title="Create advert" onclick="window.location.href='./ds_content_hub.html'"><i class="ti ti-speakerphone"></i></button>
+        <button class="cbtn cbtn-ghost" title="Edit inputs" onclick="window.location.href='./ds_analysis_hub.html'"><i class="ti ti-edit"></i> Edit</button>
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DS-004 · FLIP · AVOID · Sourcing -->
+  <div class="dc dc-av" data-strat="FLIP" data-score="AVOID" data-status="sourcing">
+    <div class="ctop">
+      <span class="strat-pill">FLIP</span>
+      <span class="score-badge av">AVOID</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr pii">22 Oak Road, Sheffield S1</div>
+        <div class="cdid">DS-004 · 3 bed terraced</div>
+        <div class="cprice">£145,000</div>
+      </div>
+    </div>
+    <div class="cinfo-row neutral"><span class="cinfo-lbl">Vendor</span>No contact recorded</div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Net profit</div><div class="cmv re">£4,200</div></div>
+      <div class="cm"><div class="cml">Profit on cost</div><div class="cmv re">4.1%</div></div>
+      <div class="cm"><div class="cml">GDV</div><div class="cmv">£165,000</div></div>
+      <div class="cm"><div class="cml">Refurb cost</div><div class="cmv">£22,000</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status sourcing"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Sourcing</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-ghost cbtn-icon" title="Create advert" onclick="window.location.href='./ds_content_hub.html'"><i class="ti ti-speakerphone"></i></button>
+        <button class="cbtn cbtn-ghost" title="Edit inputs" onclick="window.location.href='./ds_analysis_hub.html'"><i class="ti ti-edit"></i> Edit</button>
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DS-005 · SA · RECOMMENDED · Ready -->
+  <div class="dc dc-rec" data-strat="SA" data-score="RECOMMENDED" data-status="ready">
+    <div class="ctop">
+      <span class="strat-pill">SA</span>
+      <span class="score-badge rec">RECOMMENDED</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr pii">3 Marina View, Brighton BN1</div>
+        <div class="cdid">DS-005 · 2 bed apartment</div>
+        <div class="cprice">£295,000</div>
+      </div>
+    </div>
+    <div class="cinfo-row neutral"><span class="cinfo-lbl">Vendor</span>No contact recorded</div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Monthly CF</div><div class="cmv gr">+£1,016</div></div>
+      <div class="cm"><div class="cml">Net yield</div><div class="cmv">11.2%</div></div>
+      <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">9.1%</div></div>
+      <div class="cm"><div class="cml">Cash in</div><div class="cmv">£88,250</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status ready"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Ready</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-ghost cbtn-icon" title="Create advert" onclick="window.location.href='./ds_content_hub.html'"><i class="ti ti-speakerphone"></i></button>
+        <button class="cbtn cbtn-ghost" title="Edit inputs" onclick="window.location.href='./ds_analysis_hub.html'"><i class="ti ti-edit"></i> Edit</button>
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DS-006 · BTL · COMPLETE -->
+  <div class="dc dc-rec" data-strat="BTL" data-score="RECOMMENDED" data-status="complete">
+    <div class="ctop">
+      <span class="strat-pill">BTL</span>
+      <span class="score-badge rec">RECOMMENDED</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr pii">47 Clarence Road, Bristol BS1</div>
+        <div class="cdid">DS-006 · 2 bed flat</div>
+        <div class="cprice">£230,000</div>
+      </div>
+    </div>
+    <div class="cinfo-row" style="background:#f0fdf4;border-color:#86efac20;color:#166534;"><i class="ti ti-circle-check" style="font-size:10px;flex-shrink:0;"></i> Deal completed — fee earned</div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Monthly CF</div><div class="cmv gr">+£318</div></div>
+      <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">5.9%</div></div>
+      <div class="cm"><div class="cml">Gross yield</div><div class="cmv">5.8%</div></div>
+      <div class="cm"><div class="cml">Fee earned</div><div class="cmv gr">£3,500</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status complete"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Complete</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-ghost" title="Edit inputs" onclick="window.location.href='./ds_analysis_hub.html'"><i class="ti ti-edit"></i> Edit</button>
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DS-007 · R2R · INCOMPLETE / Sourcing -->
+  <div class="dc dc-inc" data-strat="R2R" data-score="" data-status="sourcing">
+    <div class="ctop">
+      <span class="strat-pill">R2R</span>
+      <span class="score-badge inc">INCOMPLETE</span>
+    </div>
+    <div class="ccard-body">
+      <div class="cthumb" title="Upload photo"><i class="ti ti-camera"></i></div>
+      <div class="ccard-info">
+        <div class="cadr" style="color:#aaa;">Untitled deal</div>
+        <div class="cdid" style="opacity:.35;">DS-007 · price not set</div>
+        <div class="cprice" style="color:#ddd;">—</div>
+      </div>
+    </div>
+    <div class="cinfo-row neutral" style="color:#bbb;"><span class="cinfo-lbl">Vendor</span>Not set</div>
+    <div class="cmet">
+      <div class="cm"><div class="cml">Monthly profit</div><div class="cmv dim">—</div></div>
+      <div class="cm"><div class="cml">ROI on setup</div><div class="cmv dim">—</div></div>
+      <div class="cm"><div class="cml">R2R spread</div><div class="cmv dim">—</div></div>
+      <div class="cm"><div class="cml">Break-even</div><div class="cmv dim">—</div></div>
+    </div>
+    <div class="cfoot">
+      <span class="ds-status sourcing"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Sourcing</span>
+      <div class="cacts">
+        <button class="cbtn cbtn-primary" onclick="window.location.href='./ds_analysis_hub.html'">Complete inputs <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ EMPTY STATE PANEL (first-run / no deals) ══ -->
+<div id="empty-state-panel">
+  <div class="es-mark"><div class="es-mark-logo">Deal<span>Score</span></div></div>
+  <div class="es-title">Add your first deal to get started</div>
+  <div class="es-sub">Score any UK property investment — BTL, HMO, BRRR and more — and get an instant DealScore with full analysis and investor-ready pack.</div>
+  <div class="es-cta">
+    <button class="es-btn es-btn-primary" onclick="openNewDeal()"><i class="ti ti-plus"></i> Add your first deal</button>
+    <button class="es-btn es-btn-ghost" onclick="showToast('Demo video — coming soon!')"><i class="ti ti-player-play"></i> Watch demo</button>
+  </div>
+  <div class="es-hint"><i class="ti ti-clock" style="font-size:11px;"></i> Takes around 3 minutes per deal</div>
+</div>
+
+<!-- ══ LIST VIEW (hidden by default) ══ -->
+<div style="padding:20px 24px 40px;display:none;" id="list-container">
+  <div class="dl">
+    <div class="dl-row dl-head">
+      <span>Deal</span><span>Strategy / Score</span><span>Cash flow</span><span>CoC ROI</span><span>Status</span><span></span>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">65a Horwood Close, Leeds LS7</div><div class="dl-sub">DS-001 · £207,000</div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">BTL</span><span class="score-badge rec">REC</span></div></div>
+      <div class="dl-val gr">+£482/mo</div>
+      <div class="dl-val">6.4%</div>
+      <div><span class="ds-status reserved"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Reserved · Day 8</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">12 Victoria Street, Manchester M1</div><div class="dl-sub">DS-002 · £310,000</div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">HMO</span><span class="score-badge rev">REV</span></div></div>
+      <div class="dl-val gr">+£1,247/mo</div>
+      <div class="dl-val">5.2%</div>
+      <div><span class="ds-status pack-sent"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Pack sent</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">8 Park Lane, Birmingham B15</div><div class="dl-sub">DS-003 · £185,000</div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">BRRR</span><span class="score-badge rec">REC</span></div></div>
+      <div class="dl-val gr">+£394/mo</div>
+      <div class="dl-val">5.8%</div>
+      <div><span class="ds-status live"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Live</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">22 Oak Road, Sheffield S1</div><div class="dl-sub">DS-004 · £145,000</div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">FLIP</span><span class="score-badge av">AVOID</span></div></div>
+      <div class="dl-val re">£4,200 profit</div>
+      <div class="dl-val re">4.1%</div>
+      <div><span class="ds-status sourcing"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Sourcing</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">3 Marina View, Brighton BN1</div><div class="dl-sub">DS-005 · £295,000</div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">SA</span><span class="score-badge rec">REC</span></div></div>
+      <div class="dl-val gr">+£1,016/mo</div>
+      <div class="dl-val">9.1%</div>
+      <div><span class="ds-status ready"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Ready</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">47 Clarence Road, Bristol BS1</div><div class="dl-sub">DS-006 · £230,000</div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">BTL</span><span class="score-badge rec">REC</span></div></div>
+      <div class="dl-val gr">+£318/mo</div>
+      <div class="dl-val">5.9%</div>
+      <div><span class="ds-status complete"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Complete</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DEAL BOARD — kanban ══ -->
+<div class="board-wrap" id="board-wrap">
+  <div class="board">
+
+    <!-- SOURCING -->
+    <div class="kb-col">
+      <div class="kb-hdr sourcing">
+        <div class="kb-stage">
+          <span class="kb-stage-name sourcing">Sourcing</span>
+          <span class="kb-count">2</span>
+        </div>
+        <div class="kb-meta">Analysing · not yet ready</div>
+      </div>
+      <div class="kb-body sourcing">
+        <div class="kc" onclick="openDeal('DS-004')">
+          <div class="kc-top"><span class="kc-strat">FLIP</span><span class="kc-score av">AVOID</span></div>
+          <div class="kc-addr pii">22 Oak Road, Sheffield S1</div>
+          <div class="kc-price">DS-004 · £145,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Net profit</span><span class="kc-metric-val re">£4,200</span></div>
+          <div class="kc-days"><i class="ti ti-clock" style="font-size:10px;"></i> Day 3 in sourcing</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-004')" onclick="event.stopPropagation()">
+              <option selected>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-004')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc" onclick="openDeal('DS-007')">
+          <div class="kc-top"><span class="kc-strat">R2R</span><span class="kc-score inc">INCOMPLETE</span></div>
+          <div class="kc-addr" style="color:#aaa;">Untitled deal</div>
+          <div class="kc-price">DS-007 · Price not set</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly profit</span><span class="kc-metric-val" style="color:#ccc;">—</span></div>
+          <div class="kc-days"><i class="ti ti-alert-circle" style="font-size:10px;color:#bbb;"></i> 3 of 7 sections complete</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-007')" onclick="event.stopPropagation()">
+              <option selected>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-007')">Edit <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- READY -->
+    <div class="kb-col">
+      <div class="kb-hdr ready">
+        <div class="kb-stage">
+          <span class="kb-stage-name ready">Ready</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Scored · ready to advertise</div>
+      </div>
+      <div class="kb-body ready">
+        <div class="kc" onclick="openDeal('DS-005')">
+          <div class="kc-top"><span class="kc-strat">SA</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">3 Marina View, Brighton BN1</div>
+          <div class="kc-price">DS-005 · £295,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£1,016</span></div>
+          <div class="kc-days"><i class="ti ti-clock" style="font-size:10px;"></i> Day 5 in ready</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-005')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option selected>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-005')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- LIVE -->
+    <div class="kb-col">
+      <div class="kb-hdr live">
+        <div class="kb-stage">
+          <span class="kb-stage-name live">Live</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Advertised · awaiting investor</div>
+      </div>
+      <div class="kb-body live">
+        <div class="kc" onclick="openDeal('DS-003')">
+          <div class="kc-top"><span class="kc-strat">BRRR</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">8 Park Lane, Birmingham B15</div>
+          <div class="kc-price">DS-003 · £185,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£394</span></div>
+          <div class="kc-days"><i class="ti ti-clock" style="font-size:10px;"></i> Day 12 live</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-003')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option selected>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-003')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- RESERVED -->
+    <div class="kb-col">
+      <div class="kb-hdr reserved">
+        <div class="kb-stage">
+          <span class="kb-stage-name reserved">Reserved</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Cooling off · investor committed</div>
+      </div>
+      <div class="kb-body reserved">
+        <div class="kc" onclick="openDeal('DS-001')">
+          <div class="kc-top"><span class="kc-strat">BTL</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">65a Horwood Close, Leeds LS7</div>
+          <div class="kc-price">DS-001 · £207,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£482</span></div>
+          <div class="kc-days urgent"><i class="ti ti-clock" style="font-size:10px;"></i> Day 8 of 14 — 6 days left</div>
+          <div class="kc-bar"><div class="kc-bar-fill" style="width:57%"></div></div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-001')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option>Live</option><option selected>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-001')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- PACK SENT -->
+    <div class="kb-col">
+      <div class="kb-hdr pack-sent">
+        <div class="kb-stage">
+          <span class="kb-stage-name pack-sent">Pack sent</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Pack released · fee due</div>
+      </div>
+      <div class="kb-body pack-sent">
+        <div class="kc" onclick="openDeal('DS-002')">
+          <div class="kc-top"><span class="kc-strat">HMO</span><span class="kc-score rev">REVIEW</span></div>
+          <div class="kc-addr pii">12 Victoria Street, Manchester M1</div>
+          <div class="kc-price">DS-002 · £310,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£1,247</span></div>
+          <div class="kc-days"><i class="ti ti-send" style="font-size:10px;"></i> Pack sent 2 days ago</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-002')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option selected>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-002')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- COMPLETE -->
+    <div class="kb-col">
+      <div class="kb-hdr complete">
+        <div class="kb-stage">
+          <span class="kb-stage-name complete">Complete</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Fee received · deal closed</div>
+      </div>
+      <div class="kb-body complete">
+        <div class="kc" onclick="openDeal('DS-006')">
+          <div class="kc-top"><span class="kc-strat">BTL</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">47 Clarence Road, Bristol BS1</div>
+          <div class="kc-price">DS-006 · £230,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Fee earned</span><span class="kc-metric-val gr">£3,500</span></div>
+          <div class="kc-days"><i class="ti ti-check" style="font-size:10px;color:var(--teal);"></i> Completed 4 Jun 2026</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-006')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option selected>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-006')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- WITHDRAWN -->
+    <div class="kb-col">
+      <div class="kb-hdr withdrawn">
+        <div class="kb-stage">
+          <span class="kb-stage-name withdrawn">Withdrawn</span>
+          <span class="kb-count">0</span>
+        </div>
+        <div class="kb-meta">Fell through · archived</div>
+      </div>
+      <div class="kb-body withdrawn" style="opacity:.6;">
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ── Nav ── */
+function setNav(btn){
+  document.querySelectorAll('.hn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+/* ── View switcher ── */
+let currentView = 'grid';
+function setView(v, btn){
+  /* clear active from both groups */
+  document.querySelectorAll('#view-grp .vbtn, .vgrp .vbtn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  currentView = v;
+
+  const grid     = document.getElementById('deal-grid');
+  const listCont = document.getElementById('list-container');
+  const board    = document.getElementById('board-wrap');
+
+  /* hide all */
+  grid.style.display     = 'none';
+  listCont.style.display = 'none';
+  board.classList.remove('show');
+
+  if(v === 'board'){
+    board.classList.add('show');
+    return;
+  }
+  if(v === 'list' || v === 'list-compact'){
+    listCont.style.display = 'block';
+    listCont.querySelectorAll('.dl-row:not(.dl-head)').forEach(r=>{
+      r.style.padding = v === 'list-compact' ? '6px 14px' : '9px 14px';
+    });
+  } else {
+    grid.style.display = 'grid';
+    if(v === 'grid'){
+      grid.style.gridTemplateColumns = 'repeat(3,1fr)';
+      grid.style.gap = '12px';
+    } else {
+      grid.style.gridTemplateColumns = 'repeat(4,1fr)';
+      grid.style.gap = '8px';
+    }
+  }
+  filterDeals();
+}
+
+/* ── Deal Board helpers ── */
+function openDeal(id){
+  alert('Opening ' + id + ' → Results tab (read-only viewing mode)');
+}
+function newDeal(){
+  openNewDeal();
+}
+
+const STAGE_MAP = {
+  'Sourcing':  'sourcing',
+  'Ready':     'ready',
+  'Live':      'live',
+  'Reserved':  'reserved',
+  'Pack sent': 'pack-sent',
+  'Complete':  'complete',
+  'Withdrawn': 'withdrawn'
+};
+
+function moveStage(sel, dealId){
+  const targetKey  = sel.value;
+  const targetSlug = STAGE_MAP[targetKey];
+  if(!targetSlug) return;
+
+  const card = sel.closest('.kc');
+  if(!card) return;
+
+  /* find source and target column bodies */
+  const sourceBody = card.closest('.kb-body');
+  const targetBody = document.querySelector('.kb-body.' + targetSlug);
+  if(!targetBody || sourceBody === targetBody) return;
+
+  /* find the "+ Add deal" button in target so we insert before it */
+  const addBtn = targetBody.querySelector('.kc-add');
+
+  /* animate out */
+  card.style.transition = 'opacity .2s, transform .2s';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(.96)';
+
+  setTimeout(function(){
+    /* move card to new column */
+    if(addBtn){
+      targetBody.insertBefore(card, addBtn);
+    } else {
+      targetBody.appendChild(card);
+    }
+
+    /* update the select value to match new column */
+    sel.value = targetKey;
+
+    /* animate in */
+    card.style.transition = 'opacity .18s, transform .18s';
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+
+    /* teal flash */
+    card.style.outline = '2px solid var(--teal)';
+    setTimeout(function(){ card.style.outline = ''; card.style.transition = ''; }, 900);
+
+    /* update counts on both columns */
+    updateColCount(sourceBody);
+    updateColCount(targetBody);
+  }, 200);
+}
+
+function updateColCount(body){
+  /* count .kc cards (not .kc-add) in this body */
+  const col   = body.closest('.kb-col');
+  if(!col) return;
+  const count = body.querySelectorAll('.kc').length;
+  const badge = col.querySelector('.kb-count');
+  if(badge) badge.textContent = count;
+}
+
+/* ── Stats bar filter ── */
+let activeStatFilter = 'all';
+function statFilter(type, statId){
+  /* toggle off if same stat clicked again */
+  if(activeStatFilter === type){
+    activeStatFilter = 'all';
+    document.querySelectorAll('.sc').forEach(s=>s.classList.remove('active'));
+    clearStatusFilter();
+    return;
+  }
+  activeStatFilter = type;
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('active'));
+  if(statId) document.getElementById(statId).classList.add('active');
+
+  /* switch to grid view if on board */
+  if(currentView === 'board') setView('grid', document.querySelector('#view-grp .vbtn'));
+
+  /* set the status dropdown and filter */
+  const statusSel = document.querySelectorAll('.tbar-right select')[2];
+  if(!statusSel) return;
+
+  if(type === 'all'){
+    statusSel.value = '';
+  } else if(type === 'active'){
+    /* Live + Reserved — show both; filter function will handle showing all active */
+    statusSel.value = 'live'; /* will override below */
+    filterDealsMultiStatus(['live','reserved']);
+    return;
+  } else if(type === 'viewing'){
+    /* Show deals with viewings — DS-001, DS-002 */
+    filterDealsByIds(['DS-001','DS-002']);
+    return;
+  } else {
+    statusSel.value = type;
+  }
+  filterDeals();
+}
+
+function clearStatusFilter(){
+  const statusSel = document.querySelectorAll('.tbar-right select')[2];
+  if(statusSel) statusSel.value = '';
+  document.querySelectorAll('#deal-grid .dc').forEach(c=>c.style.display='');
+}
+
+function filterDealsMultiStatus(statuses){
+  document.querySelectorAll('#deal-grid .dc').forEach(card=>{
+    const match = statuses.includes(card.dataset.status || '');
+    card.style.display = match ? '' : 'none';
+  });
+}
+
+function filterDealsByIds(ids){
+  document.querySelectorAll('#deal-grid .dc').forEach(card=>{
+    const priceEl = card.querySelector('.cdid');
+    if(!priceEl){ card.style.display='none'; return; }
+    const match = ids.some(id=>priceEl.textContent.includes(id));
+    card.style.display = match ? '' : 'none';
+  });
+}
+
+/* ── Today strip chip actions ── */
+function chipAction(type, dealId){
+  const msgs = {
+    viewing:     'Opening deal ' + dealId + ' → Results tab (viewing mode)',
+    chase:       'Opening deal → Seller tab · contact log + chase reminder',
+    day15:       'Opening deal → Pack Content tab · release pack',
+    sensitivity: 'Opening deal ' + dealId + ' → Sensitivity tab'
+  };
+  alert(msgs[type] || 'Opening deal ' + dealId);
+}
+
+/* ── Filter + search ── */
+function filterDeals(){
+  const stratSel = document.querySelectorAll('.tbar-right select')[0];
+  const scoreSel = document.querySelectorAll('.tbar-right select')[1];
+  const statusSel = document.querySelectorAll('.tbar-right select')[2];
+  const search = (document.getElementById('search-inp').value || '').toLowerCase();
+  const stratVal = stratSel ? stratSel.value : '';
+  const scoreVal = scoreSel ? scoreSel.value : '';
+  const statusVal = statusSel ? statusSel.value : '';
+
+  document.querySelectorAll('#deal-grid .dc').forEach(card=>{
+    const strat = card.dataset.strat || '';
+    const score = card.dataset.score || '';
+    const status = card.dataset.status || '';
+    const text = card.textContent.toLowerCase();
+    const show =
+      (!stratVal || strat === stratVal) &&
+      (!scoreVal || score === scoreVal) &&
+      (!statusVal || status === statusVal) &&
+      (!search || text.includes(search));
+    card.style.display = show ? '' : 'none';
+  });
+}
+
+/* ── Privacy mode ── */
+let privacyOn = false;
+function togglePrivacy(){
+  privacyOn = !privacyOn;
+  document.body.classList.toggle('privacy', privacyOn);
+  const btn = document.getElementById('privacy-btn');
+  const icon = document.getElementById('privacy-icon');
+  const label = document.getElementById('privacy-label');
+  const banner = document.getElementById('privacy-banner');
+  if(btn) btn.classList.toggle('on', privacyOn);
+  if(icon) icon.className = privacyOn ? 'ti ti-eye' : 'ti ti-eye-off';
+  if(label) label.textContent = privacyOn ? 'Privacy on' : 'Privacy mode';
+  if(banner) banner.classList.toggle('show', privacyOn);
+}
+
+/* ── Header: avatar dropdown ── */
+var hdrDropOpen = false;
+function hdrToggleDrop(){
+  hdrDropOpen = !hdrDropOpen;
+  document.getElementById('hdr-avt-drop').classList.toggle('show', hdrDropOpen);
+}
+/* ── Header: privacy mode ── */
+var hdrPrivacyOn = false;
+function hdrTogglePrivacy(){
+  hdrPrivacyOn = !hdrPrivacyOn;
+  document.getElementById('hdr-privacy-chk').checked = hdrPrivacyOn;
+  document.getElementById('hdr-avt').classList.toggle('privacy-on', hdrPrivacyOn);
+  document.body.classList.toggle('privacy', hdrPrivacyOn);
+}
+/* ── Header: search results ── */
+function hdrShowResults(val){ /* extend per page */ }
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.avt-wrap')){ hdrDropOpen=false; var d=document.getElementById('hdr-avt-drop'); if(d) d.classList.remove('show'); }
+});
+
+
+/* ── Global mockup tier toggle ── */
+var mockupTier='pro';
+function setMockupTier(tier){
+  mockupTier=tier;
+  document.body.classList.toggle('tier-proplus',tier==='proplus');
+  var hdrPro=document.getElementById('hdr-tier-pro');
+  var hdrPP=document.getElementById('hdr-tier-pp');
+  if(tier==='proplus'){
+    if(hdrPro){hdrPro.style.background='transparent';hdrPro.style.color='rgba(255,255,255,.4)';}
+    if(hdrPP){hdrPP.style.background='rgba(255,255,255,.2)';hdrPP.style.color='#fff';}
+    /* Unlock Smart Capture card */
+    var lock=document.getElementById('nd-sc-lock-icon');
+    var hint=document.getElementById('nd-sc-upgrade-hint');
+    var badge=document.getElementById('nd-sc-tier-badge');
+    if(lock) lock.style.display='none';
+    if(hint) hint.style.display='none';
+    if(badge){ badge.style.background='rgba(29,158,117,.12)'; badge.style.color='var(--teal)'; badge.style.borderColor='rgba(29,158,117,.3)'; badge.textContent='Pro Plus'; }
+    showToast('Pro+ active — Smart Capture unlocked');
+    updateWrScTeaser();
+  } else {
+    if(hdrPro){hdrPro.style.background='var(--navy)';hdrPro.style.color='#fff';}
+    if(hdrPP){hdrPP.style.background='transparent';hdrPP.style.color='rgba(255,255,255,.4)';}
+    /* Lock Smart Capture card — deselect if it was selected */
+    if(ndData && ndData.strat === 'SMART_CAPTURE'){ ndData.strat=''; if(typeof ndUpdateFooter==='function') ndUpdateFooter(); }
+    var scCard=document.getElementById('nd-sc-card');
+    if(scCard){ scCard.style.borderColor=''; scCard.style.background='#fff'; }
+    var lock=document.getElementById('nd-sc-lock-icon');
+    var check=document.getElementById('nd-sc-check-icon');
+    var activeBadge=document.getElementById('nd-sc-active-badge');
+    var hint=document.getElementById('nd-sc-upgrade-hint');
+    if(lock) lock.style.display='block';
+    if(check) check.style.display='none';
+    if(activeBadge) activeBadge.style.display='none';
+    if(hint) hint.style.display='flex';
+    showToast('Pro tier — Smart Capture requires Pro Plus');
+    updateWrScTeaser();
+  }
+}
+
+function ndSelectSmartCapture(){
+  if(mockupTier !== 'proplus'){
+    showToast('Smart Capture requires Pro Plus — tap Upgrade to unlock');
+    return;
+  }
+  /* Deselect any strategy tile */
+  document.querySelectorAll('.nd-strat-tile').forEach(function(t){ t.classList.remove('sel'); });
+  ndData.strat = 'SMART_CAPTURE';
+  /* Visual: activate card */
+  var scCard=document.getElementById('nd-sc-card');
+  var scIcon=document.getElementById('nd-sc-icon');
+  var check=document.getElementById('nd-sc-check-icon');
+  var lock=document.getElementById('nd-sc-lock-icon');
+  var activeBadge=document.getElementById('nd-sc-active-badge');
+  if(scCard){ scCard.style.borderColor='var(--teal)'; scCard.style.background='var(--teal-light)'; }
+  if(scIcon){ scIcon.style.background='var(--teal)'; scIcon.style.color='#fff'; }
+  if(check) check.style.display='block';
+  if(lock) lock.style.display='none';
+  if(activeBadge) activeBadge.style.display='inline-flex';
+  document.getElementById('nd-strat-err').classList.remove('show');
+  ndUpdateFooter();
+}
+
+/* ── Toast ── */
+function showToast(msg){
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg;
+  t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._tid);
+  t._tid=setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; },2800);
+}
+
+/* ── Onboarding Modal ── */
+function showOnboarding(){
+  var bd = document.getElementById('ob-backdrop');
+  if(bd) bd.classList.add('show');
+}
+function dismissOnboarding(){
+  var bd = document.getElementById('ob-backdrop');
+  if(!bd) return;
+  bd.style.opacity='0';
+  setTimeout(function(){ bd.classList.remove('show'); bd.style.opacity=''; }, 220);
+}
+// Show modal on first load (sessionStorage so it doesn't re-appear every tab switch)
+(function(){
+  if(!sessionStorage.getItem('ds_ob_dismissed')){
+    setTimeout(showOnboarding, 300);
+  }
+})();
+document.getElementById('ob-backdrop') && document.getElementById('ob-backdrop').addEventListener('click', function(e){
+  if(e.target === this){ dismissOnboarding(); sessionStorage.setItem('ds_ob_dismissed','1'); }
+});
+
+/* ── Status Key Panel ── */
+function toggleStatusKey(){
+  var p = document.getElementById('status-key-panel');
+  if(p) p.classList.toggle('open');
+}
+
+/* ── Empty state helpers (for demo) ── */
+function updateWrScTeaser(){ /* no-op — welcome rail removed */ }
+
+/* ── Onboarding: Empty State ── */
+var mockupEmptyState = false;
+function showEmptyState(){
+  mockupEmptyState = true;
+  var grid  = document.getElementById('deal-grid');
+  var es    = document.getElementById('empty-state-panel');
+  var lc    = document.getElementById('list-container');
+  var board = document.getElementById('board-wrap');
+  if(grid)  grid.style.display  = 'none';
+  if(lc)    lc.style.display    = 'none';
+  if(board) board.classList.remove('show');
+  if(es)    es.classList.add('show');
+}
+function showDealsState(){
+  mockupEmptyState = false;
+  var grid = document.getElementById('deal-grid');
+  var es   = document.getElementById('empty-state-panel');
+  if(es)   es.classList.remove('show');
+  if(grid){ grid.style.display = 'grid'; grid.style.gridTemplateColumns = 'repeat(3,1fr)'; }
+}
+
+/* ── Global mockup tier toggle already above ── */
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     DEAL CREATION SLIDE-OVER
+     480px panel from the right — same pattern as Deal Optimiser
+     ══════════════════════════════════════════════════════ -->
+<style>
+/* ── Overlay backdrop ── */
+.nd-backdrop{
+  position:fixed;inset:0;background:rgba(15,32,64,.45);
+  z-index:400;opacity:0;pointer-events:none;
+  transition:opacity .22s ease;
+}
+.nd-backdrop.open{opacity:1;pointer-events:all;}
+
+/* ── Slide-over panel ── */
+.nd-panel{
+  position:fixed;top:0;right:0;bottom:0;width:480px;
+  background:#fff;z-index:401;
+  display:flex;flex-direction:column;
+  box-shadow:-8px 0 40px rgba(0,0,0,.16);
+  transform:translateX(100%);
+  transition:transform .26s cubic-bezier(.22,.68,0,1.1);
+}
+.nd-panel.open{transform:translateX(0);}
+
+/* ── Panel header ── */
+.nd-hdr{
+  background:var(--navy-dark);
+  padding:0 20px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.nd-hdr-left{display:flex;align-items:center;gap:10px;}
+.nd-hdr-title{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em;}
+.nd-hdr-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px;}
+.nd-close{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.08);
+  border:.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:16px;transition:all .12s;flex-shrink:0;}
+.nd-close:hover{background:rgba(255,255,255,.16);color:#fff;}
+
+/* ── Step progress rail ── */
+.nd-rail{
+  display:flex;align-items:center;gap:0;
+  background:var(--navy-deep);padding:10px 20px;
+  flex-shrink:0;
+}
+.nd-step{display:flex;align-items:center;gap:8px;flex:1;position:relative;}
+.nd-step:last-child{flex:0 0 auto;}
+.nd-step-dot{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+  transition:all .18s;
+  border:1.5px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.35);
+}
+.nd-step-dot.active{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 3px rgba(29,158,117,.25);}
+.nd-step-dot.done{background:rgba(29,158,117,.18);border-color:rgba(29,158,117,.45);color:var(--teal);}
+.nd-step-lbl{font-size:10px;font-weight:600;letter-spacing:.02em;
+  color:rgba(255,255,255,.3);transition:color .18s;white-space:nowrap;}
+.nd-step-lbl.active{color:#fff;}
+.nd-step-lbl.done{color:rgba(29,158,117,.8);}
+.nd-rail-line{flex:1;height:1px;background:rgba(255,255,255,.1);margin:0 8px;
+  position:relative;overflow:hidden;}
+.nd-rail-line-fill{position:absolute;inset:0;background:rgba(29,158,117,.5);
+  transform:scaleX(0);transform-origin:left;transition:transform .3s ease;}
+.nd-rail-line-fill.done{transform:scaleX(1);}
+
+/* ── Scrollable body ── */
+.nd-body{flex:1;overflow-y:auto;padding:20px;}
+.nd-body::-webkit-scrollbar{width:4px;}
+.nd-body::-webkit-scrollbar-track{background:var(--bg-sec);}
+.nd-body::-webkit-scrollbar-thumb{background:#d0d3d8;border-radius:4px;}
+
+/* ── Step pane visibility ── */
+.nd-pane{display:none;}
+.nd-pane.active{display:block;}
+
+/* ── Section label ── */
+.nd-sec-lbl{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:#bbb;margin-bottom:10px;margin-top:4px;
+}
+
+/* ── Strategy selector (7 tiles, 4+3 grid) ── */
+.nd-strat-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
+  margin-bottom:6px;
+}
+.nd-strat-grid-row2{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:7px;
+  margin-bottom:16px;
+}
+.nd-strat-tile{
+  border-radius:var(--r-md);border:1.5px solid var(--border);
+  background:var(--bg-sec);padding:11px 8px 10px;
+  cursor:pointer;text-align:center;
+  transition:all .13s;
+}
+.nd-strat-tile:hover{border-color:var(--navy);background:var(--navy-light);}
+.nd-strat-tile.sel{
+  border-color:var(--teal);background:rgba(29,158,117,.07);
+  box-shadow:0 0 0 2px rgba(29,158,117,.18);
+}
+.nd-strat-tile .nst-code{
+  font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px;
+  letter-spacing:.01em;
+}
+.nd-strat-tile.sel .nst-code{color:var(--teal);}
+.nd-strat-tile .nst-name{
+  font-size:9px;font-weight:500;color:var(--text-2);line-height:1.25;
+}
+.nd-strat-tile.sel .nst-name{color:#0a6e4e;}
+
+/* ── Smart Capture notice ── */
+.nd-sc-notice{
+  background:rgba(124,58,237,.05);border:.5px solid rgba(124,58,237,.2);
+  border-radius:var(--r-md);padding:10px 12px;
+  display:flex;align-items:flex-start;gap:9px;margin-bottom:16px;
+}
+.nd-sc-notice i{font-size:15px;color:#7c3aed;margin-top:1px;flex-shrink:0;}
+.nd-sc-notice-text{font-size:11px;color:#5B21B6;line-height:1.5;}
+.nd-sc-notice-text strong{font-weight:700;}
+
+/* ── Form fields ── */
+.nd-field{margin-bottom:14px;}
+.nd-field label{
+  display:block;font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.07em;color:#9ca3af;margin-bottom:5px;
+}
+.nd-field label span.req{color:var(--teal);}
+.nd-inp{
+  width:100%;padding:9px 11px;
+  border:1px solid var(--border);border-radius:var(--r-md);
+  font-size:13px;font-family:var(--font);color:var(--text-1);
+  background:#fff;outline:none;
+  transition:border-color .13s;
+}
+.nd-inp:focus{border-color:var(--navy);}
+.nd-inp::placeholder{color:#c8cad0;}
+.nd-sel{
+  width:100%;padding:9px 11px;
+  border:1px solid var(--border);border-radius:var(--r-md);
+  font-size:13px;font-family:var(--font);color:var(--text-1);
+  background:#fff;outline:none;cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+  padding-right:28px;
+  transition:border-color .13s;
+}
+.nd-sel:focus{border-color:var(--navy);}
+.nd-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── Optional toggle section ── */
+.nd-optional-toggle{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;background:var(--bg-sec);
+  border-radius:var(--r-md);border:.5px solid var(--border);
+  cursor:pointer;margin-bottom:12px;
+  transition:background .12s;
+}
+.nd-optional-toggle:hover{background:#eceef2;}
+.nd-optional-toggle i.ti-chevron-down{transition:transform .18s;}
+.nd-optional-toggle.open i.ti-chevron-down{transform:rotate(180deg);}
+.nd-optional-lbl{font-size:11px;font-weight:600;color:var(--text-1);flex:1;}
+.nd-optional-hint{font-size:10px;color:var(--text-2);}
+.nd-optional-body{display:none;padding-bottom:4px;}
+.nd-optional-body.open{display:block;}
+
+/* ── Motivation badges (Step 3 source section) ── */
+.nd-motiv-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.nd-motiv-chip{
+  padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;
+  cursor:pointer;border:1.5px solid var(--border);
+  background:var(--bg-sec);color:var(--text-2);
+  transition:all .12s;
+}
+.nd-motiv-chip:hover{border-color:var(--navy);}
+.nd-motiv-chip.motivated.sel{background:rgba(220,38,38,.08);border-color:#fca5a5;color:#991b1b;}
+.nd-motiv-chip.flexible.sel{background:rgba(217,119,6,.08);border-color:#fde68a;color:#92400e;}
+.nd-motiv-chip.firm.sel{background:var(--navy-light);border-color:rgba(27,58,107,.3);color:var(--navy);}
+
+/* ── Review panel (Step 3 bottom) ── */
+.nd-review-card{
+  background:var(--bg-sec);border:.5px solid var(--border);
+  border-radius:var(--r-md);padding:14px;margin-bottom:16px;
+}
+.nd-review-title{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:#bbb;margin-bottom:10px;}
+.nd-review-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:5px 0;border-bottom:.5px solid var(--border);
+}
+.nd-review-row:last-child{border-bottom:none;}
+.nd-review-lbl{font-size:11px;color:var(--text-2);}
+.nd-review-val{font-size:11px;font-weight:600;color:var(--text-1);}
+.nd-review-val.teal{color:var(--teal);}
+.nd-review-val.muted{color:#bbb;font-weight:400;}
+
+/* ── Footer ── */
+.nd-footer{
+  padding:14px 20px;border-top:.5px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:#fff;flex-shrink:0;
+}
+.nd-footer-hint{font-size:11px;color:var(--text-2);}
+.nd-footer-acts{display:flex;gap:8px;}
+.nd-btn{
+  padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;
+  font-family:var(--font);cursor:pointer;border:.5px solid;
+  display:flex;align-items:center;gap:5px;transition:opacity .12s;
+}
+.nd-btn:hover{opacity:.85;}
+.nd-btn-ghost{background:#fff;color:var(--text-1);border-color:var(--border);}
+.nd-btn-navy{background:var(--navy);color:#fff;border-color:var(--navy);}
+.nd-btn-teal{background:var(--teal);color:#fff;border-color:var(--teal);}
+.nd-btn-teal:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── Validation error ── */
+.nd-val-err{
+  font-size:10px;color:#b91c1c;margin-top:4px;
+  display:none;align-items:center;gap:4px;
+}
+.nd-val-err.show{display:flex;}
+
+/* ── Success animation overlay ── */
+.nd-success{
+  position:absolute;inset:0;background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;opacity:0;pointer-events:none;
+  transition:opacity .22s;z-index:5;
+}
+.nd-success.show{opacity:1;pointer-events:all;}
+.nd-success-icon{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(29,158,117,.1);border:2px solid var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;color:var(--teal);
+  animation:ndSuccessPop .35s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes ndSuccessPop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.nd-success-title{font-size:15px;font-weight:700;color:var(--text-1);}
+.nd-success-sub{font-size:12px;color:var(--text-2);text-align:center;max-width:280px;line-height:1.5;}
+.nd-success-ref{
+  font-size:11px;font-weight:700;color:var(--navy);
+  background:var(--navy-light);border:.5px solid rgba(27,58,107,.15);
+  border-radius:20px;padding:4px 14px;letter-spacing:.04em;
+}
+</style>
+
+<!-- BACKDROP -->
+<div class="nd-backdrop" id="nd-backdrop" onclick="closeNewDeal()"></div>
+
+<!-- SLIDE-OVER PANEL -->
+<div class="nd-panel" id="nd-panel">
+
+  <!-- Header -->
+  <div class="nd-hdr">
+    <div class="nd-hdr-left">
+      <div>
+        <div class="nd-hdr-title">New deal</div>
+        <div class="nd-hdr-sub" id="nd-hdr-sub">Step 1 of 3 — Choose strategy</div>
+      </div>
+    </div>
+    <button class="nd-close" onclick="closeNewDeal()" title="Close"><i class="ti ti-x"></i></button>
+  </div>
+
+  <!-- Step progress rail -->
+  <div class="nd-rail">
+    <div class="nd-step">
+      <div class="nd-step-dot active" id="nd-dot-1">1</div>
+      <span class="nd-step-lbl active" id="nd-lbl-1">Strategy</span>
+    </div>
+    <div class="nd-rail-line"><div class="nd-rail-line-fill" id="nd-line-1"></div></div>
+    <div class="nd-step">
+      <div class="nd-step-dot" id="nd-dot-2">2</div>
+      <span class="nd-step-lbl" id="nd-lbl-2">Deal basics</span>
+    </div>
+    <div class="nd-rail-line"><div class="nd-rail-line-fill" id="nd-line-2"></div></div>
+    <div class="nd-step">
+      <div class="nd-step-dot" id="nd-dot-3">3</div>
+      <span class="nd-step-lbl" id="nd-lbl-3">Source &amp; vendor</span>
+    </div>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="nd-body">
+
+    <!-- ══ STEP 1: Strategy ══ -->
+    <div class="nd-pane active" id="nd-pane-1">
+
+      <!-- Smart Capture option — Pro+ unlocked, Pro locked -->
+      <div id="nd-sc-card" onclick="ndSelectSmartCapture()" style="border:.5px solid var(--border);border-radius:var(--r-lg);padding:13px 14px;margin-bottom:14px;cursor:pointer;transition:all .15s;background:#fff;position:relative;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div id="nd-sc-icon" style="width:34px;height:34px;border-radius:var(--r-md);background:var(--navy-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:var(--navy);transition:all .15s;">
+            <i class="ti ti-sparkles"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px;">
+              <span style="font-size:12px;font-weight:700;color:var(--text-1);">Smart Capture</span>
+              <span id="nd-sc-tier-badge" style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(217,119,6,.12);color:#D97706;border:.5px solid rgba(217,119,6,.3);">Pro Plus</span>
+              <span id="nd-sc-active-badge" style="display:none;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--teal-light);color:var(--teal);">Selected</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-2);line-height:1.55;">One consolidated form covering all 7 strategies in a single pass. No re-entering data per strategy — fill in once, DealScore does the rest.</div>
+          </div>
+          <div id="nd-sc-lock-icon" style="color:#D97706;font-size:14px;flex-shrink:0;margin-top:2px;"><i class="ti ti-lock"></i></div>
+          <div id="nd-sc-check-icon" style="display:none;color:var(--teal);font-size:14px;flex-shrink:0;margin-top:2px;"><i class="ti ti-circle-check-filled"></i></div>
+        </div>
+        <!-- Pro locked overlay message -->
+        <div id="nd-sc-upgrade-hint" style="margin-top:9px;background:rgba(217,119,6,.06);border:.5px solid rgba(217,119,6,.2);border-radius:var(--r-md);padding:7px 10px;font-size:10px;color:#92400e;display:flex;align-items:center;gap:6px;">
+          <i class="ti ti-arrow-up-circle" style="font-size:12px;color:#D97706;flex-shrink:0;"></i>
+          Upgrade to Pro Plus to unlock Smart Capture and analyse all 7 strategies in one go.
+          <button onclick="event.stopPropagation();showToast('Upgrade modal would open here — Pro Plus £59/mo')" style="margin-left:auto;font-size:10px;font-weight:600;background:var(--navy);color:#fff;border:none;border-radius:20px;padding:3px 10px;cursor:pointer;flex-shrink:0;font-family:inherit;">Upgrade</button>
+        </div>
+      </div>
+
+      <div class="nd-sec-lbl" style="margin-bottom:8px;">Or select a single strategy</div>
+
+      <div class="nd-strat-grid">
+        <div class="nd-strat-tile" onclick="selectStrat(this,'BTL')">
+          <div class="nst-code">BTL</div>
+          <div class="nst-name">Buy to Let</div>
+        </div>
+        <div class="nd-strat-tile" onclick="selectStrat(this,'HMO')">
+          <div class="nst-code">HMO</div>
+          <div class="nst-name">House of Multiple Occupation</div>
+        </div>
+        <div class="nd-strat-tile" onclick="selectStrat(this,'FLIP')">
+          <div class="nst-code">FLIP</div>
+          <div class="nst-name">Buy, Refurb &amp; Sell</div>
+        </div>
+        <div class="nd-strat-tile" onclick="selectStrat(this,'SA')">
+          <div class="nst-code">SA</div>
+          <div class="nst-name">Serviced Accommodation</div>
+        </div>
+      </div>
+      <div class="nd-strat-grid-row2">
+        <div class="nd-strat-tile" onclick="selectStrat(this,'BRRR')">
+          <div class="nst-code">BRRR</div>
+          <div class="nst-name">Buy, Refurb, Refinance, Rent</div>
+        </div>
+        <div class="nd-strat-tile" onclick="selectStrat(this,'R2R')">
+          <div class="nst-code">R2R</div>
+          <div class="nst-name">Rent to Rent</div>
+        </div>
+        <div class="nd-strat-tile" onclick="selectStrat(this,'Social')">
+          <div class="nst-code">Social</div>
+          <div class="nst-name">Social / Supported Living</div>
+        </div>
+      </div>
+
+      <div id="nd-strat-err" class="nd-val-err"><i class="ti ti-alert-circle" style="font-size:11px;"></i> Please select a strategy or Smart Capture to continue</div>
+    </div>
+
+    <!-- ══ STEP 2: Deal basics ══ -->
+    <div class="nd-pane" id="nd-pane-2">
+
+      <div class="nd-field">
+        <label>Address <span class="req">*</span></label>
+        <input class="nd-inp" id="nd-address" type="text" placeholder="e.g. 14 Roath Court Road, Cardiff CF24 3BJ" oninput="ndLiveReview()">
+        <div style="margin-top:5px;font-size:10px;color:var(--text-2);">Leave blank to save as <em>Untitled deal</em> and add address later.</div>
+      </div>
+
+      <div class="nd-row2">
+        <div class="nd-field">
+          <label>Asking price</label>
+          <input class="nd-inp" id="nd-price" type="text" placeholder="£185,000" oninput="ndLiveReview()">
+        </div>
+        <div class="nd-field">
+          <label>Country / tax region</label>
+          <select class="nd-sel" id="nd-country" onchange="ndLiveReview()">
+            <option value="">Select…</option>
+            <option value="England">England</option>
+            <option value="Wales" selected>Wales</option>
+            <option value="Scotland">Scotland</option>
+            <option value="Northern Ireland">Northern Ireland</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="nd-row2">
+        <div class="nd-field">
+          <label>Property type</label>
+          <select class="nd-sel" id="nd-proptype" onchange="ndLiveReview()">
+            <option value="">Select…</option>
+            <option value="Terraced">Terraced</option>
+            <option value="Semi-detached">Semi-detached</option>
+            <option value="Detached">Detached</option>
+            <option value="Flat / apartment">Flat / apartment</option>
+            <option value="Bungalow">Bungalow</option>
+            <option value="HMO property">HMO property</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="nd-field">
+          <label>Bedrooms</label>
+          <select class="nd-sel" id="nd-beds" onchange="ndLiveReview()">
+            <option value="">Select…</option>
+            <option value="Studio">Studio</option>
+            <option value="1">1 bed</option>
+            <option value="2">2 bed</option>
+            <option value="3">3 bed</option>
+            <option value="4">4 bed</option>
+            <option value="5">5 bed</option>
+            <option value="6+">6+ bed</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="nd-addr-err" class="nd-val-err"><i class="ti ti-alert-circle" style="font-size:11px;"></i> An address or asking price is required to continue</div>
+    </div>
+
+    <!-- ══ STEP 3: Source & vendor ══ -->
+    <div class="nd-pane" id="nd-pane-3">
+
+      <div class="nd-sec-lbl">Deal review</div>
+      <div class="nd-review-card" id="nd-review-card">
+        <div class="nd-review-title">Summary</div>
+        <div class="nd-review-row">
+          <span class="nd-review-lbl">Strategy</span>
+          <span class="nd-review-val teal" id="rv-strat">—</span>
+        </div>
+        <div class="nd-review-row">
+          <span class="nd-review-lbl">Address</span>
+          <span class="nd-review-val" id="rv-addr">Untitled deal</span>
+        </div>
+        <div class="nd-review-row">
+          <span class="nd-review-lbl">Asking price</span>
+          <span class="nd-review-val" id="rv-price" style="color:#bbb;font-weight:400;">Not set</span>
+        </div>
+        <div class="nd-review-row">
+          <span class="nd-review-lbl">Property</span>
+          <span class="nd-review-val" id="rv-prop" style="color:#bbb;font-weight:400;">Not set</span>
+        </div>
+        <div class="nd-review-row">
+          <span class="nd-review-lbl">Country</span>
+          <span class="nd-review-val" id="rv-country" style="color:#bbb;font-weight:400;">Not set</span>
+        </div>
+      </div>
+
+      <!-- Source of deal — optional expandable section -->
+      <div class="nd-optional-toggle" id="nd-src-toggle" onclick="ndToggleOptional('src')">
+        <i class="ti ti-map-pin" style="font-size:14px;color:var(--text-2);"></i>
+        <span class="nd-optional-lbl">Source of deal</span>
+        <span class="nd-optional-hint">Optional</span>
+        <i class="ti ti-chevron-down" style="font-size:13px;color:var(--text-2);margin-left:4px;"></i>
+      </div>
+      <div class="nd-optional-body" id="nd-src-body">
+        <div class="nd-field">
+          <label>How did you find this deal?</label>
+          <select class="nd-sel" id="nd-source">
+            <option value="">Select…</option>
+            <option>Rightmove / Zoopla</option>
+            <option>On market — agent</option>
+            <option>Off market — direct mail</option>
+            <option>Off market — door knock</option>
+            <option>Off market — social media</option>
+            <option>Auction</option>
+            <option>Referral — investor</option>
+            <option>Referral — agent</option>
+            <option>Referral — other</option>
+            <option>Own portfolio</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Vendor details — optional expandable section -->
+      <div class="nd-optional-toggle" id="nd-vendor-toggle" onclick="ndToggleOptional('vendor')">
+        <i class="ti ti-user" style="font-size:14px;color:var(--text-2);"></i>
+        <span class="nd-optional-lbl">Vendor details</span>
+        <span class="nd-optional-hint">Optional — flows to Seller tab</span>
+        <i class="ti ti-chevron-down" style="font-size:13px;color:var(--text-2);margin-left:4px;"></i>
+      </div>
+      <div class="nd-optional-body" id="nd-vendor-body">
+        <div class="nd-row2">
+          <div class="nd-field">
+            <label>Vendor first name</label>
+            <input class="nd-inp" type="text" id="nd-vendor-name" placeholder="e.g. Sarah">
+          </div>
+          <div class="nd-field">
+            <label>Contact number</label>
+            <input class="nd-inp" type="text" id="nd-vendor-tel" placeholder="07…">
+          </div>
+        </div>
+        <div class="nd-field">
+          <label>Vendor motivation</label>
+          <div class="nd-motiv-grid">
+            <div class="nd-motiv-chip motivated" onclick="selectMotiv(this,'motivated')">🔴 Motivated</div>
+            <div class="nd-motiv-chip flexible" onclick="selectMotiv(this,'flexible')">🟡 Flexible</div>
+            <div class="nd-motiv-chip firm" onclick="selectMotiv(this,'firm')">🔵 Firm</div>
+          </div>
+        </div>
+        <div class="nd-field">
+          <label>Vendor situation <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:#bbb;">— select all that apply</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Divorce / separation</div>
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Probate</div>
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Relocation</div>
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Financial pressure</div>
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Chain break</div>
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Tired landlord</div>
+            <div class="nd-motiv-chip flexible" style="font-size:10px;" onclick="this.classList.toggle('sel')">Time pressure</div>
+            <div class="nd-motiv-chip firm" style="font-size:10px;" onclick="this.classList.toggle('sel')">No urgency</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skip seller nudge -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);margin-top:10px;">
+        <i class="ti ti-info-circle" style="font-size:14px;color:var(--text-2);flex-shrink:0;"></i>
+        <span style="font-size:11px;color:var(--text-2);">Don't have seller details yet? Skip this step — you can add them from the <strong>Seller tab</strong> once the deal is created.</span>
+      </div>
+
+    </div>
+    <!-- end pane 3 -->
+
+  </div><!-- end .nd-body -->
+
+  <!-- Footer -->
+  <div class="nd-footer">
+    <span class="nd-footer-hint" id="nd-footer-hint">Select a strategy to continue</span>
+    <div class="nd-footer-acts">
+      <button class="nd-btn nd-btn-ghost" id="nd-btn-back" onclick="ndBack()" style="display:none;"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="nd-btn nd-btn-teal" id="nd-btn-next" onclick="ndNext()" disabled>Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Success overlay (absolute over panel) -->
+  <div class="nd-success" id="nd-success">
+    <div class="nd-success-icon"><i class="ti ti-check"></i></div>
+    <div class="nd-success-title">Deal created</div>
+    <span class="nd-success-ref" id="nd-success-ref">DS-009</span>
+    <div class="nd-success-sub">Opening the Inputs tab — add your numbers to get a score.</div>
+  </div>
+
+</div><!-- end .nd-panel -->
+
+<script>
+/* ══════════════════════════════════
+   DEAL CREATION SLIDE-OVER JS
+   ══════════════════════════════════ */
+
+var ndOpen = false;
+var ndStep = 1;
+var ndData = { strat: '', address: '', price: '', country: '', proptype: '', beds: '' };
+
+/* Count to generate next deal ref */
+var ndDealCount = 8; /* 8 demo deals already */
+
+function openNewDeal(){
+  ndReset();
+  document.getElementById('nd-backdrop').classList.add('open');
+  document.getElementById('nd-panel').classList.add('open');
+  ndOpen = true;
+  /* trap scroll on body */
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNewDeal(){
+  document.getElementById('nd-backdrop').classList.remove('open');
+  document.getElementById('nd-panel').classList.remove('open');
+  ndOpen = false;
+  document.body.style.overflow = '';
+}
+
+function ndReset(){
+  ndStep = 1;
+  ndData = { strat:'', address:'', price:'', country:'Wales', proptype:'', beds:'' };
+  /* reset panes */
+  document.querySelectorAll('.nd-pane').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('nd-pane-1').classList.add('active');
+  /* reset strategy tiles */
+  document.querySelectorAll('.nd-strat-tile').forEach(function(t){ t.classList.remove('sel'); });
+  /* reset step rail */
+  ndUpdateRail(1);
+  /* reset fields */
+  document.getElementById('nd-address').value = '';
+  document.getElementById('nd-price').value = '';
+  document.getElementById('nd-country').value = 'Wales';
+  document.getElementById('nd-proptype').value = '';
+  document.getElementById('nd-beds').value = '';
+  /* reset errors */
+  document.getElementById('nd-strat-err').classList.remove('show');
+  document.getElementById('nd-addr-err').classList.remove('show');
+  /* reset success */
+  document.getElementById('nd-success').classList.remove('show');
+  /* reset optional sections */
+  ['src','vendor'].forEach(function(k){
+    var body = document.getElementById('nd-'+k+'-body');
+    var toggle = document.getElementById('nd-'+k+'-toggle');
+    if(body) body.classList.remove('open');
+    if(toggle) toggle.classList.remove('open');
+  });
+  /* reset motiv chips */
+  document.querySelectorAll('.nd-motiv-chip').forEach(function(c){ c.classList.remove('sel'); });
+  /* reset footer */
+  ndUpdateFooter();
+  /* hide back, disable next */
+  document.getElementById('nd-btn-back').style.display = 'none';
+  document.getElementById('nd-btn-next').disabled = true;
+  document.getElementById('nd-btn-next').innerHTML = 'Next <i class="ti ti-arrow-right"></i>';
+}
+
+function ndUpdateRail(step){
+  for(var i = 1; i <= 3; i++){
+    var dot = document.getElementById('nd-dot-'+i);
+    var lbl = document.getElementById('nd-lbl-'+i);
+    dot.classList.remove('active','done');
+    lbl.classList.remove('active','done');
+    if(i < step){ dot.classList.add('done'); lbl.classList.add('done'); dot.innerHTML = '<i class="ti ti-check" style="font-size:10px;"></i>'; }
+    else if(i === step){ dot.classList.add('active'); lbl.classList.add('active'); dot.textContent = i; }
+    else { dot.textContent = i; }
+  }
+  /* connector lines */
+  if(document.getElementById('nd-line-1')) document.getElementById('nd-line-1').classList.toggle('done', step > 1);
+  if(document.getElementById('nd-line-2')) document.getElementById('nd-line-2').classList.toggle('done', step > 2);
+  /* subtitle */
+  var subs = ['', 'Step 1 of 3 — Choose strategy', 'Step 2 of 3 — Deal basics', 'Step 3 of 3 — Source & vendor'];
+  document.getElementById('nd-hdr-sub').textContent = subs[step];
+}
+
+function ndUpdateFooter(){
+  var hint = document.getElementById('nd-footer-hint');
+  var next = document.getElementById('nd-btn-next');
+  if(ndStep === 1){
+    var stratLabel = ndData.strat === 'SMART_CAPTURE' ? 'Smart Capture selected — all 7 strategies' : (ndData.strat ? ndData.strat + ' selected' : 'Select Smart Capture or a strategy to continue');
+    hint.textContent = stratLabel;
+    next.disabled = !ndData.strat;
+    next.innerHTML = 'Next <i class="ti ti-arrow-right"></i>';
+  } else if(ndStep === 2){
+    var addr = (document.getElementById('nd-address').value||'').trim();
+    var price = (document.getElementById('nd-price').value||'').trim();
+    hint.textContent = (addr || price) ? 'Looks good — continue' : 'Add address or price to continue';
+    next.disabled = false; /* address is optional */
+    next.innerHTML = 'Next <i class="ti ti-arrow-right"></i>';
+  } else if(ndStep === 3){
+    hint.textContent = 'Review and create deal';
+    next.disabled = false;
+    next.innerHTML = '<i class="ti ti-plus"></i> Create deal';
+  }
+}
+
+function selectStrat(tile, code){
+  document.querySelectorAll('.nd-strat-tile').forEach(function(t){ t.classList.remove('sel'); });
+  tile.classList.add('sel');
+  ndData.strat = code;
+  /* Deselect Smart Capture card if active */
+  var scCard=document.getElementById('nd-sc-card');
+  var scIcon=document.getElementById('nd-sc-icon');
+  var check=document.getElementById('nd-sc-check-icon');
+  var activeBadge=document.getElementById('nd-sc-active-badge');
+  if(scCard){ scCard.style.borderColor=''; scCard.style.background='#fff'; }
+  if(scIcon){ scIcon.style.background='var(--navy-light)'; scIcon.style.color='var(--navy)'; }
+  if(check) check.style.display='none';
+  if(activeBadge) activeBadge.style.display='none';
+  if(mockupTier!=='proplus'){ var lock=document.getElementById('nd-sc-lock-icon'); if(lock) lock.style.display='block'; }
+  document.getElementById('nd-strat-err').classList.remove('show');
+  ndUpdateFooter();
+}
+
+function ndLiveReview(){
+  ndData.address  = (document.getElementById('nd-address').value||'').trim();
+  ndData.price    = (document.getElementById('nd-price').value||'').trim();
+  ndData.country  = document.getElementById('nd-country').value;
+  ndData.proptype = document.getElementById('nd-proptype').value;
+  ndData.beds     = document.getElementById('nd-beds').value;
+  ndUpdateFooter();
+  /* live-update review card if on step 3 */
+  if(ndStep === 3) ndPopulateReview();
+}
+
+function ndPopulateReview(){
+  var addr = ndData.address || document.getElementById('nd-address').value.trim();
+  var price = ndData.price || document.getElementById('nd-price').value.trim();
+  var country = ndData.country || document.getElementById('nd-country').value;
+  var proptype = ndData.proptype || document.getElementById('nd-proptype').value;
+  var beds = ndData.beds || document.getElementById('nd-beds').value;
+
+  document.getElementById('rv-strat').textContent  = ndData.strat || '—';
+  document.getElementById('rv-addr').textContent   = addr || 'Untitled deal';
+  document.getElementById('rv-addr').style.color   = addr ? '' : '#bbb';
+  document.getElementById('rv-addr').style.fontWeight = addr ? '600' : '400';
+  document.getElementById('rv-price').textContent  = price ? price : 'Not set';
+  document.getElementById('rv-price').style.color  = price ? 'var(--text-1)' : '#bbb';
+  document.getElementById('rv-price').style.fontWeight = price ? '600' : '400';
+
+  var propStr = [beds ? beds+' bed' : '', proptype].filter(Boolean).join(' · ');
+  document.getElementById('rv-prop').textContent    = propStr || 'Not set';
+  document.getElementById('rv-prop').style.color    = propStr ? 'var(--text-1)' : '#bbb';
+  document.getElementById('rv-prop').style.fontWeight = propStr ? '600' : '400';
+  document.getElementById('rv-country').textContent = country || 'Not set';
+  document.getElementById('rv-country').style.color = country ? 'var(--text-1)' : '#bbb';
+  document.getElementById('rv-country').style.fontWeight = country ? '600' : '400';
+}
+
+function ndNext(){
+  if(ndStep === 1){
+    if(!ndData.strat){ document.getElementById('nd-strat-err').classList.add('show'); return; }
+    ndGoTo(2);
+  } else if(ndStep === 2){
+    /* address is optional but show hint if both empty */
+    ndData.address  = document.getElementById('nd-address').value.trim();
+    ndData.price    = document.getElementById('nd-price').value.trim();
+    ndData.country  = document.getElementById('nd-country').value;
+    ndData.proptype = document.getElementById('nd-proptype').value;
+    ndData.beds     = document.getElementById('nd-beds').value;
+    ndGoTo(3);
+    ndPopulateReview();
+  } else if(ndStep === 3){
+    ndCreateDeal();
+  }
+}
+
+function ndBack(){
+  if(ndStep > 1) ndGoTo(ndStep - 1);
+}
+
+function ndGoTo(step){
+  document.getElementById('nd-pane-'+ndStep).classList.remove('active');
+  ndStep = step;
+  document.getElementById('nd-pane-'+step).classList.add('active');
+  ndUpdateRail(step);
+  ndUpdateFooter();
+  var backBtn = document.getElementById('nd-btn-back');
+  backBtn.style.display = step > 1 ? '' : 'none';
+  /* scroll body to top */
+  document.querySelector('.nd-body').scrollTop = 0;
+}
+
+function ndToggleOptional(key){
+  var body = document.getElementById('nd-'+key+'-body');
+  var toggle = document.getElementById('nd-'+key+'-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function selectMotiv(chip, type){
+  /* single-select within the three main motivation chips */
+  document.querySelectorAll('.nd-motiv-chip.motivated, .nd-motiv-chip.flexible, .nd-motiv-chip.firm').forEach(function(c){
+    if(['motivated','flexible','firm'].some(function(cls){ return c.classList.contains(cls) && !c.classList.contains('sel'); })){
+      /* already handled below */
+    }
+    if(c === chip) return;
+    c.classList.remove('sel');
+  });
+  chip.classList.toggle('sel');
+}
+
+function ndCreateDeal(){
+  /* simulate deal creation */
+  ndDealCount++;
+  var ref = 'DS-0' + String(ndDealCount).padStart(2,'0');
+  document.getElementById('nd-success-ref').textContent = ref;
+  document.getElementById('nd-success').classList.add('show');
+  /* auto-navigate after 1.8s */
+  setTimeout(function(){
+    closeNewDeal();
+    /* In production: navigate to analysis hub inputs for the new deal */
+    /* window.location.href = './ds_analysis_hub.html?view=inputs&deal=' + ref; */
+    alert('Opening deal ' + ref + ' → Inputs tab');
+  }, 1900);
+}
+
+/* Escape key closes panel */
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && ndOpen) closeNewDeal();
+});
+</script>
+<script>
+/* ══ NOTIFICATION SYSTEM ══ */
+var notifOpen = false;
+var notifData = (function(){
+  var today = new Date();
+  var fmt = function(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+  var add = function(d,n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  // Simulated deal-aware notifications
+  var coolingEnd  = add(today, 2);
+  var packRelease = add(today, 5);
+  var noteDate1   = add(today,-1);
+  var noteDate2   = add(today,-3);
+  return [
+    { id:'n1', unread:true,  type:'amber', icon:'ti-alert-triangle',
+      deal:'14 Roath Court Rd', msg:'Cooling-off period ends '+fmt(coolingEnd)+' — confirm investor is proceeding', time:'Today' },
+    { id:'n2', unread:true,  type:'navy',  icon:'ti-file-text',
+      deal:'14 Roath Court Rd', msg:'Pack release scheduled for '+fmt(packRelease)+' — ensure content is finalised', time:'Today' },
+    { id:'n3', unread:true,  type:'teal',  icon:'ti-user-check',
+      deal:'14 Roath Court Rd', msg:'James Thornton expressed interest — log a response in Investors', time:'Yesterday' },
+    { id:'n4', unread:false, type:'navy',  icon:'ti-user',
+      deal:'14 Roath Court Rd', msg:'Seller details not yet completed — add vendor motivation before sharing packs', time:fmt(noteDate2) },
+    { id:'n5', unread:false, type:'red',   icon:'ti-clock-exclamation',
+      deal:'52 Crwys Rd', msg:'Deal has been in Negotiation for 18 days with no update', time:fmt(noteDate2) },
+  ];
+}());
+function renderNotifs(){
+  var unread = notifData.filter(function(n){ return n.unread; }).length;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.classList.toggle('show', unread > 0); }
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!notifData.length){
+    list.innerHTML = '<div class="notif-empty"><i class="ti ti-bell-off"></i><div class="notif-empty-msg">All caught up — no new notifications</div></div>';
+    return;
+  }
+  list.innerHTML = notifData.map(function(n){
+    return '<div class="notif-item'+(n.unread?' unread':'')+'" id="ni-'+n.id+'" onclick="readNotif(\''+n.id+'\')">'
+      +'<div class="notif-icon-wrap '+n.type+'"><i class="ti '+n.icon+'"></i></div>'
+      +'<div class="notif-body">'
+      +'<div class="notif-deal-tag">'+n.deal+'</div>'
+      +'<div class="notif-msg">'+n.msg+'</div>'
+      +'<div class="notif-time">'+n.time+'</div>'
+      +'</div>'
+      +(n.unread ? '<div class="notif-unread-dot"></div>' : '')
+      +'</div>';
+  }).join('');
+}
+function toggleNotif(e){
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  var drop = document.getElementById('notif-drop');
+  if(drop) drop.classList.toggle('show', notifOpen);
+  if(notifOpen) renderNotifs();
+}
+function readNotif(id){
+  var n = notifData.find(function(x){ return x.id===id; });
+  if(n) n.unread = false;
+  renderNotifs();
+}
+function markAllRead(){
+  notifData.forEach(function(n){ n.unread=false; });
+  renderNotifs();
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.notif-wrap')){ notifOpen=false; var d=document.getElementById('notif-drop'); if(d) d.classList.remove('show'); }
+});
+
+document.addEventListener("DOMContentLoaded",function(){ renderNotifs(); });
+</script>
+</body>
+</html>

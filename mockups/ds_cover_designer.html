@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Cover designer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px; --accent:#7C3AED;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* HEADER */
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;flex-shrink:0;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;flex-shrink:0;}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;transition:all .12s;}
+.avt:hover{background:rgba(255,255,255,.24);}
+
+/* BREADCRUMB + HEAD */
+.crumb{padding:14px 24px 0;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;}
+.crumb a{color:var(--navy);text-decoration:none;cursor:pointer;}
+.crumb a:hover{text-decoration:underline;}
+.crumb i{font-size:11px;color:#ccc;}
+.pg-head{padding:10px 24px 4px;}
+.pg-title{font-size:20px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:9px;}
+.pg-sub{font-size:12px;color:var(--text-2);margin-top:4px;max-width:640px;line-height:1.5;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:360px 1fr;gap:18px;padding:16px 24px 40px;align-items:start;max-width:1320px;margin:0 auto;}
+@media (max-width:980px){ .layout{grid-template-columns:1fr;} }
+
+.panel{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;}
+.panel + .panel{margin-top:14px;}
+.sec-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:10px;}
+.sec-lbl:not(:first-child){margin-top:18px;}
+
+/* PACK TYPE */
+.pack-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pack-card{border:.5px solid var(--border);border-radius:var(--r-md);padding:12px 10px;text-align:center;cursor:pointer;transition:all .15s;}
+.pack-card.on{border-color:var(--navy);background:var(--navy-light);box-shadow:0 0 0 2px rgba(27,58,107,.1);}
+.pack-card:hover:not(.on){border-color:rgba(27,58,107,.3);}
+.pack-name{font-size:12px;font-weight:600;color:var(--text-1);margin-top:5px;}
+.pack-sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+.pp-tag{font-size:8px;font-weight:700;background:#F3E8FF;color:var(--accent);border:.5px solid #E9D5FF;border-radius:20px;padding:1px 6px;letter-spacing:.04em;}
+
+/* STYLE PICKER */
+.style-grid{display:flex;flex-direction:column;gap:8px;}
+.style-card{display:flex;align-items:center;gap:12px;border:.5px solid var(--border);border-radius:var(--r-md);padding:9px 12px;cursor:pointer;transition:all .15s;}
+.style-card.on{border-color:var(--navy);background:var(--navy-light);box-shadow:0 0 0 2px rgba(27,58,107,.1);}
+.style-card:hover:not(.on){border-color:rgba(27,58,107,.3);}
+.style-thumb{width:38px;height:50px;border-radius:5px;flex-shrink:0;overflow:hidden;position:relative;border:.5px solid rgba(0,0,0,.06);}
+.style-thumb.classic{background:linear-gradient(165deg,var(--navy) 55%,var(--teal) 100%);}
+.style-thumb.clean{background:#fff;}
+.style-thumb.clean::after{content:'';position:absolute;left:6px;right:6px;top:10px;height:2px;background:var(--accent);}
+.style-thumb.clean::before{content:'';position:absolute;left:6px;right:14px;top:18px;height:9px;background:#e5e7eb;border-radius:1px;}
+.style-thumb.bold{background:var(--navy-deep);}
+.style-thumb.bold::after{content:'';position:absolute;right:0;top:0;bottom:0;width:14px;background:var(--accent);}
+.style-info{flex:1;min-width:0;}
+.style-name{font-size:12px;font-weight:600;color:var(--text-1);}
+.style-desc{font-size:10px;color:var(--text-2);margin-top:1px;line-height:1.4;}
+
+/* TOGGLES */
+.tog-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:.5px solid var(--bg-sec);}
+.tog-row:last-child{border-bottom:none;}
+.tog-lbl{font-size:12px;font-weight:600;color:var(--text-1);}
+.tog-sub{display:block;font-size:10px;font-weight:400;color:var(--text-2);margin-top:1px;line-height:1.4;}
+.tsw{width:36px;height:20px;background:var(--border);border-radius:20px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;margin-top:1px;}
+.tsw.on{background:var(--navy);}
+.tsk{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.tsw.on .tsk{left:18px;}
+.ref-box{display:flex;align-items:center;justify-content:space-between;background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 13px;margin-top:6px;}
+.ref-id{font-size:13px;font-weight:700;color:var(--navy);letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.ref-note{font-size:10px;color:var(--text-2);margin-top:7px;line-height:1.5;}
+
+/* PREVIEW */
+.prev-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:18px;}
+.prev-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.prev-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#999;}
+.prev-meta{font-size:11px;color:var(--text-2);}
+.prev-stage{display:flex;justify-content:center;}
+.cover-canvas{width:100%;max-width:480px;aspect-ratio:3/4;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 10px 36px rgba(0,0,0,.16);font-family:var(--font);}
+
+/* — Classic style — */
+.cv-classic{background:linear-gradient(165deg,var(--navy) 0%,var(--navy) 50%,var(--teal) 130%);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:28px 26px;}
+.cv-classic .cv-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.cv-classic .cv-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.cv-classic .cv-ref{font-size:10px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums;}
+.cv-classic .cv-addr{font-size:23px;font-weight:700;line-height:1.25;margin:38px 0 6px;}
+.cv-classic .cv-strat{font-size:11px;color:rgba(255,255,255,.7);margin-bottom:16px;}
+.cv-classic .cv-bmv{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 11px;margin-bottom:14px;}
+.cv-classic .cv-score{display:inline-flex;align-items:center;gap:6px;background:var(--teal-mid);color:#052e16;font-size:11px;font-weight:700;border-radius:20px;padding:5px 12px;margin-bottom:14px;}
+.cv-classic .cv-mets{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:auto;}
+.cv-classic .cv-m{background:rgba(255,255,255,.1);border-radius:6px;padding:7px 6px;}
+.cv-classic .cv-ml{font-size:7px;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.55);}
+.cv-classic .cv-mv{font-size:11px;font-weight:700;margin-top:2px;}
+.cv-classic .cv-fee{font-size:10px;color:rgba(255,255,255,.65);margin-top:12px;}
+
+/* — Clean style — */
+.cv-clean{background:#fff;color:var(--text-1);display:flex;flex-direction:column;padding:30px 28px;}
+.cv-clean .cv-rule{width:38px;height:3px;background:var(--accent);border-radius:3px;margin-bottom:18px;}
+.cv-clean .cv-kicker{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#aaa;margin-bottom:6px;}
+.cv-clean .cv-ref{font-size:9px;color:#bbb;font-variant-numeric:tabular-nums;position:absolute;top:24px;right:28px;}
+.cv-clean .cv-addr{font-size:25px;font-weight:700;line-height:1.28;letter-spacing:-.01em;margin-bottom:6px;}
+.cv-clean .cv-strat{font-size:11px;color:var(--text-2);margin-bottom:18px;}
+.cv-clean .cv-bmv{display:inline-block;font-size:10px;font-weight:600;color:var(--accent);border:.5px solid #E9D5FF;background:#FAF5FF;border-radius:20px;padding:4px 11px;margin-bottom:12px;width:fit-content;}
+.cv-clean .cv-score{display:inline-flex;align-items:center;gap:6px;border:.5px solid var(--teal-light);background:#ECFDF5;color:#065F46;font-size:11px;font-weight:700;border-radius:20px;padding:5px 12px;margin-bottom:16px;width:fit-content;}
+.cv-clean .cv-mets{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:auto;border-top:.5px solid var(--border);padding-top:16px;}
+.cv-clean .cv-ml{font-size:8px;letter-spacing:.04em;text-transform:uppercase;color:#aaa;}
+.cv-clean .cv-mv{font-size:13px;font-weight:700;margin-top:2px;color:var(--text-1);}
+.cv-clean .cv-fee{font-size:10px;color:var(--text-2);margin-top:14px;}
+
+/* — Bold style — */
+.cv-bold{background:var(--navy-deep);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:28px 30px;position:relative;overflow:hidden;}
+.cv-bold::before{content:'';position:absolute;left:0;right:0;top:0;height:46%;background:linear-gradient(135deg,var(--accent) 0%,#a78bfa 100%);clip-path:polygon(0 0,100% 0,100% 70%,0 100%);}
+.cv-bold .cv-top{position:relative;display:flex;justify-content:space-between;align-items:flex-start;z-index:2;}
+.cv-bold .cv-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.85);font-weight:700;}
+.cv-bold .cv-ref{font-size:10px;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums;}
+.cv-bold .cv-addr{position:relative;z-index:2;font-size:26px;font-weight:800;line-height:1.18;letter-spacing:-.02em;margin:30px 0 6px;}
+.cv-bold .cv-strat{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:14px;}
+.cv-bold .cv-bmv{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;background:#fff;color:var(--navy-deep);border-radius:5px;padding:5px 11px;margin-bottom:12px;width:fit-content;}
+.cv-bold .cv-score{display:inline-flex;align-items:center;gap:6px;background:var(--teal-mid);color:#052e16;font-size:11px;font-weight:800;border-radius:5px;padding:6px 13px;margin-bottom:14px;width:fit-content;}
+.cv-bold .cv-mets{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.cv-bold .cv-m{background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:6px;padding:7px 6px;}
+.cv-bold .cv-ml{font-size:7px;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.5);}
+.cv-bold .cv-mv{font-size:11px;font-weight:800;margin-top:2px;}
+.cv-bold .cv-fee{font-size:10px;color:rgba(255,255,255,.6);margin-top:12px;position:relative;z-index:2;}
+
+.strat-note{margin-top:14px;padding:11px 14px;background:var(--navy-light);border-radius:var(--r-md);font-size:11px;color:var(--navy);line-height:1.55;display:flex;gap:8px;align-items:flex-start;}
+.strat-note i{flex-shrink:0;margin-top:1px;}
+.strat-note b{font-weight:700;}
+.deal-switch{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2);}
+.deal-switch select{font-family:inherit;font-size:11px;border:.5px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text-1);background:#fff;cursor:pointer;}
+
+.actions{display:flex;gap:8px;margin-top:16px;}
+.act-btn{flex:1;font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;border:.5px solid var(--border);background:#fff;color:var(--text-1);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;}
+.act-btn:hover{border-color:var(--navy);color:var(--navy);}
+.act-btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;}
+.act-btn.primary:hover{opacity:.9;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy-dark);color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:500;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='./ds_deals.html'" title="Back to dashboard">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn on" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button>
+    </nav>
+  </div>
+  <div class="hdr-right">
+        <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+      <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+      <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+      <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+    </div>
+    <button class="btn-new" onclick="window.location.href='./ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="avt" onclick="window.location.href='./ds_profile_settings.html'" title="Profile &amp; settings">VM</div>
+  </div>
+</div>
+
+<div class="crumb">
+  <a onclick="window.location.href='./ds_deals.html'">Dashboard</a>
+  <i class="ti ti-chevron-right"></i>
+  <a onclick="window.location.href='./ds_content_hub.html'">Content</a>
+  <i class="ti ti-chevron-right"></i>
+  <span>Cover designer</span>
+</div>
+
+<div class="pg-head">
+  <div class="pg-title"><i class="ti ti-id-badge-2" style="font-size:18px;"></i> Cover designer</div>
+  <div class="pg-sub">Pick a cover style and what it shows — your choice applies to both the portrait pack and the landscape pack, and to every deal you export from now on. Change your mind any time before you share.</div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT: OPTIONS -->
+  <div>
+    <div class="panel">
+      <div class="sec-lbl">Pack format</div>
+      <div class="pack-row" id="pack-row">
+        <div class="pack-card on" data-pack="portrait" onclick="selectPack('portrait',this)">
+          <i class="ti ti-file-text" style="font-size:18px;color:var(--navy);"></i>
+          <div class="pack-name">Portrait</div>
+          <div class="pack-sub">8 pages · all tiers</div>
+        </div>
+        <div class="pack-card" data-pack="landscape" onclick="selectPack('landscape',this)">
+          <i class="ti ti-layout-sidebar" style="font-size:18px;color:var(--text-2);"></i>
+          <div class="pack-name">Landscape <span class="pp-tag">PRO+</span></div>
+          <div class="pack-sub">10 pages</div>
+        </div>
+      </div>
+
+      <div class="sec-lbl">Cover style</div>
+      <div class="style-grid" id="style-grid">
+        <div class="style-card on" data-style="classic" onclick="selectStyle('classic',this)">
+          <div class="style-thumb classic"></div>
+          <div class="style-info">
+            <div class="style-name">Classic</div>
+            <div class="style-desc">Navy-to-teal gradient, centred address, metric strip along the base. The original DealScore look.</div>
+          </div>
+        </div>
+        <div class="style-card" data-style="clean" onclick="selectStyle('clean',this)">
+          <div class="style-thumb clean"></div>
+          <div class="style-info">
+            <div class="style-name">Clean</div>
+            <div class="style-desc">White background, editorial type, plenty of space. Reads like a considered report rather than a sales sheet.</div>
+          </div>
+        </div>
+        <div class="style-card" data-style="bold" onclick="selectStyle('bold',this)">
+          <div class="style-thumb bold"></div>
+          <div class="style-info">
+            <div class="style-name">Bold</div>
+            <div class="style-desc">Dark canvas, oversized type, accent-colour block. Makes a strong first impression in a crowded inbox.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-lbl">What shows on the cover</div>
+
+      <div class="tog-row">
+        <div><div class="tog-lbl">Deal Score</div><span class="tog-sub">Your headline verdict (e.g. "RECOMMENDED") shown as a badge</span></div>
+        <div class="tsw on" id="tog-score" onclick="toggleOpt(this,'score')"><div class="tsk"></div></div>
+      </div>
+      <div class="tog-row">
+        <div><div class="tog-lbl">Sourcing fee</div><span class="tog-sub">Shown discreetly near the base of the cover</span></div>
+        <div class="tsw on" id="tog-fee" onclick="toggleOpt(this,'fee')"><div class="tsk"></div></div>
+      </div>
+      <div class="tog-row">
+        <div><div class="tog-lbl">BMV strip</div><span class="tog-sub">Highlights how far below market value the deal sits</span></div>
+        <div class="tsw on" id="tog-bmv" onclick="toggleOpt(this,'bmv')"><div class="tsk"></div></div>
+      </div>
+
+      <div class="sec-lbl">Deal reference number</div>
+      <div class="ref-box">
+        <span class="ref-id" id="ref-id">DS-2026-0612-A</span>
+        <i class="ti ti-refresh" style="font-size:14px;color:var(--text-2);cursor:pointer;" title="Generate a new reference" onclick="regenRef()"></i>
+      </div>
+      <div class="ref-note">Generated automatically for every pack — printed in the corner of the cover so you and your investor can refer back to the same version of a deal in conversation.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: LIVE PREVIEW -->
+  <div>
+    <div class="prev-card">
+      <div class="prev-hd">
+        <span class="prev-lbl">Live preview <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;">— updates as you choose</span></span>
+        <div class="deal-switch">
+          Preview deal:
+          <select id="deal-switch-sel" onchange="renderCover()">
+            <option value="0">65a Horwood Close, Leeds (BTL)</option>
+            <option value="1">12 Victoria Street, Manchester (HMO)</option>
+            <option value="2">8 Park Lane, Birmingham (BRRR)</option>
+          </select>
+        </div>
+      </div>
+      <div class="prev-stage">
+        <div class="cover-canvas" id="cover-canvas"></div>
+      </div>
+      <div class="strat-note" id="strat-note">
+        <i class="ti ti-bulb"></i>
+        <span><b>Strategy-aware metric cards</b> — the four numbers on the cover change automatically with each deal's strategy, so a BTL cover leads with cashflow and yield while an HMO or flip cover highlights the figures that matter for that strategy instead.</span>
+      </div>
+      <div class="actions">
+        <button class="act-btn" onclick="showToast('Saved as your default cover — applies to every pack you export from now on')"><i class="ti ti-device-floppy"></i> Save as default</button>
+        <button class="act-btn primary" onclick="showToast('Opening full pack preview…')"><i class="ti ti-eye"></i> Preview full pack</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(m){ var t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; clearTimeout(window._toastT); window._toastT=setTimeout(function(){ t.style.opacity=0; },2200); }
+
+/* ── Preview deals — strategy-aware metric sets, mirrors data used elsewhere in the app ── */
+var coverDeals = [
+  { addr:'65a Horwood Close, Leeds LS7', strat:'Buy-to-Let', score:'RECOMMENDED', bmv:'9% below market value', fee:'£3,000 sourcing fee',
+    metrics:[['Monthly CF','+£482/mo'],['CoC ROI','6.4%'],['Gross yield','6.4%'],['Purchase price','£207k']] },
+  { addr:'12 Victoria Street, Manchester M1', strat:'HMO · 6-bed', score:'REVIEW', bmv:'4% below market value', fee:'£4,200 sourcing fee',
+    metrics:[['Monthly CF','+£910/mo'],['Net yield','9.1%'],['Rooms let','6 of 6'],['Purchase price','£295k']] },
+  { addr:'8 Park Lane, Birmingham B15', strat:'BRRR · refurb', score:'RECOMMENDED', bmv:'14% below market value', fee:'£3,500 sourcing fee',
+    metrics:[['Cash left in','£18,400'],['Post-refurb value','£241k'],['Refurb cost','£32k'],['Purchase price','£185k']] }
+];
+
+var state = { pack:'portrait', style:'classic', score:true, fee:true, bmv:true };
+var refSeq = 12; // mockup ref counter
+
+function selectPack(p, el){
+  state.pack = p;
+  document.querySelectorAll('#pack-row .pack-card').forEach(function(c){ c.classList.toggle('on', c===el); });
+  if(p === 'landscape') showToast('Landscape pack is a Pro Plus format — your cover choices carry across to it automatically');
+}
+
+function selectStyle(s, el){
+  state.style = s;
+  document.querySelectorAll('#style-grid .style-card').forEach(function(c){ c.classList.toggle('on', c===el); });
+  renderCover();
+}
+
+function toggleOpt(el, key){
+  state[key] = !state[key];
+  el.classList.toggle('on', state[key]);
+  renderCover();
+}
+
+function regenRef(){
+  refSeq++;
+  document.getElementById('ref-id').textContent = 'DS-2026-0612-' + String.fromCharCode(64 + ((refSeq - 1) % 26) + 1);
+  showToast('New reference generated — the old one stays valid on packs already sent');
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderCover(){
+  var d = coverDeals[Number(document.getElementById('deal-switch-sel').value)];
+  var canvas = document.getElementById('cover-canvas');
+  var cls = 'cv-' + state.style;
+
+  var bmvHtml   = state.bmv   ? '<div class="cv-bmv">'+ (state.style==='bold' ? '↓ '+escHtml(d.bmv).toUpperCase() : escHtml(d.bmv)) +'</div>' : '';
+  var scoreHtml = state.score ? '<div class="cv-score"><i class="ti ti-shield-check-filled" aria-hidden="true"></i> '+escHtml(d.score)+'</div>' : '';
+  var feeHtml   = state.fee   ? '<div class="cv-fee">'+escHtml(d.fee)+'</div>' : '';
+
+  var metsHtml = '<div class="cv-mets">' + d.metrics.map(function(m){
+    return '<div class="cv-m"><div class="cv-ml">'+escHtml(m[0])+'</div><div class="cv-mv">'+escHtml(m[1])+'</div></div>';
+  }).join('') + '</div>';
+
+  var inner;
+  if(state.style === 'classic'){
+    inner = ''
+      + '<div class="cv-top"><span class="cv-kicker">Investment opportunity</span><span class="cv-ref">'+document.getElementById('ref-id').textContent+'</span></div>'
+      + '<div class="cv-addr">'+escHtml(d.addr)+'</div>'
+      + '<div class="cv-strat">'+escHtml(d.strat)+' · Prepared for review</div>'
+      + bmvHtml + scoreHtml
+      + metsHtml
+      + feeHtml;
+  } else if(state.style === 'clean'){
+    inner = ''
+      + '<span class="cv-ref">'+document.getElementById('ref-id').textContent+'</span>'
+      + '<div class="cv-rule"></div>'
+      + '<div class="cv-kicker">Investment opportunity</div>'
+      + '<div class="cv-addr">'+escHtml(d.addr)+'</div>'
+      + '<div class="cv-strat">'+escHtml(d.strat)+' · Prepared for review</div>'
+      + bmvHtml + scoreHtml
+      + '<div class="cv-mets">' + d.metrics.map(function(m){
+          return '<div><div class="cv-ml">'+escHtml(m[0])+'</div><div class="cv-mv">'+escHtml(m[1])+'</div></div>';
+        }).join('') + '</div>'
+      + feeHtml;
+  } else {
+    inner = ''
+      + '<div class="cv-top"><span class="cv-kicker">Investment opportunity</span><span class="cv-ref">'+document.getElementById('ref-id').textContent+'</span></div>'
+      + '<div class="cv-addr">'+escHtml(d.addr)+'</div>'
+      + '<div class="cv-strat">'+escHtml(d.strat)+' · Prepared for review</div>'
+      + bmvHtml + scoreHtml
+      + metsHtml
+      + feeHtml;
+  }
+
+  canvas.className = 'cover-canvas ' + cls;
+  canvas.innerHTML = inner;
+
+  // Keep the explanatory note in sync with the deal currently shown
+  document.getElementById('strat-note').querySelector('span').innerHTML =
+    '<b>Strategy-aware metric cards</b> — for this <b>'+escHtml(d.strat)+'</b> deal the cover automatically leads with '
+    + d.metrics.slice(0,2).map(function(m){return m[0].toLowerCase();}).join(' and ')
+    + ', because those are what an investor weighing this strategy looks at first. Switch the preview deal above to see the cards adapt.';
+}
+
+renderCover();
+var mockupTier="pro";
+function setMockupTier(tier){
+  mockupTier=tier;
+  document.body.classList.toggle("tier-proplus",tier==="proplus");
+  var p=document.getElementById("hdr-tier-pro"),pp=document.getElementById("hdr-tier-pp");
+  if(tier==="proplus"){if(p){p.style.background="transparent";p.style.color="rgba(255,255,255,.4)";}if(pp){pp.style.background="rgba(255,255,255,.2)";pp.style.color="#fff";}}
+  else{if(p){p.style.background="var(--navy)";p.style.color="#fff";}if(pp){pp.style.background="transparent";pp.style.color="rgba(255,255,255,.4)";}}
+}
+</script>
+</body>
+</html>

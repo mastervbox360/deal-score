@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* ══════════════════════════════════════
+   PRIVACY BANNER
+   ══════════════════════════════════════ */
+.privacy-banner{display:none;background:#92400e;padding:7px 24px;font-size:11px;font-weight:500;color:#fef3c7;align-items:center;gap:8px;}
+.privacy-banner.show{display:flex;}
+.pii{transition:opacity .2s;}
+body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
+
+/* ══════════════════════════════════════
+   STATS BAR
+   ══════════════════════════════════════ */
+.stats{display:grid;grid-template-columns:repeat(7,1fr);background:#fff;border-bottom:.5px solid var(--border);}
+.sc{padding:12px 18px;border-right:.5px solid var(--border);cursor:pointer;transition:background .12s;user-select:none;}
+.sc:last-child{border-right:none;}
+.sc:hover{background:var(--bg-sec);}
+.sc.active{background:var(--navy-light);border-bottom:2px solid var(--navy);}
+.sl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:4px;}
+.sv{font-size:20px;font-weight:500;color:var(--navy);}
+.sv.gr{color:var(--teal);}
+.sv.am{color:#D97706;}
+.sv.sm{font-size:15px;}
+
+/* ══════════════════════════════════════
+   TODAY STRIP (activity / viewings)
+   ══════════════════════════════════════ */
+.today-strip{background:#fff;border-bottom:.5px solid var(--border);padding:10px 24px;}
+.today-strip.collapsed .ts-row{display:none;}
+.today-strip.collapsed{padding-bottom:8px;}
+.ts-toggle-btn{margin-left:auto;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;letter-spacing:.03em;}
+.ts-toggle-btn:hover{border-color:#c8cdd5;color:var(--text-1);}
+.ts-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.ts-row{display:flex;gap:8px;flex-wrap:wrap;}
+.ts-chip{border-radius:var(--r-md);padding:8px 12px;min-width:190px;border:.5px solid;display:flex;flex-direction:column;gap:1px;}
+.ts-chip.viewing{background:#eff6ff;border-color:#bfdbfe;}
+.ts-chip.chase{background:#fef3c7;border-color:#fde68a;}
+.ts-chip.day15{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2);}
+.ts-chip.sens{background:var(--bg-sec);border-color:var(--border);}
+.ts-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.ts-chip.viewing .ts-type{color:#1e40af;}
+.ts-chip.chase .ts-type{color:#92400e;}
+.ts-chip.day15 .ts-type{color:#5B21B6;}
+.ts-chip.sens .ts-type{color:var(--text-2);}
+.ts-addr{font-size:12px;font-weight:500;color:var(--text-1);margin-bottom:1px;}
+.ts-detail{font-size:11px;color:var(--text-2);margin-bottom:6px;}
+/* action button on each chip */
+.ts-action{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;border:.5px solid;cursor:pointer;font-family:inherit;background:#fff;margin-top:2px;transition:opacity .12s;align-self:flex-start;}
+.ts-action:hover{opacity:.8;}
+.ts-chip.viewing .ts-action{color:#1e40af;border-color:#bfdbfe;}
+.ts-chip.chase .ts-action{color:#92400e;border-color:#fde68a;}
+.ts-chip.day15 .ts-action{color:#5B21B6;border-color:rgba(124,58,237,.3);}
+.ts-chip.sens .ts-action{color:var(--navy);border-color:var(--border);}
+
+/* ══════════════════════════════════════
+   TOOLBAR
+   ══════════════════════════════════════ */
+.tbar{background:#fff;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:8px 24px;position:sticky;top:var(--hdr-h);z-index:210;}
+.tbar-left{display:flex;align-items:center;gap:8px;}
+.vgrp{display:flex;gap:2px;background:var(--bg-sec);border:.5px solid var(--border);border-radius:9px;padding:2px;}
+.vbtn{font-size:12px;padding:5px 10px;border-radius:7px;border:none;background:none;color:#666;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .1s;white-space:nowrap;}
+.vbtn:hover{background:#fff;color:var(--navy);}
+.vbtn.on{background:#fff;color:var(--navy);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.vbtn.vb-icon{padding:5px 9px;font-size:14px;}
+.vgrp-sep{width:.5px;height:20px;background:var(--border);align-self:center;margin:0 1px;flex-shrink:0;}
+.tbar-right{display:flex;gap:6px;align-items:center;}
+.fsel{padding:5px 8px;border:.5px solid var(--border);border-radius:7px;font-size:11px;background:#fff;color:#555;outline:none;font-family:inherit;cursor:pointer;}
+.fsel:focus{border-color:var(--navy);}
+.sinp{padding:5px 10px;border:.5px solid var(--border);border-radius:7px;font-size:11px;background:#fff;outline:none;width:140px;font-family:inherit;}
+.sinp:focus{border-color:var(--navy);}
+
+/* ══════════════════════════════════════
+   DEAL STATUS PILLS — confirmed system
+   ══════════════════════════════════════ */
+.ds-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+/* ── Active pipeline statuses ── */
+.ds-status.sourcing{border-color:#9ca3af;}
+.ds-status.ready{border-color:#10b981;}
+.ds-status.live{border-color:#1B3A6B;}
+.ds-status.reserved{border-color:#f59e0b;}
+.ds-status.pack-sent{border-color:#8b5cf6;}
+/* ── Exit statuses — distinct from each other ── */
+.ds-status.complete{border-color:#059669;background:#ecfdf5;color:#065f46;font-weight:600;}  /* ✅ Success */
+.ds-status.archived{border-color:#94a3b8;color:#475569;}                                     /* ⏸ Paused / on hold */
+.ds-status.withdrawn{border-color:#f87171;background:#fef2f2;color:#b91c1c;}                 /* ❌ Fell through externally */
+.ds-status.deleted{border-color:#dc2626;background:#fef2f2;color:#991b1b;font-weight:600;}   /* 🗑 Rejected by user — recorded for intelligence */
+/* Archived section layout */
+.arc-sub-hdr{display:flex;align-items:center;gap:8px;padding:10px 0 8px;margin-top:4px;}
+.arc-sub-hdr:first-child{margin-top:0;}
+.arc-sub-icon{font-size:14px;color:var(--text-2);}
+.arc-sub-label{font-size:12px;font-weight:700;color:var(--text-1);}
+.arc-sub-count{font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--bg-sec);color:var(--text-2);}
+.arc-sub-desc{font-size:10px;color:var(--text-2);}
+/* Deal intelligence card */
+.deal-intel{display:flex;align-items:flex-start;gap:12px;margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:.5px solid #bfdbfe;border-radius:var(--r-lg);}
+.deal-intel-icon{width:32px;height:32px;border-radius:8px;background:#1B3A6B;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;}
+.deal-intel-body{flex:1;min-width:0;}
+.deal-intel-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.deal-intel-text{font-size:11px;color:var(--text-2);line-height:1.6;}
+.deal-intel-text b{color:var(--text-1);font-weight:600;}
+.deal-intel-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.dit{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;background:#fff;border:.5px solid var(--border);color:var(--text-2);}
+.dit.red{background:#fef2f2;border-color:#fca5a5;color:#b91c1c;}
+.dit.amber{background:#fffbeb;border-color:#fde68a;color:#92400e;}
+/* Rejection reason tag on deleted cards */
+.reject-reason{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;background:#fef2f2;border:.5px solid #fca5a5;color:#b91c1c;margin-top:4px;}
+.reject-reason i{font-size:9px;}
+/* Strategy + Score — stacked two-line, no pills */
+.ds-tag{display:flex;flex-direction:column;gap:2px;}
+.dst-strat{font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.03em;}
+.dst-score{font-size:10px;font-weight:500;letter-spacing:.01em;}
+.dst-score.rec{color:#059669;}
+.dst-score.rev{color:#D97706;}
+.dst-score.av{color:#b91c1c;}
+.dst-score.inc{color:#9ca3af;}
+
+/* ══════════════════════════════════════
+   DEAL CARDS
+   ══════════════════════════════════════ */
+.cgrid{display:grid;gap:12px;padding:20px 24px 40px;}
+.g3c{grid-template-columns:repeat(3,1fr);}
+.g4c{grid-template-columns:repeat(4,1fr);}
+
+.dc{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--border);overflow:hidden;transition:box-shadow .15s;display:flex;flex-direction:column;position:relative;}
+.dc:hover{box-shadow:0 3px 16px rgba(0,0,0,.08);}
+/* Fixed-height info zone — always present, filled when reminders exist, empty otherwise.
+   Ensures .cmet always starts at the same vertical position across all cards in a row.
+   Fixed height + overflow:hidden prevents text-wrapping in compact (4-col) view from
+   breaking alignment. */
+.cinfo-zone{height:72px;overflow:hidden;display:flex;flex-direction:column;flex-shrink:0;}
+/* Metrics fill remaining space so footer pins to bottom */
+.cmet{flex:1;}
+/* top accent bar driven by score */
+.dc-rec{border-top:2.5px solid var(--teal);}
+.dc-rev{border-top:2.5px solid #D97706;}
+.dc-av{border-top:2.5px solid #DC2626;}
+.dc-inc{border-top:2.5px solid #e5e7eb;}
+
+.ctop{display:flex;align-items:center;padding:11px 13px 5px;}
+.cadr{padding:2px 13px 1px;font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cdid{padding:0 13px 1px;font-size:10px;color:#ccc;letter-spacing:.03em;}
+.cprice{padding:0 13px 7px;font-size:11px;color:var(--text-2);}
+
+/* Seller / status row */
+.cinfo-row{padding:5px 13px;font-size:11px;color:#92400e;background:#fef9ee;border-top:.5px solid #fde68a20;border-bottom:.5px solid #fde68a20;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.cinfo-row.neutral{color:var(--text-2);background:var(--bg-sec);border-color:var(--border);}
+
+/* cooling off bar */
+.coolc{padding:4px 13px 2px;font-size:11px;color:#92400e;display:flex;align-items:center;gap:5px;}
+.coolp{height:2px;background:var(--border);margin:0 13px 6px;border-radius:2px;overflow:hidden;}
+.coolpf{height:100%;background:#D97706;border-radius:2px;}
+
+/* metrics 2x2 */
+.cmet{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:7px 13px 10px;}
+.cm{background:var(--bg-sec);border-radius:var(--r-sm);padding:7px 9px;}
+.cml{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:2px;}
+.cmv{font-size:13px;font-weight:500;color:var(--navy);}
+.cmv.gr{color:var(--teal);}
+.cmv.re{color:#DC2626;}
+.cmv.am{color:#D97706;}
+.cmv.dim{color:#bbb;}
+
+/* card footer */
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;border-top:.5px solid var(--border);}
+.cacts{display:flex;gap:3px;}
+.cbtn{font-size:11px;font-weight:500;padding:5px 9px;border-radius:6px;cursor:pointer;border:.5px solid;font-family:inherit;display:flex;align-items:center;gap:3px;transition:opacity .12s;white-space:nowrap;}
+.cbtn:hover{opacity:.8;}
+.cbtn-ghost{background:var(--bg-sec);color:#555;border-color:var(--border);}
+.cbtn-primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.cbtn-icon{padding:5px 7px;}
+
+/* ══════════════════════════════════════
+   PROPERTY ADVERT CARD (.da) — grid 3-col
+   ══════════════════════════════════════ */
+.da{background:#fff;border-radius:var(--r-md);border:.5px solid var(--border);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+/* Photo zone */
+.da-photo{position:relative;height:126px;background:var(--navy-dark);overflow:hidden;flex-shrink:0;}
+.da-photo-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
+.da-photo-placeholder{position:absolute;inset:0;overflow:hidden;line-height:0;}
+/* Overlaid badges */
+.da-strat-badge{position:absolute;top:9px;left:9px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.8);font-size:9px;font-weight:800;letter-spacing:.07em;padding:2px 7px;border-radius:20px;backdrop-filter:blur(4px);}
+.da-score-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.da-score-badge.rec{background:rgba(29,158,117,.1);color:var(--teal);border:.5px solid rgba(29,158,117,.25);}
+.da-score-badge.rev{background:rgba(217,119,6,.08);color:#D97706;border:.5px solid rgba(217,119,6,.2);}
+.da-score-badge.av{background:rgba(220,38,38,.08);color:#DC2626;border:.5px solid rgba(220,38,38,.18);}
+.da-score-badge.inc{background:#f3f4f6;color:#9ca3af;border:.5px solid #e5e7eb;}
+/* Photo upload button */
+.da-photo-upload{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.55);color:rgba(255,255,255,.75);border:.5px solid rgba(255,255,255,.2);font-size:10px;font-weight:500;padding:3px 8px;border-radius:var(--r-sm);display:flex;align-items:center;gap:4px;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s;}
+.da-photo-upload:hover{background:rgba(0,0,0,.75);}
+/* Body */
+.da-body{padding:10px 12px 6px;flex:1;}
+.da-price{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.da-addr-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:2px;}
+.da-addr{font-size:11px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.da-addr.da-empty{color:#ccc;font-style:italic;}
+.da-ref{font-size:9px;color:#d1d5db;margin-bottom:8px;}
+/* Metrics grid */
+.da-mrow{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.dam{background:var(--bg-sec);border-radius:4px;padding:5px 6px;}
+.dam-l{font-size:9px;color:var(--text-2);font-weight:500;margin-bottom:1px;}
+.dam-v{font-size:12px;font-weight:700;color:var(--text-1);}
+.dam-v.gr{color:var(--teal);}
+.dam-v.re{color:#DC2626;}
+.dam-v.dim{color:#d1d5db;}
+/* Footer */
+.da-foot{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 10px;border-top:.5px solid var(--border);margin-top:auto;}
+.da-acts{display:flex;gap:4px;}
+.da-incomplete .da-photo{opacity:.55;}
+
+/* ══════════════════════════════════════
+   BUSINESS CARD (.bc) — grid-compact 4-col
+   ══════════════════════════════════════ */
+.bc{background:#fff;border-radius:var(--r-md);border:.5px solid var(--border);overflow:hidden;display:flex;flex-direction:column;}
+/* Header: dark navy band */
+.bc-head{background:var(--navy-dark);display:flex;align-items:center;justify-content:space-between;padding:7px 10px;}
+.bc-strat{font-size:11px;font-weight:800;letter-spacing:.07em;color:rgba(255,255,255,.65);}
+.bc-score{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.bc-score.rec{color:#34D399;}
+.bc-score.rev{color:#FCD34D;}
+.bc-score.av{color:#f87171;}
+.bc-score.inc{color:rgba(255,255,255,.3);}
+/* Body */
+.bc-main{padding:9px 10px 8px;flex:1;}
+.bc-addr{font-size:11px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px;}
+.bc-addr.bc-dim{color:#ccc;}
+.bc-price{font-size:10px;color:var(--text-2);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bc-hero-l{font-size:9px;color:var(--text-2);font-weight:500;margin-bottom:2px;}
+.bc-hero-v{font-size:19px;font-weight:800;color:var(--text-1);line-height:1.1;}
+.bc-hero-v.gr{color:var(--teal);}
+.bc-hero-v.re{color:#DC2626;}
+.bc-hero-v.dim{color:#d1d5db;}
+/* Footer */
+.bc-foot{display:flex;align-items:center;justify-content:space-between;padding:7px 10px 8px;border-top:.5px solid var(--border);}
+
+/* ══════════════════════════════════════
+   LIST VIEW
+   ══════════════════════════════════════ */
+.dl{background:#fff;border-radius:var(--r-md);border:.5px solid var(--border);overflow:hidden;}
+.dl-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 140px;align-items:center;padding:9px 14px;border-bottom:.5px solid var(--border);gap:10px;transition:background .12s;}
+.dl-row:last-child{border-bottom:none;}
+.dl-row:hover{background:var(--bg-sec);}
+.dl-head{background:var(--bg-sec);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#bbb;}
+.dl-head:hover{background:var(--bg-sec);}
+.dl-addr{font-size:12px;font-weight:600;color:var(--text-1);}
+.dl-sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+.dl-val{font-size:12px;font-weight:500;color:var(--navy);}
+.dl-val.gr{color:var(--teal);}
+.dl-val.re{color:#DC2626;}
+.dl-acts{display:flex;gap:4px;justify-content:flex-end;}
+/* list-compact overrides — single-line dense rows */
+.dl.compact .dl-row:not(.dl-head){padding:4px 14px;}
+.dl.compact .dl-addr{font-size:11px;}
+.dl.compact .dl-sub{display:none;}
+.dl.compact .dl-val{font-size:11px;}
+.dl.compact .dl-head{font-size:8px;padding:4px 14px;}
+.dl.compact .cbtn{padding:3px 8px;font-size:10px;}
+.dl.compact .ds-tag .dst-strat{font-size:10px;}
+.dl.compact .ds-tag .dst-score{font-size:9px;}
+.dl.compact .ds-status{font-size:10px;padding:1px 6px 1px 5px;}
+
+/* ══════════════════════════════════════
+   EMPTY STATE
+   ══════════════════════════════════════ */
+.empty-state{text-align:center;padding:60px 24px;color:var(--text-2);}
+.empty-state i{font-size:32px;color:#ddd;margin-bottom:12px;display:block;}
+.empty-state-title{font-size:14px;font-weight:600;color:var(--text-1);margin-bottom:6px;}
+.empty-state-text{font-size:12px;line-height:1.6;max-width:360px;margin:0 auto 16px;}
+
+/* ══════════════════════════════════════
+   DEAL BOARD — kanban
+   ══════════════════════════════════════ */
+.board-wrap{display:none;padding:16px 24px 40px;overflow-x:auto;min-height:calc(100vh - 300px);}
+.board-wrap.show{display:block;}
+.board{display:flex;gap:10px;align-items:flex-start;min-width:max-content;}
+
+/* Column */
+.kb-col{width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:0;}
+.kb-hdr{padding:10px 12px;border-radius:var(--r-md) var(--r-md) 0 0;border:.5px solid;border-bottom:none;position:sticky;top:0;z-index:5;}
+.kb-hdr.sourcing{background:#f9fafb;border-color:#e5e7eb;}
+.kb-hdr.ready{background:rgba(29,158,117,.07);border-color:rgba(29,158,117,.25);}
+.kb-hdr.live{background:#eff6ff;border-color:#bfdbfe;}
+.kb-hdr.reserved{background:#fefce8;border-color:#fde68a;}
+.kb-hdr.pack-sent{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2);}
+.kb-hdr.complete{background:#f0fdf4;border-color:#86efac;}
+.kb-hdr.withdrawn{background:#f9fafb;border-color:#e5e7eb;}
+
+.kb-stage{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.kb-stage-name{font-size:11px;font-weight:700;letter-spacing:.02em;}
+.kb-stage-name.sourcing{color:#6b7280;}
+.kb-stage-name.ready{color:#065f46;}
+.kb-stage-name.live{color:#1e40af;}
+.kb-stage-name.reserved{color:#92400e;}
+.kb-stage-name.pack-sent{color:#5B21B6;}
+.kb-stage-name.complete{color:#166534;}
+.kb-stage-name.withdrawn{color:#9ca3af;}
+.kb-count{font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:rgba(0,0,0,.07);color:inherit;}
+.kb-meta{font-size:10px;color:var(--text-2);margin-top:1px;}
+
+/* Cards body */
+.kb-body{background:var(--bg-sec);border:.5px solid;border-top:none;border-radius:0 0 var(--r-md) var(--r-md);padding:8px;display:flex;flex-direction:column;gap:7px;min-height:120px;}
+.kb-body.sourcing{border-color:#e5e7eb;}
+.kb-body.ready{border-color:rgba(29,158,117,.2);}
+.kb-body.live{border-color:#bfdbfe;}
+.kb-body.reserved{border-color:#fde68a;}
+.kb-body.pack-sent{border-color:rgba(124,58,237,.18);}
+.kb-body.complete{border-color:#86efac;}
+.kb-body.withdrawn{border-color:#e5e7eb;}
+
+/* Kanban deal card */
+.kc{background:#fff;border-radius:var(--r-sm);border:.5px solid var(--border);padding:10px 10px 8px;cursor:pointer;transition:box-shadow .12s;}
+.kc:hover{box-shadow:0 2px 10px rgba(0,0,0,.09);}
+.kc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.kc-strat{font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;background:var(--navy-light);color:var(--navy);letter-spacing:.04em;}
+.kc-score{font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;}
+.kc-score.rec{background:rgba(29,158,117,.1);color:#065f46;}
+.kc-score.rev{background:rgba(217,119,6,.1);color:#92400e;}
+.kc-score.av{background:rgba(220,38,38,.08);color:#991b1b;}
+.kc-score.inc{background:var(--bg-sec);color:#9ca3af;}
+.kc-addr{font-size:11px;font-weight:600;color:var(--text-1);line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kc-price{font-size:10px;color:var(--text-2);margin-bottom:6px;}
+.kc-metric{display:flex;align-items:baseline;justify-content:space-between;padding:4px 6px;background:var(--bg-sec);border-radius:4px;margin-bottom:6px;}
+.kc-metric-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;}
+.kc-metric-val{font-size:12px;font-weight:600;color:var(--navy);}
+.kc-metric-val.gr{color:var(--teal);}
+.kc-metric-val.re{color:#DC2626;}
+.kc-metric-val.am{color:#D97706;}
+.kc-days{font-size:10px;color:var(--text-2);margin-bottom:6px;display:flex;align-items:center;gap:3px;}
+.kc-days.urgent{color:#92400e;font-weight:600;}
+/* Day countdown bar on reserved */
+.kc-bar{height:2px;background:var(--border);border-radius:2px;margin-bottom:6px;overflow:hidden;}
+.kc-bar-fill{height:100%;border-radius:2px;background:#D97706;}
+.kc-foot{display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:.5px solid var(--border);}
+.kc-stage-sel{font-size:9px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;}
+.kc-stage-sel:hover{color:var(--navy);}
+.kc-open{font-size:10px;font-weight:600;color:var(--navy);background:var(--navy-light);border:.5px solid rgba(27,58,107,.15);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:2px;white-space:nowrap;}
+.kc-open:hover{background:#dce8f8;}
+
+/* Add deal card */
+.kc-add{border:.5px dashed var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;cursor:pointer;color:#bbb;font-size:11px;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.kc-add:hover{border-color:var(--navy);color:var(--navy);background:#f8faff;}
+
+
+
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+
+
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+
+
+
+
+
+.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+.search-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.search-bar:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.search-bar:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.search-bar i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.search-bar input::placeholder{color:rgba(255,255,255,.3);}
+.search-bar .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}.search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.search-icon-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);font-size:15px;transition:all .12s;}
+.search-icon-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.hdr-icon{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;transition:all .12s;position:relative;flex-shrink:0;}
+.hdr-icon:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#D97706;border:1.5px solid var(--navy-dark);}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;transition:all .12s;}
+.avt-wrap-inner:hover .avt{background:rgba(255,255,255,.24);}
+.avt-chevron{font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt.privacy-on{border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.35);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+.mini-toggle{position:relative;width:28px;height:16px;flex-shrink:0;}
+.mini-toggle input{opacity:0;width:0;height:0;}
+.mini-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.mini-toggle input:checked + .mini-track{background:var(--teal);}
+.mini-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.mini-toggle input:checked ~ .mini-thumb{transform:translateX(12px);}
+
+
+/* ══ NOTIFICATION BELL ══ */
+.notif-wrap{position:relative;}
+.notif-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;position:relative;flex-shrink:0;transition:all .12s;}
+.notif-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-badge{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:1.5px solid var(--navy-dark);display:none;}
+.notif-badge.show{display:block;}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);width:320px;z-index:400;display:none;overflow:hidden;}
+.notif-drop.show{display:block;}
+.notif-drop-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.notif-drop-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.notif-mark-all{font-size:10px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;padding:0;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.notif-item:hover{background:var(--bg-sec);}
+.notif-item.unread{background:#fefce8;}
+.notif-item.unread:hover{background:#fef9c3;}
+.notif-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.notif-icon-wrap.amber{background:#fef3c7;color:#d97706;}
+.notif-icon-wrap.navy{background:#e8eef7;color:var(--navy);}
+.notif-icon-wrap.teal{background:#d1fae5;color:#059669;}
+.notif-icon-wrap.red{background:#fee2e2;color:#dc2626;}
+.notif-icon-wrap i{font-size:14px;}
+.notif-body{flex:1;min-width:0;}
+.notif-deal-tag{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.notif-msg{font-size:11px;font-weight:500;color:var(--text-1);line-height:1.4;}
+.notif-time{font-size:9px;color:var(--text-2);margin-top:3px;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:5px;}
+.notif-empty{padding:28px 14px;text-align:center;}
+.notif-empty i{font-size:24px;color:var(--text-2);margin-bottom:6px;display:block;}
+.notif-empty-msg{font-size:11px;color:var(--text-2);}
+.notif-drop-footer{padding:9px 14px;border-top:.5px solid var(--border);text-align:center;}
+.notif-drop-footer button{font-size:11px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;}
+
+.exp-card{position:relative;background:#fff;border-radius:var(--r-lg,10px);border:.5px solid var(--border,#e3e5e9);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.exp-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;padding:4px;}
+.exp-dismiss:hover{color:var(--navy,#1B3A6B);}
+.exp-icon{width:36px;height:36px;border-radius:var(--r-md,8px);background:var(--navy-light,#eef3fb);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--navy,#1B3A6B);flex-shrink:0;}
+.exp-title{font-size:13px;font-weight:600;color:var(--text-1,#1a1a2e);margin-bottom:4px;}
+.exp-text{font-size:12px;color:var(--text-2,#6c757d);line-height:1.7;}
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2,#6c757d);background:var(--bg-sec,#f5f6f8);border:.5px solid var(--border,#e3e5e9);border-radius:20px;padding:4px 12px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy,#1B3A6B);border-color:var(--navy,#1B3A6B);}
+.exp-restore.show{display:inline-flex;}
+
+/* ── Inline header search ── */
+.hdr-search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.hdr-search:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.hdr-search:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.hdr-search i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.hdr-search input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.hdr-search input::placeholder{color:rgba(255,255,255,.3);}
+.hdr-search .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='ds_home.html'" title="Command view" style="cursor:pointer;">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn on" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_compare_view.html'">Compare</button>
+    </nav>
+  </div>
+  <div class="hdr-centre">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Search deals, sellers, addresses…" oninput="hdrShowResults(this.value)">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+        <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+        <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+        <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+      </div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-right-nav"><button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button><div class="hn-sep"></div><button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button></nav>
+    <div class="logo-sep"></div>
+    <div class="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Notifications">
+        <i class="ti ti-bell"></i>
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-drop" id="notif-drop">
+        <div class="notif-drop-hdr">
+          <span class="notif-drop-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+        <div class="notif-drop-footer"><button onclick="markAllRead()">Clear all notifications</button></div>
+      </div>
+    </div>
+    
+    <div class="logo-sep"></div>
+    <button class="btn-new" onclick="window.location.href='./ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="logo-sep"></div>
+    <div class="avt-wrap">
+      <div class="avt-wrap-inner" onclick="hdrToggleDrop()">
+        <div class="avt" id="hdr-avt">VM</div>
+        <i class="ti ti-chevron-down avt-chevron"></i>
+      </div>
+      <div class="avt-drop" id="hdr-avt-drop">
+        <div class="avt-drop-head">
+          <div class="avt-drop-name">Videet Mardania</div>
+          <div class="avt-drop-email">videet@propertysourcing.co.uk</div>
+        </div>
+        <div style="padding:4px 0;">
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-user"></i> Profile</button>
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-settings"></i> Settings</button>
+          <button class="avt-drop-item"><i class="ti ti-credit-card"></i> Billing &amp; plan</button>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <div class="avt-drop-toggle" onclick="hdrTogglePrivacy()">
+          <div class="avt-drop-toggle-left"><i class="ti ti-eye-off"></i> Privacy mode</div>
+          <label class="mini-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="hdr-privacy-chk" onchange="hdrTogglePrivacy()">
+            <span class="mini-track"></span><span class="mini-thumb"></span>
+          </label>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item"><i class="ti ti-keyboard"></i> Keyboard shortcuts</button>
+        <button class="avt-drop-item"><i class="ti ti-sparkles"></i> What's new</button>
+        <button class="avt-drop-item"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item danger"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+    </div>
+  
+  </div>
+</div>
+</div>
+
+<!-- Privacy banner -->
+<div class="privacy-banner" id="privacy-banner">
+  <i class="ti ti-eye-off" style="font-size:13px;"></i>
+  <span>Privacy mode is on — addresses and seller names are hidden</span>
+  <button onclick="togglePrivacy()" style="margin-left:auto;font-size:10px;font-weight:600;color:#fef3c7;background:none;border:.5px solid rgba(254,243,199,.4);border-radius:20px;padding:2px 10px;cursor:pointer;font-family:inherit;">Turn off</button>
+</div>
+
+
+<!-- ══ TODAY STRIP ══ -->
+<div class="today-strip" id="today-strip">
+  <div class="ts-lbl"><i class="ti ti-calendar-event" style="font-size:11px;"></i> Today &amp; coming up
+    <button class="ts-toggle-btn" id="ts-toggle-btn" onclick="toggleTodayStrip()">Hide</button>
+  </div>
+  <div class="ts-row">
+
+    <div class="ts-chip viewing">
+      <div class="ts-type">Viewing tomorrow</div>
+      <div class="ts-addr pii">65a Horwood Close, Leeds LS7</div>
+      <div class="ts-detail">10:30am · <span class="pii">Sarah Michaels</span></div>
+      <button class="ts-action" onclick="chipAction('viewing','DS-001')">
+        <i class="ti ti-calendar-check" style="font-size:10px;"></i> View deal →
+      </button>
+    </div>
+
+    <div class="ts-chip chase">
+      <div class="ts-type">Chase due today</div>
+      <div class="ts-addr pii">14 Roath Court Rd, Cardiff CF24</div>
+      <div class="ts-detail">Reserved · Day 8 · <span class="pii">Derek Hassan</span></div>
+      <button class="ts-action" onclick="chipAction('chase','DS-004-cardiff')">
+        <i class="ti ti-phone" style="font-size:10px;"></i> Open Seller tab →
+      </button>
+    </div>
+
+    <div class="ts-chip day15">
+      <div class="ts-type">Day 15 in 7 days</div>
+      <div class="ts-addr pii">65a Horwood Close, Leeds LS7</div>
+      <div class="ts-detail">Cooling off ends — release pack or renegotiate</div>
+      <button class="ts-action" onclick="chipAction('day15','DS-001')">
+        <i class="ti ti-send" style="font-size:10px;"></i> Release pack →
+      </button>
+    </div>
+
+    <div class="ts-chip viewing">
+      <div class="ts-type">Viewing Thu 5 Jun</div>
+      <div class="ts-addr pii">12 Victoria Street, Manchester M1</div>
+      <div class="ts-detail">2:00pm · <span class="pii">David Jones</span></div>
+      <button class="ts-action" onclick="chipAction('viewing','DS-002')">
+        <i class="ti ti-calendar-check" style="font-size:10px;"></i> View deal →
+      </button>
+    </div>
+
+    <div class="ts-chip sens">
+      <div class="ts-type">Sensitivity reminder</div>
+      <div class="ts-addr pii">3 Marina View, Brighton BN1</div>
+      <div class="ts-detail">Rate change flagged — check Sensitivity tab</div>
+      <button class="ts-action" onclick="chipAction('sensitivity','DS-005')">
+        <i class="ti ti-adjustments" style="font-size:10px;"></i> View Sensitivity →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<div style="padding:12px 24px 0;">
+<div class="exp-card" id="dash-exp">
+  <button class="exp-dismiss" onclick="dismissExp(this)" title="Dismiss">×</button>
+  <div class="exp-icon"><i class="ti ti-layout-dashboard"></i></div>
+  <div>
+    <div class="exp-title">Your deal pipeline at a glance</div>
+    <div class="exp-text">Track all active deals from sourcing to completion. The stats bar filters by deal status, deal cards give instant access to any deal, and Compare puts deals side by side. Hit <strong>+ New deal</strong> to start sourcing.</div>
+  </div>
+</div>
+<button class="exp-restore" onclick="restoreExp(this)"><i class="ti ti-book-2" style="font-size:11px;"></i> Page guide</button>
+</div>
+
+<!-- ══ TOOLBAR ══ -->
+<div class="tbar">
+  <div class="tbar-left">
+    <!-- View mode switcher -->
+    <div class="vgrp" id="view-grp">
+      <button class="vbtn vb-icon on" onclick="setView('grid',this)" title="Grid"><i class="ti ti-layout-grid"></i></button>
+      <button class="vbtn vb-icon" onclick="setView('grid-compact',this)" title="Grid compact"><i class="ti ti-layout-grid-add"></i></button>
+      <div class="vgrp-sep"></div>
+      <button class="vbtn vb-icon" onclick="setView('list',this)" title="List"><i class="ti ti-table"></i></button>
+      <button class="vbtn vb-icon" onclick="setView('list-compact',this)" title="List compact"><i class="ti ti-list-details"></i></button>
+    </div>
+    <!-- Page switchers -->
+    <div class="vgrp">
+      <button class="vbtn" id="board-btn" onclick="setView('board',this)"><i class="ti ti-layout-kanban"></i> Deal Board</button>
+    </div>
+  </div>
+  <div class="tbar-right">
+    <select class="fsel" onchange="filterDeals()">
+      <option value="">All strategies</option>
+      <option value="BTL">BTL</option>
+      <option value="HMO">HMO</option>
+      <option value="FLIP">FLIP</option>
+      <option value="SA">SA</option>
+      <option value="BRRR">BRRR</option>
+      <option value="R2R">R2R</option>
+    </select>
+    <select class="fsel" onchange="filterDeals()">
+      <option value="">All scores</option>
+      <option value="RECOMMENDED">RECOMMENDED</option>
+      <option value="REVIEW">REVIEW</option>
+      <option value="AVOID">AVOID</option>
+    </select>
+    <select class="fsel" onchange="filterDeals()">
+      <option value="">All statuses</option>
+      <optgroup label="Active pipeline">
+        <option value="sourcing">Sourcing</option>
+        <option value="ready">Ready</option>
+        <option value="live">Live</option>
+        <option value="pack-sent">Pack sent</option>
+        <option value="reserved">Reserved</option>
+      </optgroup>
+      <optgroup label="Exits">
+        <option value="complete">Completed ✓</option>
+        <option value="withdrawn">Withdrawn — fell through</option>
+      </optgroup>
+      <optgroup label="Removed">
+        <option value="archived">Archived — paused</option>
+        <option value="deleted">Rejected — removed as weak</option>
+      </optgroup>
+    </select>
+    <select class="fsel">
+      <option>Newest first</option>
+      <option>Score: best first</option>
+      <option>Cash flow: high–low</option>
+      <option>Viewings: soonest</option>
+    </select>
+    <input class="sinp" placeholder="&#xF002;  Search deals…" id="search-inp" oninput="filterDeals()">
+    <button class="fsel" id="archived-toggle-btn" onclick="toggleArchived()" style="display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;color:var(--text-2);">
+      <i class="ti ti-archive" style="font-size:12px;"></i> Archived &amp; rejected
+    </button>
+  </div>
+</div>
+
+<!-- ══ ARCHIVED & REJECTED SECTION ══ -->
+<div id="archived-section" style="display:none;margin-bottom:8px;">
+
+  <!-- ── Group 1: Archived (paused / on hold) ── -->
+  <div class="arc-sub-hdr">
+    <i class="ti ti-archive arc-sub-icon"></i>
+    <span class="arc-sub-label">Archived</span>
+    <span class="arc-sub-count">1</span>
+    <span class="arc-sub-desc">Paused — not active but may be revisited</span>
+  </div>
+  <div class="cgrid g3c" id="archived-grid">
+    <div class="dc" data-strat="BTL" data-score="AVOID" data-status="archived" style="opacity:.65;">
+      <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;color:#475569;background:#f1f5f9;border-radius:4px;padding:2px 7px;z-index:2;border:.5px solid #cbd5e1;">PAUSED</div>
+      <div class="ctop">
+        <div class="ds-tag"><span class="dst-strat">BTL</span><span class="dst-score av">Avoid</span></div>
+      </div>
+      <div class="cadr pii">52 Crwys Road, Cardiff CF24</div>
+      <div class="cdid">DS-007</div>
+      <div class="cprice">£165,000 · 2 bed terraced</div>
+      <div class="cinfo-row" style="color:#64748b;"><i class="ti ti-clock-pause" style="font-size:10px;flex-shrink:0;"></i> Archived 14 Feb 2025 — vendor wants to wait</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Gross yield</div><div class="cmv">6.8%</div></div>
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv gr">+£241</div></div>
+        <div class="cm"><div class="cml">BMV</div><div class="cmv">9%</div></div>
+        <div class="cm"><div class="cml">Strategy</div><div class="cmv">BTL</div></div>
+      </div>
+      <div class="cfoot">
+        <span class="ds-status archived"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Archived</span>
+        <div class="cacts">
+          <button class="cbtn cbtn-ghost" onclick="restoreDeal('DS-007')"><i class="ti ti-refresh"></i> Restore</button>
+          <button class="cbtn cbtn-primary" onclick="window.location.href='ds_deal_overview.html'">View <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Group 2: Rejected (deleted — soft-recorded for intelligence) ── -->
+  <div class="arc-sub-hdr" style="margin-top:16px;">
+    <i class="ti ti-trash arc-sub-icon" style="color:#dc2626;"></i>
+    <span class="arc-sub-label">Rejected</span>
+    <span class="arc-sub-count" style="background:#fef2f2;color:#b91c1c;border:.5px solid #fca5a5;">2</span>
+    <span class="arc-sub-desc">Removed as not viable — <b style="color:var(--text-1);">recorded for sourcing intelligence</b></span>
+  </div>
+  <div class="cgrid g3c" id="deleted-grid">
+
+    <!-- Rejected deal 1 -->
+    <div class="dc" data-strat="FLIP" data-score="AVOID" data-status="deleted" style="opacity:.65;">
+      <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;color:#991b1b;background:#fef2f2;border-radius:4px;padding:2px 7px;z-index:2;border:.5px solid #fca5a5;">REJECTED</div>
+      <div class="ctop">
+        <div class="ds-tag"><span class="dst-strat">FLIP</span><span class="dst-score av">Avoid</span></div>
+      </div>
+      <div class="cadr pii">22 Oak Road, Sheffield S1</div>
+      <div class="cdid">DS-004</div>
+      <div class="cprice">£142,000 · 2 bed terraced</div>
+      <div class="reject-reason"><i class="ti ti-alert-triangle"></i> Margins too thin</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Gross yield</div><div class="cmv">4.1%</div></div>
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv rd">−£88</div></div>
+        <div class="cm"><div class="cml">BMV</div><div class="cmv">3%</div></div>
+        <div class="cm"><div class="cml">Strategy</div><div class="cmv">FLIP</div></div>
+      </div>
+      <div class="cfoot">
+        <span class="ds-status deleted"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Rejected</span>
+        <div class="cacts">
+          <button class="cbtn cbtn-ghost" onclick="restoreDeal('DS-004')"><i class="ti ti-refresh"></i> Restore</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejected deal 2 -->
+    <div class="dc" data-strat="BTL" data-score="AVOID" data-status="deleted" style="opacity:.65;">
+      <div style="position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;color:#991b1b;background:#fef2f2;border-radius:4px;padding:2px 7px;z-index:2;border:.5px solid #fca5a5;">REJECTED</div>
+      <div class="ctop">
+        <div class="ds-tag"><span class="dst-strat">BTL</span><span class="dst-score av">Avoid</span></div>
+      </div>
+      <div class="cadr pii">7 Bramley Court, Nottingham NG1</div>
+      <div class="cdid">DS-005</div>
+      <div class="cprice">£178,000 · 2 bed flat</div>
+      <div class="reject-reason"><i class="ti ti-alert-triangle"></i> Numbers don't stack at asking price</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Gross yield</div><div class="cmv">4.8%</div></div>
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv rd">−£32</div></div>
+        <div class="cm"><div class="cml">BMV</div><div class="cmv">5%</div></div>
+        <div class="cm"><div class="cml">Strategy</div><div class="cmv">BTL</div></div>
+      </div>
+      <div class="cfoot">
+        <span class="ds-status deleted"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Rejected</span>
+        <div class="cacts">
+          <button class="cbtn cbtn-ghost" onclick="restoreDeal('DS-005')"><i class="ti ti-refresh"></i> Restore</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Deal intelligence card ── -->
+  <div class="deal-intel">
+    <div class="deal-intel-icon"><i class="ti ti-brain"></i></div>
+    <div class="deal-intel-body">
+      <div class="deal-intel-title">Sourcing intelligence · based on your 2 rejected deals</div>
+      <div class="deal-intel-text">Both rejected deals had <b>negative or sub-£0 monthly cash flow</b> — suggesting your floor is positive CF. Sheffield S1 and Nottingham NG1 appeared in rejected deals — you may want to screen these postcodes more carefully before committing time.</div>
+      <div class="deal-intel-tags">
+        <span class="dit red">Thin margins ×2</span>
+        <span class="dit red">Negative CF ×2</span>
+        <span class="dit amber">Sheffield S1 ×1</span>
+        <span class="dit amber">Nottingham NG1 ×1</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Archived list row (shown in list/list-compact views only) -->
+<div id="archived-list-row" style="display:none;padding:0 24px 4px;">
+  <div class="dl" style="border:.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;">
+    <div class="dl-row" style="opacity:.65;">
+      <div><div class="dl-addr pii">52 Crwys Road, Cardiff CF24</div><div class="dl-sub">DS-007 · £165,000 · <span style="color:#475569;font-weight:600;">Archived 14 Feb 2025 — vendor wants to wait</span></div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">BTL</span><span class="score-badge av">AVOID</span></div></div>
+      <div class="dl-val gr">+£241/mo</div>
+      <div class="dl-val">6.8%</div>
+      <div><span class="ds-status archived"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Archived</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost" onclick="restoreDeal('DS-007')"><i class="ti ti-refresh"></i> Restore</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">View <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row" style="opacity:.65;">
+      <div><div class="dl-addr pii">22 Oak Road, Sheffield S1</div><div class="dl-sub">DS-004 · £142,000 · <span style="color:#b91c1c;font-weight:600;">Rejected — margins too thin</span></div></div>
+      <div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="strat-pill">FLIP</span><span class="score-badge av">AVOID</span></div></div>
+      <div class="dl-val rd">−£88/mo</div>
+      <div class="dl-val">4.1%</div>
+      <div><span class="ds-status deleted"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Rejected</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost" onclick="restoreDeal('DS-004')"><i class="ti ti-refresh"></i> Restore</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="cgrid g3c" id="deal-grid">
+  <!-- Cards rendered by renderGrid() on DOMContentLoaded -->
+</div>
+
+<!-- ══ LIST VIEW (hidden by default) ══ -->
+<div style="padding:20px 24px 40px;display:none;" id="list-container">
+  <div class="dl">
+    <div class="dl-row dl-head">
+      <span>Deal</span><span>Strategy / Score</span><span>Cash flow</span><span>CoC ROI</span><span>Status</span><span></span>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">65a Horwood Close, Leeds LS7</div><div class="dl-sub">DS-001 · £207,000</div></div>
+      <div><div class="ds-tag"><span class="dst-strat">BTL</span><span class="dst-score rec">Recommended</span></div></div>
+      <div class="dl-val gr">+£482/mo</div>
+      <div class="dl-val">6.4%</div>
+      <div><span class="ds-status reserved"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Reserved · Day 8</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">12 Victoria Street, Manchester M1</div><div class="dl-sub">DS-002 · £310,000</div></div>
+      <div><div class="ds-tag"><span class="dst-strat">HMO</span><span class="dst-score rev">Review</span></div></div>
+      <div class="dl-val gr">+£1,247/mo</div>
+      <div class="dl-val">5.2%</div>
+      <div><span class="ds-status pack-sent"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Pack sent</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">8 Park Lane, Birmingham B15</div><div class="dl-sub">DS-003 · £185,000</div></div>
+      <div><div class="ds-tag"><span class="dst-strat">BRRR</span><span class="dst-score rec">Recommended</span></div></div>
+      <div class="dl-val gr">+£394/mo</div>
+      <div class="dl-val">5.8%</div>
+      <div><span class="ds-status live"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Live</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">22 Oak Road, Sheffield S1</div><div class="dl-sub">DS-004 · £145,000</div></div>
+      <div><div class="ds-tag"><span class="dst-strat">FLIP</span><span class="dst-score av">Avoid</span></div></div>
+      <div class="dl-val re">£4,200 profit</div>
+      <div class="dl-val re">4.1%</div>
+      <div><span class="ds-status sourcing"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Sourcing</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">3 Marina View, Brighton BN1</div><div class="dl-sub">DS-005 · £295,000</div></div>
+      <div><div class="ds-tag"><span class="dst-strat">SA</span><span class="dst-score rec">Recommended</span></div></div>
+      <div class="dl-val gr">+£1,016/mo</div>
+      <div class="dl-val">9.1%</div>
+      <div><span class="ds-status ready"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Ready</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+    <div class="dl-row">
+      <div><div class="dl-addr pii">47 Clarence Road, Bristol BS1</div><div class="dl-sub">DS-006 · £230,000</div></div>
+      <div><div class="ds-tag"><span class="dst-strat">BTL</span><span class="dst-score rec">Recommended</span></div></div>
+      <div class="dl-val gr">+£318/mo</div>
+      <div class="dl-val">5.9%</div>
+      <div><span class="ds-status complete"><i class="ti ti-circle-filled" style="font-size:6px;"></i> Complete</span></div>
+      <div class="dl-acts"><button class="cbtn cbtn-ghost"><i class="ti ti-edit"></i> Edit</button><button class="cbtn cbtn-primary" onclick="window.location.href='./ds_deal_overview.html'">Open <i class="ti ti-arrow-right"></i></button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DEAL BOARD — kanban ══ -->
+<div class="board-wrap" id="board-wrap">
+  <div class="board">
+
+    <!-- SOURCING -->
+    <div class="kb-col">
+      <div class="kb-hdr sourcing">
+        <div class="kb-stage">
+          <span class="kb-stage-name sourcing">Sourcing</span>
+          <span class="kb-count">2</span>
+        </div>
+        <div class="kb-meta">Analysing · not yet ready</div>
+      </div>
+      <div class="kb-body sourcing">
+        <div class="kc" onclick="openDeal('DS-004')">
+          <div class="kc-top"><span class="kc-strat">FLIP</span><span class="kc-score av">AVOID</span></div>
+          <div class="kc-addr pii">22 Oak Road, Sheffield S1</div>
+          <div class="kc-price">DS-004 · £145,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Net profit</span><span class="kc-metric-val re">£4,200</span></div>
+          <div class="kc-days"><i class="ti ti-clock" style="font-size:10px;"></i> Day 3 in sourcing</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-004')" onclick="event.stopPropagation()">
+              <option selected>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-004')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc" onclick="openDeal('DS-007')">
+          <div class="kc-top"><span class="kc-strat">R2R</span><span class="kc-score inc">INCOMPLETE</span></div>
+          <div class="kc-addr" style="color:#aaa;">Untitled deal</div>
+          <div class="kc-price">DS-007 · Price not set</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly profit</span><span class="kc-metric-val" style="color:#ccc;">—</span></div>
+          <div class="kc-days"><i class="ti ti-alert-circle" style="font-size:10px;color:#bbb;"></i> 3 of 7 sections complete</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-007')" onclick="event.stopPropagation()">
+              <option selected>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-007')">Edit <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- READY -->
+    <div class="kb-col">
+      <div class="kb-hdr ready">
+        <div class="kb-stage">
+          <span class="kb-stage-name ready">Ready</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Scored · ready to advertise</div>
+      </div>
+      <div class="kb-body ready">
+        <div class="kc" onclick="openDeal('DS-005')">
+          <div class="kc-top"><span class="kc-strat">SA</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">3 Marina View, Brighton BN1</div>
+          <div class="kc-price">DS-005 · £295,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£1,016</span></div>
+          <div class="kc-days"><i class="ti ti-clock" style="font-size:10px;"></i> Day 5 in ready</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-005')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option selected>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-005')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- LIVE -->
+    <div class="kb-col">
+      <div class="kb-hdr live">
+        <div class="kb-stage">
+          <span class="kb-stage-name live">Live</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Advertised · awaiting investor</div>
+      </div>
+      <div class="kb-body live">
+        <div class="kc" onclick="openDeal('DS-003')">
+          <div class="kc-top"><span class="kc-strat">BRRR</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">8 Park Lane, Birmingham B15</div>
+          <div class="kc-price">DS-003 · £185,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£394</span></div>
+          <div class="kc-days"><i class="ti ti-clock" style="font-size:10px;"></i> Day 12 live</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-003')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option selected>Live</option><option>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-003')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- RESERVED -->
+    <div class="kb-col">
+      <div class="kb-hdr reserved">
+        <div class="kb-stage">
+          <span class="kb-stage-name reserved">Reserved</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Cooling off · investor committed</div>
+      </div>
+      <div class="kb-body reserved">
+        <div class="kc" onclick="openDeal('DS-001')">
+          <div class="kc-top"><span class="kc-strat">BTL</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">65a Horwood Close, Leeds LS7</div>
+          <div class="kc-price">DS-001 · £207,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£482</span></div>
+          <div class="kc-days urgent"><i class="ti ti-clock" style="font-size:10px;"></i> Day 8 of 14 — 6 days left</div>
+          <div class="kc-bar"><div class="kc-bar-fill" style="width:57%"></div></div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-001')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option>Live</option><option selected>Reserved</option><option>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-001')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- PACK SENT -->
+    <div class="kb-col">
+      <div class="kb-hdr pack-sent">
+        <div class="kb-stage">
+          <span class="kb-stage-name pack-sent">Pack sent</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Pack released · fee due</div>
+      </div>
+      <div class="kb-body pack-sent">
+        <div class="kc" onclick="openDeal('DS-002')">
+          <div class="kc-top"><span class="kc-strat">HMO</span><span class="kc-score rev">REVIEW</span></div>
+          <div class="kc-addr pii">12 Victoria Street, Manchester M1</div>
+          <div class="kc-price">DS-002 · £310,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Monthly CF</span><span class="kc-metric-val gr">+£1,247</span></div>
+          <div class="kc-days"><i class="ti ti-send" style="font-size:10px;"></i> Pack sent 2 days ago</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-002')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option selected>Pack sent</option><option>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-002')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- COMPLETE -->
+    <div class="kb-col">
+      <div class="kb-hdr complete">
+        <div class="kb-stage">
+          <span class="kb-stage-name complete">Complete</span>
+          <span class="kb-count">1</span>
+        </div>
+        <div class="kb-meta">Fee received · deal closed</div>
+      </div>
+      <div class="kb-body complete">
+        <div class="kc" onclick="openDeal('DS-006')">
+          <div class="kc-top"><span class="kc-strat">BTL</span><span class="kc-score rec">RECOMMENDED</span></div>
+          <div class="kc-addr pii">47 Clarence Road, Bristol BS1</div>
+          <div class="kc-price">DS-006 · £230,000</div>
+          <div class="kc-metric"><span class="kc-metric-lbl">Fee earned</span><span class="kc-metric-val gr">£3,500</span></div>
+          <div class="kc-days"><i class="ti ti-check" style="font-size:10px;color:var(--teal);"></i> Completed 4 Jun 2026</div>
+          <div class="kc-foot">
+            <select class="kc-stage-sel" onchange="moveStage(this,'DS-006')" onclick="event.stopPropagation()">
+              <option>Sourcing</option><option>Ready</option><option>Live</option><option>Reserved</option><option>Pack sent</option><option selected>Complete</option><option>Withdrawn</option>
+            </select>
+            <button class="kc-open" onclick="event.stopPropagation();openDeal('DS-006')">Open <i class="ti ti-arrow-right" style="font-size:9px;"></i></button>
+          </div>
+        </div>
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+    <!-- WITHDRAWN -->
+    <div class="kb-col">
+      <div class="kb-hdr withdrawn">
+        <div class="kb-stage">
+          <span class="kb-stage-name withdrawn">Withdrawn</span>
+          <span class="kb-count">0</span>
+        </div>
+        <div class="kb-meta">Fell through · archived</div>
+      </div>
+      <div class="kb-body withdrawn" style="opacity:.6;">
+        <div class="kc-add" onclick="newDeal()"><i class="ti ti-plus" style="font-size:12px;"></i> Add deal</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ── Nav ── */
+function setNav(btn){
+  document.querySelectorAll('.hn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+/* ══════════════════════════════════════
+   DEAL DATA + GRID RENDER
+   ══════════════════════════════════════ */
+const DEALS = [
+  {id:'DS-001',strat:'BTL',score:'RECOMMENDED',scoreCls:'rec',scoreLabel:'Recommended',
+   status:'reserved',statusLabel:'Reserved · Day 8',
+   addr:'65a Horwood Close, Leeds LS7',price:'£207,000',desc:'3 bed terraced',
+   heroLabel:'Monthly cash flow',heroVal:'+£482/mo',heroCls:'gr',
+   metrics:[{l:'Monthly CF',v:'+£482',c:'gr'},{l:'CoC ROI',v:'6.4%',c:''},{l:'Cash in',v:'£63,420',c:''}]},
+  {id:'DS-002',strat:'HMO',score:'REVIEW',scoreCls:'rev',scoreLabel:'Review',
+   status:'pack-sent',statusLabel:'Pack sent',
+   addr:'12 Victoria Street, Manchester M1',price:'£310,000',desc:'6 bed HMO',
+   heroLabel:'Monthly cash flow',heroVal:'+£1,247/mo',heroCls:'gr',
+   metrics:[{l:'Monthly CF',v:'+£1,247',c:'gr'},{l:'Gross yield',v:'8.9%',c:''},{l:'Cash in',v:'£97,150',c:''}]},
+  {id:'DS-003',strat:'BRRR',score:'RECOMMENDED',scoreCls:'rec',scoreLabel:'Recommended',
+   status:'live',statusLabel:'Live',
+   addr:'8 Park Lane, Birmingham B15',price:'£185,000',desc:'4 bed semi-detached',
+   heroLabel:'Monthly cash flow',heroVal:'+£394/mo',heroCls:'gr',
+   metrics:[{l:'Monthly CF',v:'+£394',c:'gr'},{l:'Cash left in',v:'£8,200',c:''},{l:'Equity created',v:'£34,000',c:''}]},
+  {id:'DS-004',strat:'BTL',score:'RECOMMENDED',scoreCls:'rec',scoreLabel:'Recommended',
+   status:'reserved',statusLabel:'Reserved · Day 8',
+   addr:'14 Roath Court Rd, Cardiff CF24',price:'£175,000',desc:'3 bed terraced',
+   heroLabel:'Monthly cash flow',heroVal:'+£312/mo',heroCls:'gr',
+   metrics:[{l:'Monthly CF',v:'+£312',c:'gr'},{l:'CoC ROI',v:'8.2%',c:''},{l:'Gross yield',v:'7.4%',c:''}]},
+  {id:'DS-005',strat:'SA',score:'RECOMMENDED',scoreCls:'rec',scoreLabel:'Recommended',
+   status:'ready',statusLabel:'Ready',
+   addr:'3 Marina View, Brighton BN1',price:'£295,000',desc:'2 bed apartment',
+   heroLabel:'Monthly cash flow',heroVal:'+£1,016/mo',heroCls:'gr',
+   metrics:[{l:'Monthly CF',v:'+£1,016',c:'gr'},{l:'Net yield',v:'11.2%',c:''},{l:'Cash in',v:'£88,250',c:''}]},
+  {id:'DS-006',strat:'BTL',score:'RECOMMENDED',scoreCls:'rec',scoreLabel:'Recommended',
+   status:'complete',statusLabel:'Complete',
+   addr:'47 Clarence Road, Bristol BS1',price:'£230,000',desc:'2 bed flat',
+   heroLabel:'Fee earned',heroVal:'£3,500',heroCls:'gr',
+   metrics:[{l:'Monthly CF',v:'+£318',c:'gr'},{l:'CoC ROI',v:'5.9%',c:''},{l:'Fee earned',v:'£3,500',c:'gr'}]},
+  {id:'DS-007',strat:'R2R',score:'',scoreCls:'inc',scoreLabel:'Incomplete',
+   status:'sourcing',statusLabel:'Sourcing',
+   addr:'Untitled deal',price:'',desc:'Purchase price not set',
+   heroLabel:'',heroVal:'—',heroCls:'dim',
+   incomplete:true,
+   metrics:[{l:'Monthly profit',v:'—',c:'dim'},{l:'ROI on setup',v:'—',c:'dim'},{l:'R2R spread',v:'—',c:'dim'}]}
+];
+
+const dealPhotos = {};
+
+/* ── House illustration SVGs (default deal card placeholder) ── */
+var DOOR_CONFIG = {
+  'DS-001': { color:'#8B2635', dark:'#6a1e28', num:'1' },
+  'DS-002': { color:'#1B3A6B', dark:'#112554', num:'2' },
+  'DS-003': { color:'#2D6A4F', dark:'#1e4f39', num:'3' },
+  'DS-004': { color:'#3D3D3D', dark:'#2a2a2a', num:'4' },
+  'DS-005': { color:'#1D7A6B', dark:'#135c50', num:'5' },
+  'DS-006': { color:'#C47D1A', dark:'#9a6113', num:'6' },
+};
+function getDoorSVG(dealId){
+  var dc = DOOR_CONFIG[dealId] || { color:'#253343', dark:'#1a2535', num:'?' };
+  var c = dc.color, d = dc.dark, n = dc.num;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 126" style="width:100%;height:100%;display:block">'
+    +'<rect width="240" height="126" fill="#152540"/>'
+    +'<circle cx="25" cy="18" r="0.8" fill="rgba(255,255,255,.3)"/>'
+    +'<circle cx="60" cy="10" r="0.6" fill="rgba(255,255,255,.2)"/>'
+    +'<circle cx="185" cy="14" r="1" fill="rgba(255,255,255,.25)"/>'
+    +'<circle cx="215" cy="6" r="0.7" fill="rgba(255,255,255,.2)"/>'
+    +'<circle cx="148" cy="9" r="0.5" fill="rgba(255,255,255,.15)"/>'
+    +'<rect x="0" y="107" width="240" height="19" fill="#0d1c2e"/>'
+    +'<rect x="40" y="105" width="160" height="4" fill="#1a4a2a"/>'
+    +'<polygon points="108,107 132,107 126,126 114,126" fill="#0b1525"/>'
+    +'<rect x="52" y="60" width="136" height="49" fill="#cec9c0"/>'
+    +'<polygon points="36,63 120,18 204,63" fill="#253343"/>'
+    +'<line x1="36" y1="63" x2="204" y2="63" stroke="#1a2535" stroke-width="1.5"/>'
+    +'<rect x="155" y="31" width="13" height="28" fill="#253343"/>'
+    +'<rect x="153" y="29" width="17" height="4" fill="#1a2535"/>'
+    +'<circle cx="159" cy="24" r="2.5" fill="rgba(255,255,255,.04)"/>'
+    +'<circle cx="163" cy="18" r="1.5" fill="rgba(255,255,255,.03)"/>'
+    +'<rect x="64" y="72" width="32" height="24" fill="#7a9bc0" rx="2"/>'
+    +'<rect x="65" y="73" width="30" height="22" fill="#a4c0dc" rx="1"/>'
+    +'<line x1="80" y1="73" x2="80" y2="95" stroke="#6e8fb5" stroke-width="0.8"/>'
+    +'<line x1="65" y1="84" x2="95" y2="84" stroke="#6e8fb5" stroke-width="0.8"/>'
+    +'<rect x="144" y="72" width="32" height="24" fill="#7a9bc0" rx="2"/>'
+    +'<rect x="145" y="73" width="30" height="22" fill="#a4c0dc" rx="1"/>'
+    +'<line x1="160" y1="73" x2="160" y2="95" stroke="#6e8fb5" stroke-width="0.8"/>'
+    +'<line x1="145" y1="84" x2="175" y2="84" stroke="#6e8fb5" stroke-width="0.8"/>'
+    +'<rect x="104" y="75" width="32" height="36" fill="#b5b0a8" rx="2"/>'
+    +'<rect x="106" y="77" width="28" height="34" fill="'+c+'" rx="1.5"/>'
+    +'<rect x="109" y="80" width="9" height="9" fill="'+d+'" rx="1" opacity="0.5"/>'
+    +'<rect x="122" y="80" width="9" height="9" fill="'+d+'" rx="1" opacity="0.5"/>'
+    +'<rect x="109" y="92" width="9" height="9" fill="'+d+'" rx="1" opacity="0.5"/>'
+    +'<rect x="122" y="92" width="9" height="9" fill="'+d+'" rx="1" opacity="0.5"/>'
+    +'<circle cx="129" cy="95" r="2.2" fill="#c9a227"/>'
+    +'<circle cx="129" cy="95" r="1.2" fill="#e8c460"/>'
+    +'<rect x="112" y="104" width="16" height="9" fill="#c9a227" rx="1.5"/>'
+    +'<rect x="113" y="105" width="14" height="7" fill="#b8911f" rx="1"/>'
+    +'<text x="120" y="110.5" font-family="Georgia,serif" font-size="6" font-weight="bold" fill="#3d2600" text-anchor="middle">'+n+'</text>'
+    +'<ellipse cx="66" cy="109" rx="10" ry="4" fill="#1a4a2a"/>'
+    +'<ellipse cx="174" cy="109" rx="10" ry="4" fill="#1a4a2a"/>'
+    +'</svg>';
+}
+
+function renderAdvert(d){
+  var ph = dealPhotos[d.id] || '';
+  var bgStyle = ph ? 'background-image:url(\''+ph+'\');background-size:cover;background-position:center;' : '';
+  var plStyle = ph ? 'display:none' : '';
+  var mets = d.metrics.map(function(m){
+    return '<div class="dam"><div class="dam-l">'+m.l+'</div><div class="dam-v'+(m.c?' '+m.c:'')+'">'+(m.v||'—')+'</div></div>';
+  }).join('');
+  var incCls = d.incomplete ? ' da-incomplete' : '';
+  var acts = d.incomplete
+    ? '<button class="cbtn cbtn-primary" onclick="window.location.href=\'./ds_deal_overview.html\'">Complete inputs <i class="ti ti-arrow-right"></i></button>'
+    : '<button class="cbtn cbtn-ghost cbtn-icon" title="Edit"><i class="ti ti-edit"></i></button><button class="cbtn cbtn-primary" onclick="window.location.href=\'./ds_deal_overview.html\'">Open <i class="ti ti-arrow-right"></i></button>';
+  var addrCls = d.incomplete ? 'da-addr da-empty' : 'da-addr pii';
+  var priceLine = d.price ? (d.price + (d.desc ? ' · ' + d.desc : '')) : (d.desc || '');
+  return '<div class="da'+incCls+'" data-strat="'+d.strat+'" data-score="'+d.score+'" data-status="'+d.status+'" data-id="'+d.id+'">'
+    +'<div class="da-photo" id="daphoto-'+d.id+'">'
+    +'<div class="da-photo-bg" style="'+bgStyle+'"></div>'
+    +'<div class="da-photo-placeholder" style="'+plStyle+'">'+getDoorSVG(d.id)+'</div>'
+    +'<span class="da-strat-badge">'+d.strat+'</span>'
+    +'<label class="da-photo-upload" title="Add photo"><i class="ti ti-camera-plus"></i> Photo<input type="file" accept="image/*" onchange="loadDealPhoto(this,\''+d.id+'\')" style="display:none"></label>'
+    +'</div>'
+    +'<div class="da-body">'
+    +'<div class="da-price">'+priceLine+'</div>'
+    +'<div class="da-addr-row"><div class="'+addrCls+'">'+d.addr+'</div><span class="da-score-badge '+d.scoreCls+'">'+d.scoreLabel+'</span></div>'
+    +'<div class="da-ref">'+d.id+'</div>'
+    +'<div class="da-mrow">'+mets+'</div>'
+    +'</div>'
+    +'<div class="da-foot">'
+    +'<span class="ds-status '+d.status+'"><i class="ti ti-circle-filled" style="font-size:6px;"></i> '+d.statusLabel+'</span>'
+    +'<div class="da-acts">'+acts+'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+function renderBizCard(d){
+  var addrCls = d.incomplete ? 'bc-addr bc-dim' : 'bc-addr pii';
+  var priceLine = d.price ? (d.price + (d.desc ? ' · ' + d.desc : '')) : (d.desc || '&nbsp;');
+  var acts = d.incomplete
+    ? '<button class="cbtn cbtn-primary" style="font-size:10px;padding:3px 9px;" onclick="window.location.href=\'./ds_deal_overview.html\'">Add inputs <i class="ti ti-arrow-right"></i></button>'
+    : '<button class="cbtn cbtn-primary" style="font-size:10px;padding:3px 9px;" onclick="window.location.href=\'./ds_deal_overview.html\'">Open <i class="ti ti-arrow-right"></i></button>';
+  return '<div class="bc bc-'+d.scoreCls+'" data-strat="'+d.strat+'" data-score="'+d.score+'" data-status="'+d.status+'" data-id="'+d.id+'">'
+    +'<div class="bc-head">'
+    +'<div class="bc-strat">'+d.strat+'</div>'
+    +'<div class="bc-score '+d.scoreCls+'">'+d.scoreLabel+'</div>'
+    +'</div>'
+    +'<div class="bc-main">'
+    +'<div class="'+addrCls+'">'+d.addr+'</div>'
+    +'<div class="bc-price">'+priceLine+'</div>'
+    +'<div class="bc-hero-l">'+(d.heroLabel||'&nbsp;')+'</div>'
+    +'<div class="bc-hero-v '+d.heroCls+'">'+d.heroVal+'</div>'
+    +'</div>'
+    +'<div class="bc-foot">'
+    +'<span class="ds-status '+d.status+'"><i class="ti ti-circle-filled" style="font-size:6px;"></i> '+d.statusLabel+'</span>'
+    +acts
+    +'</div>'
+    +'</div>';
+}
+
+function renderGrid(v){
+  var grid = document.getElementById('deal-grid');
+  if(v === 'grid'){
+    grid.style.gridTemplateColumns = 'repeat(3,1fr)';
+    grid.style.gap = '16px';
+    grid.innerHTML = DEALS.map(renderAdvert).join('');
+  } else {
+    grid.style.gridTemplateColumns = 'repeat(4,1fr)';
+    grid.style.gap = '10px';
+    grid.innerHTML = DEALS.map(renderBizCard).join('');
+  }
+  if(document.body.classList.contains('privacy')){
+    grid.querySelectorAll('.pii').forEach(function(el){ el.style.opacity='0'; });
+  }
+}
+
+function loadDealPhoto(input, dealId){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    dealPhotos[dealId] = e.target.result;
+    try { localStorage.setItem('dealHeroPhoto_'+dealId, e.target.result); } catch(ex){}
+    applyDealPhoto(dealId, e.target.result);
+    showToast('Photo added');
+  };
+  reader.readAsDataURL(file);
+}
+function applyDealPhoto(dealId, dataUrl){
+  var ph = document.getElementById('daphoto-'+dealId);
+  if(!ph) return;
+  var bg = ph.querySelector('.da-photo-bg');
+  var pl = ph.querySelector('.da-photo-placeholder');
+  if(bg){ bg.style.backgroundImage="url('"+dataUrl+"')"; bg.style.backgroundSize='cover'; bg.style.backgroundPosition='center'; }
+  if(pl) pl.style.display='none';
+}
+
+/* ── View switcher ── */
+let currentView = 'grid';
+function setView(v, btn){
+  /* clear active from both groups */
+  document.querySelectorAll('#view-grp .vbtn, .vgrp .vbtn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  currentView = v;
+
+  const grid         = document.getElementById('deal-grid');
+  const listCont     = document.getElementById('list-container');
+  const board        = document.getElementById('board-wrap');
+  const archSection  = document.getElementById('archived-section');
+  const archGrid     = document.getElementById('archived-grid');
+  const archListRow  = document.getElementById('archived-list-row');
+  const showingArch  = archSection && archSection.style.display !== 'none';
+
+  /* hide all */
+  grid.style.display     = 'none';
+  listCont.style.display = 'none';
+  board.classList.remove('show');
+  if(archListRow) archListRow.style.display = 'none';
+
+  if(v === 'board'){
+    board.classList.add('show');
+    /* hide archived in board view — kanban columns cover all stages */
+    if(archSection) archSection.style.display = 'none';
+    if(archListRow) archListRow.style.display = 'none';
+    return;
+  }
+
+  /* restore archived section visibility if it was showing before board */
+  if(archSection && showingArch) archSection.style.display = 'block';
+
+  if(v === 'list' || v === 'list-compact'){
+    listCont.style.display = 'block';
+    listCont.querySelectorAll('.dl').forEach(dl => dl.classList.toggle('compact', v === 'list-compact'));
+    listCont.querySelectorAll('.dl-row:not(.dl-head)').forEach(r => r.style.padding = '');
+    /* archived: hide cards, show list row */
+    if(archGrid) archGrid.style.display = 'none';
+    if(archListRow && showingArch) archListRow.style.display = 'block';
+  } else {
+    grid.style.display = 'grid';
+    if(archGrid) archGrid.style.display = 'grid';
+    renderGrid(v);  /* renders new card HTML and sets columns/gap on deal-grid */
+    if(v === 'grid'){
+      if(archGrid){ archGrid.style.gridTemplateColumns = 'repeat(3,1fr)'; archGrid.style.gap = '12px'; }
+    } else {
+      if(archGrid){ archGrid.style.gridTemplateColumns = 'repeat(4,1fr)'; archGrid.style.gap = '8px'; }
+    }
+  }
+  filterDeals();
+}
+
+/* ── Deal Board helpers ── */
+function openDeal(id){
+  alert('Opening ' + id + ' → Results tab (read-only viewing mode)');
+}
+function newDeal(){
+  alert('New deal → Inputs tab (blank, editing mode)');
+}
+
+const STAGE_MAP = {
+  'Sourcing':  'sourcing',
+  'Ready':     'ready',
+  'Live':      'live',
+  'Reserved':  'reserved',
+  'Pack sent': 'pack-sent',
+  'Complete':  'complete',
+  'Withdrawn': 'withdrawn'
+};
+
+function moveStage(sel, dealId){
+  const targetKey  = sel.value;
+  const targetSlug = STAGE_MAP[targetKey];
+  if(!targetSlug) return;
+
+  const card = sel.closest('.kc');
+  if(!card) return;
+
+  /* find source and target column bodies */
+  const sourceBody = card.closest('.kb-body');
+  const targetBody = document.querySelector('.kb-body.' + targetSlug);
+  if(!targetBody || sourceBody === targetBody) return;
+
+  /* find the "+ Add deal" button in target so we insert before it */
+  const addBtn = targetBody.querySelector('.kc-add');
+
+  /* animate out */
+  card.style.transition = 'opacity .2s, transform .2s';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(.96)';
+
+  setTimeout(function(){
+    /* move card to new column */
+    if(addBtn){
+      targetBody.insertBefore(card, addBtn);
+    } else {
+      targetBody.appendChild(card);
+    }
+
+    /* update the select value to match new column */
+    sel.value = targetKey;
+
+    /* animate in */
+    card.style.transition = 'opacity .18s, transform .18s';
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+
+    /* teal flash */
+    card.style.outline = '2px solid var(--teal)';
+    setTimeout(function(){ card.style.outline = ''; card.style.transition = ''; }, 900);
+
+    /* update counts on both columns */
+    updateColCount(sourceBody);
+    updateColCount(targetBody);
+  }, 200);
+}
+
+function updateColCount(body){
+  /* count .kc cards (not .kc-add) in this body */
+  const col   = body.closest('.kb-col');
+  if(!col) return;
+  const count = body.querySelectorAll('.kc').length;
+  const badge = col.querySelector('.kb-count');
+  if(badge) badge.textContent = count;
+}
+
+/* ── Stats bar filter ── */
+let activeStatFilter = 'all';
+function statFilter(type, statId){
+  /* toggle off if same stat clicked again */
+  if(activeStatFilter === type){
+    activeStatFilter = 'all';
+    document.querySelectorAll('.sc').forEach(s=>s.classList.remove('active'));
+    clearStatusFilter();
+    return;
+  }
+  activeStatFilter = type;
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('active'));
+  if(statId) document.getElementById(statId).classList.add('active');
+
+  /* switch to grid view if on board */
+  if(currentView === 'board') setView('grid', document.querySelector('#view-grp .vbtn'));
+
+  /* set the status dropdown and filter */
+  const statusSel = document.querySelectorAll('.tbar-right select')[2];
+  if(!statusSel) return;
+
+  if(type === 'all'){
+    statusSel.value = '';
+  } else if(type === 'active'){
+    /* Live + Reserved — show both; filter function will handle showing all active */
+    statusSel.value = 'live'; /* will override below */
+    filterDealsMultiStatus(['live','reserved']);
+    return;
+  } else if(type === 'viewing'){
+    /* Show deals with viewings — DS-001, DS-002 */
+    filterDealsByIds(['DS-001','DS-002']);
+    return;
+  } else {
+    statusSel.value = type;
+  }
+  filterDeals();
+}
+
+function clearStatusFilter(){
+  const statusSel = document.querySelectorAll('.tbar-right select')[2];
+  if(statusSel) statusSel.value = '';
+  document.querySelectorAll('#deal-grid [data-strat]').forEach(c=>c.style.display='');
+}
+
+function filterDealsMultiStatus(statuses){
+  document.querySelectorAll('#deal-grid [data-strat]').forEach(card=>{
+    const match = statuses.includes(card.dataset.status || '');
+    card.style.display = match ? '' : 'none';
+  });
+}
+
+function filterDealsByIds(ids){
+  document.querySelectorAll('#deal-grid [data-strat]').forEach(card=>{
+    const match = ids.includes(card.dataset.id || '');
+    card.style.display = match ? '' : 'none';
+  });
+}
+
+/* ── Today strip chip actions ── */
+function chipAction(type, dealId){
+  const msgs = {
+    viewing:     'Opening deal ' + dealId + ' → Results tab (viewing mode)',
+    chase:       'Opening deal → Seller tab · contact log + chase reminder',
+    day15:       'Opening deal → Pack Content tab · release pack',
+    sensitivity: 'Opening deal ' + dealId + ' → Sensitivity tab'
+  };
+  alert(msgs[type] || 'Opening deal ' + dealId);
+}
+
+/* ── Filter + search ── */
+function filterDeals(){
+  const stratSel = document.querySelectorAll('.tbar-right select')[0];
+  const scoreSel = document.querySelectorAll('.tbar-right select')[1];
+  const statusSel = document.querySelectorAll('.tbar-right select')[2];
+  const search = (document.getElementById('search-inp').value || '').toLowerCase();
+  const stratVal = stratSel ? stratSel.value : '';
+  const scoreVal = scoreSel ? scoreSel.value : '';
+  const statusVal = statusSel ? statusSel.value : '';
+
+  document.querySelectorAll('#deal-grid [data-strat]').forEach(card=>{
+    const strat = card.dataset.strat || '';
+    const score = card.dataset.score || '';
+    const status = card.dataset.status || '';
+    const text = card.textContent.toLowerCase();
+    const show =
+      (!stratVal || strat === stratVal) &&
+      (!scoreVal || score === scoreVal) &&
+      (!statusVal || status === statusVal) &&
+      (!search || text.includes(search));
+    card.style.display = show ? '' : 'none';
+  });
+}
+
+/* ── Privacy mode ── */
+let privacyOn = false;
+function togglePrivacy(){
+  privacyOn = !privacyOn;
+  document.body.classList.toggle('privacy', privacyOn);
+  const btn = document.getElementById('privacy-btn');
+  const icon = document.getElementById('privacy-icon');
+  const label = document.getElementById('privacy-label');
+  const banner = document.getElementById('privacy-banner');
+  if(btn) btn.classList.toggle('on', privacyOn);
+  if(icon) icon.className = privacyOn ? 'ti ti-eye' : 'ti ti-eye-off';
+  if(label) label.textContent = privacyOn ? 'Privacy on' : 'Privacy mode';
+  if(banner) banner.classList.toggle('show', privacyOn);
+}
+
+/* ── Header: avatar dropdown ── */
+var hdrDropOpen = false;
+function hdrToggleDrop(){
+  hdrDropOpen = !hdrDropOpen;
+  document.getElementById('hdr-avt-drop').classList.toggle('show', hdrDropOpen);
+}
+/* ── Header: privacy mode ── */
+var hdrPrivacyOn = false;
+function hdrTogglePrivacy(){
+  hdrPrivacyOn = !hdrPrivacyOn;
+  document.getElementById('hdr-privacy-chk').checked = hdrPrivacyOn;
+  document.getElementById('hdr-avt').classList.toggle('privacy-on', hdrPrivacyOn);
+  document.body.classList.toggle('privacy', hdrPrivacyOn);
+}
+/* ── Header: search results ── */
+function hdrShowResults(val){ /* extend per page */ }
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.avt-wrap')){ hdrDropOpen=false; var d=document.getElementById('hdr-avt-drop'); if(d) d.classList.remove('show'); }
+});
+
+
+/* ── Global mockup tier toggle ── */
+var mockupTier='pro';
+function setMockupTier(tier){
+  mockupTier=tier;
+  document.body.classList.toggle('tier-proplus',tier==='proplus');
+  var hdrPro=document.getElementById('hdr-tier-pro');
+  var hdrPP=document.getElementById('hdr-tier-pp');
+  if(tier==='proplus'){
+    if(hdrPro){hdrPro.style.background='transparent';hdrPro.style.color='rgba(255,255,255,.4)';}
+    if(hdrPP){hdrPP.style.background='rgba(255,255,255,.2)';hdrPP.style.color='#fff';}
+  } else {
+    if(hdrPro){hdrPro.style.background='var(--navy)';hdrPro.style.color='#fff';}
+    if(hdrPP){hdrPP.style.background='transparent';hdrPP.style.color='rgba(255,255,255,.4)';}
+  }
+}
+
+function dismissExp(btn){
+  var card=btn.closest?btn.closest(".exp-card"):null;
+  if(!card){card=btn.parentNode;while(card&&!card.classList.contains("exp-card"))card=card.parentNode;}
+  if(!card)return;
+  card.style.display="none";
+  var r=card.nextElementSibling;
+  if(r&&r.classList&&r.classList.contains("exp-restore"))r.classList.add("show");
+}
+function restoreExp(btn){
+  btn.classList.remove("show");
+  var card=btn.previousElementSibling;
+  if(card&&card.classList&&card.classList.contains("exp-card"))card.style.display="flex";
+}
+</script>
+<script>
+/* ══ NOTIFICATION SYSTEM ══ */
+var notifOpen = false;
+var notifData = (function(){
+  var today = new Date();
+  var fmt = function(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+  var add = function(d,n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  // Simulated deal-aware notifications
+  var coolingEnd  = add(today, 2);
+  var packRelease = add(today, 5);
+  var noteDate1   = add(today,-1);
+  var noteDate2   = add(today,-3);
+  return [
+    { id:'n1', unread:true,  type:'amber', icon:'ti-alert-triangle',
+      deal:'14 Roath Court Rd', msg:'Cooling-off period ends '+fmt(coolingEnd)+' — confirm investor is proceeding', time:'Today' },
+    { id:'n2', unread:true,  type:'navy',  icon:'ti-file-text',
+      deal:'14 Roath Court Rd', msg:'Pack release scheduled for '+fmt(packRelease)+' — ensure content is finalised', time:'Today' },
+    { id:'n3', unread:true,  type:'teal',  icon:'ti-user-check',
+      deal:'14 Roath Court Rd', msg:'James Brown expressed interest — log a response in Investors', time:'Yesterday' },
+    { id:'n4', unread:false, type:'navy',  icon:'ti-user',
+      deal:'14 Roath Court Rd', msg:'Seller details not yet completed — add vendor motivation before sharing packs', time:fmt(noteDate2) },
+    { id:'n5', unread:false, type:'red',   icon:'ti-clock-exclamation',
+      deal:'52 Crwys Rd', msg:'Deal has been in Negotiation for 18 days with no update', time:fmt(noteDate2) },
+  ];
+}());
+function renderNotifs(){
+  var unread = notifData.filter(function(n){ return n.unread; }).length;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.classList.toggle('show', unread > 0); }
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!notifData.length){
+    list.innerHTML = '<div class="notif-empty"><i class="ti ti-bell-off"></i><div class="notif-empty-msg">All caught up — no new notifications</div></div>';
+    return;
+  }
+  list.innerHTML = notifData.map(function(n){
+    return '<div class="notif-item'+(n.unread?' unread':'')+'" id="ni-'+n.id+'" onclick="readNotif(\''+n.id+'\')">'
+      +'<div class="notif-icon-wrap '+n.type+'"><i class="ti '+n.icon+'"></i></div>'
+      +'<div class="notif-body">'
+      +'<div class="notif-deal-tag">'+n.deal+'</div>'
+      +'<div class="notif-msg">'+n.msg+'</div>'
+      +'<div class="notif-time">'+n.time+'</div>'
+      +'</div>'
+      +(n.unread ? '<div class="notif-unread-dot"></div>' : '')
+      +'</div>';
+  }).join('');
+}
+function toggleNotif(e){
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  var drop = document.getElementById('notif-drop');
+  if(drop) drop.classList.toggle('show', notifOpen);
+  if(notifOpen) renderNotifs();
+}
+function readNotif(id){
+  var n = notifData.find(function(x){ return x.id===id; });
+  if(n) n.unread = false;
+  renderNotifs();
+}
+function markAllRead(){
+  notifData.forEach(function(n){ n.unread=false; });
+  renderNotifs();
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.notif-wrap')){ notifOpen=false; var d=document.getElementById('notif-drop'); if(d) d.classList.remove('show'); }
+});
+
+document.addEventListener("DOMContentLoaded",function(){
+  renderNotifs();
+  /* Restore any hero photos set from the Inputs page */
+  try {
+    Object.keys(localStorage).forEach(function(k){
+      var m = k.match(/^dealHeroPhoto_(.+)$/);
+      if(m) dealPhotos[m[1]] = localStorage.getItem(k);
+    });
+  } catch(ex){}
+  renderGrid('grid');
+});
+</script>
+<script>
+/* ══ ARCHIVED DEALS (dashboard) ══ */
+var showingArchived = false;
+function toggleArchived(){
+  showingArchived = !showingArchived;
+  var sec = document.getElementById('archived-section');
+  var btn = document.getElementById('archived-toggle-btn');
+  if(sec) sec.style.display = showingArchived ? 'block' : 'none';
+  if(btn){
+    btn.innerHTML = showingArchived
+      ? '<i class="ti ti-archive" style="font-size:12px;"></i> Hide archived'
+      : '<i class="ti ti-archive" style="font-size:12px;"></i> Show archived';
+    btn.style.color = showingArchived ? 'var(--navy)' : 'var(--text-2)';
+  }
+}
+function restoreDeal(id){
+  showToast('Deal restored to active pipeline');
+  toggleArchived();
+}
+
+/* ── Today strip collapse ── */
+var todayStripCollapsed = false;
+function toggleTodayStrip(){
+  todayStripCollapsed = !todayStripCollapsed;
+  var strip = document.getElementById('today-strip');
+  var btn   = document.getElementById('ts-toggle-btn');
+  if(strip) strip.classList.toggle('collapsed', todayStripCollapsed);
+  if(btn)   btn.textContent = todayStripCollapsed ? 'Show' : 'Hide';
+}
+</script>
+</body>
+</html>

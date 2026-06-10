@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Recommendation engine</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px; --pp:#5B21B6; --pp-light:rgba(91,33,182,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* HEADER */
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;flex-shrink:0;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;flex-shrink:0;}
+.hdrr{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;transition:all .12s;}
+.avt:hover{background:rgba(255,255,255,.24);}
+
+/* mockup tier toggle (preview-only control, mirrors Dashboard / Advert Builder convention) */
+#mockup-tier-toggle{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.14);border-radius:20px;padding:3px;margin-right:4px;}
+#mockup-tier-toggle button{font-size:10px;font-weight:600;padding:4px 11px;border-radius:16px;border:none;background:none;color:rgba(255,255,255,.55);cursor:pointer;font-family:inherit;transition:all .15s;}
+#mockup-tier-toggle button.on{background:#fff;color:var(--navy-dark);}
+
+/* BREADCRUMB + HEAD */
+.crumb{padding:14px 24px 0;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.crumb a{color:var(--navy);text-decoration:none;cursor:pointer;}
+.crumb a:hover{text-decoration:underline;}
+.crumb i{font-size:11px;color:#ccc;}
+.pg-head{padding:10px 24px 4px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.pg-title{font-size:20px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:9px;}
+.pg-sub{font-size:12px;color:var(--text-2);margin-top:4px;max-width:660px;line-height:1.5;}
+.pp-badge{font-size:9px;font-weight:700;background:var(--pp-light);color:var(--pp);border:.5px solid rgba(91,33,182,.22);padding:3px 9px;border-radius:20px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;margin-top:2px;}
+
+.wrap{max-width:980px;margin:0 auto;padding:6px 24px 60px;}
+
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:16px 22px;margin-bottom:18px;}
+.step{display:flex;align-items:center;gap:9px;flex:1;}
+.step:last-child{flex:0;}
+.step-dot{width:26px;height:26px;border-radius:50%;background:var(--bg-sec);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-2);flex-shrink:0;transition:all .15s;}
+.step.done .step-dot{background:var(--teal);border-color:var(--teal);color:#fff;}
+.step.active .step-dot{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 0 0 4px var(--navy-light);}
+.step-lbl{font-size:11px;font-weight:600;color:var(--text-2);white-space:nowrap;}
+.step.active .step-lbl, .step.done .step-lbl{color:var(--text-1);}
+.step-line{height:1px;background:var(--border);flex:1;margin:0 10px;}
+.step.done + .step .step-line, .step.done .step-line{background:var(--teal);}
+@media (max-width:760px){ .step-lbl{display:none;} }
+
+/* PANEL */
+.panel{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;}
+.sec-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:12px;}
+.panel-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:5px;}
+.panel-sub{font-size:11px;color:var(--text-2);line-height:1.6;margin-bottom:18px;max-width:620px;}
+
+/* STEP 1 — deal picker */
+.deal-pick{display:flex;flex-direction:column;gap:8px;}
+.deal-card{display:flex;align-items:center;gap:13px;border:.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;cursor:pointer;transition:all .15s;}
+.deal-card.on{border-color:var(--navy);background:var(--navy-light);box-shadow:0 0 0 2px rgba(27,58,107,.1);}
+.deal-card:hover:not(.on){border-color:rgba(27,58,107,.3);}
+.deal-ic{width:38px;height:38px;border-radius:9px;background:var(--navy-light);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.deal-card.on .deal-ic{background:var(--navy);color:#fff;}
+.deal-info{flex:1;min-width:0;}
+.deal-addr{font-size:12.5px;font-weight:600;color:var(--text-1);}
+.deal-meta{font-size:10.5px;color:var(--text-2);margin-top:1px;}
+.deal-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.b-rec{background:#ECFDF5;color:#065F46;border:.5px solid #A7F3D0;}
+.b-rev{background:#FFFBEB;color:#92400E;border:.5px solid #FDE68A;}
+
+/* STEP 2 — criteria */
+.crit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media (max-width:640px){ .crit-grid{grid-template-columns:1fr;} }
+.crit{display:flex;align-items:flex-start;gap:11px;border:.5px solid var(--border);border-radius:var(--r-md);padding:12px 13px;background:var(--bg-sec);}
+.crit-ic{width:30px;height:30px;border-radius:8px;background:#fff;border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--navy);flex-shrink:0;}
+.crit-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#999;}
+.crit-val{font-size:12.5px;font-weight:600;color:var(--text-1);margin-top:2px;}
+.crit-note{font-size:10px;color:var(--text-2);margin-top:2px;line-height:1.4;}
+.match-pool{display:flex;align-items:center;gap:10px;background:var(--navy-light);border:.5px solid rgba(27,58,107,.12);border-radius:var(--r-md);padding:12px 14px;margin-top:16px;font-size:11.5px;color:var(--navy);}
+.match-pool i{font-size:16px;}
+.match-pool b{font-weight:700;}
+
+/* STEP 3 — ranked table */
+.match-table{width:100%;border-collapse:collapse;font-size:12px;}
+.match-table th{text-align:left;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#999;padding:0 10px 9px;border-bottom:.5px solid var(--border);}
+.match-table td{padding:12px 10px;border-bottom:.5px solid var(--bg-sec);vertical-align:middle;}
+.match-table tr:last-child td{border-bottom:none;}
+.mt-chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;transition:all .12s;}
+.mt-chk.on{background:var(--navy);border-color:var(--navy);}
+.mt-name{font-weight:600;color:var(--text-1);}
+.mt-sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+.mt-score{font-weight:700;font-size:13px;}
+.mt-bar{width:64px;height:5px;border-radius:3px;background:var(--bg-sec);margin-top:5px;overflow:hidden;}
+.mt-bar i{display:block;height:100%;border-radius:3px;}
+.verdict{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.03em;white-space:nowrap;display:inline-block;}
+.v-strong{background:#ECFDF5;color:#065F46;border:.5px solid #A7F3D0;}
+.v-good{background:#EFF6FF;color:#1E40AF;border:.5px solid #BFDBFE;}
+.v-partial{background:#FFFBEB;color:#92400E;border:.5px solid #FDE68A;}
+.crit-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.chip{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;}
+.chip.yes{background:var(--teal-light);color:#065F46;}
+.chip.no{background:#fdecec;color:#9a3030;}
+.trust-pill{font-size:9.5px;font-weight:600;color:var(--text-2);display:inline-flex;align-items:center;gap:4px;}
+.trust-pill i{color:var(--teal);font-size:11px;}
+
+/* STEP 4 — review & send */
+.sel-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.sel-row{display:flex;align-items:center;gap:11px;border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 13px;}
+.sel-av{width:32px;height:32px;border-radius:50%;background:var(--navy-light);color:var(--navy);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sel-name{font-size:12px;font-weight:600;}
+.sel-sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+.note-ta{width:100%;border:.5px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-family:inherit;font-size:12px;resize:vertical;min-height:78px;color:var(--text-1);}
+.note-ta:focus{outline:none;border-color:var(--navy);}
+.empty-note{font-size:11.5px;color:var(--text-2);background:var(--bg-sec);border:.5px dashed var(--border);border-radius:var(--r-md);padding:14px;text-align:center;}
+
+/* nav buttons */
+.wiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;}
+.btn{font-size:12.5px;font-weight:600;padding:9px 18px;border-radius:var(--r-md);border:.5px solid var(--border);background:#fff;color:var(--text-1);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+.btn:hover{border-color:var(--navy);color:var(--navy);}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;}
+.btn.primary:hover{opacity:.9;color:#fff;}
+.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff;}
+.btn.teal:hover{opacity:.9;color:#fff;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn:disabled:hover{border-color:var(--border);color:var(--text-1);}
+
+/* LOCKED (Pro tier preview) */
+.locked-wrap{position:relative;}
+.locked-blur{filter:blur(4px);opacity:.5;pointer-events:none;user-select:none;}
+.locked-card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;}
+.locked-box{background:#fff;border:.5px solid rgba(91,33,182,.25);border-radius:var(--r-lg);box-shadow:0 14px 44px rgba(15,32,64,.16);padding:28px 30px;max-width:380px;text-align:center;}
+.locked-ic{width:46px;height:46px;border-radius:12px;background:var(--pp-light);color:var(--pp);display:flex;align-items:center;justify-content:center;font-size:21px;margin:0 auto 13px;}
+.locked-title{font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:6px;}
+.locked-sub{font-size:11.5px;color:var(--text-2);line-height:1.6;margin-bottom:16px;}
+.locked-cta{background:var(--pp);border:none;color:#fff;font-size:12.5px;font-weight:600;padding:10px 20px;border-radius:var(--r-md);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.locked-cta:hover{opacity:.9;}
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--navy-deep);color:#fff;font-size:12px;font-weight:500;padding:11px 22px;border-radius:30px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:500;box-shadow:0 8px 28px rgba(0,0,0,.22);}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='./ds_deals.html'" title="Back to dashboard">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn" onclick="window.location.href='./ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='./ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='./ds_investors_crm.html'">CRM</button>
+    </nav>
+  </div>
+  <div class="hdrr">
+    <div id="mockup-tier-toggle" title="Preview as a different plan (mockup only)">
+      <button id="hdr-tier-pro" class="on" onclick="setMockupTier('pro')">Pro</button>
+      <button id="hdr-tier-pp" onclick="setMockupTier('proplus')">Pro+</button>
+    </div>
+    <button class="btn-new" onclick="window.location.href='./ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="avt" onclick="window.location.href='./ds_profile_settings.html'" title="Profile &amp; settings">VM</div>
+  </div>
+</div>
+
+<div class="crumb">
+  <a onclick="window.location.href='./ds_deals.html'">Dashboard</a>
+  <i class="ti ti-chevron-right"></i>
+  <a onclick="window.location.href='./ds_investors_crm.html'">Investors</a>
+  <i class="ti ti-chevron-right"></i>
+  <span>Recommendation engine</span>
+</div>
+
+<div class="pg-head">
+  <div>
+    <div class="pg-title"><i class="ti ti-sparkles" style="font-size:18px;"></i> Recommendation engine</div>
+    <div class="pg-sub">Match a deal against your committed investors' preference questionnaires in four steps — review the criteria, see a ranked comparison of who fits, then send straight from here.</div>
+  </div>
+  <span class="pp-badge"><i class="ti ti-sparkles" style="font-size:10px;"></i> Pro Plus feature</span>
+</div>
+
+<div class="wrap">
+
+  <div class="steps" id="steps"></div>
+
+  <div class="locked-wrap" id="locked-wrap">
+
+    <div id="wizard-body">
+      <!-- STEP 1 -->
+      <div class="panel step-pane" id="pane-1">
+        <div class="sec-lbl">Step 1 of 4</div>
+        <div class="panel-title">Choose the deal to match</div>
+        <div class="panel-sub">Pick the deal you want to find committed investors for. The engine compares this deal's strategy, location, capital required and risk profile against each investor's questionnaire answers.</div>
+        <div class="deal-pick" id="deal-pick"></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="panel step-pane" id="pane-2" style="display:none;">
+        <div class="sec-lbl">Step 2 of 4</div>
+        <div class="panel-title">Review the match criteria</div>
+        <div class="panel-sub">These are the attributes pulled from the deal's analysis. The engine weighs each one against what your committed investors said they're looking for when they completed their questionnaire.</div>
+        <div class="crit-grid" id="crit-grid"></div>
+        <div class="match-pool" id="match-pool"></div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="panel step-pane" id="pane-3" style="display:none;">
+        <div class="sec-lbl">Step 3 of 4</div>
+        <div class="panel-title">Ranked matches</div>
+        <div class="panel-sub">Investors are ranked by how closely their stated preferences fit this deal. Tick the ones you'd like to share with — you can select more than one.</div>
+        <div style="overflow-x:auto;">
+          <table class="match-table">
+            <thead><tr>
+              <th></th><th>Investor</th><th>Match score</th><th>Why they match</th><th>Trust level</th>
+            </tr></thead>
+            <tbody id="match-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="panel step-pane" id="pane-4" style="display:none;">
+        <div class="sec-lbl">Step 4 of 4</div>
+        <div class="panel-title">Review &amp; send</div>
+        <div class="panel-sub">Confirm who you're sending to and add an optional note — it'll appear alongside the deal link when each investor opens it.</div>
+        <div id="sel-summary"></div>
+      </div>
+    </div>
+
+    <div class="wiz-nav">
+      <button class="btn" id="btn-back" onclick="wizBack()"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn primary" id="btn-next" onclick="wizNext()">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+
+  </div><!-- /locked-wrap -->
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(m){ var t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; clearTimeout(window._toastT); window._toastT=setTimeout(function(){ t.style.opacity=0; },2200); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ───────────────────────── mockup data ───────────────────────── */
+
+var deals = [
+  { addr:'65a Horwood Close, Leeds LS7', strat:'Buy-to-Let', score:'RECOMMENDED', scoreClass:'b-rec',
+    capital:'£51,750', region:'Yorkshire & Humber', risk:'Low–medium', yieldVal:'6.4% gross yield' },
+  { addr:'12 Victoria Street, Manchester M1', strat:'HMO · 6-bed', score:'REVIEW', scoreClass:'b-rev',
+    capital:'£73,800', region:'North West', risk:'Medium', yieldVal:'9.1% net yield' },
+  { addr:'8 Park Lane, Birmingham B15', strat:'BRRR · refurb', score:'RECOMMENDED', scoreClass:'b-rec',
+    capital:'£46,250', region:'West Midlands', risk:'Medium–high', yieldVal:'14% uplift on refurb' }
+];
+
+var critIcons = {
+  strategy:'ti-route', capital:'ti-coin', region:'ti-map-pin', risk:'ti-gauge'
+};
+
+/* match results — vary slightly by chosen deal so the table feels alive */
+var matchSets = [
+  [
+    { name:'James Whitfield', sub:'Committed · 4 deals funded', score:94, verdict:'Strong match', vClass:'v-strong',
+      crit:[['Strategy — BTL', true],['Region — Yorkshire', true],['Capital — up to £60k', true],['Risk — low/medium', true]], trust:'Full trust · address visible' },
+    { name:'Priya Anand', sub:'Committed · 2 deals funded', score:81, verdict:'Good match', vClass:'v-good',
+      crit:[['Strategy — BTL', true],['Region — Yorkshire/NW', true],['Capital — up to £45k', false],['Risk — low', true]], trust:'Full trust · address visible' },
+    { name:'Connor Hughes', sub:'Committed · 1 deal funded', score:68, verdict:'Good match', vClass:'v-good',
+      crit:[['Strategy — BTL/HMO', true],['Region — any UK', true],['Capital — up to £80k', true],['Risk — medium', false]], trust:'Full trust · address visible' },
+    { name:'Sarah Bell', sub:'Committed · new investor', score:47, verdict:'Partial match', vClass:'v-partial',
+      crit:[['Strategy — SA preferred', false],['Region — South East only', false],['Capital — up to £55k', true],['Risk — low', true]], trust:'Full trust · address visible' }
+  ],
+  [
+    { name:'Connor Hughes', sub:'Committed · 1 deal funded', score:90, verdict:'Strong match', vClass:'v-strong',
+      crit:[['Strategy — HMO', true],['Region — North West', true],['Capital — up to £80k', true],['Risk — medium', true]], trust:'Full trust · address visible' },
+    { name:'Priya Anand', sub:'Committed · 2 deals funded', score:74, verdict:'Good match', vClass:'v-good',
+      crit:[['Strategy — BTL/HMO', true],['Region — North West', true],['Capital — up to £45k', false],['Risk — low', false]], trust:'Full trust · address visible' },
+    { name:'James Whitfield', sub:'Committed · 4 deals funded', score:59, verdict:'Partial match', vClass:'v-partial',
+      crit:[['Strategy — BTL preferred', false],['Region — Yorkshire only', false],['Capital — up to £60k', true],['Risk — medium', true]], trust:'Full trust · address visible' }
+  ],
+  [
+    { name:'Sarah Bell', sub:'Committed · new investor', score:88, verdict:'Strong match', vClass:'v-strong',
+      crit:[['Strategy — BRRR', true],['Region — West Midlands', true],['Capital — up to £55k', true],['Risk — medium/high', true]], trust:'Full trust · address visible' },
+    { name:'James Whitfield', sub:'Committed · 4 deals funded', score:72, verdict:'Good match', vClass:'v-good',
+      crit:[['Strategy — BTL/BRRR', true],['Region — any UK', true],['Capital — up to £60k', true],['Risk — low/medium', false]], trust:'Full trust · address visible' },
+    { name:'Connor Hughes', sub:'Committed · 1 deal funded', score:65, verdict:'Good match', vClass:'v-good',
+      crit:[['Strategy — BRRR/HMO', true],['Region — any UK', true],['Capital — up to £80k', true],['Risk — medium', false]], trust:'Full trust · address visible' },
+    { name:'Priya Anand', sub:'Committed · 2 deals funded', score:38, verdict:'Partial match', vClass:'v-partial',
+      crit:[['Strategy — BTL only', false],['Region — Yorkshire/NW', false],['Capital — up to £45k', false],['Risk — low', false]], trust:'Full trust · address visible' }
+  ]
+];
+
+/* ───────────────────────── wizard state ───────────────────────── */
+
+var STEP_LABELS = ['Choose deal','Match criteria','Ranked matches','Review & send'];
+var step = 1;
+var dealIdx = 0;
+var selected = {}; // investor name -> bool, scoped per deal
+
+/* ───────────────────────── tier toggle ───────────────────────── */
+
+var mockupTier = 'pro';
+function setMockupTier(tier){
+  mockupTier = tier;
+  document.getElementById('hdr-tier-pro').classList.toggle('on', tier==='pro');
+  document.getElementById('hdr-tier-pp').classList.toggle('on', tier==='proplus');
+  renderLockState();
+}
+
+function renderLockState(){
+  var wrap = document.getElementById('locked-wrap');
+  var body = document.getElementById('wizard-body');
+  var existing = document.getElementById('locked-card');
+  if(existing) existing.remove();
+
+  if(mockupTier === 'pro'){
+    body.classList.add('locked-blur');
+    document.querySelector('.wiz-nav').style.display = 'none';
+    var card = document.createElement('div');
+    card.className = 'locked-card';
+    card.id = 'locked-card';
+    card.innerHTML = ''
+      + '<div class="locked-box">'
+      + '  <div class="locked-ic"><i class="ti ti-lock"></i></div>'
+      + '  <div class="locked-title">Recommendation engine is a Pro Plus feature</div>'
+      + '  <div class="locked-sub">Auto-match every new deal to your committed investors\' questionnaire answers, see a ranked comparison of who fits best, and send straight from the results — no more guessing who to call first.</div>'
+      + '  <button class="locked-cta" onclick="showToast(\'Opening Pro Plus upgrade…\')"><i class="ti ti-sparkles"></i> Upgrade to Pro Plus</button>'
+      + '</div>';
+    wrap.appendChild(card);
+  } else {
+    body.classList.remove('locked-blur');
+    document.querySelector('.wiz-nav').style.display = 'flex';
+  }
+}
+
+/* ───────────────────────── step indicator ───────────────────────── */
+
+function renderSteps(){
+  var html = '';
+  for(var i=1;i<=4;i++){
+    var cls = i < step ? 'done' : (i === step ? 'active' : '');
+    html += '<div class="step '+cls+'">'
+          +   '<div class="step-dot">'+ (i < step ? '<i class="ti ti-check"></i>' : i) +'</div>'
+          +   '<div class="step-lbl">'+ STEP_LABELS[i-1] +'</div>'
+          + (i < 4 ? '<div class="step-line"></div>' : '')
+          + '</div>';
+  }
+  document.getElementById('steps').innerHTML = html;
+}
+
+/* ───────────────────────── step renderers ───────────────────────── */
+
+function renderDealPick(){
+  var html = deals.map(function(d, i){
+    return '<div class="deal-card '+(i===dealIdx?'on':'')+'" onclick="chooseDeal('+i+')">'
+         +   '<div class="deal-ic"><i class="ti ti-building-estate"></i></div>'
+         +   '<div class="deal-info">'
+         +     '<div class="deal-addr">'+escHtml(d.addr)+'</div>'
+         +     '<div class="deal-meta">'+escHtml(d.strat)+' · '+escHtml(d.capital)+' capital required · '+escHtml(d.region)+'</div>'
+         +   '</div>'
+         +   '<span class="deal-badge '+d.scoreClass+'">'+escHtml(d.score)+'</span>'
+         + '</div>';
+  }).join('');
+  document.getElementById('deal-pick').innerHTML = html;
+}
+
+function chooseDeal(i){
+  dealIdx = i;
+  selected = {};
+  renderDealPick();
+}
+
+function renderCriteria(){
+  var d = deals[dealIdx];
+  var items = [
+    ['strategy','Strategy', d.strat, 'Matched against each investor\'s preferred property strategies'],
+    ['capital','Capital required', d.capital, 'Compared with the maximum each investor said they can deploy'],
+    ['region','Region', d.region, 'Cross-checked against investors\' preferred locations'],
+    ['risk','Risk profile', d.risk, 'Weighed against each investor\'s stated risk appetite']
+  ];
+  document.getElementById('crit-grid').innerHTML = items.map(function(it){
+    return '<div class="crit">'
+         +   '<div class="crit-ic"><i class="ti '+critIcons[it[0]]+'"></i></div>'
+         +   '<div><div class="crit-lbl">'+it[1]+'</div><div class="crit-val">'+escHtml(it[2])+'</div><div class="crit-note">'+it[3]+'</div></div>'
+         + '</div>';
+  }).join('');
+  var n = matchSets[dealIdx].length;
+  document.getElementById('match-pool').innerHTML = '<i class="ti ti-users"></i> Matching <b>'+escHtml(d.addr)+'</b> against <b>'+n+' committed investors</b> who have completed their preference questionnaire.';
+}
+
+function renderMatches(){
+  var rows = matchSets[dealIdx];
+  document.getElementById('match-tbody').innerHTML = rows.map(function(r){
+    var on = !!selected[r.name];
+    var barColor = r.score >= 80 ? 'var(--teal)' : (r.score >= 60 ? '#3B82F6' : '#F59E0B');
+    var chips = r.crit.map(function(c){
+      return '<span class="chip '+(c[1]?'yes':'no')+'"><i class="ti ti-'+(c[1]?'check':'x')+'" style="font-size:9px;"></i> '+escHtml(c[0])+'</span>';
+    }).join('');
+    return '<tr>'
+         +   '<td><div class="mt-chk '+(on?'on':'')+'" onclick="toggleSelect(\''+escHtml(r.name).replace(/'/g,"\\'")+'\', this)">'+(on?'<i class="ti ti-check"></i>':'')+'</div></td>'
+         +   '<td><div class="mt-name">'+escHtml(r.name)+'</div><div class="mt-sub">'+escHtml(r.sub)+'</div></td>'
+         +   '<td><div class="mt-score">'+r.score+'%</div><div class="mt-bar"><i style="width:'+r.score+'%;background:'+barColor+';"></i></div><span class="verdict '+r.vClass+'" style="margin-top:6px;">'+escHtml(r.verdict)+'</span></td>'
+         +   '<td><div class="crit-chips">'+chips+'</div></td>'
+         +   '<td><span class="trust-pill"><i class="ti ti-shield-check"></i> '+escHtml(r.trust)+'</span></td>'
+         + '</tr>';
+  }).join('');
+}
+
+function toggleSelect(name, el){
+  selected[name] = !selected[name];
+  el.classList.toggle('on', selected[name]);
+  el.innerHTML = selected[name] ? '<i class="ti ti-check"></i>' : '';
+}
+
+function renderReview(){
+  var rows = matchSets[dealIdx];
+  var chosen = rows.filter(function(r){ return !!selected[r.name]; });
+  var html = '';
+  if(chosen.length === 0){
+    html += '<div class="empty-note"><i class="ti ti-info-circle" style="margin-right:5px;"></i>No investors selected yet — go back to step 3 and tick at least one match to send to.</div>';
+  } else {
+    html += '<div class="sec-lbl">Sending to ('+chosen.length+')</div><div class="sel-list">';
+    html += chosen.map(function(r){
+      var initials = r.name.split(' ').map(function(p){return p[0];}).join('').slice(0,2).toUpperCase();
+      return '<div class="sel-row"><div class="sel-av">'+initials+'</div><div><div class="sel-name">'+escHtml(r.name)+'</div><div class="sel-sub">'+escHtml(r.sub)+' · '+r.score+'% match · '+escHtml(r.verdict)+'</div></div></div>';
+    }).join('');
+    html += '</div>';
+  }
+  html += '<div class="sec-lbl">Note <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;">(optional — sent alongside the deal link)</span></div>';
+  html += '<textarea class="note-ta" id="send-note" placeholder="Hi — thought this one matches what you\'re looking for. Take a look and let me know..."></textarea>';
+  document.getElementById('sel-summary').innerHTML = html;
+}
+
+/* ───────────────────────── wizard navigation ───────────────────────── */
+
+function renderStep(){
+  renderSteps();
+  for(var i=1;i<=4;i++){
+    document.getElementById('pane-'+i).style.display = (i === step) ? '' : 'none';
+  }
+  if(step === 1) renderDealPick();
+  if(step === 2) renderCriteria();
+  if(step === 3) renderMatches();
+  if(step === 4) renderReview();
+
+  document.getElementById('btn-back').disabled = (step === 1);
+  var nextBtn = document.getElementById('btn-next');
+  if(step === 4){
+    nextBtn.className = 'btn teal';
+    nextBtn.innerHTML = '<i class="ti ti-send"></i> Send to selected investors';
+  } else {
+    nextBtn.className = 'btn primary';
+    nextBtn.innerHTML = 'Continue <i class="ti ti-arrow-right"></i>';
+  }
+}
+
+function wizNext(){
+  if(step < 4){
+    step++;
+    renderStep();
+    window.scrollTo({top:0, behavior:'smooth'});
+  } else {
+    var chosen = matchSets[dealIdx].filter(function(r){ return !!selected[r.name]; });
+    if(chosen.length === 0){ showToast('Select at least one investor before sending'); return; }
+    showToast('Deal link sent to '+chosen.length+' investor'+(chosen.length>1?'s':'')+' — they\'ll be notified now');
+    setTimeout(function(){
+      step = 1; dealIdx = dealIdx; selected = {};
+      renderStep();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }, 1400);
+  }
+}
+
+function wizBack(){
+  if(step > 1){
+    step--;
+    renderStep();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+/* ───────────────────────── init ───────────────────────── */
+renderStep();
+renderLockState();
+</script>
+
+</body>
+</html>

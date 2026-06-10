@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Content</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --amber:#D97706; --amber-bg:#fffbeb; --amber-border:#fde68a;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px; --istrip-h:48px; --livebar-h:44px; --tabs-h:42px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* ══ HEADER ══ */
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:220;border-bottom:.5px solid rgba(255,255,255,.06);}
+.hdr-left{display:flex;align-items:center;gap:0;flex:1;}
+.logo{font-size:17px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:-.3px;flex-shrink:0;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;flex-shrink:0;}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.hdr-icon{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;transition:all .12s;position:relative;flex-shrink:0;}
+.hdr-icon:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--amber);border:1.5px solid var(--navy-dark);}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;transition:all .12s;}
+.avt-wrap-inner:hover .avt{background:rgba(255,255,255,.24);}
+.avt-chevron{font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt.privacy-on{border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.35);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+.mini-toggle{position:relative;width:28px;height:16px;flex-shrink:0;}
+.mini-toggle input{opacity:0;width:0;height:0;}
+.mini-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.mini-toggle input:checked + .mini-track{background:var(--teal);}
+.mini-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.mini-toggle input:checked ~ .mini-thumb{transform:translateX(12px);}
+
+/* ══ CHROME STRIPS ══ */
+.istrip{background:#fff;border-bottom:.5px solid var(--border);display:flex;align-items:center;position:sticky;top:var(--hdr-h);z-index:219;height:var(--istrip-h);padding:0 20px;}
+.ds-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.ds-status.sourcing{border-color:#9ca3af;}
+.ds-status.ready{border-color:#10b981;}
+.ds-status.live{border-color:#1B3A6B;}
+.ds-status.reserved{border-color:#f59e0b;}
+.ds-status.pack-sent{border-color:#8b5cf6;}
+.ds-status.complete{border-color:#10b981;}
+.ds-status.withdrawn{border-color:#9ca3af;}
+/* ══ PRIVACY ══ */
+/* ══ LIVEBAR ══ */
+.livebar{background:var(--navy-dark);border-bottom:none;display:flex;align-items:center;position:sticky;top:calc(var(--hdr-h) + var(--istrip-h));z-index:218;height:var(--livebar-h);padding:0 24px;overflow:hidden;transition:height .2s,opacity .2s;}
+.livebar.hidden{height:0!important;opacity:0;pointer-events:none;border:none;}
+.lb-set{display:none;}
+.lb-set.on{display:contents;}
+.lb-item{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px;border-right:.5px solid rgba(255,255,255,.1);}
+.lb-item:first-child{padding-left:0;}
+.lb-item:last-of-type{border-right:none;}
+.lbsep{display:none;}
+.lb-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.45);margin-bottom:2px;}
+.lb-val{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;}
+.lb-val.hl{color:#34D399;}
+.lb-val.warn{color:#FCD34D;}
+.lb-hide-toggle{margin-left:24px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;color:rgba(255,255,255,.45);background:none;border:.5px solid rgba(255,255,255,.15);border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.lb-hide-toggle:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+.lb-hide-toggle i,.lb-hide-toggle span{color:inherit;}
+/* ══ TAB NAV ══ */
+.tabwrap{background:#fff;border-bottom:.5px solid var(--border);position:sticky;top:calc(var(--hdr-h) + var(--istrip-h) + var(--livebar-h));z-index:217;height:var(--tabs-h);}
+.tabrow{display:flex;align-items:center;height:100%;padding:0 20px;gap:0;}
+.vt{background:none;border:none;padding:0 14px;height:100%;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;}
+.vt:hover{color:var(--navy);}
+.vt.on{color:var(--navy);font-weight:600;border-bottom-color:var(--navy);}
+.tdiv{width:.5px;height:14px;background:var(--border);flex-shrink:0;}
+.tab-action{margin-left:auto;display:flex;align-items:center;gap:7px;}
+.tab-action-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:5px 11px;border-radius:7px;border:.5px solid var(--border);background:var(--bg-sec);color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;}
+.tab-action-btn:hover{border-color:var(--navy);color:var(--navy);}
+.log-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:5px 11px;border-radius:7px;border:.5px solid var(--border);background:var(--bg-sec);color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;}
+.log-btn:hover{border-color:var(--navy);color:var(--navy);}
+
+.privacy-banner{display:none;background:#92400e;padding:7px 24px;font-size:11px;font-weight:500;color:#fef3c7;align-items:center;gap:8px;position:sticky;top:var(--hdr-h);z-index:218;}
+.privacy-banner.show{display:flex;}
+.pii{transition:opacity .2s;}
+body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text-1);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:400;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ CONTENT LAYOUT ══ */
+.ds-content{max-width:1300px;margin:0 auto;padding:20px 24px 40px;}
+
+/* ══ TYPE SELECTOR ══ */
+.ctype-prompt{font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:12px;}
+.ctype-prompt span{font-weight:400;color:var(--text-2);}
+.ctype-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.ctype-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.ctype-card:hover:not(.on):not(.soon){border-color:rgba(27,58,107,.3);box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.ctype-card.on{border-color:var(--navy);background:var(--navy-light);box-shadow:0 0 0 2px rgba(27,58,107,.12);}
+.ctype-card.soon{opacity:.5;cursor:default;}
+.ctype-icon{width:32px;height:32px;border-radius:var(--r-md);background:var(--bg-sec);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-2);margin-bottom:10px;transition:all .15s;}
+.ctype-card.on .ctype-icon{background:var(--navy);color:#fff;}
+.ctype-name{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:3px;line-height:1.3;}
+.ctype-sub{font-size:10px;color:var(--text-2);line-height:1.5;}
+.ctype-badge{display:inline-flex;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:8px;}
+.ctype-badge.notstarted{background:var(--bg-sec);color:#9ca3af;}
+.ctype-badge.draft{background:var(--amber-bg);color:var(--amber);border:.5px solid var(--amber-border);}
+.ctype-badge.sent{background:#eff6ff;color:#1e40af;}
+.ctype-badge.soon{background:#f3f4f6;color:#9ca3af;}
+
+/* ══ WORKSPACE ══ */
+.workspace{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start;}
+
+/* ═ LEFT INPUTS ═ */
+.wp-left{min-width:0;}
+.inp-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.inp-card-hdr{padding:11px 14px;background:var(--bg-sec);border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:7px;}
+.inp-card-title{font-size:11px;font-weight:600;color:var(--text-1);flex:1;}
+.inp-card-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.inp-card-badge.ai{background:rgba(27,58,107,.08);color:var(--navy);}
+.inp-body{padding:14px;}
+.inp-group{margin-bottom:14px;}
+.inp-group:last-child{margin-bottom:0;}
+.inp-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.inp-label a{font-size:10px;font-weight:500;color:var(--navy);text-decoration:none;text-transform:none;letter-spacing:0;}
+.inp-label a:hover{text-decoration:underline;}
+.f-in{border:.5px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:12px;color:var(--text-1);background:#fff;font-family:inherit;width:100%;outline:none;transition:border-color .15s;}
+.f-in:focus{border-color:var(--navy);}
+.f-ta{border:.5px solid var(--border);border-radius:var(--r-md);padding:8px 10px;font-size:12px;color:var(--text-1);background:#fff;font-family:inherit;width:100%;resize:none;outline:none;line-height:1.55;transition:border-color .15s;min-height:80px;}
+.f-ta:focus{border-color:var(--navy);}
+.f-ta-sm{min-height:58px;}
+/* Segmented control */
+.seg-row{display:flex;gap:4px;flex-wrap:wrap;}
+.seg-btn{font-size:11px;font-weight:500;padding:6px 14px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+.seg-btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.seg-btn:not(.on):hover{border-color:var(--navy);color:var(--navy);}
+/* Metric toggles */
+.metric-row{display:flex;flex-wrap:wrap;gap:6px;}
+.metric-chip{font-size:10px;font-weight:600;padding:5px 12px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.metric-chip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.metric-chip:not(.on):hover{border-color:var(--navy);color:var(--navy);}
+/* Nearby locations */
+.loc-pull{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;}
+.loc-pull-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.loc-pull-lbl{font-size:10px;color:var(--text-2);display:flex;align-items:center;gap:4px;}
+.loc-pull-lbl i{font-size:11px;color:var(--teal);}
+.loc-edit-link{font-size:10px;font-weight:500;color:var(--navy);text-decoration:none;}
+.loc-edit-link:hover{text-decoration:underline;}
+.loc-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.loc-chip{font-size:10px;font-weight:500;padding:3px 10px;border-radius:20px;background:#fff;border:.5px solid var(--border);color:var(--text-1);}
+/* Section checkboxes */
+.section-checks{display:flex;flex-direction:column;gap:8px;}
+.section-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text-1);}
+.section-check input{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;}
+.section-check span{line-height:1.4;}
+/* Photo picker */
+.photo-pick-row{display:flex;gap:8px;}
+.photo-thumb{width:64px;height:52px;border-radius:var(--r-md);background:linear-gradient(135deg,#c7d2fe,#93c5fd);border:2px solid var(--border);cursor:pointer;transition:all .15s;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.photo-thumb.on{border-color:var(--navy);box-shadow:0 0 0 2px rgba(27,58,107,.2);}
+.photo-thumb:not(.on):hover{border-color:rgba(27,58,107,.4);}
+.photo-thumb-num{font-size:9px;font-weight:700;color:#fff;position:absolute;top:4px;left:5px;}
+/* Cover style */
+.cover-pick-row{display:flex;gap:8px;}
+.cover-opt{flex:1;border:.5px solid var(--border);border-radius:var(--r-md);padding:9px 8px;text-align:center;cursor:pointer;transition:all .15s;}
+.cover-opt.on{border-color:var(--navy);background:var(--navy-light);}
+.cover-opt:not(.on):hover{border-color:rgba(27,58,107,.35);}
+.cover-opt-preview{height:34px;border-radius:5px;margin-bottom:6px;}
+.cover-opt-preview.branded{background:var(--navy);}
+.cover-opt-preview.clean{background:#f9fafb;border:.5px solid var(--border);}
+.cover-opt-preview.custom{background:linear-gradient(135deg,#7C3AED,#4F46E5);}
+.cover-opt-name{font-size:10px;font-weight:600;color:var(--text-1);}
+.cover-opt-sub{font-size:9px;color:var(--text-2);margin-top:1px;}
+/* Inp actions */
+.inp-actions{display:flex;gap:8px;margin-top:4px;}
+/* Inp note */
+.inp-note{font-size:11px;color:var(--navy);background:var(--navy-light);border:.5px solid rgba(27,58,107,.12);border-radius:var(--r-md);padding:9px 12px;display:flex;gap:8px;align-items:flex-start;line-height:1.6;margin-bottom:10px;}
+.inp-note i{flex-shrink:0;margin-top:1px;font-size:13px;}
+.inp-note.amber{background:var(--amber-bg);border-color:var(--amber-border);color:#92400e;}
+.inp-note.amber i{color:var(--amber);}
+
+/* ═ RIGHT PREVIEW ═ */
+.wp-right{position:sticky;top:calc(var(--hdr-h) + var(--istrip-h) + var(--livebar-h) + var(--tabs-h) + 16px);}
+.pv-shell{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.pv-top{padding:10px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);display:flex;align-items:center;gap:10px;}
+.pv-top-label{font-size:11px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:5px;flex:1;}
+.pv-top-label i{font-size:12px;color:var(--navy);}
+.pv-controls{display:flex;align-items:center;gap:6px;}
+.pv-btn{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:all .12s;}
+.pv-btn:hover{border-color:var(--navy);color:var(--navy);}
+.page-nav{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;color:var(--text-1);}
+.page-nav-btn{width:24px;height:24px;border-radius:50%;border:.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:10px;transition:all .12s;font-family:inherit;}
+.page-nav-btn:hover{border-color:var(--navy);color:var(--navy);}
+.page-nav-btn:disabled{opacity:.3;cursor:default;}
+.pv-canvas{padding:24px 20px;min-height:480px;display:flex;align-items:center;justify-content:center;}
+.pv-actions{display:flex;gap:8px;padding:12px 14px;border-top:.5px solid var(--border);background:var(--bg-sec);}
+
+/* ─ Advert: social tile ─ */
+/* ─ Advert: dark navy social tile card (v2 format) ─ */
+.adv-card{width:270px;border-radius:16px;overflow:hidden;color:white;}
+.adv-photo{width:100%;height:134px;background:linear-gradient(135deg,#152d55 0%,#1B3A6B 100%);display:flex;align-items:center;justify-content:center;position:relative;}
+.adv-photo-label{font-size:10px;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:4px;}
+.adv-score-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:500;border-radius:20px;padding:3px 9px;}
+.adv-inner{padding:14px 16px;}
+.adv-strat{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:3px;}
+.adv-area{font-size:16px;font-weight:500;margin-bottom:11px;line-height:1.2;}
+.adv-mets{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:11px;}
+.adv-m{background:rgba(255,255,255,.1);border-radius:7px;padding:7px 9px;}
+.adv-ml{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.5);margin-bottom:2px;}
+.adv-mv{font-size:12px;font-weight:500;}
+.adv-div{height:.5px;background:rgba(255,255,255,.1);margin:0 0 11px;}
+.adv-fee-lbl{font-size:10px;color:rgba(255,255,255,.5);margin-bottom:2px;}
+.adv-fee-val{font-size:20px;font-weight:500;margin-bottom:11px;}
+.adv-cta-btn{border-radius:20px;padding:8px 14px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;border:none;font-family:inherit;}
+.adv-pw{font-size:8px;color:rgba(255,255,255,.25);text-align:center;margin-top:9px;}
+.adv-nearby{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px;}
+.adv-nearby-chip{background:rgba(255,255,255,.12);border-radius:20px;padding:4px 10px;font-size:9px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:4px;}
+
+/* ─ Advert: listing copy ─ */
+.adv-listing{max-width:420px;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:18px;font-size:12px;line-height:1.75;color:var(--text-1);}
+.adv-listing-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:10px;}
+.adv-listing-body{color:var(--text-2);white-space:pre-wrap;}
+
+/* ─ Advert: WhatsApp ─ */
+.adv-whatsapp{max-width:360px;}
+.adv-wa-bubble{background:#e9f9f0;border-radius:12px 12px 12px 0;padding:12px 15px;font-size:11.5px;line-height:1.75;color:#1a1a1a;white-space:pre-wrap;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+
+/* ── Deal brochure template ── */
+.adv-brochure{background:#fff;width:380px;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,.12);border-radius:3px;overflow:hidden;}
+.br-hero{width:100%;height:180px;background:linear-gradient(135deg,#c7d2fe 0%,#a5b4fc 50%,#818cf8 100%);position:relative;display:flex;align-items:flex-end;flex-shrink:0;}
+.br-hero-badge{position:absolute;top:10px;left:10px;font-size:9px;font-weight:700;letter-spacing:.04em;background:var(--navy);color:#fff;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
+.br-hero-score{position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;background:rgba(29,158,117,.9);color:#fff;padding:3px 10px;border-radius:20px;}
+.br-hero-overlay{background:linear-gradient(transparent,rgba(15,32,64,.7));width:100%;padding:12px 14px;}
+.br-addr{font-size:13px;font-weight:700;color:#fff;line-height:1.25;}
+.br-addr-sub{font-size:10px;color:rgba(255,255,255,.7);margin-top:2px;}
+.br-value-banner{background:var(--navy);padding:8px 14px;display:flex;align-items:center;gap:8px;}
+.br-value-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.55);}
+.br-value-text{font-size:11px;font-weight:700;color:#34D399;flex:1;}
+.br-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:.5px solid var(--border);}
+.br-stat{padding:9px 8px;text-align:center;border-right:.5px solid var(--border);}
+.br-stat:last-child{border-right:none;}
+.br-stat-val{font-size:12px;font-weight:700;color:var(--navy);}
+.br-stat-lbl{font-size:7.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+.br-sec{padding:10px 14px;border-bottom:.5px solid #f3f4f6;}
+.br-sec:last-child{border-bottom:none;}
+.br-sec-title{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--navy);margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.br-sec-body{font-size:10px;color:var(--text-2);line-height:1.65;}
+.br-bullets{list-style:none;display:flex;flex-direction:column;gap:3px;}
+.br-bullet{font-size:10px;color:var(--text-2);display:flex;align-items:flex-start;gap:5px;line-height:1.5;}
+.br-bullet::before{content:'✓';font-size:9px;color:var(--teal);flex-shrink:0;margin-top:1px;}
+.br-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.br-detail-row{font-size:10px;color:var(--text-2);display:flex;justify-content:space-between;}
+.br-detail-row strong{color:var(--text-1);}
+.br-placeholder{height:80px;background:var(--bg-sec);border:.5px dashed var(--border);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;gap:5px;color:#bbb;font-size:10px;}
+.br-placeholder i{font-size:16px;color:#d1d5db;}
+.br-epc-row{display:flex;align-items:center;gap:8px;}
+.br-epc-badge{font-size:11px;font-weight:700;background:#16a34a;color:#fff;padding:4px 11px;border-radius:4px;}
+.br-epc-scale{display:flex;gap:2px;align-items:center;}
+.br-epc-band{width:14px;height:12px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;opacity:.4;}
+.br-epc-band.current{opacity:1;transform:scale(1.1);}
+.br-features-row{display:flex;flex-wrap:wrap;gap:4px;}
+.br-feature-chip{font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;background:var(--bg-sec);color:var(--text-2);border:.5px solid var(--border);}
+.br-footer{background:var(--navy);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.br-footer-brand{font-size:10px;font-weight:700;color:#fff;letter-spacing:-.01em;}
+.br-footer-brand span{color:var(--teal-mid);}
+.br-footer-note{font-size:9px;color:rgba(255,255,255,.4);}
+
+
+/* ══ METRIC PICKER ══ */
+.metric-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px;}
+.mpick-card{border:.5px solid var(--border);border-radius:var(--r-md);padding:9px 10px;cursor:pointer;transition:all .12s;background:#fff;position:relative;}
+.mpick-card.on{border-color:var(--navy);background:var(--navy-light);}
+.mpick-card.disabled{opacity:.38;pointer-events:none;}
+.mpick-card-val{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:3px;white-space:nowrap;}
+.mpick-card.on .mpick-card-val{color:var(--navy);}
+.mpick-label-wrap{display:flex;align-items:center;gap:3px;}
+.mpick-label-input{font-size:9px;font-weight:600;color:var(--text-2);background:none;border:none;width:100%;font-family:inherit;padding:0;text-transform:uppercase;letter-spacing:.05em;cursor:text;}
+.mpick-label-input:focus{outline:.5px solid var(--navy);background:#fff;border-radius:3px;padding:1px 3px;cursor:text;color:var(--navy);}
+.mpick-card.on .mpick-label-input{color:var(--navy);}
+.mpick-check{position:absolute;top:6px;right:7px;font-size:11px;color:var(--navy);opacity:0;}
+.mpick-card.on .mpick-check{opacity:1;}
+.mpick-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--text-2);}
+.mpick-max-warn{font-size:10px;color:#92400e;background:#fffbeb;border:.5px solid #fde68a;border-radius:var(--r-sm);padding:4px 10px;margin-top:6px;display:none;}
+.mpick-max-warn.show{display:block;}
+/* ══ ALIGNED STAT GRID (preview) ══ */
+.stat-grid{display:grid;gap:0;border:.5px solid rgba(255,255,255,.15);border-radius:var(--r-md);overflow:hidden;margin-bottom:10px;}
+.stat-grid.light{border-color:var(--border);}
+.stat-grid-cell{padding:10px 12px;border-right:.5px solid rgba(255,255,255,.12);display:flex;flex-direction:column;justify-content:center;}
+.stat-grid.light .stat-grid-cell{border-right-color:var(--border);}
+.stat-grid-cell:last-child{border-right:none!important;}
+.stat-grid-val{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;}
+.stat-grid.light .stat-grid-val{color:var(--navy);}
+.stat-grid-lbl{font-size:7.5px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.stat-grid.light .stat-grid-lbl{color:var(--text-2);}
+
+/* ─ PDF/doc preview ─ */
+.pdf-page{width:320px;min-height:440px;box-shadow:0 4px 20px rgba(0,0,0,.15);border-radius:3px;overflow:hidden;background:#fff;}
+/* Cover */
+.pdf-cover{background:var(--navy);min-height:440px;padding:28px 24px;display:flex;flex-direction:column;position:relative;}
+.pdf-cover-logo{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:auto;padding-bottom:24px;}
+.pdf-cover-tag{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.pdf-cover-addr{font-size:17px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:4px;}
+.pdf-cover-sub{font-size:11px;color:rgba(255,255,255,.55);margin-bottom:14px;}
+.pdf-cover-score{display:inline-flex;align-items:center;gap:5px;background:rgba(29,158,117,.2);border:.5px solid rgba(29,158,117,.35);border-radius:20px;padding:4px 12px;font-size:9px;font-weight:700;color:#34D399;text-transform:uppercase;letter-spacing:.05em;margin-bottom:20px;width:fit-content;}
+.pdf-cover-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pdf-cover-stat{background:rgba(255,255,255,.07);border-radius:7px;padding:9px 10px;}
+.pdf-cover-stat-val{font-size:15px;font-weight:700;color:#fff;margin-bottom:1px;}
+.pdf-cover-stat-lbl{font-size:8px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;}
+.pdf-cover-redact{background:rgba(255,255,255,.06);border:.5px dashed rgba(255,255,255,.2);border-radius:6px;padding:8px 12px;display:inline-block;font-size:11px;color:rgba(255,255,255,.35);font-style:italic;}
+/* Content pages */
+.pdf-content{background:#fff;min-height:440px;padding:24px 22px;}
+.pdf-content-eyebrow{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(27,58,107,.4);margin-bottom:14px;}
+.pdf-content-title{font-size:13px;font-weight:700;color:var(--navy);border-bottom:.5px solid var(--border);padding-bottom:7px;margin-bottom:12px;}
+.pdf-content-body{font-size:10px;color:var(--text-2);line-height:1.7;}
+.pdf-content-body strong{color:var(--text-1);}
+.pdf-stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.pdf-stat{border:.5px solid var(--border);border-radius:6px;padding:9px 10px;}
+.pdf-stat-val{font-size:14px;font-weight:700;color:var(--navy);}
+.pdf-stat-lbl{font-size:8px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-top:1px;}
+.pdf-photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pdf-photo-mock{border-radius:5px;height:88px;background:linear-gradient(135deg,#c7d2fe,#93c5fd);}
+.pdf-photo-mock:first-child{grid-column:span 2;height:110px;background:linear-gradient(135deg,#a5b4fc,#818cf8);}
+
+/* ─ One-pager preview ─ */
+.onepager-page{width:320px;min-height:440px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.12);border-radius:3px;padding:24px 20px;}
+.onepager-hdr{border-bottom:2.5px solid var(--navy);padding-bottom:10px;margin-bottom:12px;}
+.onepager-title{font-size:14px;font-weight:700;color:var(--navy);line-height:1.3;}
+.onepager-sub{font-size:10px;color:var(--text-2);margin-top:2px;}
+.onepager-score{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;color:var(--teal);background:var(--teal-light);padding:2px 8px;border-radius:20px;margin-top:6px;text-transform:uppercase;letter-spacing:.04em;}
+.onepager-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0;}
+.onepager-stat{text-align:center;background:var(--bg-sec);border-radius:6px;padding:7px 4px;}
+.onepager-stat-val{font-size:12px;font-weight:700;color:var(--navy);}
+.onepager-stat-lbl{font-size:7.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-top:1px;}
+.onepager-sec{margin-top:10px;}
+.onepager-sec-title{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:4px;}
+.onepager-sec-body{font-size:10px;color:var(--text-2);line-height:1.6;}
+.onepager-footer{background:var(--navy);border-radius:6px;padding:8px 12px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;}
+.onepager-footer-lbl{font-size:8.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.04em;}
+.onepager-footer-val{font-size:13px;font-weight:700;color:#fff;}
+
+/* Fullscreen modal */
+.pv-modal-overlay{position:fixed;inset:0;background:rgba(10,20,40,.75);z-index:400;display:none;align-items:center;justify-content:center;}
+.pv-modal-overlay.show{display:flex;}
+.pv-modal-inner{background:var(--bg-body);border-radius:var(--r-lg);max-width:760px;width:92%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative;padding:28px;}
+.pv-modal-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:#fff;border:.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-2);}
+.pv-modal-close:hover{color:var(--text-1);border-color:var(--text-1);}
+.pv-modal-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:.5px solid var(--border);}
+.pv-modal-nav .page-nav-btn{width:28px;height:28px;border-radius:50%;border:.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:11px;transition:all .12s;font-family:inherit;}
+.pv-modal-nav .page-nav-btn:hover{border-color:var(--navy);color:var(--navy);}
+.pv-modal-nav .page-nav-btn:disabled{opacity:.3;cursor:default;}
+.pv-modal-nav .page-counter-fs{font-size:12px;font-weight:600;color:var(--text-1);min-width:44px;text-align:center;}
+
+/* ══ NOTES DRAWER ══ */
+.notes-overlay{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;}
+.notes-overlay.show{opacity:1;pointer-events:all;}
+.notes-panel{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;z-index:301;transform:translateX(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.16);}
+.notes-panel.show{transform:translateX(0);}
+.notes-hdr{background:var(--navy);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.notes-title{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:7px;}
+.notes-count{font-size:11px;font-weight:500;color:rgba(255,255,255,.6);margin-top:3px;}
+.notes-close{background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.2);border-radius:var(--r-md);color:#fff;padding:6px 12px;cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px;}
+.notes-close:hover{background:rgba(255,255,255,.2);}
+.notes-body{flex:1;overflow-y:auto;padding:20px 22px;}
+.notes-composer{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:20px;}
+.notes-input{width:100%;border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:13px;font-family:inherit;color:var(--text-1);resize:vertical;min-height:64px;background:#fff;box-sizing:border-box;}
+.notes-input:focus{outline:none;border-color:var(--teal);}
+.notes-add-row{display:flex;justify-content:flex-end;margin-top:10px;}
+.notes-add-btn{background:var(--navy);color:#fff;border:none;border-radius:var(--r-md);padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.notes-add-btn:disabled{opacity:.4;cursor:not-allowed;}
+.notes-section-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.notes-section-lbl::after{content:'';flex:1;height:.5px;background:var(--border);}
+.notes-item{border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:10px;}
+.notes-item-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.notes-author{font-size:12px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:6px;}
+.notes-time{font-size:11px;color:var(--text-2);}
+.notes-text{font-size:13px;line-height:1.55;color:var(--text-1);white-space:pre-wrap;}
+.notes-del{background:none;border:none;color:var(--text-2);cursor:pointer;padding:3px;border-radius:6px;display:flex;align-items:center;font-size:13px;}
+.notes-del:hover{background:rgba(220,38,38,.08);color:#dc2626;}
+.notes-empty{text-align:center;padding:40px 20px;color:var(--text-2);font-size:13px;}
+.notes-empty i{font-size:28px;color:var(--border);display:block;margin-bottom:10px;}
+
+/* ══ NOTIFICATION BELL ══ */
+.notif-wrap{position:relative;}
+.notif-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;position:relative;flex-shrink:0;transition:all .12s;}
+.notif-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-badge{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:1.5px solid var(--navy-dark);display:none;}
+.notif-badge.show{display:block;}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);width:320px;z-index:400;display:none;overflow:hidden;}
+.notif-drop.show{display:block;}
+.notif-drop-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.notif-drop-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.notif-mark-all{font-size:10px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;padding:0;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.notif-item:hover{background:var(--bg-sec);}
+.notif-item.unread{background:#fefce8;}
+.notif-item.unread:hover{background:#fef9c3;}
+.notif-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.notif-icon-wrap.amber{background:#fef3c7;color:#d97706;}
+.notif-icon-wrap.navy{background:#e8eef7;color:var(--navy);}
+.notif-icon-wrap.teal{background:#d1fae5;color:#059669;}
+.notif-icon-wrap.red{background:#fee2e2;color:#dc2626;}
+.notif-icon-wrap i{font-size:14px;}
+.notif-body{flex:1;min-width:0;}
+.notif-deal-tag{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.notif-msg{font-size:11px;font-weight:500;color:var(--text-1);line-height:1.4;}
+.notif-time{font-size:9px;color:var(--text-2);margin-top:3px;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:5px;}
+.notif-empty{padding:28px 14px;text-align:center;}
+.notif-empty i{font-size:24px;color:var(--text-2);margin-bottom:6px;display:block;}
+.notif-empty-msg{font-size:11px;color:var(--text-2);}
+.notif-drop-footer{padding:9px 14px;border-top:.5px solid var(--border);text-align:center;}
+.notif-drop-footer button{font-size:11px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;}
+
+
+/* ══ EMPTY STATES ══ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 24px;text-align:center;}
+.empty-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.empty-icon i{font-size:26px;}
+.empty-icon.navy{background:var(--navy-light);color:var(--navy);}
+.empty-icon.teal{background:var(--teal-light);color:var(--teal);}
+.empty-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:5px;}
+.empty-body{font-size:12px;color:var(--text-2);max-width:280px;line-height:1.6;margin-bottom:18px;}
+.empty-cta{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:9px 20px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;transition:all .12s;}
+.empty-cta:hover{background:var(--navy-dark);}
+.empty-cta.teal{background:var(--teal);}
+.empty-cta-sec{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:7px 16px;border-radius:8px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;margin-left:8px;transition:all .12s;}
+.empty-cta-sec:hover{border-color:var(--navy);color:var(--navy);}
+.empty-state-wrap{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;}
+
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);border-radius:20px;padding:4px 12px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy);border-color:var(--navy);}
+.exp-restore.show{display:inline-flex;}
+.exp-card{position:relative;background:#fff;border-radius:var(--r-lg,10px);border:.5px solid var(--border,#e3e5e9);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.exp-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;padding:4px;}
+.exp-dismiss:hover{color:var(--navy,#1B3A6B);}
+.exp-icon{width:36px;height:36px;border-radius:var(--r-md,8px);background:var(--navy-light,#eef3fb);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--navy,#1B3A6B);flex-shrink:0;}
+.exp-title{font-size:13px;font-weight:600;color:var(--text-1,#1a1a2e);margin-bottom:4px;}
+.exp-text{font-size:12px;color:var(--text-2,#6c757d);line-height:1.7;}
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2,#6c757d);background:var(--bg-sec,#f5f6f8);border:.5px solid var(--border,#e3e5e9);border-radius:20px;padding:4px 12px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy,#1B3A6B);border-color:var(--navy,#1B3A6B);}
+.exp-restore.show{display:inline-flex;}
+
+/* ── Inline header search ── */
+.search-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.search-bar:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.search-bar:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.search-bar i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.search-bar input::placeholder{color:rgba(255,255,255,.3);}
+.search-bar .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='ds_home.html'" title="Back to dashboard" style="cursor:pointer;">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn on" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_compare_view.html'">Compare</button>
+    </nav>
+  </div>
+  <div class="hdr-centre">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Search deals, sellers, addresses…">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+      <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+      <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+      <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+    </div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-right-nav"><button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button><div class="hn-sep"></div><button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button></nav>
+    <div class="logo-sep"></div>
+    <div class="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Notifications">
+        <i class="ti ti-bell"></i>
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-drop" id="notif-drop">
+        <div class="notif-drop-hdr">
+          <span class="notif-drop-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+        <div class="notif-drop-footer"><button onclick="markAllRead()">Clear all notifications</button></div>
+      </div>
+    </div>
+    
+    <div class="logo-sep"></div>
+    <button class="btn-new" onclick="window.location.href='ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="logo-sep"></div>
+    <div class="avt-wrap">
+      <div class="avt-wrap-inner" onclick="hdrToggleDrop()">
+        <div class="avt" id="hdr-avt">VM</div>
+        <i class="ti ti-chevron-down avt-chevron"></i>
+      </div>
+      <div class="avt-drop" id="hdr-avt-drop">
+        <div class="avt-drop-head">
+          <div class="avt-drop-name">Videet Mardania</div>
+          <div class="avt-drop-email">videet@propertysourcing.co.uk</div>
+        </div>
+        <div style="padding:4px 0;">
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-user"></i> Profile</button>
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-settings"></i> Settings</button>
+          <button class="avt-drop-item"><i class="ti ti-credit-card"></i> Billing &amp; plan</button>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <div class="avt-drop-toggle" onclick="hdrTogglePrivacy()">
+          <div class="avt-drop-toggle-left"><i class="ti ti-eye-off"></i> Privacy mode</div>
+          <label class="mini-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="hdr-privacy-chk" onchange="hdrTogglePrivacy()">
+            <span class="mini-track"></span><span class="mini-thumb"></span>
+          </label>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item"><i class="ti ti-keyboard"></i> Keyboard shortcuts</button>
+        <button class="avt-drop-item"><i class="ti ti-sparkles"></i> What's new</button>
+        <button class="avt-drop-item"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item danger"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+    </div>
+  
+  </div>
+</div>
+</div>
+
+<!-- PRIVACY BANNER -->
+<div class="privacy-banner" id="privacy-banner">
+  <i class="ti ti-eye-off" style="font-size:13px;"></i>
+  <span>Privacy mode is on — personal data hidden on screen</span>
+  <button onclick="hdrTogglePrivacy()" style="margin-left:auto;font-size:10px;font-weight:600;color:#fef3c7;background:none;border:.5px solid rgba(254,243,199,.4);border-radius:20px;padding:2px 10px;cursor:pointer;font-family:inherit;">Turn off</button>
+</div>
+
+<!-- INFO STRIP -->
+<div class="istrip">
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    <span style="font-size:11px;font-weight:500;color:#bbb;">DS-004</span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span class="ds-status reserved">Reserved · Day 8</span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:13px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:4px;">
+      <i class="ti ti-map-pin" style="font-size:11px;opacity:.4;"></i>
+      <span id="strip-address" class="pii">14 Roath Court Rd, Cardiff CF24</span>
+    </span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:13px;font-weight:600;color:var(--text-1);">Buy to Let</span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:12px;font-weight:500;color:var(--text-2);display:flex;align-items:center;gap:4px;">
+      <i class="ti ti-user" style="font-size:11px;opacity:.5;"></i>
+      <span id="strip-seller" class="pii">Derek Hassan</span>
+    </span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:12px;font-weight:500;color:var(--text-2);display:flex;align-items:center;gap:5px;">
+      <i class="ti ti-users" style="font-size:11px;opacity:.5;"></i>
+      <span style="color:#34D399;font-weight:600;">2 interested</span>
+      <span style="opacity:.4;margin:0 1px;">·</span>
+      <span>4 shared</span>
+      <span style="opacity:.4;margin:0 1px;">·</span>
+      <span>1 pledged</span>
+    </span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-left:auto;padding-right:16px;">
+    <span style="font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:4px;"><i class="ti ti-clock" style="font-size:11px;"></i> Last saved · 2 min ago</span>
+    <button class="lb-hide-toggle" onclick="toggleLivebar()">
+      <i class="ti ti-chevron-up" id="lb-hide-icon" style="font-size:11px;"></i>
+      <span id="lb-hide-label">Hide page info</span>
+    </button>
+  </div>
+</div>
+
+<!-- LIVE BAR -->
+<div class="livebar">
+  <div class="lb-item"><div class="lb-lbl">Pack readiness</div><div class="lb-val hl">7 / 9 assets ready</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Creating</div><div class="lb-val" id="lb-building">Investor pack · full view</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Last export</div><div class="lb-val">2 days ago</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Still missing</div><div class="lb-val">Floor plan · EPC certificate</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Shared with</div><div class="lb-val">4 investors</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabwrap">
+  <div class="tabrow">
+    <button class="vt" onclick="window.location.href='ds_deal_overview.html'">Overview</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_analysis_hub.html'">Analysis</button><div class="tdiv"></div>
+    <button class="vt on">Content</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_seller_tab.html'">Seller</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_investor_tab.html'">Investors</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_fees_tab.html'">Fees &amp; invoice</button>
+    <div class="tab-action" style="display:flex;align-items:center;gap:8px;">
+      <button style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:.5px solid rgba(217,119,6,.35);background:rgba(217,119,6,.08);color:#92400e;cursor:pointer;font-family:inherit;" onclick="window.location.href='ds_analysis_hub.html?view=results'" title="2 inputs need attention">
+        <i class="ti ti-alert-triangle" style="font-size:11px;"></i> 2 inputs to confirm
+      </button>
+      <button class="log-btn" onclick="openNotes()" style="border-radius:7px;"><i class="ti ti-notes" style="font-size:11px;"></i> Notes</button>
+      <button class="log-btn" onclick="showToast('Pack downloading...')" style="border-radius:7px;background:var(--navy);color:#fff;border-color:var(--navy);"><i class="ti ti-download" style="font-size:11px;"></i> Download pack</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="ds-content">
+
+  
+<div class="exp-card" id="content-exp">
+  <button class="exp-dismiss" onclick="dismissExp(this)" title="Dismiss">×</button>
+  <div class="exp-icon"><i class="ti ti-files"></i></div>
+  <div>
+    <div class="exp-title">Build and share investor materials</div>
+    <div class="exp-text">Create four content types — Advert, One-pager, Privacy pack, and Full pack — all auto-populated from your deal data. Choose which metrics to show, edit labels, then copy or download to share with investors.</div>
+  </div>
+</div>
+<button class="exp-restore" onclick="restoreExp(this)"><i class="ti ti-book-2" style="font-size:11px;"></i> Page guide</button>
+
+<div class="ctype-prompt">What do you want to create? <span>— auto-populated from your deal data</span></div>
+
+  <!-- TYPE SELECTOR ROW -->
+  <div class="ctype-row" id="ctype-row">
+    <div class="ctype-card" id="card-advert" data-key="advert" onclick="selectType(this,'advert')">
+      <div class="ctype-icon"><i class="ti ti-speakerphone"></i></div>
+      <div class="ctype-name">Advert</div>
+      <div class="ctype-sub">Social tile, listing copy or WhatsApp message for investors.</div>
+      <span class="ctype-badge notstarted">Not started</span>
+    </div>
+    <div class="ctype-card" id="card-onepager" data-key="onepager" onclick="selectType(this,'onepager')">
+      <div class="ctype-icon"><i class="ti ti-file-description"></i></div>
+      <div class="ctype-name">One-pager</div>
+      <div class="ctype-sub">Fast single-page teaser for investors who already know you.</div>
+      <span class="ctype-badge notstarted">Not started</span>
+    </div>
+    <div class="ctype-card" id="card-privacy" data-key="privacy" onclick="selectType(this,'privacy')">
+      <div class="ctype-icon"><i class="ti ti-shield-lock"></i></div>
+      <div class="ctype-name">Investor pack <span style="font-weight:400;color:var(--text-2);">· privacy</span></div>
+      <div class="ctype-sub">Address and photos withheld. Safe to share before fee agreement.</div>
+      <span class="ctype-badge draft">Draft saved</span>
+    </div>
+    <div class="ctype-card on" id="card-full" data-key="full" onclick="selectType(this,'full')">
+      <div class="ctype-icon"><i class="ti ti-file-text"></i></div>
+      <div class="ctype-name">Investor pack <span style="font-weight:400;color:var(--text-2);">· full view</span></div>
+      <div class="ctype-sub">Complete pack with address, photos and comparables.</div>
+      <span class="ctype-badge sent">Sent · 27 May</span>
+    </div>
+    <div class="ctype-card soon" id="card-contracts" data-key="contracts">
+      <div class="ctype-icon"><i class="ti ti-file-certificate"></i></div>
+      <div class="ctype-name">Contracts</div>
+      <div class="ctype-sub">Reservation and sourcing agreement drafts.</div>
+      <span class="ctype-badge soon">Coming soon</span>
+    </div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace" id="workspace">
+
+    <!-- LEFT: INPUTS -->
+    <div class="wp-left" id="wp-left">
+      <!-- rendered by renderInputs() -->
+    </div>
+
+    <!-- RIGHT: PREVIEW -->
+    <div class="wp-right">
+      <div class="pv-shell" id="pv-shell">
+        <!-- rendered by renderPreview() -->
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FULLSCREEN MODAL -->
+<div class="pv-modal-overlay" id="pv-modal-overlay" onclick="closeFullscreen(event)">
+  <div class="pv-modal-inner" id="pv-modal-inner">
+    <button class="pv-modal-close" onclick="closeFullscreen()"><i class="ti ti-x"></i></button>
+    <div id="pv-modal-nav" class="pv-modal-nav" style="display:none;">
+      <button class="page-nav-btn" id="fs-btn-prev" onclick="goPage(-1)"><i class="ti ti-chevron-left" style="font-size:10px;"></i></button>
+      <span class="page-counter-fs" id="fs-page-counter"></span>
+      <button class="page-nav-btn" id="fs-btn-next" onclick="goPage(1)"><i class="ti ti-chevron-right" style="font-size:10px;"></i></button>
+    </div>
+    <div id="pv-modal-content"></div>
+  </div>
+</div>
+
+<!-- NOTES OVERLAY -->
+<div class="notes-overlay" id="notes-overlay" onclick="closeNotes()"></div>
+<div class="notes-panel" id="notes-panel">
+  <div class="notes-hdr">
+    <div>
+      <div class="notes-title"><i class="ti ti-notes"></i> Deal notes</div>
+      <div class="notes-count" id="notes-count">1 note</div>
+    </div>
+    <button class="notes-close" onclick="closeNotes()"><i class="ti ti-x"></i> Close</button>
+  </div>
+  <div class="notes-body">
+    <div class="notes-composer">
+      <textarea class="notes-input" id="notes-input" placeholder="Add a note about this deal…"></textarea>
+      <div class="notes-add-row">
+        <button class="notes-add-btn" id="notes-add-btn" onclick="addNote()" disabled><i class="ti ti-plus"></i> Add note</button>
+      </div>
+    </div>
+    <div class="notes-section-lbl">Previous notes</div>
+    <div id="notes-list">
+      <div class="notes-item">
+        <div class="notes-item-hdr">
+          <div class="notes-author"><div style="width:22px;height:22px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;">VM</div> Videet M.</div>
+          <span class="notes-time">4 days ago</span>
+        </div>
+        <div class="notes-text">James seemed really interested after the first call. He's asked for the full pack once the cooling-off clears. Might be worth nudging him again on Day 12.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   DEAL DATA (auto-populated from analysis)
+   ════════════════════════════════════════ */
+var DEAL = {
+  address: '14 Roath Court Rd, Cardiff CF24',
+  addressRedacted: 'Cardiff CF24 area',
+  strategy: 'Buy to Let',
+  score: 'RECOMMENDED',
+  cashflow: '+£312/mo',
+  coc: '8.2%',
+  yield: '7.4%',
+  bmv: '12%',
+  equity: '£25,000',
+  price: '£175,000',
+  fee: '£2,500',
+  investor: 'James Brown',
+  photos: 3,
+  nearby: ['Cardiff University (0.4 mi)', 'Queen Street Station (0.6 mi)', 'City Centre (1.1 mi)']
+};
+
+/* ════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════ */
+var currentType = 'full';
+var currentPage = 1;
+var totalPages  = { full:8, privacy:6, onepager:1, advert:1 };
+var adFormat    = 'tile';
+var coverStyle  = 'branded';
+var metricDefs = {
+  cashflow: { label:'Cash flow',       val:'+£312/mo', on:true  },
+  coc:      { label:'CoC ROI',         val:'8.2%',     on:true  },
+  yield:    { label:'Gross yield',     val:'7.4%',     on:true  },
+  bmv:      { label:'Below MV',        val:'12%',      on:true  },
+  equity:   { label:'Day-1 equity',    val:'£25k',     on:true  },
+  price:    { label:'Purchase price',  val:'£175k',    on:false },
+  fee:      { label:'Sourcing fee',    val:'£2.5k',    on:false },
+  cashin:   { label:'Cash invested',   val:'£57.8k',   on:false },
+};
+var metricMaxByType = { advert:6, onepager:6, privacy:8, full:8 };
+/* backward compat shim */
+var metrics = (function(){
+  var m={};
+  for(var k in metricDefs) Object.defineProperty(m,k,{get:function(_k){ return function(){ return metricDefs[_k].on; }; }(k),enumerable:true});
+  return m;
+}());
+var photoSel    = 1;
+
+/* ════════════════════════════════════════
+   TYPE SELECTION
+   ════════════════════════════════════════ */
+function selectType(el, key) {
+  if(key === 'contracts') return;
+  document.querySelectorAll('.ctype-card').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+  currentType = key;
+  currentPage = 1;
+  var labels = { advert:'Advert / listing copy', onepager:'One-pager', privacy:'Investor pack · privacy mode', full:'Investor pack · full view' };
+  var lb = document.getElementById('lb-building');
+  if(lb) lb.textContent = labels[key] || key;
+  renderInputs(key);
+  renderPreview(key);
+}
+
+/* ════════════════════════════════════════
+   INPUTS — per type
+   ════════════════════════════════════════ */
+function renderInputs(key) {
+  var el = document.getElementById('wp-left');
+  if(!el) return;
+  var h = '';
+
+  if(key === 'advert'){
+    h += '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-pencil" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Ad content</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="inp-group"><div class="inp-label">Area header</div>'
+      + '<input class="f-in" id="inp-area" oninput="updatePreview()" value="Cardiff CF24"></div>'
+      + '<div class="inp-group"><div class="inp-label">Finder fee</div>'
+      + '<input class="f-in" id="inp-fee" oninput="updatePreview()" value="£3,000"></div>'
+      + '<div class="inp-group"><div class="inp-label">Call to action</div>'
+      + '<input class="f-in" id="inp-cta" oninput="updatePreview()" value="Message me to find out more"></div>'
+      + '</div></div>'
+
+      + '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-layout" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Format &amp; tone</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="inp-group"><div class="inp-label">Platform</div>'
+      + '<div class="seg-row" id="seg-platform">'
+      + '<button class="seg-btn on" onclick="switchAdFormat(\'tile\',this)"><i class="ti ti-photo" style="font-size:10px;"></i> Social tile</button>'
+      + '<button class="seg-btn" onclick="switchAdFormat(\'listing\',this)"><i class="ti ti-align-left" style="font-size:10px;"></i> Listing copy</button>'
+      + '<button class="seg-btn" onclick="switchAdFormat(\'whatsapp\',this)"><i class="ti ti-brand-whatsapp" style="font-size:10px;"></i> WhatsApp</button>'
+      + '<button class="seg-btn" onclick="switchAdFormat(\'brochure\',this)"><i class="ti ti-file-description" style="font-size:10px;"></i> Deal brochure</button>'
+      + '</div></div>'
+      + '<div class="inp-group"><div class="inp-label">Tone</div>'
+      + '<div class="seg-row" id="seg-tone">'
+      + '<button class="seg-btn on" onclick="switchTone(this)">Professional</button>'
+      + '<button class="seg-btn" onclick="switchTone(this)">Friendly</button>'
+      + '<button class="seg-btn" onclick="switchTone(this)">Urgent</button>'
+      + '</div></div>'
+      + '</div></div>'
+
+      + buildMetricPickerCard('advert')
+
+      + '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-map-pin" style="font-size:13px;color:var(--teal);"></i><span class="inp-card-title">Nearby locations</span><span class="inp-card-badge ai">Auto-populated</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="loc-pull">'
+      + '<div class="loc-pull-hdr"><span class="loc-pull-lbl"><i class="ti ti-api"></i> Pulled from your deal inputs</span><a href="ds_analysis_hub.html?view=inputs" class="loc-edit-link">Edit in Inputs →</a></div>'
+      + '<div class="loc-chips">'
+      + DEAL.nearby.map(function(l){ return '<span class="loc-chip">'+l+'</span>'; }).join('')
+      + '</div></div>'
+      + '<div style="font-size:10px;color:var(--text-2);margin-top:8px;line-height:1.5;">These will auto-populate via API in production. Add or edit nearby locations in the <a href="ds_analysis_hub.html?view=inputs" style="color:var(--navy);">Inputs</a> tab.</div>'
+      + '</div></div>'
+
+      + '<div class="inp-card">'
+      + '<div class="inp-body" style="padding:12px 14px;">'
+      + '<div class="inp-actions">'
+      + '<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="showToast(\'Regenerating from deal data…\')"><i class="ti ti-sparkles" style="font-size:11px;"></i> Regenerate with AI</button>'
+      + '<button class="log-btn" style="flex:1;justify-content:center;" onclick="markTypeDone(\'advert\',\'Draft saved\',\'draft\')"><i class="ti ti-device-floppy" style="font-size:11px;"></i> Save draft</button>'
+      + '</div></div></div>';
+  }
+
+  else if(key === 'onepager'){
+    h += '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-pencil" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Content</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="inp-group"><div class="inp-label">Headline</div>'
+      + '<input class="f-in" id="op-headline" oninput="updatePreview()" value="Cardiff CF24 · BTL Investment Opportunity"></div>'
+      + '<div class="inp-group"><div class="inp-label">Brief intro <span style="font-weight:400;color:var(--text-2);text-transform:none;letter-spacing:0;">(1–2 sentences)</span></div>'
+      + '<textarea class="f-ta f-ta-sm" id="op-intro" oninput="updatePreview()">Solid cash-flow positive BTL near Cardiff University — 12% below market value, motivated vendor, chain-free.</textarea>'
+      + '</div>'
+      + '</div></div>'
+
+      + '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-list-check" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Sections to include</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="section-checks">'
+      + sectionCheck('op-sec-stats',  'Key stats', true)
+      + sectionCheck('op-sec-exec',   'Executive summary', true)
+      + sectionCheck('op-sec-why',    'Why this deal', true)
+      + sectionCheck('op-sec-fee',    'Sourcing fee &amp; terms', true)
+      + '</div>'
+      + '</div></div>'
+
+      + buildMetricPickerCard('onepager')
+
+      + '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-photo" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Featured photo</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="inp-group"><div class="inp-label">Select one to feature on the cover</div>'
+      + '<div class="photo-pick-row" id="photo-pick-onepager">'
+      + photoThumb(1, 'onepager', true) + photoThumb(2, 'onepager', false) + photoThumb(3, 'onepager', false)
+      + '</div></div>'
+      + '</div></div>'
+
+      + '<div class="inp-card"><div class="inp-body" style="padding:12px 14px;">'
+      + '<div class="inp-actions">'
+      + '<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="showToast(\'Full-page preview opened\')"><i class="ti ti-eye" style="font-size:11px;"></i> Preview PDF</button>'
+      + '<button class="log-btn" style="flex:1;justify-content:center;" onclick="markTypeDone(\'onepager\',\'Exported\',\'sent\')"><i class="ti ti-download" style="font-size:11px;"></i> Export PDF</button>'
+      + '</div></div></div>';
+  }
+
+  else if(key === 'privacy'){
+    h += '<div class="inp-note"><i class="ti ti-shield-check"></i> Address and photos are automatically withheld in this version. Safe to share before a sourcing fee agreement is signed.</div>'
+
+      + '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-pencil" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Written content</span><span class="inp-card-badge ai"><i class="ti ti-sparkles" style="font-size:9px;"></i> AI drafted</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="inp-group"><div class="inp-label">Executive summary</div>'
+      + '<textarea class="f-ta" id="lib-exec-summary" oninput="updatePreview()">Solid BTL opportunity in Cardiff CF24. Cash flow positive at £312/mo with 8.2% CoC ROI and 7.4% gross yield. 12% below market value gives £25,000 day-one equity. Strong rental demand near Cardiff University.</textarea>'
+      + '</div>'
+      + '<div class="inp-group">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">'
+      + '<div class="inp-label">Vendor situation</div>'
+      + '<a href="ds_seller_tab.html" style="font-size:10px;color:var(--navy);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;"><i class="ti ti-pencil" style="font-size:10px;"></i> Edit in Seller tab</a>'
+      + '</div>'
+      + '<div style="background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:11px;color:var(--text-1);line-height:1.6;" id="lib-vendor-situation">'
+      + sellerMotivation
+      + '</div>'
+      + '<div style="font-size:9px;color:var(--text-2);margin-top:4px;display:flex;align-items:center;gap:4px;"><i class="ti ti-info-circle" style="font-size:10px;"></i> Sourced from Seller tab · label only is editable in content</div>'
+      + '</div>'
+      + '<div class="inp-group"><div class="inp-label">Why this strategy</div>'
+      + '<textarea class="f-ta f-ta-sm" id="lib-strategy-note" placeholder="Explain why BTL is the right fit here…"></textarea>'
+      + '</div>'
+      + '</div></div>'
+
+      + buildMetricPickerCard('privacy')
+
+      + '<div class="inp-card"><div class="inp-body" style="padding:12px 14px;">'
+      + '<div class="inp-actions">'
+      + '<button class="log-btn" style="flex:1;justify-content:center;" onclick="showToast(\'Preview opened — read-only investor view\')"><i class="ti ti-eye" style="font-size:11px;"></i> Preview</button>'
+      + '<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="markTypeDone(\'privacy\',\'Shared\',\'sent\');showToast(\'Share link copied — address withheld\')"><i class="ti ti-link" style="font-size:11px;"></i> Copy share link</button>'
+      + '</div></div></div>';
+  }
+
+  else if(key === 'full'){
+    h += '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-pencil" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Written content</span><span class="inp-card-badge ai"><i class="ti ti-sparkles" style="font-size:9px;"></i> AI drafted</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="inp-group"><div class="inp-label">Executive summary</div>'
+      + '<textarea class="f-ta" id="lib-exec-summary" oninput="updatePreview()">Solid BTL opportunity in Cardiff CF24. Cash flow positive at £312/mo with 8.2% CoC ROI and 7.4% gross yield. 12% below market value gives £25,000 day-one equity. Strong rental demand near Cardiff University.</textarea>'
+      + '</div>'
+      + '<div class="inp-group">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">'
+      + '<div class="inp-label">Vendor situation</div>'
+      + '<a href="ds_seller_tab.html" style="font-size:10px;color:var(--navy);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;"><i class="ti ti-pencil" style="font-size:10px;"></i> Edit in Seller tab</a>'
+      + '</div>'
+      + '<div style="background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:11px;color:var(--text-1);line-height:1.6;" id="lib-vendor-situation">'
+      + sellerMotivation
+      + '</div>'
+      + '<div style="font-size:9px;color:var(--text-2);margin-top:4px;display:flex;align-items:center;gap:4px;"><i class="ti ti-info-circle" style="font-size:10px;"></i> Sourced from Seller tab · label only is editable in content</div>'
+      + '</div>'
+      + '<div class="inp-group"><div class="inp-label">Why this strategy</div>'
+      + '<textarea class="f-ta f-ta-sm" id="lib-strategy-note" placeholder="Explain why BTL is the right fit here…"></textarea>'
+      + '</div>'
+      + '</div></div>'
+
+      + '<div class="inp-card">'
+      + '<div class="inp-card-hdr"><i class="ti ti-palette" style="font-size:13px;color:var(--navy);"></i><span class="inp-card-title">Cover style</span></div>'
+      + '<div class="inp-body">'
+      + '<div class="cover-pick-row" id="cover-pick">'
+      + coverOpt('branded','Branded','DealScore · Pro', true)
+      + coverOpt('clean','Minimal','Clean white · Pro', false)
+      + coverOpt('custom','Your brand','Custom · Pro+', false)
+      + '</div>'
+      + '<div style="margin-top:8px;"><a onclick="window.location.href=\'./ds_cover_designer.html\'" style="font-size:11px;color:var(--navy);font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-adjustments-horizontal" style="font-size:12px;"></i> Customise cover in Cover Designer</a></div>'
+      + '</div></div>'
+
+
+      + buildMetricPickerCard('full')
+
+      + '<div class="inp-card"><div class="inp-body" style="padding:12px 14px;">'
+      + '<div class="inp-actions">'
+      + '<button class="log-btn" style="flex:1;justify-content:center;" onclick="showToast(\'Preview opened — read-only investor view\')"><i class="ti ti-eye" style="font-size:11px;"></i> Preview</button>'
+      + '<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="markTypeDone(\'full\',\'Sent · Today\',\'sent\');showToast(\'Exported — ready to share\')"><i class="ti ti-download" style="font-size:11px;"></i> Export &amp; share</button>'
+      + '</div></div></div>';
+  }
+
+  el.innerHTML = h;
+}
+
+/* helpers */
+function metricChip(key, label){
+  return '<button class="metric-chip'+(metrics[key]?' on':'')+'" onclick="toggleMetric(this,\''+key+'\')">'+label+'</button>';
+}
+
+/* ── Metric picker card (shared across all types) ── */
+function buildMetricPickerCard(type){
+  var max = metricMaxByType[type] || 6;
+  var selectedCount = Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; }).length;
+  var cards = '';
+  for(var k in metricDefs){
+    var m = metricDefs[k];
+    var atMax = !m.on && selectedCount >= max;
+    cards += '<div class="mpick-card'+(m.on?' on':'')+(atMax?' disabled':'')+'" '
+      +'id="mpick-'+k+'" onclick="toggleMetricNew(this,\''+k+'\',\''+type+'\')">'
+      +'<i class="ti ti-check mpick-check"></i>'
+      +'<div class="mpick-card-val">'+m.val+'</div>'
+      +'<div class="mpick-label-wrap">'
+      +'<input class="mpick-label-input" id="mlbl-'+k+'" value="'+m.label+'" '
+      +'onclick="event.stopPropagation()" '
+      +'onchange="metricDefs[\''+k+'\'].label=this.value;updatePreview()" '
+      +'title="Click to edit label">'
+      +'</div>'
+      +'</div>';
+  }
+  return '<div class="inp-card">'
+    +'<div class="inp-card-hdr"><i class="ti ti-chart-bar" style="font-size:13px;color:var(--navy);"></i>'
+    +'<span class="inp-card-title">Metrics</span>'
+    +'<span class="inp-card-badge ai">Auto from analysis</span>'
+    +'<span style="margin-left:auto;font-size:10px;color:var(--text-2);" id="metric-count-'+type+'">'
+    +selectedCount+' / '+max+' selected</span></div>'
+    +'<div class="inp-body">'
+    +'<div style="font-size:10px;color:var(--text-2);margin-bottom:8px;">Select up to '+max+' · click the label to rename it</div>'
+    +'<div class="metric-picker" id="metric-picker-'+type+'">'+cards+'</div>'
+    +'<div class="mpick-max-warn" id="mpick-warn-'+type+'">Maximum '+max+' metrics selected for this format</div>'
+    +'</div></div>';
+}
+
+function toggleMetricNew(el, key, type){
+  var max = metricMaxByType[type] || 6;
+  var m = metricDefs[key];
+  if(!m.on){
+    var sel = Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; }).length;
+    if(sel >= max){
+      var warn = document.getElementById('mpick-warn-'+type);
+      if(warn){ warn.classList.add('show'); setTimeout(function(){ warn.classList.remove('show'); }, 2500); }
+      return;
+    }
+  }
+  m.on = !m.on;
+  el.classList.toggle('on', m.on);
+  var sel2 = Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; }).length;
+  var picker = document.getElementById('metric-picker-'+type);
+  if(picker){
+    picker.querySelectorAll('.mpick-card').forEach(function(c){
+      var k2 = c.id.replace('mpick-','');
+      if(!metricDefs[k2].on) c.classList.toggle('disabled', sel2 >= max);
+    });
+  }
+  var countEl = document.getElementById('metric-count-'+type);
+  if(countEl) countEl.textContent = sel2 + ' / ' + max + ' selected';
+  updatePreview();
+}
+
+function buildAlignedStatGrid(dark){
+  var active = Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; });
+  if(!active.length) return '';
+  var cols = active.length <= 2 ? active.length : active.length <= 4 ? 4 : active.length <= 6 ? 3 : 4;
+  cols = Math.min(cols, active.length);
+  var cls = dark ? 'stat-grid' : 'stat-grid light';
+  var cells = active.map(function(k){
+    var m = metricDefs[k];
+    return '<div class="stat-grid-cell"><div class="stat-grid-val">'+m.val+'</div><div class="stat-grid-lbl">'+m.label+'</div></div>';
+  }).join('');
+  return '<div class="'+cls+'" style="grid-template-columns:repeat('+cols+',1fr);">'+cells+'</div>';
+}
+
+function buildStatText(){
+  return Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; })
+    .map(function(k){ return metricDefs[k].val+' '+metricDefs[k].label; }).join(' · ');
+}
+function buildStatLines(){
+  return Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; })
+    .map(function(k){ return '• '+metricDefs[k].val+' '+metricDefs[k].label; }).join('\n');
+}
+
+function sectionCheck(id, label, checked){
+  return '<label class="section-check"><input type="checkbox" id="'+id+'"'+(checked?' checked':'')+' onchange="updatePreview()"><span>'+label+'</span></label>';
+}
+function photoThumb(n, ctx, sel){
+  return '<div class="photo-thumb'+(sel?' on':'')+'" onclick="selectPhoto('+n+',\''+ctx+'\',this)"><span class="photo-thumb-num">'+n+'</span></div>';
+}
+function coverOpt(key, name, sub, sel){
+  return '<div class="cover-opt'+(sel?' on':'')+'" onclick="selectCoverOpt(this,\''+key+'\')">'
+    + '<div class="cover-opt-preview '+key+'"></div>'
+    + '<div class="cover-opt-name">'+name+'</div>'
+    + '<div class="cover-opt-sub">'+sub+'</div>'
+    + '</div>';
+}
+
+/* ════════════════════════════════════════
+   PREVIEW — per type
+   ════════════════════════════════════════ */
+function renderPreview(key) {
+  var shell = document.getElementById('pv-shell');
+  if(!shell) return;
+  var h = '';
+
+  if(key === 'advert'){
+    h += pvTop('<i class="ti ti-speakerphone"></i> Advert preview',
+      '<button class="pv-btn" onclick="switchAdFormat(\'tile\',null)">Social tile</button>'
+      +'<button class="pv-btn" onclick="openFullscreen()"><i class="ti ti-arrows-maximize" style="font-size:10px;"></i> Full screen</button>'
+    );
+    h += '<div class="pv-canvas" id="pv-canvas">'+buildAdvertPreview()+'</div>';
+    h += '<div class="pv-actions">'
+      +'<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="showToast(\'Image downloaded\')"><i class="ti ti-download" style="font-size:11px;"></i> Download</button>'
+      +'<button class="log-btn" style="flex:1;justify-content:center;" onclick="showToast(\'Text copied\')"><i class="ti ti-copy" style="font-size:11px;"></i> Copy text</button>'
+      +'<button class="log-btn" onclick="window.location.href=\'./ds_advert_builder.html\'"><i class="ti ti-external-link" style="font-size:11px;"></i> Advert Builder</button>'
+      +'</div>';
+  }
+
+  else if(key === 'onepager'){
+    h += pvTop('<i class="ti ti-file-description"></i> One-pager preview',
+      '<button class="pv-btn" onclick="openFullscreen()"><i class="ti ti-arrows-maximize" style="font-size:10px;"></i> Full screen</button>'
+    );
+    h += '<div class="pv-canvas" id="pv-canvas">'+buildOnepagerPreview()+'</div>';
+    h += '<div class="pv-actions">'
+      +'<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="showToast(\'Exported as PDF\')"><i class="ti ti-download" style="font-size:11px;"></i> Export PDF</button>'
+      +'<button class="log-btn" style="flex:1;justify-content:center;" onclick="showToast(\'Share link copied\')"><i class="ti ti-link" style="font-size:11px;"></i> Share link</button>'
+      +'</div>';
+  }
+
+  else if(key === 'privacy'){
+    var total = totalPages.privacy;
+    h += pvTop('<i class="ti ti-shield-lock"></i> Privacy pack preview',
+      '<div class="page-nav">'
+      +'<button class="page-nav-btn" id="btn-prev" onclick="goPage(-1)"'+(currentPage<=1?' disabled':'')+'><i class="ti ti-chevron-left" style="font-size:10px;"></i></button>'
+      +'<span id="page-counter">'+currentPage+' / '+total+'</span>'
+      +'<button class="page-nav-btn" id="btn-next" onclick="goPage(1)"'+(currentPage>=total?' disabled':'')+'><i class="ti ti-chevron-right" style="font-size:10px;"></i></button>'
+      +'</div>'
+      +'<button class="pv-btn" onclick="openFullscreen()"><i class="ti ti-arrows-maximize" style="font-size:10px;"></i> Full screen</button>'
+    );
+    h += '<div class="pv-canvas" id="pv-canvas">'+buildPackPage('privacy', currentPage)+'</div>';
+    h += '<div class="pv-actions">'
+      +'<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="showToast(\'Share link copied — address withheld\')"><i class="ti ti-link" style="font-size:11px;"></i> Share link</button>'
+      +'<button class="log-btn" style="flex:1;justify-content:center;" onclick="showToast(\'Preview opened\')"><i class="ti ti-eye" style="font-size:11px;"></i> Preview</button>'
+      +'</div>';
+  }
+
+  else if(key === 'full'){
+    var total = totalPages.full;
+    h += pvTop('<i class="ti ti-file-text"></i> Investor pack preview',
+      '<div class="page-nav">'
+      +'<button class="page-nav-btn" id="btn-prev" onclick="goPage(-1)"'+(currentPage<=1?' disabled':'')+'><i class="ti ti-chevron-left" style="font-size:10px;"></i></button>'
+      +'<span id="page-counter">'+currentPage+' / '+total+'</span>'
+      +'<button class="page-nav-btn" id="btn-next" onclick="goPage(1)"'+(currentPage>=total?' disabled':'')+'><i class="ti ti-chevron-right" style="font-size:10px;"></i></button>'
+      +'</div>'
+      +'<button class="pv-btn" onclick="openFullscreen()"><i class="ti ti-arrows-maximize" style="font-size:10px;"></i> Full screen</button>'
+    );
+    h += '<div class="pv-canvas" id="pv-canvas">'+buildPackPage('full', currentPage)+'</div>';
+    h += '<div class="pv-actions">'
+      +'<button class="log-btn primary" style="flex:1;justify-content:center;" onclick="showToast(\'Exported — ready to share\')"><i class="ti ti-download" style="font-size:11px;"></i> Export &amp; share</button>'
+      +'<button class="log-btn" style="flex:1;justify-content:center;" onclick="showToast(\'Preview opened\')"><i class="ti ti-eye" style="font-size:11px;"></i> Preview</button>'
+      +'</div>';
+  }
+
+  shell.innerHTML = h;
+}
+
+function pvTop(label, controls){
+  return '<div class="pv-top"><div class="pv-top-label">'+label+'</div>'
+    +'<div class="pv-controls">'+controls+'</div></div>';
+}
+
+/* ═ Advert preview ═ */
+function buildAdvertPreview(){
+  var headline = getVal('inp-area') || 'Cardiff CF24';
+  var cta      = getVal('inp-cta') || 'Message me to find out more';
+  var execTA   = document.getElementById('lib-exec-summary');
+  var intro    = execTA ? execTA.value.split('.')[0]+'.' : 'Solid BTL near Cardiff University.';
+
+  if(adFormat === 'tile'){
+    var area    = getVal('inp-area') || 'Cardiff CF24';
+    var fee     = getVal('inp-fee')  || '£3,000';
+    var activeKeys = Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; }).slice(0,4);
+    var metsHtml = activeKeys.map(function(k){
+      var m = metricDefs[k];
+      return '<div class="adv-m"><div class="adv-ml">'+m.label+'</div><div class="adv-mv">'+m.val+'</div></div>';
+    }).join('');
+    var nearbyChips = DEAL.nearby.slice(0,3).map(function(l){
+      return '<span class="adv-nearby-chip"><i class="ti ti-map-pin" style="font-size:9px;"></i> '+l+'</span>';
+    }).join('');
+    return '<div class="adv-card" style="background:var(--navy);">'
+      +'<div class="adv-photo">'
+      +'<div class="adv-photo-label"><i class="ti ti-photo" style="font-size:13px;"></i> Add photo above</div>'
+      +'<div class="adv-score-badge" style="background:#1D9E75;color:#fff;">RECOMMENDED</div>'
+      +'</div>'
+      +'<div class="adv-inner">'
+      +'<div class="adv-strat">Buy to Let · Cardiff</div>'
+      +'<div class="adv-area">'+area+'</div>'
+      +(nearbyChips ? '<div class="adv-nearby">'+nearbyChips+'</div>' : '')
+      +'<div class="adv-mets">'+metsHtml+'</div>'
+      +'<div class="adv-div"></div>'
+      +'<div class="adv-fee-lbl">Finder fee</div>'
+      +'<div class="adv-fee-val">'+fee+'</div>'
+      +'<div class="adv-cta-btn" style="background:#1D9E75;color:#fff;">'+cta+'</div>'
+      +'<div class="adv-pw">Powered by DealScore</div>'
+      +'</div></div>';
+  }
+
+  if(adFormat === 'listing'){
+    var statsLine = buildStatText();
+    var locsLine  = DEAL.nearby.join(' · ');
+    return '<div class="adv-listing"><div class="adv-listing-title">'+headline+'</div>'
+      +'<div class="adv-listing-body">'
+      +'📍 Cardiff CF24 · Buy to Let\n\n'
+      +'🏠 '+intro+'\n\n'
+      +'📊 '+statsLine+'\n\n'
+      +'📌 Near: '+locsLine+'\n\n'
+      +'Chain-free · Motivated seller · Immediate exchange possible.\n\n'
+      +'💬 '+cta+'</div></div>';
+  }
+
+  if(adFormat === 'whatsapp'){
+    var statsLines = buildStatLines();
+    var locsShort  = DEAL.nearby.slice(0,2).join(', ');
+    return '<div class="adv-whatsapp"><div class="adv-wa-bubble">'
+      +'Hi [Name] 👋\n\nNew BTL deal just in — Cardiff CF24\n\n'
+      +statsLines+'\n\n'
+      +'Near '+locsShort+'.\nChain-free · Motivated vendor.\n\n'
+      +cta+' 🙏</div></div>';
+  }
+
+  if(adFormat === 'brochure'){
+    var epcBands = ['A','B','C','D','E','F','G'];
+    var epcColors = ['#009900','#33a500','#8dc700','#ffcc00','#ff8c00','#d7191c','#a50026'];
+    var epcBandsHtml = epcBands.map(function(b,i){
+      return '<div class="br-epc-band'+(b==='C'?' current':'')+'" style="background:'+epcColors[i]+';">'+b+'</div>';
+    }).join('');
+    var featureChips = ['2 bedrooms','Terraced house','Gas central heating','Double glazing','Private garden','Off-street parking','Loft storage','EPC C rated'].map(function(f){
+      return '<span class="br-feature-chip">'+f+'</span>';
+    }).join('');
+    return '<div class="adv-brochure">'
+      // Hero photo placeholder
+      + '<div class="br-hero">'
+      + '<div class="br-hero-badge">Investment Property</div>'
+      + '<div class="br-hero-score">DealScore 76</div>'
+      + '<div class="br-hero-overlay">'
+      + '<div class="br-addr">14 Roath Court Road, Cardiff CF24 3UZ</div>'
+      + '<div class="br-addr-sub">Roath · Cardiff · Wales</div>'
+      + '</div></div>'
+      // Value-add banner
+      + '<div class="br-value-banner">'
+      + '<span class="br-value-label">Value-add</span>'
+      + '<span class="br-value-text">Below market value · Motivated vendor · Chain-free</span>'
+      + '</div>'
+      // Key deal summary stats
+      + buildAlignedStatGrid(false)
+      // Property Overview
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-home" style="font-size:9px;"></i> Property Overview</div>'
+      + '<div class="br-sec-body">Mid-terrace two-bedroom property in the popular Roath district of Cardiff. Well presented throughout with a modern kitchen and recently updated bathroom. Tenanted history with rental demand supported by proximity to Cardiff University and the city centre.</div>'
+      + '</div>'
+      // Investment Highlights
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-star" style="font-size:9px;"></i> Investment Highlights</div>'
+      + '<ul class="br-bullets">'
+      + '<li class="br-bullet">Priced 12% below comparable market value</li>'
+      + '<li class="br-bullet">Strong rental demand — near Cardiff University & hospital</li>'
+      + '<li class="br-bullet">Projected gross yield of '+DEAL.yield+' based on £1,150/mo rent</li>'
+      + '<li class="br-bullet">Motivated vendor — chain-free and able to exchange quickly</li>'
+      + '<li class="br-bullet">Equity of '+DEAL.equity+' on day one at market value</li>'
+      + '</ul>'
+      + '</div>'
+      // Location Overview
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-map-pin" style="font-size:9px;"></i> Location Overview</div>'
+      + '<div class="br-sec-body">Roath is one of Cardiff\'s most desirable residential districts, known for Roath Park, independent cafes and restaurants, and excellent transport links. The property sits within 0.8 miles of Cardiff City centre and 0.3 miles from the A48 Eastern Avenue ring road.</div>'
+      + '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:3px;">'
+      + DEAL.nearby.map(function(l){ return '<span style="font-size:9px;padding:2px 7px;background:var(--bg-sec);border:.5px solid var(--border);border-radius:20px;color:var(--text-2);">'+l+'</span>'; }).join('')
+      + '</div></div>'
+      // Ideal For
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-users" style="font-size:9px;"></i> Ideal For</div>'
+      + '<ul class="br-bullets">'
+      + '<li class="br-bullet">Buy-to-let investors seeking steady monthly income</li>'
+      + '<li class="br-bullet">BRRR investors — refurb potential to increase value further</li>'
+      + '<li class="br-bullet">Portfolio builders targeting South Wales growth corridor</li>'
+      + '</ul>'
+      + '</div>'
+      // Summary
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-notes" style="font-size:9px;"></i> Summary</div>'
+      + '<div class="br-sec-body">A well-priced BTL in a high-demand Cardiff postcode with a strong tenant profile and above-average yields. Represents a straightforward acquisition for experienced investors or a strong entry point for those building a portfolio in Wales.</div>'
+      + '</div>'
+      // Due Diligence
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-shield-check" style="font-size:9px;"></i> Due Diligence</div>'
+      + '<div class="br-sec-body">Full investor pack available on request including comparable evidence, tenancy history, building survey summary, title information, and projected P&amp;L. Solicitors instructed on reservation. Cooling-off period: 14 days.</div>'
+      + '</div>'
+      // EPC
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-leaf" style="font-size:9px;"></i> EPC Rating</div>'
+      + '<div class="br-epc-row"><div class="br-epc-badge">C</div><div class="br-epc-scale">'+epcBandsHtml+'</div><span style="font-size:9px;color:var(--text-2);margin-left:4px;">Score 72/100</span></div>'
+      + '</div>'
+      // Key Features
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-list-check" style="font-size:9px;"></i> Key Features</div>'
+      + '<div class="br-features-row">'+featureChips+'</div>'
+      + '</div>'
+      // Property Details
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-building" style="font-size:9px;"></i> Property Details</div>'
+      + '<div class="br-details-grid">'
+      + '<div class="br-detail-row"><span>Type</span><strong>Mid-terrace</strong></div>'
+      + '<div class="br-detail-row"><span>Bedrooms</span><strong>2</strong></div>'
+      + '<div class="br-detail-row"><span>Tenure</span><strong>Freehold</strong></div>'
+      + '<div class="br-detail-row"><span>Council tax</span><strong>Band C</strong></div>'
+      + '<div class="br-detail-row"><span>Asking price</span><strong>'+DEAL.price+'</strong></div>'
+      + '<div class="br-detail-row"><span>Floor area</span><strong>~74 m²</strong></div>'
+      + '</div></div>'
+      // Floorplan placeholder
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-vector" style="font-size:9px;"></i> Floorplan</div>'
+      + '<div class="br-placeholder"><i class="ti ti-vector"></i><span>Floorplan — added from investor pack</span></div>'
+      + '</div>'
+      // Location map placeholder
+      + '<div class="br-sec">'
+      + '<div class="br-sec-title"><i class="ti ti-map" style="font-size:9px;"></i> Location Map</div>'
+      + '<div class="br-placeholder"><i class="ti ti-map-2"></i><span>Map — auto-generated in production</span></div>'
+      + '</div>'
+      // Footer
+      + '<div class="br-footer">'
+      + '<div class="br-footer-brand">Deal<span>Score</span></div>'
+      + '<div class="br-footer-note">Generated by DealScore AI · Confidential</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  return '';
+}
+
+function buildStatChips(){
+  return Object.keys(metricDefs).filter(function(k){ return metricDefs[k].on; })
+    .map(function(k){ return '<span class="adv-stat">'+metricDefs[k].val+' '+metricDefs[k].label+'</span>'; });
+}
+
+/* ═ One-pager preview ═ */
+function buildOnepagerPreview(){
+  var headline = getVal('op-headline') || 'Cardiff CF24 · BTL Investment Opportunity';
+  var intro    = getVal('op-intro') || '';
+  var showStats  = checked('op-sec-stats');
+  var showExec   = checked('op-sec-exec');
+  var showWhy    = checked('op-sec-why');
+  var showFee    = checked('op-sec-fee');
+  var execText = getVal('lib-exec-summary') || intro;
+
+  return '<div class="onepager-page">'
+    +'<div class="onepager-hdr">'
+    +'<div class="onepager-title">'+headline+'</div>'
+    +'<div class="onepager-sub pii">14 Roath Court Rd, Cardiff CF24 · Buy to Let</div>'
+    +'<div class="onepager-score"><i class="ti ti-star-filled" style="font-size:8px;"></i> Recommended</div>'
+    +'</div>'
+    +(showStats ? buildAlignedStatGrid(false) : '')
+    +(showExec && execText ? '<div class="onepager-sec"><div class="onepager-sec-title">Overview</div><div class="onepager-sec-body">'+execText.substring(0,220)+'…</div></div>' : '')
+    +(showWhy ? '<div class="onepager-sec"><div class="onepager-sec-title">Why this deal</div><div class="onepager-sec-body">Strong rental demand in CF24 postcode driven by Cardiff University proximity. Immediate cash flow from day one with minimal refurbishment required.</div></div>' : '')
+    +(showFee ? '<div class="onepager-footer"><div><div class="onepager-footer-lbl">Sourcing fee</div></div><div class="onepager-footer-val">'+DEAL.fee+' on completion</div></div>' : '')
+    +'</div>';
+}
+
+/* ═ Pack pages ═ */
+var packPages = {
+  full: [
+    { label:'Cover' },
+    { label:'Executive summary' },
+    { label:'Key financials' },
+    { label:'Photos' },
+    { label:'Comparables' },
+    { label:'Vendor situation' },
+    { label:'Strategy' },
+    { label:'Disclaimer &amp; fee' }
+  ],
+  privacy: [
+    { label:'Cover' },
+    { label:'Executive summary' },
+    { label:'Key financials' },
+    { label:'Comparables' },
+    { label:'Strategy' },
+    { label:'Disclaimer &amp; fee' }
+  ]
+};
+
+function buildPackPage(mode, pageNum){
+  var pages = packPages[mode];
+  if(!pages || pageNum < 1 || pageNum > pages.length) return '';
+  var page = pages[pageNum - 1];
+  var label = page.label;
+
+  if(pageNum === 1){ // Cover
+    var addr    = (mode==='privacy') ? '<div class="pdf-cover-redact">[Address withheld]</div>' : '<div class="pdf-cover-addr pii">14 Roath Court Rd</div><div class="pdf-cover-sub pii">Cardiff CF24 · Buy to Let</div>';
+    var execTA  = document.getElementById('lib-exec-summary');
+    var coverStat = function(v,l){ return '<div class="pdf-cover-stat"><div class="pdf-cover-stat-val">'+v+'</div><div class="pdf-cover-stat-lbl">'+l+'</div></div>'; };
+    return '<div class="pdf-page"><div class="pdf-cover">'
+      +'<div class="pdf-cover-logo">DealScore</div>'
+      +'<div class="pdf-cover-tag">Investment opportunity</div>'
+      +addr
+      +'<div class="pdf-cover-score"><i class="ti ti-star-filled" style="font-size:9px;"></i> Recommended</div>'
+      +buildAlignedStatGrid(true)
+      +'</div></div>';
+  }
+
+  if(label === 'Executive summary'){
+    var execVal = getVal('lib-exec-summary') || 'Solid BTL opportunity in Cardiff CF24.';
+    return '<div class="pdf-page"><div class="pdf-content">'
+      +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+      +'<div class="pdf-content-title">Executive Summary</div>'
+      +'<div class="pdf-content-body">'+execVal+'</div>'
+      +'</div></div>';
+  }
+
+  if(label === 'Key financials'){
+    return '<div class="pdf-page"><div class="pdf-content">'
+      +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+      +'<div class="pdf-content-title">Key Financials</div>'
+      +buildAlignedStatGrid(false)
+      +'<div class="pdf-content-body"><strong>Note:</strong> All figures are auto-populated from your analysis. Confirm stamp duty and refurb estimates before distributing.</div>'
+      +'</div></div>';
+  }
+
+  if(label === 'Photos'){
+    return '<div class="pdf-page"><div class="pdf-content">'
+      +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+      +'<div class="pdf-content-title">Property Photos</div>'
+      +'<div class="pdf-photo-grid">'
+      +'<div class="pdf-photo-mock"></div>'
+      +'<div class="pdf-photo-mock" style="background:linear-gradient(135deg,#a5f3d0,#6ee7b7);"></div>'
+      +'<div class="pdf-photo-mock" style="background:linear-gradient(135deg,#fde68a,#fca5a5);"></div>'
+      +'</div>'
+      +'</div></div>';
+  }
+
+  if(label === 'Comparables'){
+    return '<div class="pdf-page"><div class="pdf-content">'
+      +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+      +'<div class="pdf-content-title">Comparable Properties</div>'
+      +'<div class="pdf-content-body">'
+      +'<div style="border:.5px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:7px;"><strong class="pii">22 Roath Park Rd, CF24</strong><br>Sold £182,000 · £1,050/mo rent · 6.9% yield</div>'
+      +'<div style="border:.5px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:7px;"><strong class="pii">8 Albany Rd, CF24</strong><br>Sold £179,500 · £1,100/mo rent · 7.4% yield</div>'
+      +'<div style="border:.5px solid var(--border);border-radius:6px;padding:8px 10px;"><strong class="pii">31 Inverness Pl, CF24</strong><br>Sold £188,000 · £1,075/mo rent · 6.9% yield</div>'
+      +'</div></div></div>';
+  }
+
+  if(label === 'Vendor situation'){
+    var vendVal = getVal('lib-vendor-situation') || 'The vendor has agreed a sale price 12% below current market value.';
+    return '<div class="pdf-page"><div class="pdf-content">'
+      +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+      +'<div class="pdf-content-title">Vendor Situation</div>'
+      +'<div class="pdf-content-body">'+vendVal+'</div>'
+      +'</div></div>';
+  }
+
+  if(label === 'Strategy'){
+    var stratVal = getVal('lib-strategy-note') || 'Buy to Let is well-suited to this property given its proximity to Cardiff University and the high rental demand in CF24.';
+    return '<div class="pdf-page"><div class="pdf-content">'
+      +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+      +'<div class="pdf-content-title">Why Buy to Let</div>'
+      +'<div class="pdf-content-body">'+stratVal+'</div>'
+      +'</div></div>';
+  }
+
+  // Disclaimer & fee (last page)
+  return '<div class="pdf-page"><div class="pdf-content">'
+    +'<div class="pdf-content-eyebrow">Page '+pageNum+' of '+pages.length+' · DealScore</div>'
+    +'<div class="pdf-content-title">Sourcing Fee &amp; Disclaimer</div>'
+    +'<div class="pdf-content-body">'
+    +'<strong>Sourcing fee:</strong> '+DEAL.fee+' payable on legal completion. Subject to written agreement and 14-day cooling-off period.<br><br>'
+    +'<strong>Disclaimer:</strong> This document is for information purposes only. All figures are estimates and should be independently verified. Past performance does not guarantee future results.'
+    +'</div></div></div>';
+}
+
+/* ════════════════════════════════════════
+   INTERACTIONS
+   ════════════════════════════════════════ */
+
+/* Seller motivation — sourced from Seller tab in production; hardcoded for mockup */
+var sellerMotivation = 'The vendor has agreed a sale price 12% below current market value, reflecting a motivated seller seeking a clean, chain-free transaction. Opportunity to acquire day-one equity of £25,000.';
+
+function updatePreview(){
+  var canvas = document.getElementById('pv-canvas');
+  if(!canvas) return;
+  if(currentType==='advert')     canvas.innerHTML = buildAdvertPreview();
+  else if(currentType==='onepager') canvas.innerHTML = buildOnepagerPreview();
+  else if(currentType==='full')  canvas.innerHTML = buildPackPage('full', currentPage);
+  else if(currentType==='privacy') canvas.innerHTML = buildPackPage('privacy', currentPage);
+}
+
+function switchAdFormat(fmt, btn){
+  adFormat = fmt;
+  if(btn){
+    document.querySelectorAll('#seg-platform .seg-btn').forEach(function(b){ b.classList.remove('on'); });
+    btn.classList.add('on');
+  }
+  updatePreview();
+}
+
+function switchTone(btn){
+  document.querySelectorAll('#seg-tone .seg-btn').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  updatePreview();
+}
+
+function toggleMetric(el, key){
+  metricDefs[key].on = !metricDefs[key].on;
+  el.classList.toggle('on', metricDefs[key].on);
+  updatePreview();
+}
+
+function selectPhoto(n, ctx, el){
+  photoSel = n;
+  document.querySelectorAll('#photo-pick-'+ctx+' .photo-thumb').forEach(function(t){ t.classList.remove('on'); });
+  el.classList.add('on');
+  updatePreview();
+}
+
+function selectCoverOpt(el, key){
+  coverStyle = key;
+  document.querySelectorAll('#cover-pick .cover-opt').forEach(function(o){ o.classList.remove('on'); });
+  el.classList.add('on');
+  updatePreview();
+}
+
+function goPage(dir){
+  var mode  = (currentType === 'privacy') ? 'privacy' : 'full';
+  var total = totalPages[mode] || 8;
+  currentPage = Math.max(1, Math.min(total, currentPage + dir));
+  /* sidebar nav */
+  var counter = document.getElementById('page-counter');
+  if(counter) counter.textContent = currentPage+' / '+total;
+  var prev = document.getElementById('btn-prev');
+  var next = document.getElementById('btn-next');
+  if(prev){ prev.disabled = (currentPage <= 1); }
+  if(next){ next.disabled = (currentPage >= total); }
+  updatePreview();
+  /* fullscreen nav sync */
+  var fsCounter = document.getElementById('fs-page-counter');
+  if(fsCounter) fsCounter.textContent = currentPage+' / '+total;
+  var fsPrev = document.getElementById('fs-btn-prev');
+  var fsNext = document.getElementById('fs-btn-next');
+  if(fsPrev){ fsPrev.disabled = (currentPage <= 1); }
+  if(fsNext){ fsNext.disabled = (currentPage >= total); }
+  /* if modal is open, refresh its content too */
+  var overlay = document.getElementById('pv-modal-overlay');
+  if(overlay && overlay.classList.contains('show')){
+    var canvas = document.getElementById('pv-canvas');
+    var inner  = document.getElementById('pv-modal-content');
+    if(canvas && inner) inner.innerHTML = canvas.innerHTML;
+  }
+}
+
+function markTypeDone(key, label, cls){
+  var badge = document.querySelector('#card-'+key+' .ctype-badge');
+  if(badge){ badge.textContent = label; badge.className = 'ctype-badge '+cls; }
+  showToast('Saved');
+}
+
+/* ════════════════════════════════════════
+   FULLSCREEN
+   ════════════════════════════════════════ */
+function openFullscreen(){
+  var canvas = document.getElementById('pv-canvas');
+  if(!canvas) return;
+  var inner = document.getElementById('pv-modal-content');
+  if(inner) inner.innerHTML = canvas.innerHTML;
+  /* show page nav only for pack types */
+  var isPackType = (currentType === 'full' || currentType === 'privacy');
+  var navEl = document.getElementById('pv-modal-nav');
+  if(navEl) navEl.style.display = isPackType ? 'flex' : 'none';
+  if(isPackType){
+    var mode  = (currentType === 'privacy') ? 'privacy' : 'full';
+    var total = totalPages[mode] || 8;
+    var fsCounter = document.getElementById('fs-page-counter');
+    if(fsCounter) fsCounter.textContent = currentPage+' / '+total;
+    var fsPrev = document.getElementById('fs-btn-prev');
+    var fsNext = document.getElementById('fs-btn-next');
+    if(fsPrev){ fsPrev.disabled = (currentPage <= 1); }
+    if(fsNext){ fsNext.disabled = (currentPage >= total); }
+  }
+  document.getElementById('pv-modal-overlay').classList.add('show');
+}
+function closeFullscreen(e){
+  if(e && e.target !== document.getElementById('pv-modal-overlay')) return;
+  document.getElementById('pv-modal-overlay').classList.remove('show');
+}
+
+/* ════════════════════════════════════════
+   UTILITIES
+   ════════════════════════════════════════ */
+function getVal(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; }
+function checked(id){ var el=document.getElementById(id); return el ? el.checked : false; }
+
+/* ════════════════════════════════════════
+   CHROME JS
+   ════════════════════════════════════════ */
+function showToast(m){
+  var t=document.getElementById('toast');
+  t.textContent=m; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+function toggleLivebar(){
+  var bar=document.querySelector('.livebar');
+  var icon=document.getElementById('lb-hide-icon');
+  var label=document.getElementById('lb-hide-label');
+  if(!bar) return;
+  var collapsed=bar.classList.toggle('collapsed');
+  document.documentElement.style.setProperty('--livebar-h', collapsed ? '0px' : '44px');
+  if(icon) icon.className = collapsed ? 'ti ti-chevron-down' : 'ti ti-chevron-up';
+  if(label) label.textContent = collapsed ? 'Show page info' : 'Hide page info';
+}
+
+function hdrToggleDrop(){
+  document.getElementById('hdr-avt-drop').classList.toggle('show');
+}
+document.addEventListener('click', function(e){
+  var drop=document.getElementById('hdr-avt-drop');
+  if(drop && !drop.contains(e.target) && !document.querySelector('.avt-wrap-inner').contains(e.target)){
+    drop.classList.remove('show');
+  }
+});
+
+function hdrTogglePrivacy(){
+  var body=document.body;
+  var chk=document.getElementById('hdr-privacy-chk');
+  var banner=document.getElementById('privacy-banner');
+  var avt=document.getElementById('hdr-avt');
+  var isOn=body.classList.toggle('privacy');
+  if(chk) chk.checked=isOn;
+  if(banner) banner.classList.toggle('show',isOn);
+  if(avt) avt.classList.toggle('privacy-on',isOn);
+}
+
+var mockupTier='pro';
+function setMockupTier(tier){
+  mockupTier=tier;
+  document.body.classList.toggle('tier-proplus',tier==='proplus');
+  var hdrPro=document.getElementById('hdr-tier-pro');
+  var hdrPP=document.getElementById('hdr-tier-pp');
+  if(tier==='proplus'){
+    if(hdrPro){hdrPro.style.background='transparent';hdrPro.style.color='rgba(255,255,255,.4)';}
+    if(hdrPP){hdrPP.style.background='rgba(255,255,255,.2)';hdrPP.style.color='#fff';}
+    showToast('Pro+ active — Smart Capture, custom branding & landscape PDF unlocked');
+  } else {
+    if(hdrPro){hdrPro.style.background='var(--navy)';hdrPro.style.color='#fff';}
+    if(hdrPP){hdrPP.style.background='transparent';hdrPP.style.color='rgba(255,255,255,.4)';}
+    showToast('Pro tier — custom cover styles and white-label require Pro Plus');
+  }
+  /* Re-render inputs if full pack is active — cover style picker reflects tier */
+  if(currentType === 'full') renderInputs('full');
+}
+
+function coverOptClick(el, key){
+  /* Custom and Minimal covers are Pro+ only */
+  if(key !== 'branded' && mockupTier !== 'proplus'){
+    showToast('Custom and Minimal covers require Pro Plus — upgrade to unlock');
+    return;
+  }
+  selectCoverOpt(el, key);
+}
+
+/* Notes drawer */
+function openNotes(){
+  document.getElementById('notes-overlay').classList.add('show');
+  document.getElementById('notes-panel').classList.add('show');
+}
+function closeNotes(){
+  document.getElementById('notes-overlay').classList.remove('show');
+  document.getElementById('notes-panel').classList.remove('show');
+}
+var notesData=[];
+document.addEventListener('DOMContentLoaded', function(){
+  var inp=document.getElementById('notes-input');
+  if(inp) inp.addEventListener('input', function(){
+    var btn=document.getElementById('notes-add-btn');
+    if(btn) btn.disabled=!inp.value.trim();
+  });
+});
+function addNote(){
+  var inp=document.getElementById('notes-input');
+  var list=document.getElementById('notes-list');
+  if(!inp||!list||!inp.value.trim()) return;
+  var item=document.createElement('div');
+  item.className='notes-item';
+  item.innerHTML='<div class="notes-item-hdr"><div class="notes-author"><div style="width:22px;height:22px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;">VM</div> Videet M.</div><span class="notes-time">Just now</span></div><div class="notes-text">'+inp.value+'</div>';
+  list.insertBefore(item, list.firstChild);
+  inp.value='';
+  document.getElementById('notes-add-btn').disabled=true;
+  var cnt=document.getElementById('notes-count');
+  notesData.push(1);
+  if(cnt) cnt.textContent=(notesData.length+1)+' notes';
+  showToast('Note added');
+}
+
+/* ════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════ */
+window.addEventListener('load', function(){
+  var init = document.querySelector('.ctype-card.on');
+  if(init) {
+    renderInputs(init.getAttribute('data-key'));
+    renderPreview(init.getAttribute('data-key'));
+  }
+});
+function dismissExp(btn){
+  var card=btn.closest?btn.closest(".exp-card"):null;
+  if(!card){card=btn.parentNode;while(card&&!card.classList.contains("exp-card"))card=card.parentNode;}
+  if(!card)return;
+  card.style.display="none";
+  var r=card.nextElementSibling;
+  if(r&&r.classList&&r.classList.contains("exp-restore"))r.classList.add("show");
+}
+function restoreExp(btn){
+  btn.classList.remove("show");
+  var card=btn.previousElementSibling;
+  if(card&&card.classList&&card.classList.contains("exp-card"))card.style.display="flex";
+}
+</script>
+<script>
+/* ══ NOTIFICATION SYSTEM ══ */
+var notifOpen = false;
+var notifData = (function(){
+  var today = new Date();
+  var fmt = function(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+  var add = function(d,n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  // Simulated deal-aware notifications
+  var coolingEnd  = add(today, 2);
+  var packRelease = add(today, 5);
+  var noteDate1   = add(today,-1);
+  var noteDate2   = add(today,-3);
+  return [
+    { id:'n1', unread:true,  type:'amber', icon:'ti-alert-triangle',
+      deal:'14 Roath Court Rd', msg:'Cooling-off period ends '+fmt(coolingEnd)+' — confirm investor is proceeding', time:'Today' },
+    { id:'n2', unread:true,  type:'navy',  icon:'ti-file-text',
+      deal:'14 Roath Court Rd', msg:'Pack release scheduled for '+fmt(packRelease)+' — ensure content is finalised', time:'Today' },
+    { id:'n3', unread:true,  type:'teal',  icon:'ti-user-check',
+      deal:'14 Roath Court Rd', msg:'James Thornton expressed interest — log a response in Investors', time:'Yesterday' },
+    { id:'n4', unread:false, type:'navy',  icon:'ti-user',
+      deal:'14 Roath Court Rd', msg:'Seller details not yet completed — add vendor motivation before sharing packs', time:fmt(noteDate2) },
+    { id:'n5', unread:false, type:'red',   icon:'ti-clock-exclamation',
+      deal:'52 Crwys Rd', msg:'Deal has been in Negotiation for 18 days with no update', time:fmt(noteDate2) },
+  ];
+}());
+function renderNotifs(){
+  var unread = notifData.filter(function(n){ return n.unread; }).length;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.classList.toggle('show', unread > 0); }
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!notifData.length){
+    list.innerHTML = '<div class="notif-empty"><i class="ti ti-bell-off"></i><div class="notif-empty-msg">All caught up — no new notifications</div></div>';
+    return;
+  }
+  list.innerHTML = notifData.map(function(n){
+    return '<div class="notif-item'+(n.unread?' unread':'')+'" id="ni-'+n.id+'" onclick="readNotif(''+n.id+'')">'
+      +'<div class="notif-icon-wrap '+n.type+'"><i class="ti '+n.icon+'"></i></div>'
+      +'<div class="notif-body">'
+      +'<div class="notif-deal-tag">'+n.deal+'</div>'
+      +'<div class="notif-msg">'+n.msg+'</div>'
+      +'<div class="notif-time">'+n.time+'</div>'
+      +'</div>'
+      +(n.unread ? '<div class="notif-unread-dot"></div>' : '')
+      +'</div>';
+  }).join('');
+}
+function toggleNotif(e){
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  var drop = document.getElementById('notif-drop');
+  if(drop) drop.classList.toggle('show', notifOpen);
+  if(notifOpen) renderNotifs();
+}
+function readNotif(id){
+  var n = notifData.find(function(x){ return x.id===id; });
+  if(n) n.unread = false;
+  renderNotifs();
+}
+function markAllRead(){
+  notifData.forEach(function(n){ n.unread=false; });
+  renderNotifs();
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.notif-wrap')){ notifOpen=false; var d=document.getElementById('notif-drop'); if(d) d.classList.remove('show'); }
+});
+
+document.addEventListener("DOMContentLoaded",function(){ renderNotifs(); });
+</script>
+</body>
+</html>

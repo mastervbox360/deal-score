@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Pipeline</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px; --bbar-h:54px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+.tbar{background:#fff;border-bottom:.5px solid var(--border);display:flex;align-items:center;padding:8px 24px;position:sticky;top:var(--hdr-h);z-index:210;}
+.pii{transition:opacity .2s;}
+body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
+
+/* HEADER (shared convention) */
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;flex-shrink:0;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;flex-shrink:0;}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;transition:all .12s;}
+.avt:hover{background:rgba(255,255,255,.24);}
+
+/* BREADCRUMB + PAGE HEAD */
+.crumb{padding:14px 24px 0;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;}
+.crumb a{color:var(--navy);text-decoration:none;cursor:pointer;}
+.crumb a:hover{text-decoration:underline;}
+.crumb i{font-size:11px;color:#ccc;}
+.pg-head{padding:10px 24px 4px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.pg-title{font-size:20px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:9px;}
+.pg-sub{font-size:12px;color:var(--text-2);margin-top:4px;max-width:600px;line-height:1.5;}
+
+/* VIEW SWITCHER */
+.view-tabs{display:flex;gap:2px;background:var(--bg-sec);border:.5px solid var(--border);border-radius:9px;padding:2px;flex-shrink:0;}
+.vtab{font-size:12px;padding:7px 14px;border-radius:7px;border:none;background:none;color:#666;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .1s;white-space:nowrap;}
+.vtab:hover{background:#fff;color:var(--navy);}
+.vtab.on{background:#fff;color:var(--navy);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.vtab .vt-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--bg-sec);color:#999;}
+.vtab.on .vt-badge{background:var(--navy-light);color:var(--navy);}
+.vtab.alert .vt-badge{background:#fef3c7;color:#92400e;}
+
+.view-panel{display:none;}
+.view-panel.on{display:block;}
+
+/* ══ FUNNEL VIEW ══ */
+.fnl-wrap{margin:16px 24px 20px;}
+.fnl-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
+.fnl-hdr-left .fnl-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:3px;}
+.fnl-hdr-left .fnl-period{font-size:12px;color:var(--text-2);}
+.fnl-topstats{display:flex;gap:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;flex-shrink:0;}
+.fnl-tstat{padding:10px 18px;border-right:.5px solid var(--border);text-align:right;}
+.fnl-tstat:last-child{border-right:none;}
+.fnl-tstat-val{font-size:20px;font-weight:700;color:var(--navy);display:block;line-height:1.1;}
+.fnl-tstat-val.red{color:#DC2626;}
+.fnl-tstat-val.teal{color:var(--teal);}
+.fnl-tstat-lbl{font-size:9px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+/* Centred funnel chart */
+.fnl-chart{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;}
+.fnl-row{display:flex;align-items:center;gap:12px;padding:5px 0;}
+.fnl-slbl{width:90px;flex-shrink:0;}
+.fnl-slbl-name{font-size:12px;font-weight:600;color:var(--text-1);}
+.fnl-slbl-sub{font-size:10px;font-weight:400;color:var(--text-2);display:block;margin-top:1px;}
+.fnl-bar-zone{flex:1;display:flex;align-items:center;}
+.fnl-bar{height:40px;border-radius:8px;display:flex;align-items:center;padding:0 14px;margin:0 auto;min-width:60px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.fnl-bar-count{font-size:17px;font-weight:700;color:#fff;line-height:1;}
+.fnl-bar-deals{font-size:10px;font-weight:500;color:rgba(255,255,255,.65);margin-left:6px;}
+.fnl-right{width:130px;flex-shrink:0;display:flex;align-items:center;padding-left:10px;}
+.fnl-conv-pct{font-size:12px;font-weight:700;}
+.fnl-conv-pct.healthy{color:var(--teal);}
+.fnl-conv-pct.watch{color:#D97706;}
+.fnl-conv-pct.weak{color:#DC2626;}
+.fnl-conv-lbl{font-size:10px;color:var(--text-2);margin-left:4px;}
+/* Live now strip */
+.fnl-live{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 14px;background:var(--bg-sec);border-radius:var(--r-md);}
+.fnl-live-pre{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;width:90px;flex-shrink:0;}
+.fnl-live-stages{flex:1;display:flex;gap:0;}
+.fnl-live-stage{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.fnl-live-badge{width:36px;height:28px;border-radius:7px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.fnl-live-badge.none{background:#fff;border:.5px solid var(--border);color:#ccc;}
+.fnl-live-badge.active{background:var(--navy);color:#fff;}
+.fnl-live-stage-nm{font-size:9px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.04em;}
+.fnl-live-suffix{font-size:10px;color:var(--text-2);flex-shrink:0;white-space:nowrap;}
+/* Insight cards */
+.fnl-insights{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+.fnl-ic{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;}
+.fnl-ic-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.fnl-ic-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.fnl-ic-icon.red{background:#fee2e2;color:#dc2626;}
+.fnl-ic-icon.teal{background:#d1fae5;color:var(--teal);}
+.fnl-ic-icon.navy{background:var(--navy-light);color:var(--navy);}
+.fnl-ic-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.fnl-ic-body{font-size:11px;color:var(--text-2);line-height:1.6;}
+.fnl-ic-body b{color:var(--text-1);font-weight:600;}
+
+/* ══ STALLED VIEW ══ */
+.stalled-intro{margin:16px 24px 4px;font-size:12px;color:var(--text-2);max-width:620px;line-height:1.5;}
+.stalled-list{margin:12px 24px 24px;display:flex;flex-direction:column;gap:8px;}
+.sd-row{background:#fff;border:.5px solid var(--border);border-left:3px solid var(--border);border-radius:var(--r-md);padding:13px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .12s;}
+.sd-row:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.sd-row.high{border-left-color:#DC2626;}
+.sd-row.med{border-left-color:#D97706;}
+.sd-info{flex:1;min-width:0;}
+.sd-addr{font-size:13px;font-weight:600;color:var(--text-1);}
+.sd-meta{font-size:11px;color:var(--text-2);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.sd-stuck{flex-shrink:0;text-align:center;padding:0 14px;border-left:.5px solid var(--border);border-right:.5px solid var(--border);}
+.sd-stuck-n{font-size:17px;font-weight:700;}
+.sd-stuck-n.high{color:#DC2626;}
+.sd-stuck-n.med{color:#D97706;}
+.sd-stuck-lbl{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.sd-action{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.sd-suggest{font-size:11px;color:var(--text-2);text-align:right;max-width:190px;line-height:1.4;}
+.sd-btn{font-size:11px;font-weight:600;padding:6px 13px;border-radius:7px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;}
+.sd-btn:hover{opacity:.88;}
+.stalled-empty{margin:30px 24px;text-align:center;padding:40px 20px;color:var(--text-2);}
+.stalled-empty i{font-size:30px;color:var(--teal);display:block;margin-bottom:10px;}
+.stalled-empty .e-t{font-size:14px;font-weight:600;color:var(--text-1);margin-bottom:3px;}
+
+/* ══ TARGETS VIEW ══ */
+/* ── Targets flow ── */
+.tflow-wrap{margin:16px 24px 24px;}
+.tflow{display:flex;align-items:stretch;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.tflow-card{flex:1;padding:18px 20px;border-right:.5px solid var(--border);display:flex;flex-direction:column;gap:0;}
+.tflow-card:last-child{border-right:none;}
+.tflow-arrow{display:flex;align-items:center;padding:0 2px;background:#fff;color:var(--border);font-size:18px;flex-shrink:0;}
+.tflow-step{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#bbb;margin-bottom:8px;}
+.tflow-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.tflow-period{font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;}
+.tflow-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;}
+.tflow-val{font-size:26px;font-weight:700;color:var(--navy);}
+.tflow-of{font-size:13px;color:var(--text-2);}
+.tflow-track{height:6px;background:var(--bg-sec);border-radius:20px;overflow:hidden;margin-bottom:8px;}
+.tflow-fill{height:100%;border-radius:20px;background:var(--teal);transition:width .4s ease;}
+.tflow-fill.amber{background:#D97706;}
+.tflow-note{font-size:11px;color:var(--text-2);line-height:1.55;margin-top:auto;}
+.tflow-note b{color:var(--text-1);font-weight:600;}
+/* velocity card */
+.tflow-vel{display:flex;align-items:center;gap:16px;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;margin-top:10px;}
+.tflow-vel-icon{width:32px;height:32px;border-radius:8px;background:var(--bg-sec);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:14px;flex-shrink:0;}
+.tflow-vel-body{flex:1;min-width:0;}
+.tflow-vel-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+.tflow-vel-val{font-size:13px;color:var(--text-1);font-weight:600;display:flex;align-items:baseline;gap:6px;}
+.tflow-vel-unit{font-size:12px;font-weight:400;color:var(--text-2);}
+.tflow-vel-badge{font-size:10px;font-weight:600;color:var(--teal);background:var(--teal-light,#d1fae5);border-radius:20px;padding:2px 8px;white-space:nowrap;}
+.tflow-vel-track{flex-shrink:0;width:200px;height:6px;background:var(--bg-sec);border-radius:20px;overflow:hidden;}
+.tflow-vel-fill{height:100%;border-radius:20px;background:var(--teal);width:78%;}
+
+/* ══ STICKY BUSINESS STATS BAR ══ */
+.bbar{position:fixed;bottom:0;left:0;right:0;height:var(--bbar-h);background:var(--navy-deep);display:flex;align-items:center;padding:0 24px;gap:0;z-index:230;box-shadow:0 -4px 20px rgba(0,0,0,.18);overflow-x:auto;}
+.bb-item{display:flex;flex-direction:column;justify-content:center;padding:0 22px;border-right:.5px solid rgba(255,255,255,.08);height:100%;flex-shrink:0;min-width:130px;}
+.bb-item:first-child{padding-left:0;}
+.bb-item:last-child{border-right:none;}
+.bb-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:2px;}
+.bb-val{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:baseline;gap:6px;}
+.bb-val .bb-sub{font-size:11px;font-weight:400;color:rgba(255,255,255,.45);}
+.bb-val.am{color:#FBBF24;}
+.bb-val.gr{color:var(--teal-mid);}
+.bb-track{width:64px;height:5px;background:rgba(255,255,255,.12);border-radius:20px;overflow:hidden;margin-top:5px;}
+.bb-track-fill{height:100%;background:var(--teal-mid);border-radius:20px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--bbar-h) + 18px);left:50%;transform:translateX(-50%);background:var(--navy-dark);color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:500;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;}
+.exp-card{position:relative;background:#fff;border-radius:var(--r-lg,10px);border:.5px solid var(--border,#e3e5e9);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.exp-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;padding:4px;}
+.exp-dismiss:hover{color:var(--navy,#1B3A6B);}
+.exp-icon{width:36px;height:36px;border-radius:var(--r-md,8px);background:var(--navy-light,#eef3fb);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--navy,#1B3A6B);flex-shrink:0;}
+.exp-title{font-size:13px;font-weight:600;color:var(--text-1,#1a1a2e);margin-bottom:4px;}
+.exp-text{font-size:12px;color:var(--text-2,#6c757d);line-height:1.7;}
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2,#6c757d);background:var(--bg-sec,#f5f6f8);border:.5px solid var(--border,#e3e5e9);border-radius:20px;padding:4px 12px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy,#1B3A6B);border-color:var(--navy,#1B3A6B);}
+.exp-restore.show{display:inline-flex;}
+
+/* ══ TODAY STRIP ══ */
+.today-strip{background:#fff;border-bottom:.5px solid var(--border);padding:10px 24px;}
+.today-strip.collapsed .ts-row{display:none;}
+.today-strip.collapsed{padding-bottom:8px;}
+.ts-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.ts-toggle-btn{margin-left:auto;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;letter-spacing:.03em;}
+.ts-toggle-btn:hover{border-color:#c8cdd5;color:var(--text-1);}
+.ts-row{display:flex;gap:8px;flex-wrap:wrap;}
+.ts-chip{border-radius:var(--r-md);padding:8px 12px;min-width:190px;border:.5px solid;display:flex;flex-direction:column;gap:1px;}
+.ts-chip.viewing{background:#eff6ff;border-color:#bfdbfe;}
+.ts-chip.chase{background:#fef3c7;border-color:#fde68a;}
+.ts-chip.day15{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2);}
+.ts-chip.sens{background:var(--bg-sec);border-color:var(--border);}
+.ts-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.ts-chip.viewing .ts-type{color:#1e40af;}
+.ts-chip.chase .ts-type{color:#92400e;}
+.ts-chip.day15 .ts-type{color:#5B21B6;}
+.ts-chip.sens .ts-type{color:var(--text-2);}
+.ts-addr{font-size:12px;font-weight:500;color:var(--text-1);margin-bottom:1px;}
+.ts-detail{font-size:11px;color:var(--text-2);margin-bottom:6px;}
+.ts-action{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;border:.5px solid;cursor:pointer;font-family:inherit;background:#fff;margin-top:2px;transition:opacity .12s;align-self:flex-start;}
+.ts-action:hover{opacity:.8;}
+.ts-chip.viewing .ts-action{color:#1e40af;border-color:#bfdbfe;}
+.ts-chip.chase .ts-action{color:#92400e;border-color:#fde68a;}
+.ts-chip.day15 .ts-action{color:#5B21B6;border-color:rgba(124,58,237,.3);}
+.ts-chip.sens .ts-action{color:var(--navy);border-color:var(--border);}
+
+/* ── Inline header search ── */
+.hdr-search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.hdr-search:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.hdr-search:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.hdr-search i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.hdr-search input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.hdr-search input::placeholder{color:rgba(255,255,255,.3);}
+.hdr-search .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+
+.avt-wrap-inner:hover 
+.avt-chevron{font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt.privacy-on{border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.35);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+.mini-toggle{position:relative;width:28px;height:16px;flex-shrink:0;}
+.mini-toggle input{opacity:0;width:0;height:0;}
+.mini-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.mini-toggle input:checked + .mini-track{background:var(--teal);}
+.mini-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.mini-toggle input:checked ~ .mini-thumb{transform:translateX(12px);}
+
+
+/* ══════════════════════════════════════
+   HEADER — Option C (confirmed)
+   Logo+Nav left · Search centre · Actions right
+   ══════════════════════════════════════ */
+
+.hdr-left{display:flex;align-items:center;gap:6px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;flex-shrink:0;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;flex-shrink:0;}
+.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+.search-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.search-bar:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.search-bar:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.search-bar i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.search-bar input::placeholder{color:rgba(255,255,255,.3);}
+.search-bar .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}.search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.search-icon-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);font-size:15px;transition:all .12s;}
+.search-icon-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.hdr-icon{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;transition:all .12s;position:relative;flex-shrink:0;}
+.hdr-icon:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#D97706;border:1.5px solid var(--navy-dark);}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;transition:all .12s;}
+.avt-wrap-inner:hover .avt{background:rgba(255,255,255,.24);}
+.avt-chevron{font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt.privacy-on{border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.35);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+.mini-toggle{position:relative;width:28px;height:16px;flex-shrink:0;}
+.mini-toggle input{opacity:0;width:0;height:0;}
+.mini-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.mini-toggle input:checked + .mini-track{background:var(--teal);}
+.mini-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.mini-toggle input:checked ~ .mini-thumb{transform:translateX(12px);}
+
+
+/* ══ NOTIFICATION BELL ══ */
+.notif-wrap{position:relative;}
+.notif-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;position:relative;flex-shrink:0;transition:all .12s;}
+.notif-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-badge{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:1.5px solid var(--navy-dark);display:none;}
+.notif-badge.show{display:block;}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);width:320px;z-index:400;display:none;overflow:hidden;}
+.notif-drop.show{display:block;}
+.notif-drop-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.notif-drop-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.notif-mark-all{font-size:10px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;padding:0;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.notif-item:hover{background:var(--bg-sec);}
+.notif-item.unread{background:#fefce8;}
+.notif-item.unread:hover{background:#fef9c3;}
+.notif-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.notif-icon-wrap.amber{background:#fef3c7;color:#d97706;}
+.notif-icon-wrap.navy{background:#e8eef7;color:var(--navy);}
+.notif-icon-wrap.teal{background:#d1fae5;color:#059669;}
+.notif-icon-wrap.red{background:#fee2e2;color:#dc2626;}
+.notif-icon-wrap i{font-size:14px;}
+.notif-body{flex:1;min-width:0;}
+.notif-deal-tag{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.notif-msg{font-size:11px;font-weight:500;color:var(--text-1);line-height:1.4;}
+.notif-time{font-size:9px;color:var(--text-2);margin-top:3px;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:5px;}
+.notif-empty{padding:28px 14px;text-align:center;}
+.notif-empty i{font-size:24px;color:var(--text-2);margin-bottom:6px;display:block;}
+.notif-empty-msg{font-size:11px;color:var(--text-2);}
+.notif-drop-footer{padding:9px 14px;border-top:.5px solid var(--border);text-align:center;}
+.notif-drop-footer button{font-size:11px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;}
+
+.exp-card{position:relative;background:#fff;border-radius:var(--r-lg,10px);border:.5px solid var(--border,#e3e5e9);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.exp-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;padding:4px;}
+.exp-dismiss:hover{color:var(--navy,#1B3A6B);}
+.exp-icon{width:36px;height:36px;border-radius:var(--r-md,8px);background:var(--navy-light,#eef3fb);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--navy,#1B3A6B);flex-shrink:0;}
+.exp-title{font-size:13px;font-weight:600;color:var(--text-1,#1a1a2e);margin-bottom:4px;}
+.exp-text{font-size:12px;color:var(--text-2,#6c757d);line-height:1.7;}
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2,#6c757d);background:var(--bg-sec,#f5f6f8);border:.5px solid var(--border,#e3e5e9);border-radius:20px;padding:4px 12px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy,#1B3A6B);border-color:var(--navy,#1B3A6B);}
+.exp-restore.show{display:inline-flex;}
+
+/* ── Inline header search ── */
+.hdr-search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.hdr-search:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.hdr-search:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.hdr-search i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.hdr-search input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.hdr-search input::placeholder{color:rgba(255,255,255,.3);}
+.hdr-search .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='ds_home.html'" title="Back to dashboard" style="cursor:pointer;">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn on" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_compare_view.html'">Compare</button>
+    </nav>
+  </div>
+  <div class="hdr-centre">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Search deals, sellers, addresses…">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+        <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+        <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+        <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+      </div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-right-nav"><button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button><div class="hn-sep"></div><button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button></nav>
+    <div class="logo-sep"></div>
+    <div class="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Notifications">
+        <i class="ti ti-bell"></i>
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-drop" id="notif-drop">
+        <div class="notif-drop-hdr">
+          <span class="notif-drop-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+        <div class="notif-drop-footer"><button onclick="markAllRead()">Clear all notifications</button></div>
+      </div>
+    </div>
+    
+    <div class="logo-sep"></div>
+    <button class="btn-new" onclick="window.location.href='./ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="logo-sep"></div>
+    <div class="avt-wrap">
+      <div class="avt-wrap-inner" onclick="hdrToggleDrop()">
+        <div class="avt" id="hdr-avt">VM</div>
+        <i class="ti ti-chevron-down avt-chevron"></i>
+      </div>
+      <div class="avt-drop" id="hdr-avt-drop">
+        <div class="avt-drop-head">
+          <div class="avt-drop-name">Videet Mardania</div>
+          <div class="avt-drop-email">videet@propertysourcing.co.uk</div>
+        </div>
+        <div style="padding:4px 0;">
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-user"></i> Profile</button>
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-settings"></i> Settings</button>
+          <button class="avt-drop-item"><i class="ti ti-credit-card"></i> Billing &amp; plan</button>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <div class="avt-drop-toggle" onclick="hdrTogglePrivacy()">
+          <div class="avt-drop-toggle-left"><i class="ti ti-eye-off"></i> Privacy mode</div>
+          <label class="mini-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="hdr-privacy-chk" onchange="hdrTogglePrivacy()">
+            <span class="mini-track"></span><span class="mini-thumb"></span>
+          </label>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item"><i class="ti ti-keyboard"></i> Keyboard shortcuts</button>
+        <button class="avt-drop-item"><i class="ti ti-sparkles"></i> What's new</button>
+        <button class="avt-drop-item"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item danger"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+    </div>
+  
+  </div>
+</div>
+</div>
+
+<!-- ══ TODAY STRIP ══ -->
+<div class="today-strip" id="today-strip">
+  <div class="ts-lbl">
+    <i class="ti ti-calendar-event" style="font-size:11px;"></i> Today &amp; coming up
+    <button class="ts-toggle-btn" id="ts-toggle-btn" onclick="toggleTodayStrip()">Hide</button>
+  </div>
+  <div class="ts-row">
+    <div class="ts-chip viewing">
+      <div class="ts-type">Viewing tomorrow</div>
+      <div class="ts-addr pii">65a Horwood Close, Leeds LS7</div>
+      <div class="ts-detail">10:30am · <span class="pii">Sarah Michaels</span></div>
+      <button class="ts-action" onclick="window.location.href='ds_deal_overview.html'">
+        <i class="ti ti-calendar-check" style="font-size:10px;"></i> View deal →
+      </button>
+    </div>
+    <div class="ts-chip chase">
+      <div class="ts-type">Chase due today</div>
+      <div class="ts-addr pii">14 Roath Court Rd, Cardiff CF24</div>
+      <div class="ts-detail">Reserved · Day 8 · <span class="pii">Derek Hassan</span></div>
+      <button class="ts-action" onclick="window.location.href='ds_seller_tab.html'">
+        <i class="ti ti-phone" style="font-size:10px;"></i> Open Seller tab →
+      </button>
+    </div>
+    <div class="ts-chip day15">
+      <div class="ts-type">Day 15 in 7 days</div>
+      <div class="ts-addr pii">65a Horwood Close, Leeds LS7</div>
+      <div class="ts-detail">Cooling off ends — release pack or renegotiate</div>
+      <button class="ts-action" onclick="window.location.href='ds_content_hub.html'">
+        <i class="ti ti-send" style="font-size:10px;"></i> Release pack →
+      </button>
+    </div>
+    <div class="ts-chip viewing">
+      <div class="ts-type">Viewing Thu 5 Jun</div>
+      <div class="ts-addr pii">12 Victoria Street, Manchester M1</div>
+      <div class="ts-detail">2:00pm · <span class="pii">David Jones</span></div>
+      <button class="ts-action" onclick="window.location.href='ds_deal_overview.html'">
+        <i class="ti ti-calendar-check" style="font-size:10px;"></i> View deal →
+      </button>
+    </div>
+    <div class="ts-chip sens">
+      <div class="ts-type">Sensitivity reminder</div>
+      <div class="ts-addr pii">3 Marina View, Brighton BN1</div>
+      <div class="ts-detail">Rate change flagged — check Sensitivity tab</div>
+      <button class="ts-action" onclick="window.location.href='ds_analysis_hub.html'">
+        <i class="ti ti-adjustments" style="font-size:10px;"></i> View Sensitivity →
+      </button>
+    </div>
+  </div>
+</div>
+
+<div style="padding:12px 24px 0;">
+<div class="exp-card" id="pipeline-exp">
+  <button class="exp-dismiss" onclick="dismissExp(this)" title="Dismiss">×</button>
+  <div class="exp-icon"><i class="ti ti-chart-bar"></i></div>
+  <div>
+    <div class="exp-title">Your sourcing business at a glance</div>
+    <div class="exp-text"><strong>Funnel</strong> shows how deals flow from Sourcing to Complete and where you're losing them. <strong>Needs attention</strong> flags stalled deals that need a next step. <strong>Targets</strong> tracks monthly sourcing fee, completions, and pipeline pace.</div>
+  </div>
+</div>
+<button class="exp-restore" onclick="restoreExp(this)"><i class="ti ti-book-2" style="font-size:11px;"></i> Page guide</button>
+</div>
+
+<!-- TOOLBAR -->
+<div class="tbar">
+  <div class="view-tabs" id="view-tabs">
+    <button class="vtab on" data-view="funnel" onclick="switchView('funnel',this)"><i class="ti ti-filter"></i> Funnel</button>
+    <button class="vtab" data-view="stalled" onclick="switchView('stalled',this)"><i class="ti ti-alert-triangle"></i> Needs attention <span class="vt-badge" id="stalled-badge">0</span></button>
+    <button class="vtab" data-view="targets" onclick="switchView('targets',this)"><i class="ti ti-target-arrow"></i> Targets</button>
+  </div>
+</div>
+
+<!-- ══ FUNNEL VIEW ══ -->
+<div class="view-panel on" id="panel-funnel">
+  <div class="fnl-wrap">
+
+    <!-- Header + top stats -->
+    <div class="fnl-hdr">
+      <div class="fnl-hdr-left">
+        <div class="fnl-title">Deal flow — this quarter</div>
+        <div class="fnl-period">1 Apr – 8 Jun 2026 &nbsp;·&nbsp; 23 deals entered, 4 completed</div>
+      </div>
+      <div class="fnl-topstats">
+        <div class="fnl-tstat">
+          <span class="fnl-tstat-val">17%</span>
+          <span class="fnl-tstat-lbl">Overall conversion</span>
+        </div>
+        <div class="fnl-tstat">
+          <span class="fnl-tstat-val red">39%</span>
+          <span class="fnl-tstat-lbl">Biggest leak</span>
+        </div>
+        <div class="fnl-tstat">
+          <span class="fnl-tstat-val teal">67%</span>
+          <span class="fnl-tstat-lbl">Closing rate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centred tapering funnel -->
+    <div class="fnl-chart">
+      <div id="fnl-rows"></div>
+      <div class="fnl-live" id="fnl-live"></div>
+    </div>
+
+    <!-- Insight cards -->
+    <div class="fnl-insights">
+      <div class="fnl-ic">
+        <div class="fnl-ic-hd">
+          <div class="fnl-ic-icon red"><i class="ti ti-alert-triangle"></i></div>
+          <div class="fnl-ic-title">Biggest bottleneck</div>
+        </div>
+        <div class="fnl-ic-body"><b>39% of sourced deals don't reach Ready.</b> This is your pipeline's main leak. Qualifying faster — running the numbers in the first 48hrs — typically closes this gap significantly.</div>
+      </div>
+      <div class="fnl-ic">
+        <div class="fnl-ic-hd">
+          <div class="fnl-ic-icon teal"><i class="ti ti-trending-up"></i></div>
+          <div class="fnl-ic-title">Strong closing rate</div>
+        </div>
+        <div class="fnl-ic-body"><b>67% of Live deals reach Reserved</b> and convert through to completion. Your pack quality and investor relationships are working — this stage is your strongest.</div>
+      </div>
+      <div class="fnl-ic">
+        <div class="fnl-ic-hd">
+          <div class="fnl-ic-icon navy"><i class="ti ti-currency-pound"></i></div>
+          <div class="fnl-ic-title">Revenue in the pipeline</div>
+        </div>
+        <div class="fnl-ic-body"><b>6 deals sitting at Reserved right now.</b> At your 67% closing rate that's ~4 more completions — potentially <b>£12,000+</b> in sourcing fees still to land this quarter.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ STALLED / NEEDS ATTENTION VIEW ══ -->
+<div class="view-panel" id="panel-stalled">
+  <div class="stalled-intro">Deals that have sat in their current stage longer than usual, with nothing scheduled to move them forward. Sorted by how long they've been stuck — these are the ones most likely to quietly fall through.</div>
+  <div class="stalled-list" id="stalled-list"></div>
+  <div class="stalled-empty" id="stalled-empty" style="display:none;">
+    <i class="ti ti-circle-check"></i>
+    <div class="e-t">Nothing stuck right now</div>
+    <div>Every deal in your pipeline is moving or has a next step scheduled. Nice work.</div>
+  </div>
+</div>
+
+<!-- ══ TARGETS VIEW ══ -->
+<div class="view-panel" id="panel-targets">
+  <div class="tflow-wrap">
+
+    <!-- ── Connected pipeline flow ── -->
+    <div class="tflow">
+
+      <!-- Stage 1: New deals sourced -->
+      <div class="tflow-card">
+        <div class="tflow-step">Stage 1 · Input</div>
+        <div class="tflow-lbl">New deals sourced <span class="tflow-period">June 2026</span></div>
+        <div class="tflow-row"><span class="tflow-val">4</span><span class="tflow-of">of 8 target</span></div>
+        <div class="tflow-track"><div class="tflow-fill" style="width:50%"></div></div>
+        <div class="tflow-note">Halfway with 3 weeks left — comfortably on track. Each sourced deal feeds the conversion pipeline below.</div>
+      </div>
+
+      <div class="tflow-arrow"><i class="ti ti-arrow-right"></i></div>
+
+      <!-- Stage 2: Deals completed -->
+      <div class="tflow-card">
+        <div class="tflow-step">Stage 2 · Conversion</div>
+        <div class="tflow-lbl">Deals completed <span class="tflow-period">June 2026</span></div>
+        <div class="tflow-row"><span class="tflow-val">1</span><span class="tflow-of">of 3 target</span></div>
+        <div class="tflow-track"><div class="tflow-fill" style="width:33%"></div></div>
+        <div class="tflow-note">On pace. <b>2 deals</b> currently Reserved / Pack-sent — if those complete this month you hit target exactly.</div>
+      </div>
+
+      <div class="tflow-arrow"><i class="ti ti-arrow-right"></i></div>
+
+      <!-- Stage 3: Fees earned -->
+      <div class="tflow-card">
+        <div class="tflow-step">Stage 3 · Revenue</div>
+        <div class="tflow-lbl">Sourcing fees earned <span class="tflow-period">June 2026</span></div>
+        <div class="tflow-row"><span class="tflow-val">£3,500</span><span class="tflow-of">of £15,000</span></div>
+        <div class="tflow-track"><div class="tflow-fill amber" style="width:23%"></div></div>
+        <div class="tflow-note">23% of target on day 8. Completing the 2 Reserved deals would add ~£7,000 — bringing total to 70%+.</div>
+      </div>
+
+    </div>
+
+    <!-- ── Pipeline velocity ── -->
+    <div class="tflow-vel">
+      <div class="tflow-vel-icon"><i class="ti ti-gauge"></i></div>
+      <div class="tflow-vel-body">
+        <div class="tflow-vel-lbl">Pipeline velocity <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;">last 90 days</span></div>
+        <div class="tflow-vel-val">26 <span class="tflow-vel-unit">avg days sourcing → reserved</span> <span class="tflow-vel-badge">↓ 16% faster than last quarter (was 31 days)</span></div>
+      </div>
+      <div class="tflow-vel-track"><div class="tflow-vel-fill"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+
+<script>
+function showToast(m){ var t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; clearTimeout(window._toastT); window._toastT=setTimeout(function(){ t.style.opacity=0; },2200); }
+
+/* ── View switching ── */
+function switchView(view, btn){
+  document.querySelectorAll('.vtab').forEach(function(b){ b.classList.toggle('on', b===btn); });
+  document.querySelectorAll('.view-panel').forEach(function(p){ p.classList.toggle('on', p.id === 'panel-'+view); });
+}
+
+/* ── Funnel data: quarter-to-date conversion (illustrates where deals fall away — not shown anywhere else) ── */
+var funnel = [
+  { stage:'Sourced',   n:23, pctOfPrev:null },
+  { stage:'Ready',     n:14, pctOfPrev:61 },
+  { stage:'Live',      n:9,  pctOfPrev:64 },
+  { stage:'Reserved',  n:6,  pctOfPrev:67 },
+  { stage:'Complete',  n:4,  pctOfPrev:67 }
+];
+function convClass(pct){ if(pct===null) return ''; if(pct>=70) return 'healthy'; if(pct>=55) return 'watch'; return 'weak'; }
+function renderFunnel(){
+  var max = funnel[0].n;
+  var rows = document.getElementById('fnl-rows');
+  var liveEl = document.getElementById('fnl-live');
+  var liveNow = [5, 4, 3, 4, 0]; // deals currently at each stage
+  var colors = ['#1B3A6B','#1e4a88','#1761a8','#0e7490','#1D9E75'];
+
+  rows.innerHTML = funnel.map(function(f, i){
+    var widthPct = Math.round((f.n / max) * 100);
+    var convHtml = f.pctOfPrev === null
+      ? ''
+      : '<span class="fnl-conv-pct '+convClass(f.pctOfPrev)+'">'+f.pctOfPrev+'%</span>'
+        + '<span class="fnl-conv-lbl"> made it through</span>';
+    return '<div class="fnl-row">'
+      + '<div class="fnl-slbl"><span class="fnl-slbl-name">'+f.stage+'</span><span class="fnl-slbl-sub">stage '+(i+1)+' of '+funnel.length+'</span></div>'
+      + '<div class="fnl-bar-zone"><div class="fnl-bar" style="width:'+widthPct+'%;background:'+colors[i]+';">'
+      + '<span class="fnl-bar-count">'+f.n+'</span><span class="fnl-bar-deals">deals</span>'
+      + '</div></div>'
+      + '<div class="fnl-right">'+convHtml+'</div>'
+      + '</div>';
+  }).join('');
+
+  if(liveEl){
+    liveEl.innerHTML = '<div class="fnl-live-pre">Live now</div>'
+      + '<div class="fnl-live-stages">'
+      + funnel.map(function(f,i){
+          var n = liveNow[i];
+          return '<div class="fnl-live-stage">'
+            + '<div class="fnl-live-badge '+(n>0?'active':'none')+'">'+n+'</div>'
+            + '<div class="fnl-live-stage-nm">'+f.stage+'</div>'
+            + '</div>';
+        }).join('')
+      + '</div>'
+      + '<div class="fnl-live-suffix">deals active right now</div>';
+  }
+}
+
+/* ── Stalled deals: real pipeline deals that have sat too long with nothing scheduled ── */
+var stalled = [
+  { id:'DS-004', addr:'22 Oak Road, Sheffield S1', strat:'FLIP', stage:'Sourcing', days:26, severity:'high',
+    meta:'Margin came back thin at asking price', suggest:'Renegotiate the offer, or let this one go and free up your time', action:'Open deal' },
+  { id:'DS-002', addr:'12 Victoria Street, Manchester M1', strat:'HMO', stage:'Pack sent', days:12, severity:'med',
+    meta:'Pack sent to 3 investors — no replies yet', suggest:'A quick follow-up message often restarts a stalled pack', action:'Open deal' },
+  { id:'DS-003', addr:'8 Park Lane, Birmingham B15', strat:'BRRR', stage:'Live', days:9, severity:'low',
+    meta:'Refurb running, no viewing booked this week', suggest:'Worth booking a check-in to keep momentum visible', action:'Open deal' }
+];
+function renderStalled(){
+  var list = document.getElementById('stalled-list');
+  var empty = document.getElementById('stalled-empty');
+  var badge = document.getElementById('stalled-badge');
+  var tab = document.querySelector('.vtab[data-view="stalled"]');
+
+  badge.textContent = stalled.length;
+  tab.classList.toggle('alert', stalled.length > 0);
+
+  if(stalled.length === 0){
+    list.style.display = 'none';
+    empty.style.display = '';
+    return;
+  }
+  list.style.display = '';
+  empty.style.display = 'none';
+
+  list.innerHTML = stalled.map(function(d){
+    return '<div class="sd-row '+d.severity+'" onclick="window.location.href=\'./ds_deal_overview.html\'">'
+      + '<div class="sd-info">'
+        + '<div class="sd-addr pii">'+d.addr+'</div>'
+        + '<div class="sd-meta"><span class="strat-pill" style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--navy-light);color:var(--navy);">'+d.strat+'</span>'
+        + '<span>'+d.id+' · stuck in <b style="color:var(--text-1);">'+d.stage+'</b></span>'
+        + '<span style="color:#ccc;">·</span><span class="pii">'+d.meta+'</span></div>'
+      + '</div>'
+      + '<div class="sd-stuck"><div class="sd-stuck-n '+(d.severity==='high'||d.severity==='med' ? d.severity : '')+'">'+d.days+'</div><div class="sd-stuck-lbl">days stuck</div></div>'
+      + '<div class="sd-action"><div class="sd-suggest">'+d.suggest+'</div><button class="sd-btn" onclick="event.stopPropagation();window.location.href=\'./ds_deal_overview.html\'">'+d.action+' <i class="ti ti-arrow-right"></i></button></div>'
+      + '</div>';
+  }).join('');
+}
+
+/* ── Sticky business stats bar: numbers that summarise the whole pipeline, not any single deal ── */
+function renderBBar(){
+  var bbar = document.getElementById('bbar');
+  bbar.innerHTML =
+      '<div class="bb-item"><div class="bb-lbl">Pipeline value</div><div class="bb-val">£1.14m<span class="bb-sub">across 5 active deals</span></div></div>'
+    + '<div class="bb-item"><div class="bb-lbl">Fees pending</div><div class="bb-val gr">£18,200<span class="bb-sub">expected on completion</span></div></div>'
+    + '<div class="bb-item"><div class="bb-lbl">Avg. days in pipeline</div><div class="bb-val">16<span class="bb-sub">days, all active deals</span></div></div>'
+    + '<div class="bb-item"><div class="bb-lbl">Deals needing attention</div><div class="bb-val am">'+stalled.length+'<span class="bb-sub">stalled — see tab</span></div></div>'
+    + '<div class="bb-item"><div class="bb-lbl">Monthly fee target</div><div class="bb-val">23%<span class="bb-sub">£3,500 of £15,000</span></div><div class="bb-track"><div class="bb-track-fill" style="width:23%"></div></div></div>';
+}
+
+renderFunnel();
+renderStalled();
+renderBBar();
+var mockupTier="pro";
+function setMockupTier(tier){
+  mockupTier=tier;
+  document.body.classList.toggle("tier-proplus",tier==="proplus");
+  var p=document.getElementById("hdr-tier-pro"),pp=document.getElementById("hdr-tier-pp");
+  if(tier==="proplus"){if(p){p.style.background="transparent";p.style.color="rgba(255,255,255,.4)";}if(pp){pp.style.background="rgba(255,255,255,.2)";pp.style.color="#fff";}}
+  else{if(p){p.style.background="var(--navy)";p.style.color="#fff";}if(pp){pp.style.background="transparent";pp.style.color="rgba(255,255,255,.4)";}}
+}
+function dismissExp(btn){
+  var card=btn.closest?btn.closest(".exp-card"):null;
+  if(!card){card=btn.parentNode;while(card&&!card.classList.contains("exp-card"))card=card.parentNode;}
+  if(!card)return;
+  card.style.display="none";
+  var r=card.nextElementSibling;
+  if(r&&r.classList&&r.classList.contains("exp-restore"))r.classList.add("show");
+}
+function restoreExp(btn){
+  btn.classList.remove("show");
+  var card=btn.previousElementSibling;
+  if(card&&card.classList&&card.classList.contains("exp-card"))card.style.display="flex";
+}
+
+/* ── Today strip collapse ── */
+var todayStripCollapsed = false;
+function toggleTodayStrip(){
+  todayStripCollapsed = !todayStripCollapsed;
+  var strip = document.getElementById('today-strip');
+  var btn   = document.getElementById('ts-toggle-btn');
+  if(strip) strip.classList.toggle('collapsed', todayStripCollapsed);
+  if(btn)   btn.textContent = todayStripCollapsed ? 'Show' : 'Hide';
+}
+</script>
+<script>
+/* ══ NOTIFICATION SYSTEM ══ */
+var notifOpen = false;
+var notifData = (function(){
+  var today = new Date();
+  var fmt = function(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+  var add = function(d,n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  return [
+    { id:'n1', unread:true,  type:'amber', icon:'ti-alert-triangle', deal:'Dashboard', msg:'Check your active deals for upcoming deadlines', time:'Today' },
+    { id:'n2', unread:false, type:'navy',  icon:'ti-bell', deal:'DealScore', msg:'Welcome to your notifications hub', time:'Earlier' }
+  ];
+}());
+function renderNotifs(){
+  var unread = notifData.filter(function(n){ return n.unread; }).length;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.classList.toggle('show', unread > 0); }
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  list.innerHTML = notifData.map(function(n){
+    return '<div class="notif-item'+(n.unread?' unread':'')+'" onclick="readNotif(''+n.id+'')">'
+      +'<div class="notif-icon-wrap '+n.type+'"><i class="ti '+n.icon+'"></i></div>'
+      +'<div class="notif-body">'
+      +'<div class="notif-deal-tag">'+n.deal+'</div>'
+      +'<div class="notif-msg">'+n.msg+'</div>'
+      +'<div class="notif-time">'+n.time+'</div>'
+      +'</div>'
+      +(n.unread ? '<div class="notif-unread-dot"></div>' : '')
+      +'</div>';
+  }).join('');
+}
+function toggleNotif(e){
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  var drop = document.getElementById('notif-drop');
+  if(drop) drop.classList.toggle('show', notifOpen);
+  if(notifOpen) renderNotifs();
+}
+function readNotif(id){
+  var n = notifData.find(function(x){ return x.id===id; });
+  if(n) n.unread = false;
+  renderNotifs();
+}
+function markAllRead(){
+  notifData.forEach(function(n){ n.unread=false; });
+  renderNotifs();
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.notif-wrap')){ notifOpen=false; var d=document.getElementById('notif-drop'); if(d) d.classList.remove('show'); }
+});
+document.addEventListener("DOMContentLoaded",function(){ renderNotifs(); });
+</script>
+
+<script>
+var hdrDropOpen=false;
+function hdrToggleDrop(){
+  hdrDropOpen = !hdrDropOpen;
+  document.getElementById('hdr-avt-drop').classList.toggle('show', hdrDropOpen);
+}
+</script>
+</body>
+</html>

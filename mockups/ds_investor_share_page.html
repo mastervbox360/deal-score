@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Investment Opportunity</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-sec:#f5f6f8; --bg-white:#fff;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  /* Custom branding vars — Pro+ overrides these */
+  --brand-primary:#1B3A6B;
+  --brand-accent:#1D9E75;
+  --brand-light:#eef3fb;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* ══ HEADER — DealScore branded (Pro) ══ */
+.share-hdr{
+  background:var(--brand-primary);
+  padding:0 24px;
+  height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.share-hdr-logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;}
+.share-hdr-logo span{color:var(--teal-mid);}
+.share-hdr-meta{font-size:11px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:5px;}
+.share-hdr-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:.5px solid rgba(255,255,255,.15);}
+
+/* ══ BRAND TOGGLE STRIP — mockup helper ══ */
+.brand-toggle{background:#fff;border-bottom:.5px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:12px;}
+.brand-toggle-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;}
+.bt-btn{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .15s;}
+.bt-btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.bt-sep{width:.5px;height:16px;background:var(--border);}
+.trust-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;}
+
+/* ══ TRUST NOTICE — committed vs open market ══ */
+.trust-banner{padding:8px 24px;display:flex;align-items:center;gap:8px;font-size:11px;background:var(--bg-sec);border-left:3px solid #9ca3af;color:var(--text-1);}
+.trust-banner.full{border-color:#9ca3af;}
+.trust-banner.protected{border-color:#f59e0b;}
+.trust-banner i{font-size:13px;flex-shrink:0;}
+
+/* ══ CONTENT WRAPPER ══ */
+.share-wrap{max-width:820px;margin:0 auto;padding:28px 24px 120px;}
+
+/* ══ DEAL HERO ══ */
+.deal-hero{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px;}
+.deal-image-strip{height:180px;background:linear-gradient(135deg,#152d55 0%,#1B3A6B 100%);display:flex;align-items:flex-end;padding:16px 20px;position:relative;overflow:hidden;}
+.deal-image-overlay{position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180"><rect fill="%23152d55" width="400" height="180"/><rect fill="%231B3A6B" x="0" y="90" width="400" height="90" opacity=".5"/><rect fill="white" x="40" y="30" width="160" height="120" rx="4" opacity=".04"/><rect fill="white" x="60" y="50" width="120" height="6" rx="3" opacity=".08"/><rect fill="white" x="60" y="62" width="80" height="4" rx="2" opacity=".05"/><rect fill="white" x="220" y="40" width="140" height="90" rx="4" opacity=".04"/></svg>') center/cover;opacity:.9;}
+.deal-image-placeholder{position:relative;z-index:1;display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.35);}
+.deal-image-placeholder i{font-size:13px;}
+.address-hidden-badge{position:absolute;top:14px;right:14px;z-index:2;background:rgba(217,119,6,.9);color:#fff;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;}
+.address-hidden-badge i{font-size:10px;}
+.deal-hero-body{padding:18px 20px;}
+.deal-ref{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;margin-bottom:6px;}
+.deal-title{font-size:20px;font-weight:700;color:var(--text-1);margin-bottom:4px;line-height:1.25;}
+.deal-title.blurred{filter:blur(5px);user-select:none;}
+.deal-sub{font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;margin-bottom:14px;}
+.deal-sub i{font-size:12px;}
+.deal-type-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.deal-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.deal-tag.strategy{border-color:#1B3A6B;}
+.deal-tag.tenure{border-color:#9ca3af;}
+.deal-tag.score{border-color:#10b981;}
+.sourcer-row{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:.5px solid var(--border);}
+.sourcer-avt{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.sourcer-info{flex:1;}
+.sourcer-name{font-size:12px;font-weight:600;color:var(--text-1);}
+.sourcer-co{font-size:10px;color:var(--text-2);}
+.fca-badge{font-size:9px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);padding:2px 8px;border-radius:20px;}
+
+/* ══ KEY METRICS GRID ══ */
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.metric-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.metric-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:5px;}
+.metric-val{font-size:22px;font-weight:700;color:var(--navy);line-height:1;}
+.metric-val.teal{color:var(--teal);}
+.metric-val.green{color:#166534;}
+.metric-sub{font-size:10px;color:var(--text-2);margin-top:3px;}
+
+/* ══ CONTENT SECTIONS ══ */
+.sec{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:12px;}
+.sec-hdr{padding:12px 16px;border-bottom:.5px solid var(--border);background:var(--bg-sec);display:flex;align-items:center;gap:8px;}
+.sec-title{font-size:12px;font-weight:600;color:var(--text-1);flex:1;}
+.sec-body{padding:16px;}
+
+/* ══ DETAIL GRID ══ */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.detail-cell{display:flex;flex-direction:column;gap:3px;}
+.detail-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#bbb;}
+.detail-val{font-size:13px;font-weight:500;color:var(--text-1);}
+
+/* ══ FINANCIALS ══ */
+.fin-row{display:flex;align-items:baseline;justify-content:space-between;padding:7px 0;border-bottom:.5px solid #f3f4f6;font-size:12px;}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{color:var(--text-2);}
+.fin-val{font-weight:600;color:var(--text-1);}
+.fin-val.teal{color:#065f46;}
+.fin-val.green{color:#166534;}
+.fin-val.navy{color:var(--navy);}
+.fin-total{background:var(--navy-light);border-radius:var(--r-md);padding:10px 12px;margin-top:8px;display:flex;align-items:baseline;justify-content:space-between;}
+.fin-total-lbl{font-size:12px;font-weight:600;color:var(--navy);}
+.fin-total-val{font-size:16px;font-weight:700;color:var(--navy);}
+
+/* ══ WHY THIS DEAL ══ */
+.why-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid #f3f4f6;}
+.why-item:last-child{border-bottom:none;}
+.why-icon{width:28px;height:28px;border-radius:7px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--teal);flex-shrink:0;}
+.why-text{flex:1;}
+.why-title{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.why-body{font-size:11px;color:var(--text-2);line-height:1.5;}
+
+/* ══ LOCATION PLACEHOLDER ══ */
+.map-placeholder{height:140px;background:linear-gradient(135deg,#f0f4f8,#e8edf2);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;border:.5px solid var(--border);}
+.map-placeholder i{font-size:24px;color:#bbb;}
+.map-placeholder span{font-size:11px;color:#bbb;}
+.map-protected{font-size:10px;color:#92400e;background:#fffbeb;border:.5px solid #fde68a;border-radius:20px;padding:2px 9px;display:flex;align-items:center;gap:4px;width:fit-content;margin-top:6px;}
+
+/* ══ DISCLAIMER ══ */
+.disclaimer{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 14px;font-size:10px;color:#9ca3af;line-height:1.6;margin-bottom:16px;}
+.disclaimer strong{color:var(--text-2);}
+
+/* ══ RESPONSE BAR — sticky bottom ══ */
+.response-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:#fff;border-top:.5px solid var(--border);
+  box-shadow:0 -4px 20px rgba(0,0,0,.1);
+  padding:0 24px;
+  height:72px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.rb-left{display:flex;flex-direction:column;gap:2px;}
+.rb-deal{font-size:13px;font-weight:600;color:var(--text-1);}
+.rb-sub{font-size:10px;color:var(--text-2);}
+.rb-actions{display:flex;align-items:center;gap:10px;}
+.rb-interested{font-size:13px;font-weight:700;padding:10px 24px;border-radius:10px;background:var(--brand-accent);color:#fff;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:opacity .15s;white-space:nowrap;}
+.rb-interested:hover{opacity:.88;}
+.rb-interested:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed;}
+.rb-pass{font-size:12px;font-weight:600;padding:10px 18px;border-radius:10px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;}
+.rb-pass:hover{border-color:#dc2626;color:#dc2626;}
+.rb-pass:disabled{opacity:.4;cursor:not-allowed;}
+.rb-responded{font-size:12px;font-weight:600;color:var(--teal);display:flex;align-items:center;gap:5px;}
+
+/* ══ RESPONSE MODAL ══ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal-bg.hidden{display:none;}
+.modal{background:#fff;border-radius:14px;padding:28px;max-width:400px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;}
+.modal-icon.teal{background:var(--teal-light);color:var(--teal);}
+.modal-icon.red{background:#fef2f2;color:#dc2626;}
+.modal-title{font-size:16px;font-weight:700;color:var(--text-1);text-align:center;margin-bottom:6px;}
+.modal-sub{font-size:12px;color:var(--text-2);text-align:center;line-height:1.6;margin-bottom:18px;}
+.modal-ta{border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:12px;color:var(--text-1);background:#fff;font-family:inherit;width:100%;height:80px;resize:none;outline:none;line-height:1.5;margin-bottom:12px;transition:border-color .15s;}
+.modal-ta:focus{border-color:var(--navy);}
+.modal-btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s;margin-bottom:8px;}
+.modal-btn.teal{background:var(--brand-accent);color:#fff;}
+.modal-btn.teal:hover{opacity:.88;}
+.modal-btn.red{background:#dc2626;color:#fff;}
+.modal-btn.red:hover{opacity:.88;}
+.modal-cancel{width:100%;padding:9px;border:.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;background:#fff;color:var(--text-2);transition:all .15s;}
+.modal-cancel:hover{border-color:var(--text-2);}
+
+/* ══ CONFIRMED STATE ══ */
+.confirmed-state{text-align:center;padding:28px 20px;}
+.conf-icon{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.conf-icon.teal{background:var(--teal-light);color:var(--teal);}
+.conf-icon.grey{background:#f3f4f6;color:#9ca3af;}
+.conf-title{font-size:18px;font-weight:700;color:var(--text-1);margin-bottom:8px;}
+.conf-sub{font-size:13px;color:var(--text-2);line-height:1.7;max-width:300px;margin:0 auto;}
+
+/* ══ PRO+ CUSTOM BRAND OVERRIDE ══ */
+body.brand-custom {
+  --brand-primary:#1a1a1a;
+  --brand-accent:#D97706;
+  --brand-light:#fffbeb;
+}
+body.brand-custom .share-hdr{background:var(--brand-primary);}
+body.brand-custom .share-hdr-logo{font-weight:800;letter-spacing:0;}
+body.brand-custom .rb-interested{background:var(--brand-accent);}
+body.brand-custom .deal-tag.score{border-color:#f59e0b;}
+body.brand-custom .sourcer-avt{background:var(--brand-primary);}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text-1);color:#fff;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:300;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- INTERESTED MODAL -->
+<div class="modal-bg hidden" id="interested-modal">
+  <div class="modal">
+    <div class="modal-icon teal"><i class="ti ti-thumb-up"></i></div>
+    <div class="modal-title">I'm interested</div>
+    <div class="modal-sub">Leave a note for the deal sourcer — any questions, conditions, or thoughts on the deal. Completely optional.</div>
+    <textarea class="modal-ta" id="interested-note" placeholder="e.g. This looks great — can we discuss timeline? I'm a cash buyer and can move quickly."></textarea>
+    <button class="modal-btn teal" onclick="submitResponse('interested')"><i class="ti ti-check"></i> Confirm interest</button>
+    <button class="modal-cancel" onclick="closeModal('interested-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- PASS MODAL -->
+<div class="modal-bg hidden" id="pass-modal">
+  <div class="modal">
+    <div class="modal-icon red"><i class="ti ti-thumb-down"></i></div>
+    <div class="modal-title">Not for me</div>
+    <div class="modal-sub">Let the sourcer know why — it helps them find better matched deals for you in future. Optional.</div>
+    <textarea class="modal-ta" id="pass-note" placeholder="e.g. Yield a bit low for my current target. Keep me in mind for HMO deals in the same area."></textarea>
+    <button class="modal-btn red" onclick="submitResponse('passed')"><i class="ti ti-x"></i> Confirm — not for me</button>
+    <button class="modal-cancel" onclick="closeModal('pass-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="share-hdr" id="share-header">
+  <div class="share-hdr-logo" id="brand-logo">Deal<span>Score</span></div>
+  <div class="share-hdr-meta">
+    <span>Investment opportunity</span>
+    <span class="share-hdr-badge">Shared privately</span>
+  </div>
+</div>
+
+<!-- MOCKUP CONTROLS -->
+<div class="brand-toggle">
+  <span class="brand-toggle-lbl">Branding</span>
+  <button class="bt-btn on" onclick="setBrand('ds')">DealScore (Pro)</button>
+  <button class="bt-btn" onclick="setBrand('custom')">Custom brand (Pro+)</button>
+  <div class="bt-sep"></div>
+  <span class="trust-lbl">Trust level</span>
+  <button class="bt-btn on" id="trust-committed" onclick="setTrust('committed')">Committed (full access)</button>
+  <button class="bt-btn" id="trust-open" onclick="setTrust('open')">Open market (protected)</button>
+</div>
+
+<!-- TRUST NOTICE -->
+<div class="trust-banner full" id="trust-notice">
+  <i class="ti ti-shield-check"></i>
+  <span><strong>Full access:</strong> You're viewing this deal with full property details including address and photos. This deal has been shared with you by your deal sourcer.</span>
+</div>
+
+<!-- CONTENT -->
+<div class="share-wrap">
+
+  <!-- DEAL HERO -->
+  <div class="deal-hero">
+    <div class="deal-image-strip">
+      <div class="deal-image-overlay"></div>
+      <div class="deal-image-placeholder"><i class="ti ti-photo"></i> Property photos shared by sourcer</div>
+      <div class="address-hidden-badge" id="addr-hidden-badge" style="display:none;"><i class="ti ti-eye-off"></i> Address protected</div>
+    </div>
+    <div class="deal-hero-body">
+      <div class="deal-ref">DS-004 · Buy to Let</div>
+      <div class="deal-title" id="deal-address">14 Roath Court Road, Cardiff CF24 3PE</div>
+      <div class="deal-sub">
+        <i class="ti ti-map-pin" style="color:var(--text-2);"></i>
+        <span id="deal-location">Roath, Cardiff · 2-bed terrace · 750 sq ft</span>
+      </div>
+      <div class="deal-type-row">
+        <span class="deal-tag strategy">Buy to Let</span>
+        <span class="deal-tag tenure">Freehold</span>
+        <span class="deal-tag score"><i class="ti ti-sparkles" style="font-size:10px;"></i> DealScore: Recommended</span>
+      </div>
+      <div class="sourcer-row">
+        <div class="sourcer-avt" id="sourcer-avt">VM</div>
+        <div class="sourcer-info">
+          <div class="sourcer-name" id="sourcer-name">Videet Mardania</div>
+          <div class="sourcer-co" id="sourcer-co">Property Sourcing Co. · FCA regulated</div>
+        </div>
+        <span class="fca-badge"><i class="ti ti-shield" style="font-size:9px;"></i> FCA 789012</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY METRICS -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-lbl">Purchase price</div>
+      <div class="metric-val">£175,000</div>
+      <div class="metric-sub">Below market value</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-lbl">Monthly cash flow</div>
+      <div class="metric-val teal">+£312/mo</div>
+      <div class="metric-sub">After all costs</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-lbl">Gross yield</div>
+      <div class="metric-val green">7.4%</div>
+      <div class="metric-sub">Above local average</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-lbl">CoC ROI</div>
+      <div class="metric-val">8.2%</div>
+      <div class="metric-sub">Year 1</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-lbl">Total cash needed</div>
+      <div class="metric-val">£57,850</div>
+      <div class="metric-sub">Deposit + costs + refurb</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-lbl">Sourcing fee</div>
+      <div class="metric-val navy">£6,500</div>
+      <div class="metric-sub">Payable on completion</div>
+    </div>
+  </div>
+
+  <!-- FINANCIAL BREAKDOWN -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <i class="ti ti-calculator" style="font-size:14px;color:var(--navy);"></i>
+      <div class="sec-title">Financial breakdown</div>
+    </div>
+    <div class="sec-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:8px;">Acquisition costs</div>
+          <div class="fin-row"><span class="fin-lbl">Purchase price</span><span class="fin-val">£175,000</span></div>
+          <div class="fin-row"><span class="fin-lbl">Stamp duty (LTT)</span><span class="fin-val">£9,425</span></div>
+          <div class="fin-row"><span class="fin-lbl">Legal fees</span><span class="fin-val">£1,800</span></div>
+          <div class="fin-row"><span class="fin-lbl">Survey</span><span class="fin-val">£450</span></div>
+          <div class="fin-row"><span class="fin-lbl">Refurb estimate</span><span class="fin-val">£6,200</span></div>
+          <div class="fin-row"><span class="fin-lbl">Sourcing fee</span><span class="fin-val navy">£6,500</span></div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#bbb;margin-bottom:8px;">Monthly income & costs</div>
+          <div class="fin-row"><span class="fin-lbl">Rental income</span><span class="fin-val teal">£1,150/mo</span></div>
+          <div class="fin-row"><span class="fin-lbl">Mortgage (BTL 75%)</span><span class="fin-val">-£543/mo</span></div>
+          <div class="fin-row"><span class="fin-lbl">Management (10%)</span><span class="fin-val">-£115/mo</span></div>
+          <div class="fin-row"><span class="fin-lbl">Insurance</span><span class="fin-val">-£58/mo</span></div>
+          <div class="fin-row"><span class="fin-lbl">Maintenance (5%)</span><span class="fin-val">-£58/mo</span></div>
+          <div class="fin-row"><span class="fin-lbl">Void allowance (5%)</span><span class="fin-val">-£64/mo</span></div>
+        </div>
+      </div>
+      <div class="fin-total">
+        <span class="fin-total-lbl">Net monthly cash flow</span>
+        <span class="fin-total-val">+£312/mo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY THIS DEAL -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <i class="ti ti-sparkles" style="font-size:14px;color:var(--teal);"></i>
+      <div class="sec-title">Why this deal works</div>
+    </div>
+    <div class="sec-body">
+      <div class="why-item">
+        <div class="why-icon"><i class="ti ti-trending-up"></i></div>
+        <div class="why-text">
+          <div class="why-title">Below market value purchase</div>
+          <div class="why-body">Agreed at £175,000 against a market value of £192,000 — representing an immediate 9% BMV. Vendor is motivated for a quick sale due to relocation.</div>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><i class="ti ti-home"></i></div>
+        <div class="why-text">
+          <div class="why-title">Strong rental demand in Roath</div>
+          <div class="why-body">Roath is one of Cardiff's highest-demand rental areas, driven by proximity to Cardiff University and the hospital district. Void periods typically under 2 weeks.</div>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><i class="ti ti-shield-check"></i></div>
+        <div class="why-text">
+          <div class="why-title">Light refurb, move-in ready</div>
+          <div class="why-body">The property requires cosmetic work only — new kitchen, bathroom refresh, and redecoration. Estimated 4–6 weeks at £6,200. No structural work needed.</div>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><i class="ti ti-cash"></i></div>
+        <div class="why-text">
+          <div class="why-title">Positive cash flow from month one</div>
+          <div class="why-body">After mortgage, management, insurance, maintenance, and void allowances, this deal returns +£312/month net. Break-even rent is £838/month against an expected £1,150.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPERTY DETAILS -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <i class="ti ti-building" style="font-size:14px;color:var(--navy);"></i>
+      <div class="sec-title">Property details</div>
+    </div>
+    <div class="sec-body">
+      <div class="detail-grid">
+        <div class="detail-cell"><div class="detail-lbl">Property type</div><div class="detail-val">2-bed mid-terrace</div></div>
+        <div class="detail-cell"><div class="detail-lbl">Tenure</div><div class="detail-val">Freehold</div></div>
+        <div class="detail-cell"><div class="detail-lbl">Floor area</div><div class="detail-val">~750 sq ft</div></div>
+        <div class="detail-cell"><div class="detail-lbl">EPC rating</div><div class="detail-val">D (68) — C achievable</div></div>
+        <div class="detail-cell"><div class="detail-lbl">Construction</div><div class="detail-val">1930s brick</div></div>
+        <div class="detail-cell"><div class="detail-lbl">Parking</div><div class="detail-val">On-street</div></div>
+        <div class="detail-cell"><div class="detail-lbl">Council tax band</div><div class="detail-val">Band C — £1,748/yr</div></div>
+        <div class="detail-cell"><div class="detail-lbl">Council</div><div class="detail-val">Cardiff City Council</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCATION -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <i class="ti ti-map-pin" style="font-size:14px;color:var(--navy);"></i>
+      <div class="sec-title">Location</div>
+    </div>
+    <div class="sec-body">
+      <div class="map-placeholder">
+        <i class="ti ti-map"></i>
+        <span id="map-label">Cardiff CF24 area · Roath district</span>
+      </div>
+      <div class="map-protected" id="map-protected" style="display:none;">
+        <i class="ti ti-eye-off" style="font-size:10px;"></i>
+        Exact address revealed on deal agreement
+      </div>
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;" id="location-tags">
+        <span style="font-size:11px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);padding:3px 10px;border-radius:20px;">0.3mi Cardiff University</span>
+        <span style="font-size:11px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);padding:3px 10px;border-radius:20px;">0.5mi UHW Hospital</span>
+        <span style="font-size:11px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);padding:3px 10px;border-radius:20px;">0.8mi Roath Park Lake</span>
+        <span style="font-size:11px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);padding:3px 10px;border-radius:20px;">1.2mi Cardiff city centre</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <strong>Important:</strong> This deal summary has been prepared by the deal sourcer and is shared for information purposes only. Financial projections are estimates based on current market conditions and are not guaranteed. DealScore does not provide financial advice. Always seek independent financial and legal advice before making any investment decision. This deal summary is confidential and intended only for the named recipient.
+  </div>
+
+</div><!-- /share-wrap -->
+
+<!-- RESPONSE BAR -->
+<div class="response-bar" id="response-bar">
+  <div class="rb-left">
+    <div class="rb-deal" id="rb-deal-name">DS-004 · Cardiff CF24</div>
+    <div class="rb-sub">Let the sourcer know your decision — takes 10 seconds</div>
+  </div>
+  <div class="rb-actions" id="rb-buttons">
+    <button class="rb-pass" onclick="openModal('pass-modal')"><i class="ti ti-thumb-down"></i> Not for me</button>
+    <button class="rb-interested" onclick="openModal('interested-modal')"><i class="ti ti-thumb-up"></i> I'm interested</button>
+  </div>
+  <div class="rb-responded" id="rb-responded" style="display:none;"></div>
+</div>
+
+<script>
+// ── Brand toggle
+function setBrand(b) {
+  document.querySelectorAll('.brand-toggle .bt-btn').forEach((btn,i) => {
+    btn.classList.toggle('on', (b==='ds' && i===0) || (b==='custom' && i===1));
+  });
+  if(b==='custom'){
+    document.body.classList.add('brand-custom');
+    document.getElementById('brand-logo').innerHTML = 'Videet Mardania <span style="color:#D97706;">Sourcing</span>';
+    document.getElementById('sourcer-name').textContent = 'Videet Mardania';
+    document.getElementById('sourcer-co').textContent = 'Videet Mardania Property Sourcing';
+  } else {
+    document.body.classList.remove('brand-custom');
+    document.getElementById('brand-logo').innerHTML = 'Deal<span style="color:#10B981;">Score</span>';
+    document.getElementById('sourcer-name').textContent = 'Videet Mardania';
+    document.getElementById('sourcer-co').textContent = 'Property Sourcing Co. · FCA regulated';
+  }
+}
+
+// ── Trust level toggle
+function setTrust(t) {
+  document.getElementById('trust-committed').classList.toggle('on', t==='committed');
+  document.getElementById('trust-open').classList.toggle('on', t==='open');
+
+  const notice = document.getElementById('trust-notice');
+  const addrBadge = document.getElementById('addr-hidden-badge');
+  const dealAddr = document.getElementById('deal-address');
+  const mapLabel = document.getElementById('map-label');
+  const mapProtected = document.getElementById('map-protected');
+  const rbDeal = document.getElementById('rb-deal-name');
+
+  if(t==='open'){
+    notice.className = 'trust-banner protected';
+    notice.innerHTML = '<i class="ti ti-lock"></i><span><strong>Protected view:</strong> Address and precise location are hidden until you register interest. Respond below to reveal full details.</span>';
+    addrBadge.style.display = 'flex';
+    dealAddr.style.filter = 'blur(6px)';
+    dealAddr.style.userSelect = 'none';
+    mapLabel.textContent = 'Cardiff CF24 area · approx. location only';
+    mapProtected.style.display = 'flex';
+    rbDeal.textContent = 'DS-004 · Cardiff CF24';
+  } else {
+    notice.className = 'trust-banner full';
+    notice.innerHTML = '<i class="ti ti-shield-check"></i><span><strong>Full access:</strong> You\'re viewing this deal with full property details including address and photos. This deal has been shared with you by your deal sourcer.</span>';
+    addrBadge.style.display = 'none';
+    dealAddr.style.filter = 'none';
+    dealAddr.style.userSelect = '';
+    mapLabel.textContent = 'Cardiff CF24 area · Roath district';
+    mapProtected.style.display = 'none';
+    rbDeal.textContent = 'DS-004 · 14 Roath Court Rd, Cardiff CF24';
+  }
+}
+
+// ── Modals
+function openModal(id){
+  document.getElementById(id).classList.remove('hidden');
+}
+function closeModal(id){
+  document.getElementById(id).classList.add('hidden');
+}
+
+// ── Submit response
+function submitResponse(type){
+  const noteEl = type==='interested' ? document.getElementById('interested-note') : document.getElementById('pass-note');
+  const note = noteEl ? noteEl.value : '';
+  closeModal('interested-modal');
+  closeModal('pass-modal');
+
+  // Update response bar
+  const buttons = document.getElementById('rb-buttons');
+  const responded = document.getElementById('rb-responded');
+  buttons.style.display = 'none';
+  responded.style.display = 'flex';
+
+  if(type==='interested'){
+    responded.innerHTML = '<i class="ti ti-check" style="font-size:16px;"></i> Response sent — the sourcer has been notified of your interest';
+    responded.style.color = 'var(--teal)';
+    showToast('Response sent — sourcer notified ✓');
+  } else {
+    responded.innerHTML = '<i class="ti ti-x" style="font-size:16px;color:#9ca3af;"></i> <span style="color:#9ca3af;">Marked as not for you — sourcer will keep you in mind for future deals</span>';
+    showToast('Response sent — sourcer notified');
+  }
+}
+
+// ── Toast
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>

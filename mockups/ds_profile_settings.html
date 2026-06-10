@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Profile &amp; Settings</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg:#eef0f4; --white:#fff; --sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --text-3:#adb5bd;
+  --border:#e3e5e9;
+  --r:8px; --r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --nav-w:224px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text-1);font-size:13px;min-height:100vh;}
+
+/* ─── HEADER ─── */
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;display:flex;align-items:center;gap:0;}
+.logo span{color:#10B981;}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 10px;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;}
+.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+.search-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.search-bar:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.search-bar:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.search-bar i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.search-bar input::placeholder{color:rgba(255,255,255,.3);}
+.search-bar .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}.search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.hdr-icon{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;transition:all .12s;position:relative;}
+.hdr-icon:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#D97706;border:1.5px solid var(--navy-dark);}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:opacity .15s;}
+.btn-new:hover{opacity:.88;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;cursor:pointer;}
+.avt:hover{background:rgba(255,255,255,.24);}
+
+/* ─── PAGE SHELL ─── */
+.page-wrap{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
+.page-header{margin-bottom:20px;}
+.page-header-title{font-size:18px;font-weight:700;color:var(--text-1);letter-spacing:-.02em;margin-bottom:2px;}
+.page-header-sub{font-size:12px;color:var(--text-2);}
+.page{display:flex;gap:20px;align-items:flex-start;}
+
+/* ─── LEFT NAV ─── */
+.nav-panel{
+  width:var(--nav-w);flex-shrink:0;
+  position:sticky;top:calc(var(--hdr-h) + 20px);
+  display:flex;flex-direction:column;gap:6px;
+}
+
+/* Identity block */
+.nav-identity{
+  background:var(--white);border:.5px solid var(--border);
+  border-radius:var(--r-lg);padding:16px;
+  box-shadow:var(--shadow);margin-bottom:2px;
+}
+.nav-avt{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--teal) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+  margin-bottom:10px;position:relative;cursor:pointer;
+}
+.nav-avt-edit{position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-radius:50%;background:var(--navy);border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;}
+.nav-avt-edit i{font-size:8px;color:#fff;}
+.nav-name{font-size:12.5px;font-weight:700;color:var(--text-1);margin-bottom:1px;letter-spacing:-.01em;}
+.nav-email{font-size:10px;color:var(--text-2);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-plan{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;font-size:10px;font-weight:600;background:rgba(245,158,11,.1);color:#92400e;border:.5px solid rgba(245,158,11,.3);margin-bottom:10px;}
+.nav-completion{}
+.nav-completion-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--text-2);margin-bottom:4px;}
+.nav-completion-lbl .pct{color:var(--teal);font-weight:600;}
+.nav-completion-bar{height:3px;background:var(--border);border-radius:99px;overflow:hidden;}
+.nav-completion-fill{height:100%;background:var(--teal);border-radius:99px;}
+
+/* Nav groups */
+.nav-card{
+  background:var(--white);border:.5px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.nav-group{padding:6px;}
+.nav-group + .nav-group{border-top:.5px solid var(--border);}
+.nav-group-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding:8px 8px 4px;}
+.nav-item{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:7px 8px;
+  border-radius:var(--r);border:none;background:none;
+  font-size:12px;font-weight:500;color:var(--text-2);
+  cursor:pointer;font-family:inherit;text-align:left;
+  transition:all .1s;position:relative;
+}
+.nav-item i{font-size:15px;flex-shrink:0;transition:color .1s;}
+.nav-item:hover{background:var(--sec);color:var(--text-1);}
+.nav-item:hover i{color:var(--text-1);}
+.nav-item.active{background:var(--navy);color:#fff;font-weight:600;}
+.nav-item.active i{color:rgba(255,255,255,.8);}
+.nav-item.active:hover{background:var(--navy);}
+.nav-soon{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;padding:1px 5px;border-radius:99px;background:rgba(245,158,11,.2);color:#92400e;}
+.nav-item.active .nav-soon{background:rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+
+/* ─── CONTENT PANEL ─── */
+.content-panel{flex:1;min-width:0;}
+
+/* Section card */
+.section{
+  background:var(--white);border:.5px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.section-hdr{padding-bottom:12px;border-bottom:.5px solid var(--border);margin-bottom:16px;}
+.section-title{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+.section-sub{font-size:11px;color:var(--text-2);line-height:1.5;}
+
+/* Pane title */
+.pane-title{font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-.02em;margin-bottom:3px;}
+.pane-sub{font-size:12px;color:var(--text-2);margin-bottom:16px;}
+
+/* ─── PROFILE HERO ─── */
+.profile-hero{
+  background:var(--white);border:.5px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.profile-hero-banner{height:56px;background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 55%,#1a6080 100%);}
+.profile-hero-body{padding:0 20px 18px;}
+.profile-hero-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
+.profile-hero-avt{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--teal) 100%);
+  border:3px solid #fff;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:#fff;
+  margin-top:-26px;margin-bottom:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer;position:relative;
+}
+.profile-hero-avt-edit{position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--navy);border:2px solid #fff;display:flex;align-items:center;justify-content:center;}
+.profile-hero-avt-edit i{font-size:8px;color:#fff;}
+.profile-hero-name{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+.profile-hero-meta{font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.profile-hero-meta span{display:flex;align-items:center;gap:4px;}
+
+/* ─── COMPLETION BAR ─── */
+.completion-wrap{margin-bottom:16px;}
+.completion-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:5px;}
+.completion-labels .pct{color:var(--teal);font-weight:600;}
+.completion-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;}
+.completion-fill{height:100%;background:var(--teal);border-radius:99px;}
+.completion-missing{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.missing-chip{font-size:10px;font-weight:500;padding:3px 9px;border-radius:99px;background:rgba(245,158,11,.08);color:#92400e;border:.5px solid rgba(245,158,11,.2);cursor:pointer;transition:all .12s;}
+.missing-chip:hover{background:rgba(245,158,11,.15);}
+
+/* ─── FORM ─── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.fg.col3{grid-template-columns:1fr 1fr 1fr;}
+.fg.col1{grid-template-columns:1fr;}
+.fg:last-child{margin-bottom:0;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:.01em;}
+.field input,.field select,.field textarea{
+  font-size:12px;padding:7px 10px;
+  border:.5px solid var(--border);border-radius:var(--r);
+  background:var(--white);color:var(--text-1);
+  font-family:inherit;outline:none;
+  transition:border-color .14s,box-shadow .14s;width:100%;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,58,107,.07);}
+.field input:disabled{background:var(--sec);color:var(--text-2);}
+.field-hint{font-size:10px;color:var(--text-3);margin-top:1px;}
+.field-link{font-size:10px;color:var(--navy);font-weight:600;margin-top:1px;cursor:pointer;text-decoration:none;}
+.pfx{display:flex;border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .14s,box-shadow .14s;}
+.pfx:focus-within{border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,58,107,.07);}
+.pfx-lbl{padding:7px 10px;background:var(--sec);border-right:.5px solid var(--border);font-size:12px;color:var(--text-2);white-space:nowrap;}
+.pfx input{border:none;outline:none;padding:7px 10px;font-size:12px;font-family:inherit;color:var(--text-1);flex:1;background:#fff;}
+.pfx-suf{padding:7px 10px;background:var(--sec);border-left:.5px solid var(--border);font-size:12px;color:var(--text-2);white-space:nowrap;}
+
+/* ─── DIVIDER ─── */
+.divider{height:.5px;background:var(--border);margin:16px 0;}
+.divider-lbl{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.divider-lbl span{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);white-space:nowrap;}
+.divider-lbl::before,.divider-lbl::after{content:'';flex:1;height:.5px;background:var(--border);}
+
+/* ─── ACTION ROWS ─── */
+.action-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:.5px solid var(--border);}
+.action-row:first-child{padding-top:0;}
+.action-row:last-child{border-bottom:none;padding-bottom:0;}
+.action-label{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.action-desc{font-size:11px;color:var(--text-2);line-height:1.4;}
+.action-status-ok{font-size:11px;color:var(--teal);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:4px;}
+.action-status-warn{font-size:11px;color:#D97706;font-weight:600;margin-top:2px;display:flex;align-items:center;gap:4px;}
+
+/* ─── TOGGLE ROWS ─── */
+.toggle-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:.5px solid var(--border);}
+.toggle-row:first-child{padding-top:0;}
+.toggle-row:last-child{border-bottom:none;padding-bottom:0;}
+.tr-label{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.tr-desc{font-size:11px;color:var(--text-2);line-height:1.4;}
+.tgl{position:relative;width:36px;height:20px;flex-shrink:0;margin-top:1px;}
+.tgl input{opacity:0;width:0;height:0;}
+.tgl-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.tgl input:checked + .tgl-track{background:var(--teal);}
+.tgl-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.18);}
+.tgl input:checked ~ .tgl-thumb{transform:translateX(16px);}
+
+/* ─── BUTTONS ─── */
+.btn{font-size:11.5px;font-weight:600;padding:7px 14px;border-radius:var(--r);border:.5px solid var(--border);background:var(--white);color:var(--navy);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover{border-color:var(--navy);background:var(--navy-light);}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn-primary:hover{background:var(--navy-dark);border-color:var(--navy-dark);}
+.btn-danger{border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.04);color:#b91c1c;}
+.btn-danger:hover{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.4);}
+.btn-sm{font-size:11px;padding:5px 11px;}
+
+/* ─── BADGES ─── */
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:.03em;}
+.badge-pro{background:var(--navy-light);color:var(--navy);border:.5px solid rgba(27,58,107,.2);}
+.badge-plus{background:rgba(124,58,237,.08);color:#5B21B6;border:.5px solid rgba(124,58,237,.2);}
+.badge-current{background:var(--teal-light);color:#065f46;border:.5px solid rgba(29,158,117,.25);}
+.badge-soon{background:rgba(245,158,11,.1);color:#92400e;border:.5px solid rgba(245,158,11,.25);}
+.badge-trial{background:rgba(245,158,11,.1);color:#92400e;border:.5px solid rgba(245,158,11,.25);}
+
+/* ─── NOTE ─── */
+.note{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--navy-light);border-radius:var(--r);font-size:11px;color:var(--text-2);line-height:1.5;}
+.note i{font-size:13px;color:var(--navy);flex-shrink:0;margin-top:1px;}
+.note a{color:var(--navy);font-weight:600;text-decoration:none;}
+
+/* ─── SAVE ROW ─── */
+.save-row{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding-top:16px;border-top:.5px solid var(--border);margin-top:4px;}
+.save-toast{font-size:11px;color:var(--teal);font-weight:600;display:flex;align-items:center;gap:5px;margin-right:auto;opacity:0;transition:opacity .3s;}
+.save-toast.show{opacity:1;}
+
+/* ─── PLAN BANNER ─── */
+.plan-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;background:rgba(245,158,11,.05);border:.5px solid rgba(245,158,11,.2);border-radius:var(--r);margin-bottom:16px;}
+.plan-banner-left{display:flex;align-items:center;gap:12px;}
+.plan-banner-icon{width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.plan-banner-icon i{font-size:18px;color:#D97706;}
+.plan-banner-name{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:1px;}
+.plan-banner-sub{font-size:11px;color:var(--text-2);}
+.plan-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.plan-meta-tile{background:var(--sec);border-radius:var(--r);padding:10px 12px;}
+.plan-meta-tile .lbl{font-size:10px;color:var(--text-2);margin-bottom:3px;}
+.plan-meta-tile .val{font-size:13px;font-weight:600;color:var(--text-1);}
+
+/* ─── TIER CARDS ─── */
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tier-card{border:.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.tier-card.current{border-color:var(--teal);border-width:1.5px;}
+.tier-head{padding:14px 16px;border-bottom:.5px solid var(--border);}
+.tier-head.navy{background:var(--navy-dark);}
+.tier-head.purple{background:#2d1060;}
+.tier-head.light{background:var(--sec);}
+.tier-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.tier-price{font-size:11px;}
+.tier-body{padding:12px 16px;background:var(--white);}
+.tier-feat{font-size:11px;color:var(--text-2);padding:3px 0;display:flex;align-items:center;gap:7px;}
+.tier-feat i.ok{font-size:12px;color:var(--teal);}
+.tier-feat i.pp{font-size:12px;color:#7C3AED;}
+.tier-cta{width:100%;padding:8px;margin-top:12px;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:opacity .15s;}
+.tier-cta:hover{opacity:.88;}
+.cta-navy{background:var(--navy);color:#fff;}
+.cta-purple{background:#5B21B6;color:#fff;}
+.cta-current{background:var(--teal-light);color:#065f46;cursor:default;opacity:.7!important;}
+
+/* ─── LOGO ZONE ─── */
+.logo-zone{border:1.5px dashed var(--border);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;background:var(--sec);transition:all .14s;}
+.logo-zone:hover{border-color:var(--navy);background:var(--navy-light);}
+.logo-zone i{font-size:22px;color:var(--text-3);display:block;margin-bottom:6px;}
+.logo-zone:hover i{color:var(--navy);}
+.logo-zone-lbl{font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:2px;}
+.logo-zone-sub{font-size:10px;color:var(--text-3);}
+
+/* ─── COLOUR SWATCH ─── */
+.colour-row{display:flex;align-items:center;gap:8px;}
+.colour-swatch{width:32px;height:32px;border-radius:var(--r);border:.5px solid var(--border);flex-shrink:0;cursor:pointer;}
+.colour-hex{font-size:12px;padding:7px 10px;border:.5px solid var(--border);border-radius:var(--r);font-family:inherit;color:var(--text-1);background:#fff;outline:none;width:110px;}
+
+/* ─── GATED ─── */
+.gated-wrap{position:relative;margin-bottom:12px;}
+.gated{opacity:.35;pointer-events:none;user-select:none;}
+.gated-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;}
+.lock-msg{font-size:12px;color:var(--text-2);background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:7px 15px;display:flex;align-items:center;gap:7px;box-shadow:var(--shadow-md);}
+.lock-msg i{font-size:14px;color:var(--text-2);}
+
+/* ─── AGENCY COMING SOON ─── */
+.agency-cs-hero{text-align:center;padding:32px 24px;}
+.agency-cs-icon{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:16px;background:rgba(245,158,11,.1);border:.5px solid rgba(245,158,11,.25);margin-bottom:14px;}
+.agency-cs-icon i{font-size:24px;color:#D97706;}
+.agency-cs-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#D97706;margin-bottom:8px;}
+.agency-cs-title{font-size:18px;font-weight:700;color:var(--text-1);letter-spacing:-.02em;margin-bottom:8px;}
+.agency-cs-sub{font-size:12px;color:var(--text-2);max-width:420px;margin:0 auto;line-height:1.6;}
+.agency-feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.agency-feat{background:var(--sec);border:.5px solid var(--border);border-radius:var(--r);padding:11px 13px;}
+.agency-feat-head{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+.agency-feat-head i{font-size:14px;color:var(--navy);}
+.agency-feat-title{font-size:12px;font-weight:600;color:var(--text-1);}
+.agency-feat-desc{font-size:11px;color:var(--text-2);line-height:1.4;}
+
+/* ─── REFERRAL ─── */
+.ref-box{background:var(--sec);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.ref-link-row{display:flex;gap:8px;margin-top:8px;}
+.ref-link{flex:1;font-size:12px;padding:7px 10px;border-radius:var(--r);border:.5px solid var(--border);background:var(--white);color:var(--text-2);font-family:inherit;outline:none;}
+.ref-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ref-stat{background:var(--white);border:.5px solid var(--border);border-radius:var(--r);padding:11px 13px;box-shadow:var(--shadow);}
+.ref-stat .lbl{font-size:10px;color:var(--text-2);margin-bottom:3px;}
+.ref-stat .val{font-size:15px;font-weight:700;color:var(--text-1);}
+
+/* ─── INTEGRATION ROW ─── */
+.int-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:.5px solid var(--border);}
+.int-row:first-child{padding-top:0;}
+.int-row:last-child{border-bottom:none;padding-bottom:0;}
+.int-row-left{display:flex;align-items:center;gap:12px;}
+.int-logo{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:.5px solid;}
+
+/* ─── TEAM TABLE ─── */
+.team-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.team-table{width:100%;border-collapse:collapse;font-size:12px;}
+.team-table th{font-size:10px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:0 8px 8px 0;border-bottom:.5px solid var(--border);}
+.team-table td{padding:10px 8px 10px 0;border-bottom:.5px solid var(--border);color:var(--text-1);}
+.team-table tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;}
+.pill-active{background:var(--teal-light);color:#065f46;}
+.pill-invited{background:rgba(245,158,11,.1);color:#92400e;}
+
+/* ─── CUSTOM DEFAULTS ─── */
+.custom-field-row{padding:12px 0;border-bottom:.5px solid var(--border);}
+.custom-field-row:last-child{border-bottom:none;padding-bottom:0;}
+
+/* ─── TIER TOGGLE (MOCKUP) ─── */
+#mockup-tier-toggle{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);}
+#mockup-tier-toggle span{font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;}
+#mockup-tier-toggle button{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;cursor:pointer;font-family:inherit;transition:all .15s;}
+
+/* ─── PANE ─── */
+.pane{display:none;}
+.pane.active{display:block;}
+
+
+/* ══ NOTIFICATION BELL ══ */
+.notif-wrap{position:relative;}
+.notif-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;position:relative;flex-shrink:0;transition:all .12s;}
+.notif-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-badge{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:1.5px solid var(--navy-dark);display:none;}
+.notif-badge.show{display:block;}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);width:320px;z-index:400;display:none;overflow:hidden;}
+.notif-drop.show{display:block;}
+.notif-drop-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.notif-drop-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.notif-mark-all{font-size:10px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;padding:0;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.notif-item:hover{background:var(--bg-sec);}
+.notif-item.unread{background:#fefce8;}
+.notif-item.unread:hover{background:#fef9c3;}
+.notif-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.notif-icon-wrap.amber{background:#fef3c7;color:#d97706;}
+.notif-icon-wrap.navy{background:#e8eef7;color:var(--navy);}
+.notif-icon-wrap.teal{background:#d1fae5;color:#059669;}
+.notif-icon-wrap.red{background:#fee2e2;color:#dc2626;}
+.notif-icon-wrap i{font-size:14px;}
+.notif-body{flex:1;min-width:0;}
+.notif-deal-tag{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.notif-msg{font-size:11px;font-weight:500;color:var(--text-1);line-height:1.4;}
+.notif-time{font-size:9px;color:var(--text-2);margin-top:3px;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:5px;}
+.notif-empty{padding:28px 14px;text-align:center;}
+.notif-empty i{font-size:24px;color:var(--text-2);margin-bottom:6px;display:block;}
+.notif-empty-msg{font-size:11px;color:var(--text-2);}
+.notif-drop-footer{padding:9px 14px;border-top:.5px solid var(--border);text-align:center;}
+.notif-drop-footer button{font-size:11px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;}
+
+.exp-card{position:relative;background:#fff;border-radius:var(--r-lg,10px);border:.5px solid var(--border,#e3e5e9);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.exp-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;padding:4px;}
+.exp-dismiss:hover{color:var(--navy,#1B3A6B);}
+.exp-icon{width:36px;height:36px;border-radius:var(--r-md,8px);background:var(--navy-light,#eef3fb);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--navy,#1B3A6B);flex-shrink:0;}
+.exp-title{font-size:13px;font-weight:600;color:var(--text-1,#1a1a2e);margin-bottom:4px;}
+.exp-text{font-size:12px;color:var(--text-2,#6c757d);line-height:1.7;}
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2,#6c757d);background:var(--bg-sec,#f5f6f8);border:.5px solid var(--border,#e3e5e9);border-radius:20px;padding:4px 12px;cursor:pointer;font-family:inherit;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy,#1B3A6B);border-color:var(--navy,#1B3A6B);}
+.exp-restore.show{display:inline-flex;}
+
+/* ── Inline header search ── */
+.hdr-search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.hdr-search:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.hdr-search:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.hdr-search i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.hdr-search input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.hdr-search input::placeholder{color:rgba(255,255,255,.3);}
+.hdr-search .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.avt-wrap-inner:hover .avt{background:rgba(255,255,255,.24);}
+.avt{width:28px;height:28px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;transition:background .15s;}
+.avt-chevron{font-size:11px;color:rgba(255,255,255,.45);transition:color .15s;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='ds_home.html'" title="Back to dashboard" style="cursor:pointer;">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn on" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_compare_view.html'">Compare</button>
+    </nav>
+  </div>
+  <div class="hdr-centre">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Search deals, sellers, addresses…">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+        <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+      <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+      <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+      <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+    </div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-right-nav"><button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button><div class="hn-sep"></div><button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button></nav>
+    <div class="logo-sep"></div>
+    <div class="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Notifications">
+        <i class="ti ti-bell"></i>
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-drop" id="notif-drop">
+        <div class="notif-drop-hdr">
+          <span class="notif-drop-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+        <div class="notif-drop-footer"><button onclick="markAllRead()">Clear all notifications</button></div>
+      </div>
+    </div>
+    <div class="logo-sep"></div>
+    <button class="btn-new" onclick="window.location.href='ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="logo-sep"></div>
+    <div class="avt-wrap">
+      <div class="avt-wrap-inner" onclick="hdrToggleDrop()">
+        <div class="avt" id="hdr-avt">VM</div>
+        <i class="ti ti-chevron-down avt-chevron"></i>
+      </div>
+      <div class="avt-drop" id="hdr-avt-drop">
+        <div class="avt-drop-head">
+          <div class="avt-drop-name">Videet Mardania</div>
+          <div class="avt-drop-email">videet@propertysourcing.co.uk</div>
+        </div>
+        <div style="padding:4px 0;">
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-user"></i> Profile</button>
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-settings"></i> Settings</button>
+          <button class="avt-drop-item"><i class="ti ti-credit-card"></i> Billing &amp; plan</button>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <div class="avt-drop-toggle" onclick="hdrTogglePrivacy()">
+          <div class="avt-drop-toggle-left"><i class="ti ti-eye-off"></i> Privacy mode</div>
+          <label class="mini-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="hdr-privacy-chk" onchange="hdrTogglePrivacy()">
+            <span class="mini-track"></span><span class="mini-thumb"></span>
+          </label>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item"><i class="ti ti-keyboard"></i> Keyboard shortcuts</button>
+        <button class="avt-drop-item"><i class="ti ti-sparkles"></i> What's new</button>
+        <button class="avt-drop-item"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item danger"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ─── PAGE ─── -->
+<div class="page-wrap">
+<div class="exp-card" id="profile-exp">
+  <button class="exp-dismiss" onclick="dismissExp(this)" title="Dismiss">×</button>
+  <div class="exp-icon"><i class="ti ti-settings"></i></div>
+  <div>
+    <div class="exp-title">Your account, branding, and preferences</div>
+    <div class="exp-text">Set your company name and branding — it appears on all packs and invoices. Manage your subscription tier, notification preferences, and connected integrations. Changes save instantly.</div>
+  </div>
+</div>
+<button class="exp-restore" onclick="restoreExp(this)"><i class="ti ti-book-2" style="font-size:11px;"></i> Page guide</button>
+
+
+<div class="page-header">
+  <div class="page-header-title">Profile &amp; settings</div>
+  <div class="page-header-sub">Manage your account, branding, and preferences</div>
+</div>
+<div class="page">
+
+  <!-- ══ LEFT NAV ══ -->
+  <div class="nav-panel">
+
+    <!-- Identity -->
+    <div class="nav-identity">
+      <div class="nav-avt">VM<div class="nav-avt-edit"><i class="ti ti-camera"></i></div></div>
+      <div class="nav-name">Videet Mardania</div>
+      <div class="nav-email">videet@propertysourcing.co.uk</div>
+      <div class="nav-plan"><i class="ti ti-clock" style="font-size:10px;"></i> Pro Trial · 5 days left</div>
+      <div class="nav-completion">
+        <div class="nav-completion-lbl"><span>Profile complete</span><span class="pct">63%</span></div>
+        <div class="nav-completion-bar"><div class="nav-completion-fill" style="width:63%;"></div></div>
+      </div>
+    </div>
+
+    <!-- Nav groups -->
+    <div class="nav-card">
+      <div class="nav-group">
+        <div class="nav-group-lbl">You</div>
+        <button class="nav-item active" onclick="show('profile',this)"><i class="ti ti-user"></i> Profile</button>
+        <button class="nav-item" onclick="show('notifications',this)"><i class="ti ti-bell"></i> Notifications</button>
+        <button class="nav-item" onclick="show('preferences',this)"><i class="ti ti-settings-2"></i> Preferences</button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-lbl">Business</div>
+        <button class="nav-item" onclick="show('branding',this)"><i class="ti ti-palette"></i> Branding</button>
+        <button class="nav-item" onclick="show('defaults',this)"><i class="ti ti-adjustments-horizontal"></i> Deal defaults</button>
+        <button class="nav-item" onclick="show('assistant',this)"><i class="ti ti-sparkles"></i> DS Assistant</button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-lbl">Growth</div>
+        <button class="nav-item" onclick="show('subscription',this)"><i class="ti ti-credit-card"></i> Subscription</button>
+        <button class="nav-item" onclick="show('referrals',this)"><i class="ti ti-gift"></i> Referrals</button>
+        <button class="nav-item" onclick="show('agency',this)"><i class="ti ti-building-store"></i> Agency <span class="nav-soon">Soon</span></button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-lbl">Technical</div>
+        <button class="nav-item" onclick="show('integrations',this)"><i class="ti ti-plug"></i> Integrations</button>
+        <button class="nav-item" onclick="show('security',this)"><i class="ti ti-shield-lock"></i> Account &amp; security</button>
+      </div>
+    </div>
+
+  </div><!-- /nav-panel -->
+
+  <!-- ══ CONTENT ══ -->
+  <div class="content-panel">
+
+    <!-- ══════════ PROFILE ══════════ -->
+    <div id="pane-profile" class="pane active">
+
+      <div class="profile-hero">
+        <div class="profile-hero-banner"></div>
+        <div class="profile-hero-body">
+          <div class="profile-hero-row">
+            <div>
+              <div class="profile-hero-avt">VM<div class="profile-hero-avt-edit"><i class="ti ti-camera"></i></div></div>
+              <div class="profile-hero-name">Videet Mardania</div>
+              <div class="profile-hero-meta">
+                <span><i class="ti ti-mail" style="font-size:10px;"></i> videet@propertysourcing.co.uk</span>
+                <span><i class="ti ti-building" style="font-size:10px;"></i> Property sourcer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr">
+          <div class="section-title">Profile completeness</div>
+          <div class="section-sub">A complete profile makes your investor packs look more professional</div>
+        </div>
+        <div class="completion-wrap" style="margin-bottom:10px;">
+          <div class="completion-labels"><span>5 of 8 fields complete</span><span class="pct">63%</span></div>
+          <div class="completion-bar"><div class="completion-fill" style="width:63%"></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-2);margin-bottom:6px;">Still missing — click to jump to the field:</div>
+        <div class="completion-missing">
+          <span class="missing-chip" onclick="document.getElementById('profile-phone').focus()">Phone number</span>
+          <span class="missing-chip" onclick="showPane('branding')">Company logo</span>
+          <span class="missing-chip" onclick="showPane('branding')">Business address</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Personal details</div></div>
+        <div class="fg">
+          <div class="field"><label>First name</label><input type="text" value="Videet"></div>
+          <div class="field"><label>Last name</label><input type="text" value="Mardania"></div>
+          <div class="field" style="grid-column:1/-1;">
+            <label>Company name <span style="font-size:10px;font-weight:400;color:#bbb;">(optional)</span></label>
+            <input type="text" placeholder="e.g. Mardania Property Sourcing">
+          </div>
+          <div class="field">
+            <label>Email address</label>
+            <input type="text" value="videet@propertysourcing.co.uk" disabled>
+            <span class="field-link">Request email change →</span>
+          </div>
+          <div class="field"><label>Phone number</label><input type="text" id="profile-phone" placeholder="+44 7700 000000"></div>
+          <div class="field"><label>Job title</label><input type="text" placeholder="e.g. Property Sourcing Specialist"></div>
+          <div class="field"><label>Your role</label>
+            <select>
+              <option selected>Property sourcer</option>
+              <option>Investor</option>
+              <option>Estate agent</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Preferred contact</label>
+            <select><option>Email</option><option>Phone</option><option>WhatsApp</option></select>
+          </div>
+        </div>
+        <div class="divider-lbl"><span>About you</span></div>
+        <div class="fg col1" style="margin-bottom:14px;">
+          <div class="field"><label>Bio <span class="field-hint" style="display:inline;margin:0;"> — shown on investor deal pages and PDF packs</span></label><textarea style="min-height:68px;resize:vertical;" placeholder="A short introduction to you and your sourcing business…"></textarea></div>
+        </div>
+        <div class="divider-lbl"><span>Social links</span></div>
+        <div class="fg" style="margin-bottom:0;">
+          <div class="field"><label>LinkedIn</label><div class="pfx"><span class="pfx-lbl">linkedin.com/in/</span><input type="text" placeholder="yourname"></div></div>
+          <div class="field"><label>Instagram</label><div class="pfx"><span class="pfx-lbl">instagram.com/</span><input type="text" placeholder="yourhandle"></div></div>
+        </div>
+        <div class="save-row">
+          <div class="save-toast" id="toast-profile"><i class="ti ti-circle-check" style="font-size:14px;"></i> Saved</div>
+          <button class="btn btn-sm" onclick="cancelEdit(this)">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('toast-profile')">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ NOTIFICATIONS ══════════ -->
+    <div id="pane-notifications" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Deal workflow</div><div class="section-sub">Keep your pipeline moving</div></div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Daily deal digest</div><div class="tr-desc">Morning summary of active deals, viewings, and Day 15 countdowns</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Day 15 countdown alerts</div><div class="tr-desc">Reminders at Day 10, 13, and 14 of every cooling-off window</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Chase reminders</div><div class="tr-desc">Alert when a seller follow-up passes your next action date</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row" style="align-items:flex-start;">
+          <div style="flex:1;">
+            <div class="tr-label">Stale deal alerts</div>
+            <div class="tr-desc" style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;">Flag deals with no activity for more than
+              <select style="font-size:11px;padding:1px 5px;border:.5px solid var(--border);border-radius:4px;font-family:inherit;outline:none;background:#fff;color:var(--text-1);">
+                <option>5 days</option><option selected>7 days</option><option>14 days</option><option>30 days</option>
+              </select>
+            </div>
+          </div>
+          <label class="tgl" style="margin-top:2px;"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Investor activity</div><div class="section-sub">Know when investors engage with your deals</div></div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Investor views deal link</div><div class="tr-desc">Real-time alert when a protected link is opened for the first time</div></div>
+          <label class="tgl"><input type="checkbox"><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Investor downloads PDF</div><div class="tr-desc">Notified when an investor downloads from your shared link</div></div>
+          <label class="tgl"><input type="checkbox"><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Link expiry warning</div><div class="tr-desc">24-hour reminder before a time-limited share link expires</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Viewing reminders <span class="badge badge-pro" style="vertical-align:middle;margin-left:4px;">PRO</span></div><div class="section-sub">For viewings synced from your calendar</div></div>
+        <div class="note" style="margin-bottom:12px;">
+          <i class="ti ti-calendar-check"></i>
+          <span>Connected via Apple Calendar. <a href="#" onclick="showPane('integrations');return false;">Manage calendar integrations →</a></span>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">30-minute reminder</div><div class="tr-desc">Push and email before each scheduled viewing</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Day-before summary</div><div class="tr-desc">Evening email listing tomorrow's viewings</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Digest timing</div></div>
+        <div class="fg" style="max-width:360px;margin-bottom:0;">
+          <div class="field"><label>Send digest at</label>
+            <select><option>7:00 AM</option><option selected>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option></select>
+          </div>
+          <div class="field"><label>Delivery</label>
+            <select><option selected>Email + in-app</option><option>Email only</option><option>In-app only</option></select>
+          </div>
+        </div>
+        <div class="save-row">
+          <div class="save-toast" id="toast-notif"><i class="ti ti-circle-check" style="font-size:14px;"></i> Saved</div>
+          <button class="btn btn-sm" onclick="cancelEdit(this)">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('toast-notif')">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ PREFERENCES ══════════ -->
+    <div id="pane-preferences" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Pipeline view</div></div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Compact deal cards</div><div class="tr-desc">Denser list layout instead of expanded cards</div></div>
+          <label class="tgl"><input type="checkbox"><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Show yield on deal cards</div><div class="tr-desc">Gross yield shown as the primary metric on pipeline cards</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Highlight below-target deals</div><div class="tr-desc">Colour-code deals that fall below your Deal Defaults thresholds</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="fg" style="max-width:360px;margin-top:14px;margin-bottom:0;">
+          <div class="field"><label>Default pipeline layout</label>
+            <select><option selected>Kanban board</option><option>List view</option></select>
+          </div>
+          <div class="field"><label>Default deal tab</label>
+            <select><option selected>Analysis</option><option>Summary</option><option>CRM / notes</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Language &amp; region</div></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Currency</label>
+            <select><option selected>GBP — £</option><option>EUR — €</option><option>USD — $</option></select>
+          </div>
+          <div class="field"><label>Date format</label>
+            <select><option selected>DD/MM/YYYY</option><option>MM/DD/YYYY</option></select>
+          </div>
+          <div class="field"><label>Number format</label>
+            <select><option selected>1,000.00</option><option>1.000,00</option></select>
+          </div>
+        </div>
+        <div class="save-row">
+          <div class="save-toast" id="toast-prefs"><i class="ti ti-circle-check" style="font-size:14px;"></i> Saved</div>
+          <button class="btn btn-sm" onclick="cancelEdit(this)">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('toast-prefs')">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ BRANDING ══════════ -->
+    <div id="pane-branding" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Company details</div></div>
+        <div class="fg">
+          <div class="field"><label>Company / trading name</label><input type="text" placeholder="e.g. Mardania Property Sourcing"></div>
+          <div class="field"><label>Website</label>
+            <div class="pfx"><span class="pfx-lbl">https://</span><input type="text" placeholder="yourwebsite.co.uk"></div>
+          </div>
+          <div class="field" style="grid-column:1/-1;"><label>Tagline <span class="field-hint" style="display:inline;margin:0;"> — shown on PDF covers</span></label><input type="text" placeholder="e.g. Trusted property deals across South Wales"></div>
+          <div class="field" style="grid-column:1/-1;"><label>Business address <span class="field-hint" style="display:inline;margin:0;"> — shown in PDF footer</span></label><input type="text" placeholder="e.g. 123 Main St, Cardiff CF10 1AA"></div>
+          <div class="field" style="grid-column:1/-1;"><label>FCA / compliance disclosure <span class="field-hint" style="display:inline;margin:0;"> — shown in PDF footer</span></label><textarea style="min-height:52px;resize:vertical;" placeholder="e.g. This property information is provided by a member of The Property Ombudsman. We are not estate agents and do not receive referral fees…"></textarea></div>
+        </div>
+        <div class="save-row">
+          <div class="save-toast" id="toast-brand"><i class="ti ti-circle-check" style="font-size:14px;"></i> Saved</div>
+          <button class="btn btn-sm" onclick="cancelEdit(this)">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('toast-brand')">Save changes</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Logo <span class="badge badge-pro" style="vertical-align:middle;margin-left:4px;">PRO</span></div><div class="section-sub">Appears on PDF pack covers and deal share pages</div></div>
+        <div class="logo-zone">
+          <i class="ti ti-cloud-upload"></i>
+          <div class="logo-zone-lbl">Click to upload your logo</div>
+          <div class="logo-zone-sub">PNG, SVG or JPG · Max 2MB · Transparent background recommended</div>
+        </div>
+      </div>
+
+      <div class="gated-wrap">
+        <div class="section gated">
+          <div class="section-hdr"><div class="section-title">Brand colours <span class="badge badge-plus" style="vertical-align:middle;margin-left:4px;">PRO+</span></div></div>
+          <div class="fg">
+            <div class="field"><label>Primary colour</label><div class="colour-row"><div class="colour-swatch" style="background:#1B3A6B;"></div><input class="colour-hex" type="text" value="#1B3A6B"></div></div>
+            <div class="field"><label>Accent colour</label><div class="colour-row"><div class="colour-swatch" style="background:#1D9E75;"></div><input class="colour-hex" type="text" value="#1D9E75"></div></div>
+          </div>
+        </div>
+        <div class="gated-overlay"><div class="lock-msg"><i class="ti ti-lock"></i> Upgrade to Pro Plus to unlock brand colours</div></div>
+      </div>
+
+      <div class="gated-wrap">
+        <div class="section gated">
+          <div class="section-hdr"><div class="section-title">Pack cover style <span class="badge badge-plus" style="vertical-align:middle;margin-left:4px;">PRO+</span></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+            <div style="border:.5px solid var(--navy);border-radius:var(--r);overflow:hidden;"><div style="height:52px;background:var(--navy-dark);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;letter-spacing:.06em;">BRANDED</div><div style="padding:7px 10px;font-size:11px;font-weight:600;">Branded</div></div>
+            <div style="border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;"><div style="height:52px;background:var(--sec);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--text-2);letter-spacing:.06em;">MINIMAL</div><div style="padding:7px 10px;font-size:11px;font-weight:600;">Minimal</div></div>
+            <div style="border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;"><div style="height:52px;background:linear-gradient(135deg,var(--navy),var(--teal));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;letter-spacing:.06em;">YOUR BRAND</div><div style="padding:7px 10px;font-size:11px;font-weight:600;">Your brand</div></div>
+          </div>
+        </div>
+        <div class="gated-overlay"><div class="lock-msg"><i class="ti ti-lock"></i> Upgrade to Pro Plus to unlock cover styles</div></div>
+      </div>
+    </div>
+
+    <!-- ══════════ DEAL DEFAULTS ══════════ -->
+    <div id="pane-defaults" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Tax &amp; ownership</div></div>
+        <div class="fg col3">
+          <div class="field"><label>Country</label><select><option selected>England / NI — SDLT</option><option>Wales — LTT</option><option>Scotland — LBTT</option></select></div>
+          <div class="field"><label>Buyer type</label><select><option selected>Additional property / BTL</option><option>First time buyer</option><option>Standard residential</option></select></div>
+          <div class="field"><label>Ownership structure</label><select><option selected>Personal name</option><option>Limited company (SPV)</option><option>Partnership / LLP</option></select></div>
+          <div class="field"><label>Default deal strategy</label>
+            <select><option selected>BTL — Buy to let</option><option>SA — Serviced accommodation</option><option>HMO — House in multiple occ.</option><option>Flip / refurb</option><option>BRRR</option><option>Commercial conversion</option><option>Lease option</option></select>
+          </div>
+        </div>
+        <div class="divider-lbl"><span>Deal structure</span></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Cooling off period</label><div class="pfx"><input type="number" value="14"><span class="pfx-suf">days</span></div><span class="field-hint">Statutory buyer protection window</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Sourcing fees</div><div class="section-sub">Used as defaults when generating deal packs and invoices</div></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Default sourcing fee</label><div class="pfx"><input type="number" placeholder="2.5"><span class="pfx-suf">%</span></div></div>
+          <div class="field"><label>Fee minimum</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" placeholder="3000"></div></div>
+          <div class="field"><label>Default payment terms</label>
+            <select><option selected>Due on pack release</option><option>50% on reservation, 50% on completion</option><option>Due on completion</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Financing</div><div class="section-sub">Update when your broker confirms a new rate</div></div>
+        <div class="divider-lbl"><span>Primary finance</span></div>
+        <div class="fg col3">
+          <div class="field"><label>Finance method</label><select id="fin-method" onchange="updateFinMethod()"><option selected>Mortgage</option><option>Bridging loan</option><option>Cash</option></select></div>
+          <div class="field" id="field-ltv"><label>LTV</label><div class="pfx"><input type="number" value="75"><span class="pfx-suf">%</span></div></div>
+          <div class="field" id="field-rate"><label>Interest rate</label><div class="pfx"><input type="number" value="5.5" step="0.05"><span class="pfx-suf" id="rate-suf">% pa</span></div></div>
+          <div class="field" id="field-term"><label>Mortgage term</label><div class="pfx"><input type="number" value="25"><span class="pfx-suf">yrs</span></div></div>
+          <div class="field" id="field-repay"><label>Repayment type</label><select><option selected>Interest only</option><option>Capital repayment</option></select></div>
+          <div class="field"><label>Arrangement fee</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="995"></div></div>
+        </div>
+        <div class="divider-lbl"><span>Acquisition costs</span></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Solicitor / legal</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="1500"></div></div>
+          <div class="field"><label>Survey</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="400"></div></div>
+          <div class="field"><label>Broker fee</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="500"></div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Monthly running costs</div><div class="section-sub">DS Assistant will prompt you to confirm each one per deal</div></div>
+        <div class="fg col3">
+          <div class="field"><label>Maintenance</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="75"></div><span class="field-hint">Per month</span></div>
+          <div class="field"><label>Buildings insurance</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="30"></div></div>
+          <div class="field"><label>Management fee</label><div class="pfx"><input type="number" value="10"><span class="pfx-suf">% rent</span></div><span class="field-hint">0 if self-managing</span></div>
+          <div class="field"><label>Void allowance</label><div class="pfx"><input type="number" value="4"><span class="pfx-suf">wks/yr</span></div></div>
+          <div class="field"><label>Accountancy</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="50"></div><span class="field-hint">Pro-rated monthly</span></div>
+          <div class="field"><label>Other monthly</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="0"></div></div>
+        </div>
+        <div class="divider-lbl"><span>Leasehold — leave at 0 for freehold</span></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Service charge/mo</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="0"></div></div>
+          <div class="field"><label>Ground rent/mo</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="0"></div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Refurb &amp; project</div></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Refurb contingency</label><div class="pfx"><input type="number" value="10"><span class="pfx-suf">%</span></div><span class="field-hint">On top of quoted costs</span></div>
+          <div class="field"><label>Finance hold period</label><div class="pfx"><input type="number" value="6"><span class="pfx-suf">months</span></div><span class="field-hint">Before re-mortgage</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Deal targets</div><div class="section-sub">Deals below these thresholds are flagged on the analysis screen</div></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Min gross yield</label><div class="pfx"><input type="number" value="6" step="0.5"><span class="pfx-suf">%</span></div></div>
+          <div class="field"><label>Min net yield</label><div class="pfx"><input type="number" value="4" step="0.5"><span class="pfx-suf">%</span></div></div>
+          <div class="field"><label>Min monthly cashflow</label><div class="pfx"><span class="pfx-lbl">£</span><input type="number" value="200"></div></div>
+          <div class="field"><label>Min ROI</label><div class="pfx"><input type="number" value="10"><span class="pfx-suf">%</span></div></div>
+          <div class="field"><label>Min cash-on-cash</label><div class="pfx"><input type="number" value="8"><span class="pfx-suf">%</span></div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Sharing &amp; access</div><div class="section-sub">Defaults applied when creating new deal share links</div></div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Protect address on shared links</div><div class="tr-desc">New deals default to masking the property address in investor share links and packs</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Require investor auth on share links</div><div class="tr-desc">Shared deal links require the investor to authenticate before viewing</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
+          <div><div class="section-title">Custom defaults</div><div class="section-sub" style="margin-top:3px;">Named values for anything not covered above — shown as reference on the deal form</div></div>
+          <button class="btn btn-sm" onclick="addCustomDefault()" style="flex-shrink:0;margin-top:2px;"><i class="ti ti-plus" style="font-size:12px;"></i> Add field</button>
+        </div>
+        <div id="custom-defaults-list">
+          <div class="custom-field-row">
+            <div class="fg col3" style="margin-bottom:0;">
+              <div class="field"><label>Field name</label><input type="text" value="HMO licence cost" placeholder="e.g. HMO licence cost"></div>
+              <div class="field"><label>Value</label><div style="display:flex;gap:6px;"><select style="width:56px;padding:7px 4px;border:.5px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;outline:none;background:#fff;"><option>£</option><option>%</option><option>#</option><option>txt</option></select><input type="text" value="800" style="flex:1;"></div></div>
+              <div class="field"><label>Note</label><div style="display:flex;gap:6px;align-items:center;"><input type="text" value="Varies by council area" placeholder="Context hint" style="flex:1;"><button onclick="this.closest('.custom-field-row').remove()" style="width:28px;height:33px;border:.5px solid var(--border);border-radius:var(--r);background:none;color:var(--text-3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;">×</button></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:12px;">
+          <i class="ti ti-bulb"></i>
+          <span>Can't find a field you always use? <a href="#">Request it →</a> — most-requested fields get added in future updates.</span>
+        </div>
+        <div class="save-row">
+          <div class="save-toast" id="toast-defaults"><i class="ti ti-circle-check" style="font-size:14px;"></i> Saved</div>
+          <button class="btn btn-sm" onclick="cancelEdit(this)">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('toast-defaults')">Save all defaults</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ DS ASSISTANT ══════════ -->
+    <div id="pane-assistant" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Validation flags</div><div class="section-sub">Fields the Assistant always prompts you to confirm on each deal</div></div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Flag maintenance allowance</div><div class="tr-desc">Prompt to confirm the default is appropriate for this property's age and condition</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Flag void allowance</div><div class="tr-desc">Confirm void % is appropriate for the local market</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Flag missing strategy fields</div><div class="tr-desc">Alert when SA nightly rate, HMO room count, or other strategy-specific fields are absent</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Flag below-target metrics</div><div class="tr-desc">Warn when a deal falls below the thresholds set in Deal Defaults</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Assistant behaviour</div><div class="section-sub">Control how the DS Assistant works when analysing your deals</div></div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Auto-suggest on deal open</div><div class="tr-desc">DS Assistant automatically surfaces insights when you open a deal, without waiting to be asked</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tr-label">Strategy-specific analysis</div><div class="tr-desc">Show only the metrics and flags relevant to the deal's chosen strategy (e.g. nightly rate for SA, room yield for HMO)</div></div>
+          <label class="tgl"><input type="checkbox" checked><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+        <div class="divider" style="margin:10px 0;"></div>
+        <div class="fg col3" style="margin-bottom:0;">
+          <div class="field"><label>Confidence threshold</label>
+            <select><option>Show all suggestions</option><option selected>Medium confidence +</option><option>High confidence only</option></select>
+            <span class="field-hint">How certain the Assistant must be before flagging an issue</span>
+          </div>
+          <div class="field"><label>Strategies to analyse</label>
+            <select><option selected>All strategies</option><option>BTL only</option><option>SA only</option><option>HMO only</option><option>Flip / refurb only</option><option>BRRR only</option><option>Commercial conversion only</option><option>Lease option only</option></select>
+            <span class="field-hint">Limit assistant suggestions to specific strategies</span>
+          </div>
+        </div>
+        <div class="save-row">
+          <div class="save-toast" id="toast-assistant"><i class="ti ti-circle-check" style="font-size:14px;"></i> Saved</div>
+          <button class="btn btn-sm" onclick="cancelEdit(this)">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('toast-assistant')">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SUBSCRIPTION ══════════ -->
+    <div id="pane-subscription" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Current plan</div></div>
+        <div class="plan-banner">
+          <div class="plan-banner-left">
+            <div class="plan-banner-icon"><i class="ti ti-clock"></i></div>
+            <div>
+              <div class="plan-banner-name">Pro Trial <span class="badge badge-trial" style="margin-left:4px;">5 days remaining</span></div>
+              <div class="plan-banner-sub">No card required. Your deals and data are saved throughout.</div>
+            </div>
+          </div>
+          <button class="btn">Manage billing</button>
+        </div>
+        <div class="plan-meta">
+          <div class="plan-meta-tile"><div class="lbl">Deals saved</div><div class="val">14</div></div>
+          <div class="plan-meta-tile"><div class="lbl">Packs this month</div><div class="val">6</div></div>
+          <div class="plan-meta-tile"><div class="lbl">Trial status</div><div class="val" style="color:var(--teal);">Active</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Plans</div><div class="section-sub">Upgrade or downgrade at any time</div></div>
+        <div class="tier-grid">
+          <div class="tier-card current">
+            <div class="tier-head light">
+              <div class="tier-name" style="color:var(--text-1);">Pro <span class="badge badge-current" style="margin-left:4px;">Current</span></div>
+              <div class="tier-price" style="color:var(--text-2);margin-top:2px;">£29/mo · or £279/yr</div>
+            </div>
+            <div class="tier-body">
+              <div class="tier-feat"><i class="ti ti-check ok"></i> All 7 deal strategies</div>
+              <div class="tier-feat"><i class="ti ti-check ok"></i> Save deals &amp; pipeline</div>
+              <div class="tier-feat"><i class="ti ti-check ok"></i> PDF packs</div>
+              <div class="tier-feat"><i class="ti ti-check ok"></i> Deal sharing</div>
+              <div class="tier-feat"><i class="ti ti-check ok"></i> DealScore Assistant</div>
+              <div class="tier-feat"><i class="ti ti-check ok"></i> Calendar sync</div>
+              <button class="tier-cta cta-current">Current plan</button>
+            </div>
+          </div>
+          <div class="tier-card">
+            <div class="tier-head purple">
+              <div class="tier-name" style="color:#fff;">Pro Plus</div>
+              <div class="tier-price" style="color:rgba(255,255,255,.55);margin-top:2px;">£59/mo · or £559/yr</div>
+            </div>
+            <div class="tier-body">
+              <div class="tier-feat" style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;padding-bottom:4px;">Everything in Pro, plus:</div>
+              <div class="tier-feat"><i class="ti ti-check pp"></i> Smart Capture</div>
+              <div class="tier-feat"><i class="ti ti-check pp"></i> Landscape Pro Plus PDF</div>
+              <div class="tier-feat"><i class="ti ti-check pp"></i> Deal Optimiser</div>
+              <div class="tier-feat"><i class="ti ti-check pp"></i> Visual branding</div>
+              <div class="tier-feat"><i class="ti ti-check pp"></i> Webhooks &amp; API</div>
+              <button class="tier-cta cta-purple">Upgrade to Pro Plus</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Payment</div></div>
+        <div class="action-row">
+          <div><div class="action-label">Payment method</div><div class="action-desc action-status-warn"><i class="ti ti-alert-circle" style="font-size:12px;"></i> No card on file — add one before your trial ends</div></div>
+          <button class="btn">Add card</button>
+        </div>
+        <div class="action-row">
+          <div><div class="action-label">Invoice history</div><div class="action-desc">No invoices yet</div></div>
+          <button class="btn" style="opacity:.4;cursor:default;">Download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ REFERRALS ══════════ -->
+    <div id="pane-referrals" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Your referral link</div><div class="section-sub">Earn 1 free month for every person who upgrades to Pro or above</div></div>
+        <div class="ref-box">
+          <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:6px;">Share this link</div>
+          <div class="ref-link-row">
+            <input class="ref-link" type="text" value="getdealscore.co.uk/ref/videet" readonly>
+            <button class="btn">Copy</button>
+          </div>
+        </div>
+        <div class="ref-stats">
+          <div class="ref-stat"><div class="lbl">Referrals sent</div><div class="val">3</div></div>
+          <div class="ref-stat"><div class="lbl">Converted</div><div class="val">2</div></div>
+          <div class="ref-stat"><div class="lbl">Months earned</div><div class="val" style="color:var(--teal);">2</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Referral history</div></div>
+        <table class="team-table">
+          <thead>
+            <tr>
+              <th>Referred to</th>
+              <th>Date sent</th>
+              <th>Status</th>
+              <th>Reward</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>sarah@investormail.co.uk</td>
+              <td>14 Apr 2026</td>
+              <td><span class="pill pill-active">Converted · Pro</span></td>
+              <td style="color:var(--teal);font-weight:600;">+1 month</td>
+            </tr>
+            <tr>
+              <td>james@propertynow.com</td>
+              <td>2 Mar 2026</td>
+              <td><span class="pill pill-active">Converted · Pro</span></td>
+              <td style="color:var(--teal);font-weight:600;">+1 month</td>
+            </tr>
+            <tr>
+              <td>mike@homesearch.co.uk</td>
+              <td>18 Feb 2026</td>
+              <td><span class="pill pill-invited">Signed up · free</span></td>
+              <td style="color:var(--text-3);">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ AGENCY ══════════ -->
+    <div id="pane-agency" class="pane">
+
+      <div class="section">
+        <div class="agency-cs-hero">
+          <div class="agency-cs-icon"><i class="ti ti-building-store"></i></div>
+          <div class="agency-cs-tag">Coming soon</div>
+          <div class="agency-cs-title">DealScore Agency</div>
+          <div class="agency-cs-sub">Your brand, your domain, your investors — DealScore runs invisibly behind the scenes.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">What's included</div><div class="section-sub">Everything in Pro Plus, plus full white-labelling and team management</div></div>
+        <div class="agency-feat-grid">
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-world"></i><div class="agency-feat-title">Custom domain</div></div><div class="agency-feat-desc">deals.yourbrand.co.uk — investors see your URL</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-paint"></i><div class="agency-feat-title">Full app white-label</div></div><div class="agency-feat-desc">Your logo and colours replace DealScore throughout</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-mail"></i><div class="agency-feat-title">Branded email sender</div></div><div class="agency-feat-desc">Pack notifications sent from your domain</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-users"></i><div class="agency-feat-title">Team seats</div></div><div class="agency-feat-desc">Add sourcers and VAs with role controls</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-eye"></i><div class="agency-feat-title">Investor portal</div></div><div class="agency-feat-desc">Branded read-only portal for investors to browse packs</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-file-text"></i><div class="agency-feat-title">Custom PDF footer</div></div><div class="agency-feat-desc">Your tagline and legal disclaimer — no DealScore mention</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-login"></i><div class="agency-feat-title">Branded login page</div></div><div class="agency-feat-desc">Investors sign in through your brand</div></div>
+          <div class="agency-feat"><div class="agency-feat-head"><i class="ti ti-chart-bar"></i><div class="agency-feat-title">Agency analytics</div></div><div class="agency-feat-desc">Team volume, investor engagement, pack performance</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Join the waiting list</div><div class="section-sub">We'll email you before Agency launches publicly</div></div>
+        <div id="agency-form">
+          <div class="fg">
+            <div class="field"><label>Name</label><input type="text" value="Videet Mardania"></div>
+            <div class="field"><label>Email</label><input type="text" value="videet@propertysourcing.co.uk"></div>
+            <div class="field" style="grid-column:1/-1;"><label>Company / trading name</label><input type="text" placeholder="e.g. Mardania Property Sourcing"></div>
+            <div class="field" style="grid-column:1/-1;"><label>Team size</label>
+              <select><option selected>Just me</option><option>2–5</option><option>6–15</option><option>15+</option></select>
+            </div>
+            <div class="field" style="grid-column:1/-1;"><label>Anything specific you need? <span class="field-hint" style="display:inline;margin:0;">optional</span></label>
+              <textarea style="resize:vertical;min-height:56px;" placeholder="e.g. I need a custom domain and my own investor login page…"></textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="submitWaitlist()" style="padding:8px 20px;">Join waiting list</button>
+        </div>
+        <div id="agency-confirm" style="display:none;text-align:center;padding:20px 0;">
+          <i class="ti ti-circle-check" style="font-size:28px;color:var(--teal);display:block;margin-bottom:8px;"></i>
+          <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:3px;">You're on the list</div>
+          <div style="font-size:12px;color:var(--text-2);">We'll email videet@propertysourcing.co.uk before Agency launches.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ INTEGRATIONS ══════════ -->
+    <div id="pane-integrations" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Calendar <span class="badge badge-pro" style="vertical-align:middle;margin-left:4px;">PRO</span></div><div class="section-sub">Sync viewings, Day 15 countdowns, and chase reminders</div></div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#fff4f4;border-color:#ffd0d0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21.8055 10.0415H21V10H12V14H17.6515C16.827 16.3285 14.6115 18 12 18C8.6865 18 6 15.3135 6 12C6 8.6865 8.6865 6 12 6C13.5295 6 14.921 6.577 15.9805 7.5195L18.809 4.691C17.023 3.0265 14.634 2 12 2C6.4775 2 2 6.4775 2 12C2 17.5225 6.4775 22 12 22C17.5225 22 22 17.5225 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#FFC107"/><path d="M3.15283 7.3455L6.43833 9.755C7.32733 7.554 9.48033 6 11.9998 6C13.5293 6 14.9208 6.577 15.9803 7.5195L18.8088 4.691C17.0228 3.0265 14.6338 2 11.9998 2C8.15883 2 4.82783 4.1685 3.15283 7.3455Z" fill="#FF3D00"/><path d="M12.0002 22C14.5832 22 16.9302 21.0115 18.7047 19.404L15.6097 16.785C14.5719 17.5742 13.3039 18.001 12.0002 18C9.39916 18 7.19066 16.3415 6.35866 14.027L3.09766 16.5395C4.75266 19.778 8.11366 22 12.0002 22Z" fill="#4CAF50"/><path d="M21.8055 10.0415H21V10H12V14H17.6515C17.2571 15.1082 16.5467 16.0766 15.608 16.7855L18.7045 19.4035C18.4855 19.6025 22 17 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#1976D2"/></svg>
+            </div>
+            <div><div class="action-label">Google Calendar</div><div class="action-desc">Not connected</div></div>
+          </div>
+          <button class="btn btn-sm">Connect</button>
+        </div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#f5f5f5;border-color:#e5e5e5;"><i class="ti ti-brand-apple" style="font-size:17px;color:#333;"></i></div>
+            <div><div class="action-label">Apple Calendar</div><div class="action-status-ok"><i class="ti ti-circle-check" style="font-size:11px;"></i> Connected</div></div>
+          </div>
+          <button class="btn btn-sm btn-danger">Disconnect</button>
+        </div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#f0f4ff;border-color:#c7d4ff;"><i class="ti ti-mail" style="font-size:17px;color:#0078d4;"></i></div>
+            <div><div class="action-label">Outlook / Microsoft 365</div><div class="action-desc">Not connected</div></div>
+          </div>
+          <button class="btn btn-sm">Connect</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Property portals</div><div class="section-sub">Auto-import listing data when you paste a URL into a new deal</div></div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#e8f4fd;border-color:#b8ddf7;font-size:10px;font-weight:800;color:#0066cc;">RM</div>
+            <div><div class="action-label">Rightmove</div><div class="action-desc">Import listing data from any Rightmove URL</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-soon">Coming soon</span><button class="btn btn-sm" onclick="notifyMe(this,'Rightmove')">Notify me</button></div>
+        </div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#fdf0e8;border-color:#f7d0b0;font-size:11px;font-weight:800;color:#e06000;">Z</div>
+            <div><div class="action-label">Zoopla</div><div class="action-desc">Import listing data from any Zoopla URL</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-soon">Coming soon</span><button class="btn btn-sm" onclick="notifyMe(this,'Zoopla')">Notify me</button></div>
+        </div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#edfaf3;border-color:#9fddbe;font-size:9px;font-weight:800;color:#1a7a45;">OTM</div>
+            <div><div class="action-label">OnTheMarket</div><div class="action-desc">Import listing and comparable sales data</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-soon">Coming soon</span><button class="btn btn-sm" onclick="notifyMe(this,'OnTheMarket')">Notify me</button></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Workflow</div><div class="section-sub">Connect to your existing tools and automations</div></div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#f5f0ff;border-color:#d4b8f7;"><i class="ti ti-bolt" style="font-size:17px;color:#7C3AED;"></i></div>
+            <div><div class="action-label">Zapier</div><div class="action-desc">Trigger workflows in 5,000+ apps on deal events</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-soon">Coming soon</span><button class="btn btn-sm" onclick="notifyMe(this,'Zapier')">Notify me</button></div>
+        </div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#f5f5f5;border-color:#e5e5e5;"><i class="ti ti-brand-notion" style="font-size:17px;color:#333;"></i></div>
+            <div><div class="action-label">Notion</div><div class="action-desc">Sync deal summaries to a Notion database</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-soon">Coming soon</span><button class="btn btn-sm" onclick="notifyMe(this,'Notion')">Notify me</button></div>
+        </div>
+        <div class="int-row">
+          <div class="int-row-left">
+            <div class="int-logo" style="background:#e8fdf5;border-color:#9fddc8;"><i class="ti ti-table" style="font-size:17px;color:#1a7a55;"></i></div>
+            <div><div class="action-label">Airtable</div><div class="action-desc">Push deal data to an Airtable base</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-soon">Coming soon</span><button class="btn btn-sm" onclick="notifyMe(this,'Airtable')">Notify me</button></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Webhooks &amp; API</div></div>
+        <div class="action-row">
+          <div><div class="action-label">Webhook endpoint</div><div class="action-desc">POST deal events to your URL</div></div>
+          <span style="background:#f1f5f9;color:#64748b;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;white-space:nowrap;">Coming soon</span>
+        </div>
+        <div class="action-row">
+          <div><div class="action-label">API key</div><div class="action-desc">Access the DealScore API from your own tools</div></div>
+          <span style="background:#f1f5f9;color:#64748b;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;white-space:nowrap;">Coming soon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ ACCOUNT & SECURITY ══════════ -->
+    <div id="pane-security" class="pane">
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Sign-in &amp; authentication</div></div>
+        <div class="action-row">
+          <div><div class="action-label">Password</div><div class="action-desc action-status-warn"><i class="ti ti-alert-circle" style="font-size:11px;"></i> Last changed — never</div></div>
+          <button class="btn btn-sm">Change password</button>
+        </div>
+        <div class="action-row">
+          <div><div class="action-label">Google SSO</div><div class="action-desc">Sign in with your Google account</div></div>
+          <button class="btn btn-sm">Connect Google</button>
+        </div>
+        <div class="action-row">
+          <div><div class="action-label">Two-factor authentication</div><div class="action-desc action-status-warn"><i class="ti ti-alert-circle" style="font-size:11px;"></i> Not enabled — adds extra protection</div></div>
+          <button class="btn btn-sm">Enable 2FA</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Privacy</div></div>
+        <div class="toggle-row" style="border-bottom:none;padding-bottom:0;">
+          <div><div class="tr-label">Default privacy mode on</div><div class="tr-desc">Masks addresses, seller names, and personal data at startup. Toggle off anytime from the header.</div></div>
+          <label class="tgl"><input type="checkbox"><span class="tgl-track"></span><span class="tgl-thumb"></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title">Active sessions</div><div class="section-sub">Devices currently signed in to DealScore</div></div>
+        <div class="action-row">
+          <div>
+            <div class="action-label" style="display:flex;align-items:center;gap:7px;"><i class="ti ti-device-laptop" style="font-size:14px;color:var(--text-2);"></i> MacBook Pro — Chrome</div>
+            <div class="action-desc action-status-ok"><i class="ti ti-circle-check" style="font-size:11px;"></i> Current session · London, UK</div>
+          </div>
+          <button class="btn btn-sm" style="opacity:.35;cursor:default;">This device</button>
+        </div>
+        <div class="action-row">
+          <div>
+            <div class="action-label" style="display:flex;align-items:center;gap:7px;"><i class="ti ti-device-mobile" style="font-size:14px;color:var(--text-2);"></i> iPhone 15 — Safari</div>
+            <div class="action-desc">Last active 2 hours ago · London, UK</div>
+          </div>
+          <button class="btn btn-sm btn-danger">Sign out</button>
+        </div>
+        <div class="action-row" style="border-bottom:none;">
+          <div>
+            <div class="action-label" style="display:flex;align-items:center;gap:7px;"><i class="ti ti-device-desktop" style="font-size:14px;color:var(--text-2);"></i> Windows PC — Edge</div>
+            <div class="action-desc">Last active 3 days ago · Birmingham, UK</div>
+          </div>
+          <button class="btn btn-sm btn-danger">Sign out</button>
+        </div>
+        <div style="padding-top:12px;border-top:.5px solid var(--border);margin-top:4px;text-align:right;">
+          <button class="btn btn-sm btn-danger"><i class="ti ti-logout" style="font-size:12px;"></i> Sign out all other devices</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-hdr"><div class="section-title" style="color:#b91c1c;">Account actions</div></div>
+        <div class="action-row">
+          <div><div class="action-label">Export all my data</div><div class="action-desc">Download all deals, packs, and settings as a ZIP — GDPR Article 20</div></div>
+          <button class="btn btn-sm">Export data</button>
+        </div>
+        <div class="action-row">
+          <div><div class="action-label">Delete account</div><div class="action-desc">Permanently removes your account and all data. This cannot be undone.</div></div>
+          <button class="btn btn-sm btn-danger">Delete account</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content-panel -->
+</div><!-- /page -->
+</div><!-- /page-wrap -->
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('pane-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function showPane(id) {
+  const btn = document.querySelector(`.nav-item[onclick*="'${id}'"]`);
+  if (btn) show(id, btn);
+}
+function showToast(id) {
+  const t = document.getElementById(id);
+  if (!t) return;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function cancelEdit(btn) {
+  if (btn) {
+    const pane = btn.closest('.pane');
+    const toast = pane ? pane.querySelector('.save-toast') : null;
+    if (toast) {
+      toast.innerHTML = '<i class="ti ti-arrow-back-up" style="font-size:14px;"></i> Changes discarded';
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => { toast.innerHTML = '<i class="ti ti-circle-check" style="font-size:14px;"></i> Saved'; }, 300); }, 2000);
+    }
+  }
+}
+function updateFinMethod() {
+  const v = document.getElementById('fin-method').value;
+  const isCash = v === 'Cash', isBridge = v === 'Bridging loan';
+  ['field-ltv','field-rate','field-term','field-repay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isCash ? 'none' : '';
+  });
+  if (!isCash) {
+    const term = document.getElementById('field-term');
+    const repay = document.getElementById('field-repay');
+    if (term) term.style.display = isBridge ? 'none' : '';
+    if (repay) repay.style.display = isBridge ? 'none' : '';
+    const suf = document.getElementById('rate-suf');
+    if (suf) suf.textContent = isBridge ? '% pm' : '% pa';
+  }
+}
+let cid = 2;
+function addCustomDefault() {
+  const list = document.getElementById('custom-defaults-list');
+  const div = document.createElement('div');
+  div.className = 'custom-field-row';
+  div.innerHTML = `<div class="fg col3" style="margin-bottom:0;">
+    <div class="field"><label>Field name</label><input type="text" placeholder="e.g. Boiler service cost"></div>
+    <div class="field"><label>Value</label><div style="display:flex;gap:6px;"><select style="width:56px;padding:7px 4px;border:.5px solid var(--border);border-radius:var(--r);font-size:12px;font-family:inherit;outline:none;background:#fff;"><option>£</option><option>%</option><option>#</option><option>txt</option></select><input type="text" placeholder="0" style="flex:1;"></div></div>
+    <div class="field"><label>Note</label><div style="display:flex;gap:6px;align-items:center;"><input type="text" placeholder="Context hint" style="flex:1;"><button onclick="this.closest('.custom-field-row').remove()" style="width:28px;height:33px;border:.5px solid var(--border);border-radius:var(--r);background:none;color:var(--text-3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;">×</button></div></div>
+  </div>`;
+  list.appendChild(div);
+  div.querySelector('input').focus();
+}
+function notifyMe(btn, name) {
+  btn.textContent = '✓ Noted';
+  btn.style.color = 'var(--teal)';
+  btn.style.borderColor = 'rgba(29,158,117,.3)';
+  btn.style.background = 'var(--teal-light)';
+  btn.disabled = true;
+}
+function submitWaitlist() {
+  document.getElementById('agency-form').style.display = 'none';
+  document.getElementById('agency-confirm').style.display = 'block';
+}
+function setTier(t) {
+  document.getElementById('tier-pro').style.cssText = t==='pro' ? 'background:var(--navy);color:#fff;' : 'background:transparent;color:rgba(255,255,255,.4);';
+  document.getElementById('tier-pp').style.cssText = t==='proplus' ? 'background:#5B21B6;color:#fff;' : 'background:transparent;color:rgba(255,255,255,.4);';
+}
+function dismissExp(btn){
+  var card=btn.closest?btn.closest(".exp-card"):null;
+  if(!card){card=btn.parentNode;while(card&&!card.classList.contains("exp-card"))card=card.parentNode;}
+  if(!card)return;
+  card.style.display="none";
+  var r=card.nextElementSibling;
+  if(r&&r.classList&&r.classList.contains("exp-restore"))r.classList.add("show");
+}
+function restoreExp(btn){
+  btn.classList.remove("show");
+  var card=btn.previousElementSibling;
+  if(card&&card.classList&&card.classList.contains("exp-card"))card.style.display="flex";
+}
+</script>
+<script>
+/* ══ NOTIFICATION SYSTEM ══ */
+var notifOpen = false;
+var notifData = (function(){
+  var today = new Date();
+  var fmt = function(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+  var add = function(d,n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  // Simulated deal-aware notifications
+  var coolingEnd  = add(today, 2);
+  var packRelease = add(today, 5);
+  var noteDate1   = add(today,-1);
+  var noteDate2   = add(today,-3);
+  return [
+    { id:'n1', unread:true,  type:'amber', icon:'ti-alert-triangle',
+      deal:'14 Roath Court Rd', msg:'Cooling-off period ends '+fmt(coolingEnd)+' — confirm investor is proceeding', time:'Today' },
+    { id:'n2', unread:true,  type:'navy',  icon:'ti-file-text',
+      deal:'14 Roath Court Rd', msg:'Pack release scheduled for '+fmt(packRelease)+' — ensure content is finalised', time:'Today' },
+    { id:'n3', unread:true,  type:'teal',  icon:'ti-user-check',
+      deal:'14 Roath Court Rd', msg:'James Thornton expressed interest — log a response in Investors', time:'Yesterday' },
+    { id:'n4', unread:false, type:'navy',  icon:'ti-user',
+      deal:'14 Roath Court Rd', msg:'Seller details not yet completed — add vendor motivation before sharing packs', time:fmt(noteDate2) },
+    { id:'n5', unread:false, type:'red',   icon:'ti-clock-exclamation',
+      deal:'52 Crwys Rd', msg:'Deal has been in Negotiation for 18 days with no update', time:fmt(noteDate2) },
+  ];
+}());
+function renderNotifs(){
+  var unread = notifData.filter(function(n){ return n.unread; }).length;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.classList.toggle('show', unread > 0); }
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!notifData.length){
+    list.innerHTML = '<div class="notif-empty"><i class="ti ti-bell-off"></i><div class="notif-empty-msg">All caught up — no new notifications</div></div>';
+    return;
+  }
+  list.innerHTML = notifData.map(function(n){
+    return '<div class="notif-item'+(n.unread?' unread':'')+'" id="ni-'+n.id+'" onclick="readNotif(''+n.id+'')">'
+      +'<div class="notif-icon-wrap '+n.type+'"><i class="ti '+n.icon+'"></i></div>'
+      +'<div class="notif-body">'
+      +'<div class="notif-deal-tag">'+n.deal+'</div>'
+      +'<div class="notif-msg">'+n.msg+'</div>'
+      +'<div class="notif-time">'+n.time+'</div>'
+      +'</div>'
+      +(n.unread ? '<div class="notif-unread-dot"></div>' : '')
+      +'</div>';
+  }).join('');
+}
+function toggleNotif(e){
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  var drop = document.getElementById('notif-drop');
+  if(drop) drop.classList.toggle('show', notifOpen);
+  if(notifOpen) renderNotifs();
+}
+function readNotif(id){
+  var n = notifData.find(function(x){ return x.id===id; });
+  if(n) n.unread = false;
+  renderNotifs();
+}
+function markAllRead(){
+  notifData.forEach(function(n){ n.unread=false; });
+  renderNotifs();
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.notif-wrap')){ notifOpen=false; var d=document.getElementById('notif-drop'); if(d) d.classList.remove('show'); }
+});
+
+document.addEventListener("DOMContentLoaded",function(){ renderNotifs(); });
+</script>
+
+<script>
+var hdrDropOpen=false;
+function hdrToggleDrop(){
+  hdrDropOpen = !hdrDropOpen;
+  document.getElementById('hdr-avt-drop').classList.toggle('show', hdrDropOpen);
+}
+</script>
+</body>
+</html>

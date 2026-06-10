@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — Seller Tab</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
+  --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
+  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --hdr-h:56px; --istrip-h:48px; --livebar-h:44px; --tabs-h:42px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-body);color:var(--text-1);font-size:13px;}
+
+/* ══ CHROME ══ */
+
+
+
+
+
+.bccurr{color:#fff;font-weight:500;}
+
+.istrip{background:#fff;border-bottom:.5px solid var(--border);display:flex;align-items:center;position:sticky;top:var(--hdr-h);z-index:219;height:var(--istrip-h);padding:0 20px;}
+/* ══ LIVEBAR ══ */
+.livebar{background:var(--navy-dark);border-bottom:none;display:flex;align-items:center;position:sticky;top:calc(var(--hdr-h) + var(--istrip-h));z-index:218;height:var(--livebar-h);padding:0 24px;overflow:hidden;transition:height .2s,opacity .2s;}
+.livebar.hidden{height:0!important;opacity:0;pointer-events:none;border:none;}
+.lb-set{display:none;}
+.lb-set.on{display:contents;}
+.lb-item{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 16px;border-right:.5px solid rgba(255,255,255,.1);}
+.lb-item:first-child{padding-left:0;}
+.lb-item:last-of-type{border-right:none;}
+.lbsep{display:none;}
+.lb-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.45);margin-bottom:2px;}
+.lb-val{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;}
+.lb-val.hl{color:#34D399;}
+.lb-val.warn{color:#FCD34D;}
+.lb-hide-toggle{margin-left:24px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;color:rgba(255,255,255,.45);background:none;border:.5px solid rgba(255,255,255,.15);border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.lb-hide-toggle:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+.lb-hide-toggle i,.lb-hide-toggle span{color:inherit;}
+/* ══ TAB NAV ══ */
+.tabwrap{background:#fff;border-bottom:.5px solid var(--border);position:sticky;top:calc(var(--hdr-h) + var(--istrip-h) + var(--livebar-h));z-index:217;height:var(--tabs-h);}
+.tabrow{display:flex;align-items:center;height:100%;padding:0 20px;gap:0;}
+.vt{background:none;border:none;padding:0 14px;height:100%;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;}
+.vt:hover{color:var(--navy);}
+.vt.on{color:var(--navy);font-weight:600;border-bottom-color:var(--navy);}
+.tdiv{width:.5px;height:14px;background:var(--border);flex-shrink:0;}
+.tab-action{margin-left:auto;display:flex;align-items:center;gap:7px;}
+.tab-action-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:5px 11px;border-radius:7px;border:.5px solid var(--border);background:var(--bg-sec);color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;}
+.tab-action-btn:hover{border-color:var(--navy);color:var(--navy);}
+.log-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:5px 11px;border-radius:7px;border:.5px solid var(--border);background:var(--bg-sec);color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;}
+.log-btn:hover{border-color:var(--navy);color:var(--navy);}
+
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.ds-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.ds-status.sourcing{border-color:#9ca3af;}
+.ds-status.ready{border-color:#10b981;}
+.ds-status.live{border-color:#1B3A6B;}
+.ds-status.reserved{border-color:#f59e0b;}
+.ds-status.pack-sent{border-color:#8b5cf6;}
+.ds-status.complete{border-color:#10b981;}
+.ds-status.withdrawn{border-color:#9ca3af;}
+/* ── Explainer dismiss ── */
+.exp-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;padding:4px;}
+.exp-dismiss:hover{color:var(--text-2);}
+.exp-card{position:relative;}
+.exp-restore{display:none;align-items:center;gap:5px;font-size:11px;color:var(--text-2);background:var(--bg-sec);border:.5px solid var(--border);border-radius:20px;padding:4px 12px;cursor:pointer;margin-bottom:12px;width:fit-content;}
+.exp-restore:hover{color:var(--navy);border-color:var(--navy);}
+.exp-restore.show{display:inline-flex;}
+/* ══ UNIFIED SIDEBAR SYSTEM ══ */
+.sbar-panel{width:280px;flex-shrink:0;}
+.sbar-sticky{position:sticky;top:calc(var(--hdr-h,56px) + var(--istrip-h,48px) + var(--livebar-h,44px) + var(--tabs-h,42px) + 20px);}
+.sbar-card{background:#fff;border-radius:12px;border:.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;margin-bottom:10px;}
+.sbar-hdr{padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);display:flex;align-items:center;gap:9px;}
+.sbar-icon{width:28px;height:28px;border-radius:7px;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--navy);flex-shrink:0;}
+.sbar-hdr-text{flex:1;min-width:0;}
+.sbar-title{font-size:12px;font-weight:600;color:var(--text-1);}
+.sbar-subtitle{font-size:10px;color:var(--text-2);margin-top:1px;}
+.sbar-badge{font-size:10px;font-weight:700;background:var(--navy-light);color:var(--navy);padding:2px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap;}
+.sbar-badge.amber{background:#fef3c7;color:#92400e;}
+.sbar-badge.green{background:var(--teal-light);color:#065f46;}
+.sbar-badge.red{background:#fff5f5;color:#991b1b;}
+.sbar-body{padding:12px 14px;}
+.sbar-progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:6px 0 3px;}
+.sbar-progress-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .4s ease;}
+.sbar-progress-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--text-2);}
+.sbar-dots{display:flex;align-items:center;gap:5px;padding:9px 14px;border-top:.5px solid var(--border);flex-wrap:wrap;}
+.sbar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:all .2s;}
+.sbar-dot.done{background:var(--teal);}
+.sbar-dot.active{background:var(--navy);transform:scale(1.3);}
+.sbar-dot.miss{background:#D97706;}
+.sbar-dot.skipped{background:#D97706;opacity:.7;}
+.sbar-dot.empty{background:var(--border);}
+.sbar-dot.dismissed{background:var(--border);opacity:.35;}
+.sbar-items{display:flex;flex-direction:column;}
+.sbar-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid #f3f4f6;cursor:pointer;border-radius:4px;transition:padding-left .12s;}
+.sbar-item:last-child{border-bottom:none;}
+.sbar-item:hover{padding-left:3px;}
+.sbar-item:hover .sbar-item-lbl{color:var(--navy);}
+.sbar-item-lbl{font-size:11px;color:var(--text-1);flex:1;line-height:1.4;}
+.sbar-item-lbl.done{color:#9ca3af;text-decoration:line-through;}
+.sbar-item-lbl.optional{color:#9ca3af;}
+.sbar-item-lbl.warn{color:#D97706;}
+.sbar-item-arrow{font-size:10px;color:var(--border);flex-shrink:0;transition:color .12s;}
+.sbar-item:hover .sbar-item-arrow{color:var(--navy);}
+.sbar-dot-sm{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sbar-dot-sm.done{background:var(--teal);}
+.sbar-dot-sm.miss{background:#D97706;}
+.sbar-dot-sm.optional{background:transparent;border:.5px dashed #bbb;}
+.sbar-metrics{display:flex;flex-direction:column;}
+.sbar-metric{display:flex;align-items:baseline;justify-content:space-between;padding:6px 0;border-bottom:.5px solid #f3f4f6;font-size:11px;}
+.sbar-metric:last-child{border-bottom:none;}
+.sbar-metric-lbl{color:var(--text-2);}
+.sbar-metric-val{font-weight:600;color:var(--text-1);}
+.sbar-metric-val.teal{color:#065f46;}
+.sbar-metric-val.navy{color:var(--navy);}
+.sbar-metric-val.amber{color:#92400e;}
+.sbar-cta{width:100%;padding:10px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:6px;transition:opacity .15s;}
+.sbar-cta:hover{opacity:.88;}
+.sbar-cta:disabled{background:var(--bg-sec);color:#bbb;border:.5px solid var(--border);cursor:not-allowed;opacity:1;}
+.sbar-cta.outline{background:#fff;border:.5px solid var(--border);color:var(--text-2);}
+.sbar-cta.outline:hover{border-color:var(--navy);color:var(--navy);}
+.sbar-warn{background:#fff5f5;border:.5px solid #fca5a5;border-radius:8px;padding:9px 12px;font-size:11px;color:#991b1b;display:flex;gap:7px;align-items:flex-start;line-height:1.6;margin-bottom:8px;}
+.sbar-warn i{flex-shrink:0;color:#DC2626;font-size:12px;margin-top:1px;}
+.sbar-warn.amber{background:#fffbeb;border-color:#fde68a;color:#92400e;}
+.sbar-warn.amber i{color:#D97706;}
+.sbar-warn.green{background:#f0fdf4;border-color:#6ee7b7;color:#065f46;}
+.sbar-warn.green i{color:#10B981;}
+.sbar-note{font-size:10px;color:#9ca3af;display:flex;align-items:flex-start;gap:5px;padding-top:10px;border-top:.5px solid var(--border);margin-top:2px;line-height:1.5;}
+.sbar-note i{font-size:11px;flex-shrink:0;}
+.sbar-field-tag{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--navy-light);color:var(--navy);display:inline-flex;align-items:center;gap:3px;margin-bottom:8px;}
+.sbar-field-name{font-size:14px;font-weight:600;color:var(--text-1);margin-bottom:3px;}
+.sbar-field-hint{font-size:11px;color:var(--text-2);line-height:1.55;margin-bottom:11px;}
+.sbar-input-row{display:flex;align-items:center;background:var(--bg-sec);border:.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;transition:border-color .15s;}
+.sbar-input-row:focus-within{border-color:var(--navy);background:#fff;box-shadow:0 0 0 2px rgba(27,58,107,.06);}
+.sbar-input-pfx{font-size:12px;font-weight:500;color:var(--text-2);padding:0 8px 0 11px;white-space:nowrap;}
+.sbar-input-fld{border:none;background:transparent;font-size:16px;font-weight:600;color:var(--text-1);padding:11px 6px;width:100%;outline:none;font-family:inherit;}
+.sbar-input-sfx{font-size:11px;color:var(--text-2);padding:0 11px 0 4px;white-space:nowrap;}
+.sbar-skip-row{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+.sbar-skip{font-size:11px;color:var(--text-2);background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 0;}
+.sbar-skip:hover{color:var(--navy);}
+.sbar-never{font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;font-family:inherit;}
+.sbar-never:hover{color:#999;}
+.sbar-mini-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:7px;}
+.sbar-captured{padding:10px 14px;border-top:.5px solid var(--border);}
+.sbar-captured-item{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11px;color:#9ca3af;}
+.sbar-captured-item i{font-size:10px;color:var(--teal);}
+.sbar-preview{padding:10px 14px;border-top:.5px solid var(--border);}
+.sbar-preview-tile{background:var(--navy-light);border:.5px solid rgba(27,58,107,.15);border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;}
+.sbar-preview-meta .name{font-size:11px;font-weight:600;color:var(--navy);}
+.sbar-preview-meta .sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+.sbar-preview-chip{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:600;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid #f59e0b;white-space:nowrap;color:var(--text-1);}
+.sbar-skipped-section{padding:10px 14px;border-top:.5px solid var(--border);}
+.sbar-skipped-hdr{font-size:11px;font-weight:500;color:#D97706;display:flex;align-items:center;gap:5px;cursor:pointer;}
+.sbar-skipped-list{margin-top:7px;display:none;flex-direction:column;gap:4px;}
+.sbar-skipped-list.open{display:flex;}
+.sbar-skipped-row{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;background:#fffbeb;border:.5px solid #fde68a;border-radius:7px;cursor:pointer;}
+.sbar-skipped-row:hover{background:#fef3c7;}
+.sbar-skipped-name{font-size:11px;font-weight:500;color:#92400e;}
+.sbar-skipped-btn{font-size:10px;color:var(--navy);font-weight:600;}
+.sbar-done{padding:20px 14px;text-align:center;display:none;}
+.sbar-done.show{display:block;}
+.sbar-done-icon{width:44px;height:44px;border-radius:50%;background:var(--teal-light);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px;color:var(--teal);}
+.sbar-done-title{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:5px;}
+.sbar-done-sub{font-size:11px;color:var(--text-2);line-height:1.6;}
+.sbar-chase-card{background:#fffbeb;border:.5px solid #fde68a;border-radius:8px;padding:10px 12px;margin-bottom:10px;}
+.sbar-chase-title{font-size:12px;font-weight:700;color:#92400e;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px;}
+.sbar-chase-body{font-size:11px;color:var(--text-2);line-height:1.5;}
+.sbar-done-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid #10b981;white-space:nowrap;color:var(--text-1);}
+
+/* ══ PRIVACY MODE ══ */
+
+
+
+.privacy-banner{display:none;background:#92400e;padding:7px 24px;font-size:11px;font-weight:500;color:#fef3c7;align-items:center;gap:8px;position:sticky;top:var(--hdr-h);z-index:218;}
+.privacy-banner.show{display:flex;}
+.pii{transition:opacity .2s;}
+body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
+
+/* ══ CONTENT ══ */
+.ds-content{max-width:1280px;margin:0 auto;padding:20px 24px 32px;}
+
+/* ══ EXPLAINER ══ */
+.exp-card{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;}
+.exp-icon{width:36px;height:36px;border-radius:var(--r-md);background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--navy);flex-shrink:0;}
+.exp-title{font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:4px;}
+.exp-text{font-size:12px;color:var(--text-2);line-height:1.7;}
+.exp-text strong{color:var(--text-1);}
+
+/* ══ TWO-COLUMN LAYOUT ══ */
+.split{display:grid;grid-template-columns:1fr 280px;gap:12px;align-items:start;}
+.right-sticky{position:sticky;top:calc(var(--hdr-h) + var(--istrip-h) + var(--livebar-h) + var(--tabs-h) + 20px);}
+
+/* ══ SECTION CARDS ══ */
+.sec{background:#fff;border-radius:var(--r-lg);border:.5px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;margin-bottom:10px;}
+.sec-hdr{padding:12px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg-sec);}
+.sec-title{font-size:12px;font-weight:600;color:var(--text-1);flex:1;}
+.sec-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#bbb;margin-bottom:10px;}
+.sec-body{padding:14px 16px;}
+
+/* ══ VENDOR PROFILE ══ */
+.vendor-avatar{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;}
+.vendor-name{font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.vendor-sub{font-size:11px;color:var(--text-2);}
+.contact-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:.5px solid #f3f4f6;font-size:12px;color:var(--text-1);}
+.contact-row:last-child{border-bottom:none;}
+.contact-row i{font-size:13px;color:var(--text-2);flex-shrink:0;width:16px;}
+.contact-label{font-size:10px;color:#9ca3af;min-width:60px;}
+
+/* ══ MOTIVATION ══ */
+.mot-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.mot-hot{background:#fef2f2;color:#991b1b;border:.5px solid #fca5a5;}
+.mot-warm{background:#fffbeb;color:#92400e;border:.5px solid #fde68a;}
+.mot-cool{background:var(--bg-sec);color:var(--text-2);border:.5px solid var(--border);}
+.source-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid #1B3A6B;white-space:nowrap;color:var(--text-1);};
+
+/* ══ OFFER TRACKER ══ */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.price-cell{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;}
+.price-lbl{font-size:10px;color:#9ca3af;margin-bottom:4px;}
+.price-val{font-size:17px;font-weight:600;color:var(--navy);}
+.price-val.green{color:#065f46;}
+.price-val.amber{color:#92400e;}
+.price-delta{font-size:10px;color:#9ca3af;margin-top:2px;}
+.offer-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:.5px solid #f3f4f6;font-size:12px;}
+.offer-row:last-child{border-bottom:none;}
+.offer-date{font-size:10px;color:#9ca3af;min-width:70px;}
+.offer-amount{font-weight:600;color:var(--navy);min-width:80px;}
+.offer-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid;white-space:nowrap;color:var(--text-1);}
+.offer-accepted{background:var(--teal-light);color:#065f46;}
+.offer-declined{background:#fef2f2;color:#991b1b;}
+.offer-pending{background:#fef3c7;color:#92400e;}
+
+/* ══ CONTACT LOG ══ */
+.log-entry{display:flex;gap:10px;padding:10px 0;border-bottom:.5px solid #f3f4f6;}
+.log-entry:last-child{border-bottom:none;}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.log-dot.call{background:var(--navy);}
+.log-dot.email{background:var(--teal);}
+.log-dot.visit{background:#7C3AED;}
+.log-dot.note{background:#D97706;}
+.log-meta{flex:1;}
+.log-type{font-size:11px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.log-note{font-size:11px;color:var(--text-2);line-height:1.5;}
+.log-date{font-size:10px;color:#9ca3af;margin-top:2px;}
+.log-actions{display:flex;gap:6px;margin-top:14px;}
+.log-btn{font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .15s;}
+.log-btn:hover{border-color:var(--navy);color:var(--navy);}
+.log-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.log-btn.primary:hover{opacity:.88;}
+.log-btn.danger{color:#9ca3af;border-color:#f3f4f6;}
+.log-btn.danger:hover{color:#991b1b;border-color:#fca5a5;background:#fef2f2;}
+
+/* ══ CHAIN STATUS ══ */
+.chain-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chain-cell{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;}
+.chain-lbl{font-size:10px;color:#9ca3af;margin-bottom:4px;}
+.chain-val{font-size:12px;font-weight:500;color:var(--text-1);}
+
+/* ══ FIELDS ══ */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.f-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#bbb;}
+.f-in{border:.5px solid var(--border);border-radius:var(--r-md);padding:7px 10px;font-size:12px;color:var(--text-1);background:#fff;font-family:inherit;width:100%;outline:none;transition:border-color .15s;}
+.f-in:focus{border-color:var(--navy);}
+.f-ta{border:.5px solid var(--border);border-radius:var(--r-md);padding:8px 10px;font-size:12px;color:var(--text-1);background:#fff;font-family:inherit;width:100%;height:64px;resize:none;outline:none;line-height:1.5;transition:border-color .15s;}
+.f-ta:focus{border-color:var(--navy);}
+
+/* ══ CHASE REMINDER ══ */
+.chase-card{background:#fffbeb;border:.5px solid #fde68a;border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.chase-card.clear{background:#f0fdf4;border-color:#6ee7b7;}
+.chase-body{flex:1;}
+.chase-title{font-size:12px;font-weight:600;color:#92400e;margin-bottom:3px;}
+.chase-card.clear .chase-title{color:#065f46;}
+.chase-sub{font-size:11px;color:var(--text-2);line-height:1.5;}
+.chase-btn{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;margin-top:1px;}
+.chase-set{background:#D97706;color:#fff;}
+.chase-dismiss{background:#10B981;color:#fff;}
+
+/* ══ CRM LINK ══ */
+.crm-link-card{background:var(--navy-light);border:.5px solid rgba(27,58,107,.15);border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.crm-link-text{flex:1;font-size:11px;color:var(--text-2);line-height:1.5;}
+.crm-link-text strong{color:var(--text-1);}
+.crm-btn{font-size:11px;font-weight:600;color:var(--navy);background:#fff;border:.5px solid rgba(27,58,107,.25);border-radius:var(--r-sm);padding:5px 12px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+
+/* ══ BOTTOM BAR ══ */
+
+
+
+.hdr{background:var(--navy-dark);height:var(--hdr-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:220;gap:16px;}
+.logo{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em;cursor:pointer;}
+.logo span{color:var(--teal-mid);}
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;}
+.hdr-nav{display:flex;align-items:center;gap:2px;}
+.hn{font-size:12px;font-weight:500;padding:5px 13px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-family:inherit;transition:all .12s;}
+.hn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.hn.on{background:rgba(255,255,255,.14);color:#fff;}
+.hn-sep{width:.5px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;}
+.hdr-left{display:flex;align-items:center;gap:6px;}
+
+
+.logo-sep{width:.5px;height:18px;background:rgba(255,255,255,.12);margin:0 6px;flex-shrink:0;}
+
+
+
+
+
+.hdr-centre{flex:1;display:flex;justify-content:center;align-items:center;}
+.search-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.search-bar:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.search-bar:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.search-bar i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.search-bar input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.search-bar input::placeholder{color:rgba(255,255,255,.3);}
+.search-bar .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}.search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.search-icon-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);font-size:15px;transition:all .12s;}
+.search-icon-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.hdr-right{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.hdr-icon{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;transition:all .12s;position:relative;flex-shrink:0;}
+.hdr-icon:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#D97706;border:1.5px solid var(--navy-dark);}
+.btn-new{background:var(--teal);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+.btn-new:hover{opacity:.88;}
+.avt-wrap{position:relative;}
+.avt-wrap-inner{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.avt{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);border:.5px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;transition:all .12s;}
+.avt-wrap-inner:hover .avt{background:rgba(255,255,255,.24);}
+.avt-chevron{font-size:10px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.avt-wrap-inner:hover .avt-chevron{color:rgba(255,255,255,.6);}
+.avt.privacy-on{border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.35);}
+.avt-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:200px;overflow:hidden;z-index:300;display:none;}
+.avt-drop.show{display:block;}
+.avt-drop-head{padding:12px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.avt-drop-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.avt-drop-email{font-size:10px;color:var(--text-2);margin-top:1px;}
+.avt-drop-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12px;color:var(--text-1);cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left;}
+.avt-drop-item:hover{background:var(--bg-sec);}
+.avt-drop-item i{font-size:15px;color:var(--text-2);}
+.avt-drop-item.danger{color:#b91c1c;}
+.avt-drop-item.danger i{color:#b91c1c;}
+.avt-drop-divider{height:.5px;background:var(--border);margin:3px 0;}
+.avt-drop-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.avt-drop-toggle:hover{background:var(--bg-sec);}
+.avt-drop-toggle-left{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-1);}
+.avt-drop-toggle-left i{font-size:15px;color:var(--text-2);}
+.mini-toggle{position:relative;width:28px;height:16px;flex-shrink:0;}
+.mini-toggle input{opacity:0;width:0;height:0;}
+.mini-track{position:absolute;inset:0;background:#e5e7eb;border-radius:20px;cursor:pointer;transition:background .15s;}
+.mini-toggle input:checked + .mini-track{background:var(--teal);}
+.mini-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.15);}
+.mini-toggle input:checked ~ .mini-thumb{transform:translateX(12px);}
+
+/* ══ SLIDE-OVER (Log activity / Log offer / Edit vendor) ══ */
+.so-overlay{position:fixed;inset:0;background:rgba(15,25,35,.38);z-index:400;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.so-overlay.show{opacity:1;pointer-events:auto;}
+.so-panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;z-index:401;box-shadow:-12px 0 36px rgba(0,0,0,.16);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;}
+.so-panel.show{transform:translateX(0);}
+.so-hdr{padding:16px 18px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.so-title{font-size:14px;font-weight:700;color:var(--text-1);}
+.so-close{background:none;border:none;cursor:pointer;color:var(--text-2);font-size:18px;line-height:1;padding:4px;font-family:inherit;}
+.so-close:hover{color:var(--text-1);}
+.so-body{flex:1;overflow-y:auto;padding:16px 18px;}
+.so-foot{padding:14px 18px;border-top:.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;}
+.so-field{margin-bottom:14px;}
+.so-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#bbb;margin-bottom:6px;display:block;}
+.so-type-row{display:flex;gap:6px;flex-wrap:wrap;}
+.so-type-btn{font-size:11px;font-weight:500;padding:6px 13px;border-radius:20px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .12s;}
+.so-type-btn:hover{border-color:var(--navy);color:var(--navy);}
+.so-type-btn.on{border-color:var(--navy);background:var(--navy-light);color:var(--navy);font-weight:600;}
+.so-btn{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.so-btn.primary{background:var(--navy);color:#fff;}
+.so-btn.primary:hover{opacity:.88;}
+.so-btn.outline{background:#fff;border:.5px solid var(--border);color:var(--text-2);}
+.so-btn.outline:hover{border-color:var(--navy);color:var(--navy);}
+.so-hint{font-size:10px;color:#9ca3af;margin-top:5px;line-height:1.5;}
+
+/* ══ NOTES DRAWER (slide-over) ══ */
+.notes-overlay{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;}
+.notes-overlay.show{opacity:1;pointer-events:all;}
+.notes-panel{position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;z-index:301;transform:translateX(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.16);}
+.notes-panel.show{transform:translateX(0);}
+.notes-hdr{background:var(--navy);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.notes-title{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:7px;}
+.notes-count{font-size:11px;font-weight:500;color:rgba(255,255,255,.6);margin-top:3px;}
+.notes-close{background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.2);border-radius:var(--r-md);color:#fff;padding:6px 12px;cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px;}
+.notes-close:hover{background:rgba(255,255,255,.2);}
+.notes-body{flex:1;overflow-y:auto;padding:20px 22px;}
+.notes-composer{background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:20px;}
+.notes-input{width:100%;border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:13px;font-family:inherit;color:var(--text-1);resize:vertical;min-height:64px;background:#fff;box-sizing:border-box;}
+.notes-input:focus{outline:none;border-color:var(--teal);}
+.notes-add-row{display:flex;justify-content:flex-end;margin-top:10px;}
+.notes-add-btn{background:var(--navy);color:#fff;border:none;border-radius:var(--r-md);padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.notes-add-btn:hover{background:var(--navy-light);}
+.notes-add-btn:disabled{opacity:.4;cursor:not-allowed;}
+.notes-section-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.notes-section-lbl::after{content:'';flex:1;height:.5px;background:var(--border);}
+.notes-item{border:.5px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:10px;}
+.notes-item-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.notes-author{font-size:12px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:6px;}
+.notes-time{font-size:11px;color:var(--text-2);}
+.notes-text{font-size:13px;line-height:1.55;color:var(--text-1);white-space:pre-wrap;}
+.notes-del{background:none;border:none;color:var(--text-2);cursor:pointer;padding:3px;border-radius:6px;display:flex;align-items:center;font-size:13px;}
+.notes-del:hover{background:rgba(220,38,38,.08);color:#dc2626;}
+.notes-empty{text-align:center;padding:40px 20px;color:var(--text-2);font-size:13px;}
+.notes-empty i{font-size:28px;color:var(--border);display:block;margin-bottom:10px;}
+
+
+/* ══ NOTIFICATION BELL ══ */
+.notif-wrap{position:relative;}
+.notif-btn{width:32px;height:32px;border-radius:8px;border:.5px solid rgba(255,255,255,.12);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;position:relative;flex-shrink:0;transition:all .12s;}
+.notif-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+.notif-badge{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F59E0B;border:1.5px solid var(--navy-dark);display:none;}
+.notif-badge.show{display:block;}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.14);width:320px;z-index:400;display:none;overflow:hidden;}
+.notif-drop.show{display:block;}
+.notif-drop-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.notif-drop-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.notif-mark-all{font-size:10px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;padding:0;}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.notif-item:hover{background:var(--bg-sec);}
+.notif-item.unread{background:#fefce8;}
+.notif-item.unread:hover{background:#fef9c3;}
+.notif-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.notif-icon-wrap.amber{background:#fef3c7;color:#d97706;}
+.notif-icon-wrap.navy{background:#e8eef7;color:var(--navy);}
+.notif-icon-wrap.teal{background:#d1fae5;color:#059669;}
+.notif-icon-wrap.red{background:#fee2e2;color:#dc2626;}
+.notif-icon-wrap i{font-size:14px;}
+.notif-body{flex:1;min-width:0;}
+.notif-deal-tag{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.notif-msg{font-size:11px;font-weight:500;color:var(--text-1);line-height:1.4;}
+.notif-time{font-size:9px;color:var(--text-2);margin-top:3px;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0;margin-top:5px;}
+.notif-empty{padding:28px 14px;text-align:center;}
+.notif-empty i{font-size:24px;color:var(--text-2);margin-bottom:6px;display:block;}
+.notif-empty-msg{font-size:11px;color:var(--text-2);}
+.notif-drop-footer{padding:9px 14px;border-top:.5px solid var(--border);text-align:center;}
+.notif-drop-footer button{font-size:11px;color:var(--navy);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:600;}
+
+
+/* ══ FEE & INVOICE ══ */
+.fee-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin-bottom:12px;}
+.fee-cell{padding:10px 14px;border-right:.5px solid var(--border);border-bottom:.5px solid var(--border);}
+.fee-cell:nth-child(2n){border-right:none;}
+.fee-cell:nth-last-child(-n+2){border-bottom:none;}
+.fee-cell-lbl{font-size:9px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.fee-cell-val{font-size:13px;font-weight:700;color:var(--text-1);}
+.fee-cell-val.teal{color:var(--teal);}
+.fee-cell-val.amber{color:#d97706;}
+.fee-status-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.fee-status-pill{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:.5px solid;}
+.fee-status-pill.outstanding{color:#92400e;background:#fffbeb;border-color:#fde68a;}
+.fee-status-pill.received{color:#065f46;background:#d1fae5;border-color:rgba(29,158,117,.3);}
+.fee-status-pill.waived{color:#6b7280;background:#f3f4f6;border-color:#e5e7eb;}
+.fee-edit-row{display:flex;gap:6px;margin-bottom:8px;}
+.fee-inp{flex:1;font-size:12px;padding:7px 10px;border:.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;color:var(--text-1);}
+.fee-inp:focus{outline:none;border-color:var(--navy);}
+/* Invoice modal */
+.invoice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:none;align-items:center;justify-content:center;}
+.invoice-overlay.show{display:flex;}
+.invoice-modal{background:#fff;border-radius:var(--r-lg);width:520px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.inv-modal-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:.5px solid var(--border);background:var(--bg-sec);}
+.inv-modal-title{font-size:12px;font-weight:700;color:var(--text-1);}
+.inv-modal-actions{display:flex;gap:8px;}
+.inv-modal-btn{font-size:11px;font-weight:600;padding:5px 14px;border-radius:7px;cursor:pointer;font-family:inherit;border:.5px solid var(--border);background:#fff;color:var(--text-2);}
+.inv-modal-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+/* Invoice document */
+.invoice-doc{padding:28px 32px;font-family:'Helvetica Neue',Arial,sans-serif;}
+.inv-doc-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
+.inv-doc-logo{font-size:18px;font-weight:800;color:var(--navy);}
+.inv-doc-meta{text-align:right;font-size:11px;color:#6b7280;}
+.inv-doc-meta strong{color:var(--text-1);display:block;font-size:13px;}
+.inv-doc-parties{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;padding:14px;background:#f9fafb;border-radius:8px;}
+.inv-doc-party-lbl{font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.inv-doc-party-name{font-size:12px;font-weight:700;color:#111827;margin-bottom:2px;}
+.inv-doc-party-detail{font-size:10px;color:#6b7280;line-height:1.5;}
+.inv-doc-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.inv-doc-table th{font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left;}
+.inv-doc-table td{font-size:11px;color:#374151;padding:10px 10px;border-bottom:.5px solid #f3f4f6;}
+.inv-doc-table td:last-child,.inv-doc-table th:last-child{text-align:right;}
+.inv-doc-total-row{display:flex;justify-content:flex-end;margin-bottom:20px;}
+.inv-doc-total{background:var(--navy);color:#fff;padding:12px 20px;border-radius:8px;min-width:180px;}
+.inv-doc-total-lbl{font-size:10px;font-weight:600;opacity:.7;margin-bottom:3px;}
+.inv-doc-total-val{font-size:20px;font-weight:800;}
+.inv-doc-footer{font-size:10px;color:#9ca3af;text-align:center;padding-top:16px;border-top:.5px solid #e5e7eb;}
+
+
+/* ══ EMPTY STATES ══ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 24px;text-align:center;}
+.empty-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.empty-icon i{font-size:26px;}
+.empty-icon.navy{background:var(--navy-light);color:var(--navy);}
+.empty-icon.teal{background:var(--teal-light);color:var(--teal);}
+.empty-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:5px;}
+.empty-body{font-size:12px;color:var(--text-2);max-width:280px;line-height:1.6;margin-bottom:18px;}
+.empty-cta{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:9px 20px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;transition:all .12s;}
+.empty-cta:hover{background:var(--navy-dark);}
+.empty-cta.teal{background:var(--teal);}
+.empty-cta-sec{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:7px 16px;border-radius:8px;border:.5px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-family:inherit;margin-left:8px;transition:all .12s;}
+.empty-cta-sec:hover{border-color:var(--navy);color:var(--navy);}
+.empty-state-wrap{background:#fff;border:.5px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;}
+
+
+/* ══ SELLER PICKER ══ */
+.spick-overlay{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s;}
+.spick-overlay.show{opacity:1;pointer-events:all;}
+.spick-panel{position:fixed;top:0;right:0;bottom:0;width:460px;background:#fff;z-index:301;transform:translateX(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.16);}
+.spick-panel.show{transform:translateX(0);}
+.spick-hdr{background:var(--navy);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.spick-title{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:7px;}
+.spick-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,.6);margin-top:3px;}
+.spick-close{background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.2);border-radius:var(--r-md);color:#fff;padding:6px 12px;cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px;}
+.spick-close:hover{background:rgba(255,255,255,.2);}
+.spick-body{flex:1;overflow-y:auto;padding:20px 22px;}
+.spick-modes{display:flex;gap:6px;background:var(--bg-sec);border:.5px solid var(--border);border-radius:var(--r-lg);padding:4px;margin-bottom:18px;}
+.spick-mode-btn{flex:1;border:none;background:none;font-family:inherit;font-size:12px;font-weight:600;color:var(--text-2);padding:8px 10px;border-radius:var(--r-md);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;}
+.spick-mode-btn.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.spick-search{width:100%;border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px 10px 36px;font-size:13px;font-family:inherit;color:var(--text-1);background:#fff;box-sizing:border-box;}
+.spick-search:focus{outline:none;border-color:var(--teal);}
+.spick-search-wrap{position:relative;margin-bottom:16px;}
+.spick-search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-2);}
+.spick-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.spick-lbl::after{content:'';flex:1;height:.5px;background:var(--border);}
+.spick-item{background:#fff;border:.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:border-color .12s;}
+.spick-item:hover{border-color:#c8cdd5;}
+.spick-item-left{display:flex;align-items:center;gap:10px;}
+.spick-avt{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.spick-name{font-size:13px;font-weight:600;color:var(--text-1);}
+.spick-meta{font-size:11px;color:var(--text-2);margin-top:2px;}
+.spick-add-btn{background:var(--navy);color:#fff;border:none;border-radius:var(--r-md);padding:7px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.spick-add-btn:hover{opacity:.85;}
+.spick-flbl{display:block;font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:5px;margin-top:14px;}
+.spick-finput{width:100%;border:.5px solid var(--border);border-radius:var(--r-md);padding:10px 12px;font-size:13px;font-family:inherit;color:var(--text-1);background:#fff;box-sizing:border-box;}
+.spick-finput:focus{outline:none;border-color:var(--teal);}
+.spick-hint{font-size:11px;color:var(--text-2);background:var(--bg-sec);border-radius:var(--r-md);padding:10px 12px;margin-top:16px;line-height:1.6;}
+.spick-submit-row{padding-top:18px;border-top:.5px solid var(--border);margin-top:20px;}
+.spick-submit{width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s;}
+.spick-submit:hover{opacity:.88;}
+.spick-submit:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── Inline header search ── */
+.hdr-search{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:7px;padding:0 10px;height:28px;margin:0 10px;cursor:text;transition:all .2s;flex-shrink:0;}
+.hdr-search:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);}
+.hdr-search:focus-within{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
+.hdr-search i{font-size:12px;color:rgba(255,255,255,.35);flex-shrink:0;}
+.hdr-search input{background:none;border:none;outline:none;font-size:11px;color:#fff;font-family:inherit;width:150px;}
+.hdr-search input::placeholder{color:rgba(255,255,255,.3);}
+.hdr-search .search-kbd{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+/* hdr-right nav items (Seller/Investors) */
+.hdr-right-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+</style>
+</head>
+<body>
+
+<!-- SELLER PICKER (slide-over) -->
+<div class="spick-overlay" id="spickOverlay" onclick="closeSellerPicker()"></div>
+<div class="spick-panel" id="spickPanel">
+  <div class="spick-hdr">
+    <div>
+      <div class="spick-title"><i class="ti ti-user-check"></i> Link seller to deal</div>
+      <div class="spick-sub">14 Roath Court Rd · DS-004</div>
+    </div>
+    <button class="spick-close" onclick="closeSellerPicker()"><i class="ti ti-x"></i> Close</button>
+  </div>
+  <div class="spick-body">
+    <div class="spick-modes">
+      <button class="spick-mode-btn on" id="spickModeSearchBtn" onclick="spickSetMode('search')"><i class="ti ti-search" style="font-size:13px;"></i> Search CRM</button>
+      <button class="spick-mode-btn" id="spickModeNewBtn" onclick="spickSetMode('new')"><i class="ti ti-plus" style="font-size:13px;"></i> New seller</button>
+    </div>
+
+    <!-- SEARCH MODE -->
+    <div id="spickSearchView">
+      <div class="spick-search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" class="spick-search" id="spickSearchInput" placeholder="Search by name or phone…" oninput="spickFilter(this.value)">
+      </div>
+      <div class="spick-lbl">From your Sellers CRM</div>
+      <div id="spickResults"></div>
+    </div>
+
+    <!-- NEW SELLER MODE -->
+    <div id="spickNewView" style="display:none;">
+      <label class="spick-flbl">Full name *</label>
+      <input type="text" class="spick-finput" id="spickName" placeholder="e.g. John Smith" oninput="spickToggleCreateBtn()">
+
+      <label class="spick-flbl">Mobile</label>
+      <input type="tel" class="spick-finput" id="spickMobile" placeholder="07700 900000">
+
+      <label class="spick-flbl">Email</label>
+      <input type="email" class="spick-finput" id="spickEmail" placeholder="seller@email.com">
+
+      <label class="spick-flbl">Agent name</label>
+      <input type="text" class="spick-finput" id="spickAgent" placeholder="e.g. Mark Thornton">
+
+      <label class="spick-flbl">Agent phone</label>
+      <input type="tel" class="spick-finput" id="spickAgentPhone" placeholder="07700 900000">
+
+      <div class="spick-hint"><i class="ti ti-info-circle" style="font-size:12px;"></i> A new record will be created in your Sellers CRM and linked to this deal automatically.</div>
+
+      <div class="spick-submit-row">
+        <button class="spick-submit" id="spickCreateBtn" disabled onclick="spickCreateNew()"><i class="ti ti-user-plus" style="font-size:13px;"></i> Create &amp; link to deal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo" onclick="window.location.href='ds_home.html'" title="Back to dashboard" style="cursor:pointer;">Deal<span>Score</span></div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-nav">
+      <button class="hn on" onclick="window.location.href='ds_deals.html'">Deals</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_pipeline_view.html'">Pipeline</button>
+      <div class="hn-sep"></div>
+      <button class="hn" onclick="window.location.href='ds_compare_view.html'">Compare</button>
+    </nav>
+  </div>
+  <div class="hdr-centre">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Search deals, sellers, addresses…">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div id="mockup-tier-toggle" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);">
+        <span style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;">Tier</span>
+        <button onclick="setMockupTier('pro')" id="hdr-tier-pro" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-family:inherit;">Pro</button>
+        <button onclick="setMockupTier('proplus')" id="hdr-tier-pp" style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">Pro+</button>
+      </div>
+    <div class="logo-sep"></div>
+    <nav class="hdr-right-nav"><button class="hn" onclick="window.location.href='ds_sellers_crm.html'">Seller</button><div class="hn-sep"></div><button class="hn" onclick="window.location.href='ds_investors_crm.html'">Investors</button></nav>
+    <div class="logo-sep"></div>
+    <div class="notif-wrap">
+      <button class="notif-btn" onclick="toggleNotif(event)" aria-label="Notifications">
+        <i class="ti ti-bell"></i>
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+      <div class="notif-drop" id="notif-drop">
+        <div class="notif-drop-hdr">
+          <span class="notif-drop-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"></div>
+        <div class="notif-drop-footer"><button onclick="markAllRead()">Clear all notifications</button></div>
+      </div>
+    </div>
+    
+    <div class="logo-sep"></div>
+    <button class="btn-new" onclick="window.location.href='ds_analysis_hub.html?view=inputs&new=1'"><i class="ti ti-plus"></i> New deal</button>
+    <div class="logo-sep"></div>
+    <div class="avt-wrap">
+      <div class="avt-wrap-inner" onclick="hdrToggleDrop()">
+        <div class="avt" id="hdr-avt">VM</div>
+        <i class="ti ti-chevron-down avt-chevron"></i>
+      </div>
+      <div class="avt-drop" id="hdr-avt-drop">
+        <div class="avt-drop-head">
+          <div class="avt-drop-name">Videet Mardania</div>
+          <div class="avt-drop-email">videet@propertysourcing.co.uk</div>
+        </div>
+        <div style="padding:4px 0;">
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-user"></i> Profile</button>
+          <button class="avt-drop-item" onclick="window.location.href='ds_profile_settings.html'"><i class="ti ti-settings"></i> Settings</button>
+          <button class="avt-drop-item"><i class="ti ti-credit-card"></i> Billing &amp; plan</button>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <div class="avt-drop-toggle" onclick="hdrTogglePrivacy()">
+          <div class="avt-drop-toggle-left"><i class="ti ti-eye-off"></i> Privacy mode</div>
+          <label class="mini-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="hdr-privacy-chk" onchange="hdrTogglePrivacy()">
+            <span class="mini-track"></span><span class="mini-thumb"></span>
+          </label>
+        </div>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item"><i class="ti ti-keyboard"></i> Keyboard shortcuts</button>
+        <button class="avt-drop-item"><i class="ti ti-sparkles"></i> What's new</button>
+        <button class="avt-drop-item"><i class="ti ti-help-circle"></i> Help &amp; support</button>
+        <div class="avt-drop-divider"></div>
+        <button class="avt-drop-item danger"><i class="ti ti-logout"></i> Sign out</button>
+      </div>
+    </div>
+  
+  </div>
+</div>
+</div>
+
+<!-- PRIVACY BANNER — shown when privacy mode is active -->
+<div class="privacy-banner" id="privacy-banner">
+  <i class="ti ti-eye-off" style="font-size:13px;"></i>
+  <span>Privacy mode is on — personal data hidden on screen</span>
+  <button onclick="togglePrivacy()" style="margin-left:auto;font-size:10px;font-weight:600;color:#fef3c7;background:none;border:.5px solid rgba(254,243,199,.4);border-radius:20px;padding:2px 10px;cursor:pointer;font-family:inherit;">Turn off</button>
+</div>
+
+<!-- INFO STRIP -->
+<div class="istrip">
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    <span style="font-size:11px;font-weight:500;color:#bbb;">DS-004</span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span class="ds-status reserved">Reserved · Day 8</span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:13px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:4px;">
+      <i class="ti ti-map-pin" style="font-size:11px;opacity:.4;"></i>
+      <span id="strip-address" class="pii">14 Roath Court Rd, Cardiff CF24</span>
+    </span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:13px;font-weight:600;color:var(--text-1);">Buy to Let</span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:12px;font-weight:500;color:var(--text-2);display:flex;align-items:center;gap:4px;">
+      <i class="ti ti-user" style="font-size:11px;opacity:.5;"></i>
+      <span id="strip-seller" class="pii">Derek Hassan</span>
+    </span>
+    <span style="color:#ddd;font-size:12px;">·</span>
+    <span style="font-size:12px;font-weight:500;color:var(--text-2);display:flex;align-items:center;gap:5px;">
+      <i class="ti ti-users" style="font-size:11px;opacity:.5;"></i>
+      <span style="color:#34D399;font-weight:600;">2 interested</span>
+      <span style="opacity:.4;margin:0 1px;">·</span>
+      <span>4 shared</span>
+      <span style="opacity:.4;margin:0 1px;">·</span>
+      <span>1 pledged</span>
+    </span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-left:auto;padding-right:16px;">
+    <span style="font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:4px;"><i class="ti ti-clock" style="font-size:11px;"></i> Last saved · 2 min ago</span>
+    <button class="lb-hide-toggle" id="lb-hide-toggle" onclick="toggleLivebar()" title="Hide or bring back the page-info bar below">
+      <i class="ti ti-chevron-up" id="lb-hide-icon" style="font-size:11px;"></i>
+      <span id="lb-hide-label">Hide page info</span>
+    </button>
+  </div>
+</div>
+
+<!-- LIVE BAR -->
+<!-- Context-adaptive: Seller is the "where does the negotiation stand" tab — lead with price gap, status and what's being waited on -->
+<div class="livebar">
+  <div class="lb-item"><div class="lb-lbl">Asking price</div><div class="lb-val">£192,000</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Current offer</div><div class="lb-val hl" id="lb-current-offer">£185,000 · -3.6%</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Status</div><div class="lb-val">Offer accepted · awaiting solicitor</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Waiting on</div><div class="lb-val">Seller's solicitor · 2 days</div></div>
+  <div class="lbsep"></div>
+  <div class="lb-item"><div class="lb-lbl">Next step</div><div class="lb-val">Survey instruction</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabwrap">
+  <div class="tabrow">
+    <button class="vt" onclick="window.location.href='ds_deal_overview.html'">Overview</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_analysis_hub.html'">Analysis</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_content_hub.html'">Content</button><div class="tdiv"></div>
+    <button class="vt on">Seller</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_investor_tab.html'">Investors</button><div class="tdiv"></div>
+    <button class="vt" onclick="window.location.href='ds_fees_tab.html'">Fees &amp; invoice</button>
+    <div class="tab-action" style="display:flex;align-items:center;gap:8px;">
+        <button onclick="window.location.href='ds_analysis_hub.html?view=results'" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:.5px solid rgba(217,119,6,.35);background:rgba(217,119,6,.08);color:#92400e;cursor:pointer;font-family:inherit;transition:all .12s;" title="2 inputs need attention — click to review in Results">
+  <i class="ti ti-alert-triangle" style="font-size:11px;"></i> 2 inputs to confirm
+</button>
+
+      <button class="log-btn" onclick="openSellerPicker()" style="border-radius:7px;"><i class="ti ti-user-plus" style="font-size:11px;"></i> Link seller</button>
+      <button class="log-btn" onclick="openNotes()" style="border-radius:7px;"><i class="ti ti-notes" style="font-size:11px;"></i> Notes</button>
+      <button class="log-btn" onclick="openLogActivity('call')" style="border-radius:7px;background:var(--navy);color:#fff;border-color:var(--navy);"><i class="ti ti-pencil" style="font-size:11px;"></i> Log activity</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="ds-content">
+
+  <!-- EXPLAINER -->
+  <div class="exp-card">
+  <button class="exp-dismiss" onclick="dismissExp(this)" title="Dismiss guide">×</button>
+  <div class="exp-icon"><i class="ti ti-user-check"></i></div>
+  <div>
+    <div class="exp-title">Vendor relationship for this deal</div>
+    <div class="exp-text">Log contact details, track motivation and chain position, and record negotiation notes. Stage-aware <strong>next actions</strong> update automatically as the deal progresses. Manage sourcing fees and invoices in the <strong>Fees &amp; invoice</strong> tab.</div>
+  </div>
+</div>
+  <button class="exp-restore" onclick="restoreExp(this)"><i class="ti ti-book-2" style="font-size:11px;"></i> Page guide</button>
+
+
+  <div class="split">
+
+    <!-- LEFT — VENDOR DETAILS -->
+    <div>
+
+      <!-- Vendor profile -->
+      <div class="sec">
+        <div class="sec-hdr">
+          <span class="sec-title">Vendor</span>
+          <span style="font-size:10px;color:#9ca3af;display:flex;align-items:center;gap:3px;margin-right:auto;margin-left:10px;"><i class="ti ti-clock" style="font-size:10px;"></i> <span id="vendor-updated">Updated today · 11:24am</span></span>
+          <button onclick="openEditVendor()" style="font-size:11px;color:var(--navy);background:none;border:.5px solid rgba(27,58,107,.25);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-pencil" style="font-size:10px;"></i> Edit</button>
+        </div>
+        <div class="sec-body">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+            <div class="vendor-avatar pii" id="vendor-avatar-init">DH</div>
+            <div>
+              <div class="vendor-name pii" id="vendor-name-display">Derek Hassan</div>
+              <div class="vendor-sub">Vendor · <span class="pii">14 Roath Court Rd, Cardiff CF24</span></div>
+            </div>
+          </div>
+          <div class="contact-row"><i class="ti ti-phone"></i><span class="contact-label">Mobile</span><span class="pii" id="vendor-mobile">07700 900333</span></div>
+          <div class="contact-row"><i class="ti ti-mail"></i><span class="contact-label">Email</span><a href="mailto:d.hassan@hotmail.com" style="color:var(--navy);text-decoration:none;" class="pii" id="vendor-email">d.hassan@hotmail.com</a></div>
+          <div class="contact-row"><i class="ti ti-home"></i><span class="contact-label">Property</span><span class="pii">14 Roath Court Rd, Cardiff CF24 4AA</span></div>
+          <div class="contact-row"><i class="ti ti-user"></i><span class="contact-label">Agent</span><span style="flex:1;">Mark Thornton · <span style="color:var(--text-2);">Purplebricks</span></span><a href="tel:07700900777" style="font-size:10px;color:var(--navy);">07700 900777</a></div>
+        </div>
+      </div>
+
+      <!-- Motivation & context -->
+      <div class="sec">
+        <div class="sec-hdr">
+          <span class="sec-title">Motivation &amp; context</span>
+          <button onclick="openEditMotivation()" style="font-size:11px;color:var(--navy);background:none;border:.5px solid rgba(27,58,107,.25);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-pencil" style="font-size:10px;"></i> Edit</button>
+        </div>
+        <div class="sec-body">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span id="mot-pill-display" class="mot-pill mot-warm"><i class="ti ti-minus" style="font-size:11px;"></i> Flexible</span>
+          </div>
+          <div id="mot-context-display" style="font-size:12px;color:var(--text-2);line-height:1.7;padding:10px 12px;background:var(--bg-sec);border-radius:var(--r-md);margin-bottom:10px;">
+            Moving abroad. Flexible on timeline but wants to achieve close to asking price. Aware the property has been on market for 6 weeks.
+          </div>
+          <div style="font-size:10px;color:#9ca3af;display:flex;align-items:center;gap:4px;">
+            <i class="ti ti-refresh" style="font-size:10px;"></i> Syncs to your Sellers CRM automatically
+          </div>
+        </div>
+      </div>
+
+      <!-- Offer tracker -->
+      <div class="sec">
+        <div class="sec-hdr">
+          <span class="sec-title">Offer tracker</span>
+          <button onclick="openLogOffer()" style="font-size:11px;color:var(--navy);background:none;border:.5px solid rgba(27,58,107,.25);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-plus" style="font-size:10px;"></i> Log offer</button>
+        </div>
+        <div class="sec-body">
+          <div class="price-grid">
+            <div class="price-cell">
+              <div class="price-lbl">Asking price</div>
+              <div class="price-val" id="po-asking-val">£192,000</div>
+              <div class="price-delta">Vendor's original ask</div>
+            </div>
+            <div class="price-cell">
+              <div class="price-lbl">Current offer</div>
+              <div class="price-val green" id="po-current-val">£185,000</div>
+              <div class="price-delta" id="po-current-delta">−£7,000 (3.6% below ask)</div>
+            </div>
+            <div class="price-cell">
+              <div class="price-lbl">Status</div>
+              <div class="price-val amber" style="font-size:13px;" id="po-status-val">Verbally agreed</div>
+              <div class="price-delta" id="po-status-delta">Awaiting solicitors</div>
+            </div>
+          </div>
+          <div style="border:.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;">
+            <div style="padding:7px 12px;background:var(--bg-sec);border-bottom:.5px solid var(--border);font-size:10px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:.07em;">Offer history</div>
+            <div id="offer-history-list">
+            <div class="offer-row"><span class="offer-date">2 Jun</span><span class="offer-amount">£180,000</span><span style="flex:1;font-size:11px;color:var(--text-2);">Initial offer — declined</span><span class="offer-tag offer-declined">Declined</span></div>
+            <div class="offer-row"><span class="offer-date">5 Jun</span><span class="offer-amount">£183,000</span><span style="flex:1;font-size:11px;color:var(--text-2);">Counter after call</span><span class="offer-tag offer-declined">Declined</span></div>
+            <div class="offer-row"><span class="offer-date">8 Jun</span><span class="offer-amount">£185,000</span><span style="flex:1;font-size:11px;color:var(--text-2);">Final offer — verbally accepted</span><span class="offer-tag offer-accepted">Accepted</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact log -->
+      <div class="sec">
+        <div class="sec-hdr">
+          <span class="sec-title">Contact log</span>
+          <span style="font-size:11px;color:var(--text-2);" id="contact-log-count">5 touchpoints</span>
+        </div>
+        <div class="sec-body">
+          <div class="log-actions" style="margin-bottom:14px;">
+            <button class="log-btn primary" onclick="openLogActivity('call')"><i class="ti ti-phone" style="font-size:11px;"></i> Log call</button>
+            <button class="log-btn" onclick="openLogActivity('email')"><i class="ti ti-mail" style="font-size:11px;"></i> Log email</button>
+            <button class="log-btn" onclick="openLogActivity('visit')"><i class="ti ti-map-pin" style="font-size:11px;"></i> Log visit</button>
+            <button class="log-btn" onclick="openLogActivity('note')"><i class="ti ti-note" style="font-size:11px;"></i> Add note</button>
+          </div>
+          <div id="contact-log-list">
+          <div class="log-entry">
+            <div class="log-dot call"></div>
+            <div class="log-meta">
+              <div class="log-type"><i class="ti ti-phone" style="font-size:11px;margin-right:3px;color:var(--navy);"></i>Phone call · 12 min</div>
+              <div class="log-note">Discussed the offer. Vendor says he'll speak to his wife and come back by Thursday. Seemed receptive — mentioned he wants to complete before September.</div>
+              <div class="log-date">Today · 11:24am</div>
+            </div>
+          </div>
+          <div class="log-entry">
+            <div class="log-dot note"></div>
+            <div class="log-meta">
+              <div class="log-type"><i class="ti ti-check" style="font-size:11px;margin-right:3px;color:#10B981;"></i>Offer accepted — verbal</div>
+              <div class="log-note">£185,000 verbally agreed. Instructed solicitors. Awaiting written confirmation from vendor's solicitor.</div>
+              <div class="log-date">8 Jun · 3:15pm</div>
+            </div>
+          </div>
+          <div class="log-entry">
+            <div class="log-dot call"></div>
+            <div class="log-meta">
+              <div class="log-type"><i class="ti ti-phone" style="font-size:11px;margin-right:3px;color:var(--navy);"></i>Phone call · 8 min</div>
+              <div class="log-note">Submitted £183k counter. Vendor pushed back — said lowest he'd go is £185k. Agreed to discuss with investor and come back same day.</div>
+              <div class="log-date">5 Jun · 2:42pm</div>
+            </div>
+          </div>
+          <div class="log-entry">
+            <div class="log-dot email"></div>
+            <div class="log-meta">
+              <div class="log-type"><i class="ti ti-mail" style="font-size:11px;margin-right:3px;color:var(--teal);"></i>Email sent</div>
+              <div class="log-note">Formal offer letter at £180,000 sent to agent (Mark Thornton, Purplebricks). Included comparables and rationale.</div>
+              <div class="log-date">2 Jun · 10:05am</div>
+            </div>
+          </div>
+          <div class="log-entry">
+            <div class="log-dot visit"></div>
+            <div class="log-meta">
+              <div class="log-type"><i class="ti ti-home" style="font-size:11px;margin-right:3px;color:#7C3AED;"></i>Viewing</div>
+              <div class="log-note">First viewing completed. Property in good condition — cosmetic refresh needed. Vendor present, mentioned timeline pressure (moving abroad in August).</div>
+              <div class="log-date">28 May · 10:30am</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chain & property status -->
+      <div class="sec">
+        <div class="sec-hdr"><span class="sec-title">Chain &amp; property</span><a href="#" onclick="openEditChain(); return false;" style="font-size:12px;color:var(--navy);text-decoration:none;font-weight:500;">Edit</a></div>
+        <div class="sec-body">
+          <div class="chain-grid">
+            <div class="chain-cell">
+              <div class="chain-lbl">Chain status</div>
+              <div class="chain-val" id="chain-status-val" style="color:#065f46;"><i class="ti ti-circle-check" style="font-size:12px;margin-right:4px;"></i><span id="chain-status-text">No chain</span></div>
+            </div>
+            <div class="chain-cell">
+              <div class="chain-lbl">Tenure</div>
+              <div class="chain-val" id="chain-tenure-val">Freehold</div>
+            </div>
+            <div class="chain-cell">
+              <div class="chain-lbl">Solicitor</div>
+              <div class="chain-val" id="chain-solicitor-val">TBC — instructing</div>
+            </div>
+            <div class="chain-cell">
+              <div class="chain-lbl">Target completion</div>
+              <div class="chain-val" id="chain-completion-val">Before Aug 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sourcing fee moved to Fees & invoice tab -->
+      <div class="sec">
+        <div class="sec-hdr">
+          <i class="ti ti-coin" style="font-size:14px;color:var(--teal);"></i>
+          <span class="sec-title">Sourcing fee</span>
+          <span class="fee-status-pill outstanding">Outstanding</span>
+          <a href="ds_fees_tab.html" style="font-size:11px;color:var(--navy);text-decoration:none;font-weight:600;margin-left:auto;display:flex;align-items:center;gap:4px;">
+            <i class="ti ti-arrow-right" style="font-size:11px;"></i> Manage in Fees &amp; invoice →
+          </a>
+        </div>
+        <div class="sec-body" style="padding:12px 16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:22px;font-weight:800;color:var(--navy);">£2,500</div>
+              <div style="font-size:11px;color:var(--text-2);margin-top:2px;">Fixed · due on completion</div>
+            </div>
+            <button class="log-btn" onclick="window.location.href='ds_fees_tab.html'" style="font-size:11px;"><i class="ti ti-file-invoice" style="font-size:11px;"></i> View invoice</button>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- RIGHT — sbar system -->
+    <div class="sbar-sticky">
+
+      <!-- Chase reminder -->
+      <div class="sbar-card">
+        <div class="sbar-hdr">
+          <div class="sbar-icon" style="background:#fffbeb;"><i class="ti ti-bell" style="color:#D97706;"></i></div>
+          <div class="sbar-hdr-text">
+            <div class="sbar-title">Chase reminder</div>
+            <div class="sbar-subtitle">Action needed today</div>
+          </div>
+          <span class="sbar-badge amber">Today</span>
+        </div>
+        <div class="sbar-body">
+          <div class="sbar-chase-card">
+            <div class="sbar-chase-title">Chase Thursday</div>
+            <div class="sbar-chase-body">Vendor said he'd speak to his wife and get back to you by Thursday. Don't let it slip.</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="log-btn" id="reminder-btn" onclick="setChaseReminder()"><i class="ti ti-clock" style="font-size:11px;"></i> Set reminder</button>
+            <button class="log-btn" onclick="showToast('Calendar integration — connect via Settings → Integrations')"><i class="ti ti-calendar" style="font-size:11px;"></i> Schedule call</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Negotiation summary -->
+      <div class="sbar-card">
+        <div class="sbar-hdr">
+          <div class="sbar-icon"><i class="ti ti-chart-bar"></i></div>
+          <div class="sbar-hdr-text">
+            <div class="sbar-title">Negotiation</div>
+            <div class="sbar-subtitle" id="neg-subtitle">£7,000 saved · 11.9% BMV*</div>
+          </div>
+        </div>
+        <div class="sbar-body">
+          <div class="sbar-metrics">
+            <div class="sbar-metric"><span class="sbar-metric-lbl">Asking price</span><span class="sbar-metric-val">£192,000</span></div>
+            <div class="sbar-metric"><span class="sbar-metric-lbl">Agreed price</span><span class="sbar-metric-val teal" id="neg-agreed-val">£185,000</span></div>
+            <div class="sbar-metric"><span class="sbar-metric-lbl">Saving vs ask</span><span class="sbar-metric-val teal" id="neg-saving-val">£7,000 (3.6%)</span></div>
+            <div class="sbar-metric"><span class="sbar-metric-lbl">BMV discount <a href="#" onclick="window.location.href='ds_analysis_hub.html?view=workings'; return false;" title="See how this is calculated in Show Workings" style="color:#bbb;text-decoration:none;">*</a></span><span class="sbar-metric-val navy">11.9%</span></div>
+            <div class="sbar-metric"><span class="sbar-metric-lbl">Touchpoints</span><span class="sbar-metric-val" id="neg-touchpoints-val">5</span></div>
+            <div class="sbar-metric"><span class="sbar-metric-lbl">Deal status</span><a href="#" onclick="window.location.href='ds_deal_overview.html'; return false;" title="See the full reservation timeline in Content → Deal progress" style="display:flex;align-items:center;gap:5px;text-decoration:none;"><span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:500;padding:2px 8px 2px 7px;background:var(--bg-sec);border-radius:4px;border-left:3px solid #f59e0b;white-space:nowrap;color:var(--text-1);">Reserved · Day 8</span><i class="ti ti-arrow-right" style="font-size:10px;color:var(--navy);"></i></a></div>
+          </div>
+          <div class="sbar-note"><i class="ti ti-info-circle"></i> <span>*BMV discount is measured against estimated market value, not asking price — <a href="#" onclick="window.location.href='ds_analysis_hub.html?view=workings'; return false;" style="color:var(--navy);text-decoration:none;font-weight:500;">see how it's worked out →</a></span></div>
+        </div>
+      </div>
+
+      <!-- Next action -->
+      <div class="sbar-card">
+        <div class="sbar-hdr">
+          <div class="sbar-icon"><i class="ti ti-arrow-right"></i></div>
+          <div class="sbar-hdr-text">
+            <div class="sbar-title">Next action</div>
+            <div class="sbar-subtitle">Set by you</div>
+          </div>
+        </div>
+        <div class="sbar-body">
+          <!-- Set state: shown when no action set -->
+          <div id="na-unset-view">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div style="font-size:10px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:.06em;">Suggestions</div>
+              <select id="na-stage-sel" class="f-in" style="font-size:10px;padding:2px 8px;border-radius:6px;max-width:130px;" onchange="renderStageSuggestions()">
+                <option value="sourcing">Sourcing</option>
+                <option value="negotiating">Negotiating</option>
+                <option value="agreed">Agreed</option>
+                <option value="reserved" selected>Reserved</option>
+                <option value="exchanged">Exchanged</option>
+                <option value="complete">Complete</option>
+              </select>
+            </div>
+            <div id="na-suggestions" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:6px;">
+              <input id="next-action-input" class="f-in" style="font-size:11px;flex:1;" placeholder="Or type your own...">
+              <button class="log-btn primary" onclick="setNextActionFromInput()">Set</button>
+            </div>
+          </div>
+          <!-- Active state: shown once an action is set -->
+          <div id="na-set-view" style="display:none;">
+            <div style="display:flex;align-items:flex-start;gap:8px;background:var(--navy-light);border:.5px solid #c8d6f0;border-radius:var(--r-md);padding:10px 12px;margin-bottom:8px;">
+              <i class="ti ti-arrow-right" style="font-size:12px;color:var(--navy);flex-shrink:0;margin-top:1px;"></i>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:12px;font-weight:600;color:var(--navy);" id="next-action-text">—</div>
+                <div style="font-size:10px;color:#9ca3af;margin-top:2px;" id="next-action-meta">Set just now</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="log-btn" style="flex:1;justify-content:center;font-size:11px;" onclick="editNextAction()"><i class="ti ti-pencil" style="font-size:10px;"></i> Edit</button>
+              <button class="log-btn danger" style="font-size:11px;" onclick="clearNextAction()"><i class="ti ti-x" style="font-size:10px;"></i> Clear</button>
+            </div>
+            <button id="na-go-btn" class="log-btn" style="display:none;width:100%;justify-content:center;font-size:11px;margin-top:6px;color:var(--teal);border-color:rgba(29,158,117,.3);" onclick="if(naCurrentRoute)window.location.href=naCurrentRoute;"><i class="ti ti-arrow-right" style="font-size:10px;"></i> Go there now</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CRM link -->
+      <div class="sbar-card">
+        <div class="sbar-hdr">
+          <div class="sbar-icon"><i class="ti ti-users"></i></div>
+          <div class="sbar-hdr-text">
+            <div class="sbar-title">Sellers CRM</div>
+            <div class="sbar-subtitle">Synced · updates automatically</div>
+          </div>
+        </div>
+        <div class="sbar-body" style="padding-top:10px;padding-bottom:10px;">
+          <button class="sbar-cta outline" onclick="window.location.href='ds_sellers_crm.html'">View in CRM →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ── Live bar: collapse/restore the adaptive page-info strip ── */
+function toggleLivebar(){
+  var bar = document.querySelector('.livebar');
+  var icon = document.getElementById('lb-hide-icon');
+  var label = document.getElementById('lb-hide-label');
+  if(!bar) return;
+  var collapsed = bar.classList.toggle('collapsed');
+  document.documentElement.style.setProperty('--livebar-h', collapsed ? '0px' : '44px');
+  if(icon) icon.className = collapsed ? 'ti ti-chevron-down' : 'ti ti-chevron-up';
+  if(label) label.textContent = collapsed ? 'Show page info' : 'Hide page info';
+  if(typeof syncSidebarAlign === 'function') setTimeout(syncSidebarAlign, 30);
+  showToast(collapsed ? 'Page info hidden — click "Show page info" to bring it back' : 'Page info shown');
+}
+
+/* ── Next action ── */
+var naCurrentRoute = null;
+function setNextAction(text, route){
+  if(!text) return;
+  naCurrentRoute = route || null;
+  document.getElementById('next-action-text').textContent = text;
+  document.getElementById('next-action-meta').textContent = 'Set just now';
+  document.getElementById('na-unset-view').style.display = 'none';
+  document.getElementById('na-set-view').style.display = '';
+  var goBtn = document.getElementById('na-go-btn');
+  if(goBtn){ goBtn.style.display = naCurrentRoute ? '' : 'none'; }
+  showToast('Next action saved — flagged on deal card');
+}
+function setNextActionFromInput(){
+  const val = document.getElementById('next-action-input').value.trim();
+  if(val) setNextAction(val);
+}
+function clearNextAction(){
+  document.getElementById('next-action-text').textContent = '—';
+  document.getElementById('next-action-meta').textContent = '';
+  document.getElementById('na-unset-view').style.display = '';
+  document.getElementById('na-set-view').style.display = 'none';
+  showToast('Next action cleared');
+}
+function editNextAction(){
+  var cur = document.getElementById('next-action-text').textContent;
+  var inp = document.getElementById('next-action-input');
+  if(inp) inp.value = cur === '—' ? '' : cur;
+  document.getElementById('na-unset-view').style.display = '';
+  document.getElementById('na-set-view').style.display = 'none';
+}
+/* ── Chase reminder ── */
+function setChaseReminder(){
+  var btn = document.getElementById('reminder-btn');
+  if(btn){
+    btn.innerHTML = '<i class="ti ti-check" style="font-size:11px;color:var(--teal);"></i> Reminder set';
+    btn.style.color = 'var(--teal)';
+    btn.style.borderColor = 'rgba(29,158,117,.3)';
+    btn.onclick = function(){ btn.innerHTML = '<i class="ti ti-clock" style="font-size:11px;"></i> Set reminder'; btn.style.color=''; btn.style.borderColor=''; btn.onclick=setChaseReminder; showToast('Reminder cleared'); };
+  }
+  showToast('Reminder set for Thursday 13 June — 9am nudge');
+}
+
+let privacyOn = false;
+
+/* Single source of truth for privacy state — drives header avatar/dropdown,
+   the banner, and the masked info-strip values together so they can't drift out of sync. */
+function setPrivacy(on){
+  privacyOn = on;
+  document.body.classList.toggle('privacy', privacyOn);
+
+  const chk    = document.getElementById('hdr-privacy-chk');
+  const avt    = document.getElementById('hdr-avt');
+  const banner = document.getElementById('privacy-banner');
+
+  if(chk) chk.checked = privacyOn;
+  if(avt) avt.classList.toggle('privacy-on', privacyOn);
+  if(banner) banner.classList.toggle('show', privacyOn);
+
+  /* Swap info strip values — name comes from the live vendorName so an
+     edited name still masks correctly instead of reverting to the old one */
+  document.getElementById('strip-address').textContent = privacyOn ? 'Roath, Cardiff' : '14 Roath Court Rd, Cardiff CF24';
+  document.getElementById('strip-seller').textContent  = privacyOn ? maskName(vendorName) : vendorName;
+}
+function togglePrivacy(){ setPrivacy(!privacyOn); }
+
+/* ── Global mockup tier toggle ── */
+var mockupTier='pro';
+function setMockupTier(tier){
+  mockupTier=tier;
+  document.body.classList.toggle('tier-proplus',tier==='proplus');
+  var hdrPro=document.getElementById('hdr-tier-pro');
+  var hdrPP=document.getElementById('hdr-tier-pp');
+  if(tier==='proplus'){
+    if(hdrPro){hdrPro.style.background='transparent';hdrPro.style.color='rgba(255,255,255,.4)';}
+    if(hdrPP){hdrPP.style.background='rgba(255,255,255,.2)';hdrPP.style.color='#fff';}
+  } else {
+    if(hdrPro){hdrPro.style.background='var(--navy)';hdrPro.style.color='#fff';}
+    if(hdrPP){hdrPP.style.background='transparent';hdrPP.style.color='rgba(255,255,255,.4)';}
+  }
+}
+
+</script>
+<script>
+
+/* ── Sidebar alignment with explainer state ── */
+function syncSidebarAlign(){
+  var sidebar = document.getElementById('sc-sidebar') ||
+                document.querySelector('.sbar-sticky') ||
+                document.querySelector('.right-sticky');
+  if(!sidebar) return;
+  var expCard = document.querySelector('.exp-card');
+  var expVisible = expCard && expCard.style.display !== 'none';
+  if(expVisible){
+    sidebar.style.marginTop = '0';
+  } else {
+    var pill = document.querySelector('.exp-restore.show');
+    var offset = pill ? (pill.offsetHeight + 14) : 10;
+    sidebar.style.marginTop = offset + 'px';
+  }
+}
+window.addEventListener('load', function(){ setTimeout(syncSidebarAlign, 50); });
+window.addEventListener('resize', syncSidebarAlign);
+
+function dismissExp(btn){
+  const card=btn.closest(".exp-card");
+  const restore=card.nextElementSibling;
+  card.style.display="none";
+  if(restore&&restore.classList.contains("exp-restore"))restore.classList.add("show");
+}
+function restoreExp(btn){
+  const restore=btn;
+  restore.classList.remove("show");
+  const card=restore.previousElementSibling;
+  if(card)card.style.display="flex";
+}
+
+/* ── Header: avatar dropdown ── */
+var hdrDropOpen = false;
+function hdrToggleDrop(){
+  hdrDropOpen = !hdrDropOpen;
+  document.getElementById('hdr-avt-drop').classList.toggle('show', hdrDropOpen);
+}
+/* ── Header: privacy mode (delegates to the shared setPrivacy so the
+   header toggle and the privacy banner always agree) ── */
+function hdrTogglePrivacy(){ setPrivacy(!privacyOn); }
+/* ── Header: search results ── */
+function hdrShowResults(val){ /* extend per page */ }
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.avt-wrap')){ hdrDropOpen=false; var d=document.getElementById('hdr-avt-drop'); if(d) d.classList.remove('show'); }
+});
+
+</script>
+<!-- SLIDE-OVER — Log activity / Log offer / Edit vendor -->
+<div class="so-overlay" id="so-overlay" onclick="closeSlideover()"></div>
+<div class="so-panel" id="so-panel" role="dialog" aria-modal="true">
+  <div class="so-hdr">
+    <span class="so-title" id="so-title">Log activity</span>
+    <button class="so-close" onclick="closeSlideover()" title="Close">&times;</button>
+  </div>
+  <div class="so-body" id="so-body"></div>
+  <div class="so-foot">
+    <button class="so-btn outline" onclick="closeSlideover()">Cancel</button>
+    <button class="so-btn primary" onclick="saveSlideover()">Save</button>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:#152d55;color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"></div>
+<script>function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.style.opacity=1;setTimeout(()=>{t.style.opacity=0;},2200);}</script>
+
+<!-- NOTES DRAWER -->
+<div class="notes-overlay" id="notesOverlay" onclick="closeNotes()"></div>
+<div class="notes-panel" id="notesPanel">
+  <div class="notes-hdr">
+    <div>
+      <div class="notes-title"><i class="ti ti-notes"></i> Notes</div>
+      <div class="notes-count" id="notesCount">1 note</div>
+    </div>
+    <button class="notes-close" onclick="closeNotes()"><i class="ti ti-x"></i> Close</button>
+  </div>
+  <div class="notes-body">
+    <div class="notes-composer">
+      <textarea class="notes-input" id="notesInput" placeholder="Add a note about this deal..." oninput="notesToggleAddBtn()"></textarea>
+      <div class="notes-add-row">
+        <button class="notes-add-btn" id="notesAddBtn" disabled onclick="addNote()"><i class="ti ti-plus" style="font-size:13px;"></i> Add note</button>
+      </div>
+    </div>
+    <div class="notes-section-lbl">Activity</div>
+    <div id="notesList"></div>
+  </div>
+</div>
+<script>
+/* ── Notes drawer (slide-over, accessible from any deal screen) ── */
+var notesData = [
+  { author:'You', text:'Vendor mentioned they may consider a quick sale if we can complete within 6 weeks — worth flagging in the offer.', time: Date.now() - 4*24*60*60*1000 }
+];
+function openNotes(){
+  renderNotes();
+  document.getElementById('notesOverlay').classList.add('show');
+  document.getElementById('notesPanel').classList.add('show');
+}
+function closeNotes(){
+  document.getElementById('notesOverlay').classList.remove('show');
+  document.getElementById('notesPanel').classList.remove('show');
+}
+function notesToggleAddBtn(){
+  var v = document.getElementById('notesInput').value.trim();
+  document.getElementById('notesAddBtn').disabled = !v;
+}
+function addNote(){
+  var input = document.getElementById('notesInput');
+  var v = input.value.trim();
+  if(!v) return;
+  notesData.unshift({ author:'You', text:v, time: Date.now() });
+  input.value = '';
+  notesToggleAddBtn();
+  renderNotes();
+  showToast('Note added');
+}
+function deleteNote(idx){
+  notesData.splice(idx,1);
+  renderNotes();
+  showToast('Note deleted');
+}
+function notesRelTime(ts){
+  var diff = Date.now() - ts;
+  var mins = Math.round(diff/60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins + (mins===1 ? ' minute ago' : ' minutes ago');
+  var hrs = Math.round(mins/60);
+  if(hrs < 24) return hrs + (hrs===1 ? ' hour ago' : ' hours ago');
+  var days = Math.round(hrs/24);
+  return days + (days===1 ? ' day ago' : ' days ago');
+}
+function renderNotes(){
+  var list = document.getElementById('notesList');
+  var count = document.getElementById('notesCount');
+  count.textContent = notesData.length + (notesData.length===1 ? ' note' : ' notes');
+  if(!notesData.length){
+    list.innerHTML = '<div class="notes-empty"><i class="ti ti-notes"></i>No notes yet — add the first one above.</div>';
+    return;
+  }
+  list.innerHTML = notesData.map(function(n,i){
+    return '<div class="notes-item">'
+      + '<div class="notes-item-hdr"><div class="notes-author"><i class="ti ti-user-circle" style="font-size:14px;"></i> ' + n.author + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;"><span class="notes-time">' + notesRelTime(n.time) + '</span>'
+      + '<button class="notes-del" onclick="deleteNote(' + i + ')" title="Delete note"><i class="ti ti-trash"></i></button></div></div>'
+      + '<div class="notes-text">' + n.text.replace(/</g,'&lt;') + '</div>'
+      + '</div>';
+  }).join('');
+}
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   SELLER TAB — working interactions for the core CRM job:
+   logging touchpoints/offers and editing vendor details.
+   Everything that depends on these (touchpoint counts, current
+   offer, agreed price, live bar) updates from one place so the
+   numbers can't drift apart again.
+   ══════════════════════════════════════════════════════════ */
+
+const ASKING_PRICE = 192000; // vendor's original ask — single source of truth for % calcs
+
+let vendorName    = 'Derek Hassan';
+let vendorMobile  = '07700 900333';
+let vendorEmail   = 'd.hassan@hotmail.com';
+let touchpoints   = 5;
+let agreedPrice   = 185000;
+let motivationLevel   = 'warm'; // hot | warm | cool
+let motivationContext = 'Moving abroad. Flexible on timeline but wants to achieve close to asking price. Aware the property has been on market for 6 weeks.';
+
+let chainStatus     = 'No chain';
+let chainTenure     = 'Freehold';
+let chainSolicitor  = 'TBC — instructing';
+let chainCompletion = 'Before Aug 2026';
+const CHAIN_ICON = {
+  'No chain':        {icon:'ti-circle-check', color:'#065f46'},
+  'Chain — below':   {icon:'ti-link',         color:'#92400e'},
+  'Chain — above':   {icon:'ti-link',         color:'#92400e'},
+  'Chain — both':    {icon:'ti-links',        color:'#991b1b'}
+};
+
+function maskName(name){
+  return name.split(' ').filter(Boolean).map(p => p[0].toUpperCase() + '.').join('');
+}
+function initials(name){
+  return name.split(' ').filter(Boolean).map(p => p[0].toUpperCase()).join('').slice(0,2);
+}
+function fmtGBP(n){ return '£' + Math.round(n).toLocaleString('en-GB'); }
+function nowTime(){
+  const d = new Date();
+  let h = d.getHours(), m = d.getMinutes();
+  const ap = h >= 12 ? 'pm' : 'am';
+  h = h % 12; if(h === 0) h = 12;
+  return h + ':' + String(m).padStart(2,'0') + ap;
+}
+
+/* ── Slide-over shell ── */
+let soContext = null;
+function openSlideover(title, bodyHtml, ctx){
+  document.getElementById('so-title').textContent = title;
+  document.getElementById('so-body').innerHTML = bodyHtml;
+  soContext = ctx;
+  document.getElementById('so-overlay').classList.add('show');
+  document.getElementById('so-panel').classList.add('show');
+}
+function closeSlideover(){
+  document.getElementById('so-overlay').classList.remove('show');
+  document.getElementById('so-panel').classList.remove('show');
+  soContext = null;
+}
+function soSelect(groupSelector, btn, key){
+  document.querySelectorAll(groupSelector).forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  soContext[key] = btn.dataset.val;
+}
+
+/* ── Log activity (call / email / visit / note) ── */
+const ACT_META = {
+  call:  {label:'Phone call',     icon:'ti-phone',   dotClass:'call',  iconColor:'var(--navy)'},
+  email: {label:'Email',          icon:'ti-mail',    dotClass:'email', iconColor:'var(--teal)'},
+  visit: {label:'Viewing / visit',icon:'ti-map-pin', dotClass:'visit', iconColor:'#7C3AED'},
+  note:  {label:'Note',           icon:'ti-note',    dotClass:'note',  iconColor:'#D97706'}
+};
+function openLogActivity(initialType){
+  const typeBtns = Object.keys(ACT_META).map(t =>
+    `<button class="so-type-btn${t===initialType?' on':''}" data-val="${t}" onclick="soSelect('#so-body [data-val]', this, 'activityType')">${ACT_META[t].label}</button>`
+  ).join('');
+  const body = `
+    <div class="so-field"><span class="so-label">Type</span><div class="so-type-row">${typeBtns}</div></div>
+    <div class="so-field"><span class="so-label">What happened</span>
+      <textarea class="f-ta" id="so-note" style="height:110px;" placeholder="e.g. Spoke to Derek — he'll confirm with his wife by Thursday..."></textarea>
+      <div class="so-hint">This is added to the contact log and counted as a touchpoint — visible to anyone you share this deal's history with.</div>
+    </div>
+  `;
+  openSlideover('Log activity', body, {kind:'activity', activityType: initialType});
+}
+function saveActivity(){
+  const note = document.getElementById('so-note').value.trim();
+  if(!note){ showToast('Add a note before saving'); return false; }
+  const meta = ACT_META[soContext.activityType];
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `
+    <div class="log-dot ${meta.dotClass}"></div>
+    <div class="log-meta">
+      <div class="log-type"><i class="ti ${meta.icon}" style="font-size:11px;margin-right:3px;color:${meta.iconColor};"></i>${meta.label}</div>
+      <div class="log-note">${note.replace(/</g,'&lt;')}</div>
+      <div class="log-date">Just now · ${nowTime()}</div>
+    </div>`;
+  const list = document.getElementById('contact-log-list');
+  list.insertBefore(entry, list.firstChild);
+
+  touchpoints += 1;
+  document.getElementById('contact-log-count').textContent = touchpoints + ' touchpoints';
+  document.getElementById('neg-touchpoints-val').textContent = touchpoints;
+  document.getElementById('vendor-updated').textContent = 'Updated today · ' + nowTime();
+  showToast(meta.label + ' logged');
+  return true;
+}
+
+/* ── Log offer ── */
+function openLogOffer(){
+  const body = `
+    <div class="so-field"><span class="so-label">Offer amount</span>
+      <div class="sbar-input-row"><span class="sbar-input-pfx">£</span><input id="so-amount" class="sbar-input-fld" type="number" inputmode="numeric" placeholder="185000"></div>
+    </div>
+    <div class="so-field"><span class="so-label">Outcome</span><div class="so-type-row">
+      <button class="so-type-btn on" data-val="pending" onclick="soSelect('#so-body [data-val]', this, 'status')">Pending</button>
+      <button class="so-type-btn" data-val="accepted" onclick="soSelect('#so-body [data-val]', this, 'status')">Accepted</button>
+      <button class="so-type-btn" data-val="declined" onclick="soSelect('#so-body [data-val]', this, 'status')">Declined</button>
+    </div></div>
+    <div class="so-field"><span class="so-label">Note</span><textarea class="f-ta" id="so-offer-note" style="height:70px;" placeholder="e.g. Counter offer after Tuesday's call"></textarea>
+      <div class="so-hint">Marking an offer "Accepted" updates the agreed price, the live bar and the negotiation summary throughout this deal.</div>
+    </div>
+  `;
+  openSlideover('Log a new offer', body, {kind:'offer', status:'pending'});
+}
+function saveOffer(){
+  const amountRaw = document.getElementById('so-amount').value;
+  const amount = parseInt(amountRaw, 10);
+  if(!amount || amount <= 0){ showToast('Enter a valid offer amount'); return false; }
+  const note = document.getElementById('so-offer-note').value.trim();
+  const status = soContext.status;
+  const tagClass = status === 'accepted' ? 'offer-accepted' : status === 'declined' ? 'offer-declined' : 'offer-pending';
+  const tagLabel = status === 'accepted' ? 'Accepted' : status === 'declined' ? 'Declined' : 'Pending';
+  const d = new Date();
+  const dateStr = d.getDate() + ' ' + d.toLocaleString('en-GB',{month:'short'});
+
+  const row = document.createElement('div');
+  row.className = 'offer-row';
+  row.innerHTML = `<span class="offer-date">${dateStr}</span><span class="offer-amount">${fmtGBP(amount)}</span><span style="flex:1;font-size:11px;color:var(--text-2);">${(note || 'Offer logged').replace(/</g,'&lt;')}</span><span class="offer-tag ${tagClass}">${tagLabel}</span>`;
+  const list = document.getElementById('offer-history-list');
+  list.insertBefore(row, list.firstChild);
+
+  if(status === 'accepted'){
+    agreedPrice = amount;
+    const diff = ASKING_PRICE - amount;
+    const pct = (diff / ASKING_PRICE * 100);
+    const sign = diff >= 0 ? '−' : '+';
+    const pctStr = (diff >= 0 ? '-' : '+') + Math.abs(pct).toFixed(1) + '%';
+
+    document.getElementById('po-current-val').textContent = fmtGBP(amount);
+    document.getElementById('po-current-delta').textContent = `${sign}${fmtGBP(Math.abs(diff))} (${Math.abs(pct).toFixed(1)}% ${diff>=0?'below':'above'} ask)`;
+    document.getElementById('po-status-val').textContent = 'Verbally agreed';
+    document.getElementById('po-status-delta').textContent = 'Awaiting solicitors';
+    document.getElementById('lb-current-offer').textContent = `${fmtGBP(amount)} · ${pctStr}`;
+    document.getElementById('neg-agreed-val').textContent = fmtGBP(amount);
+    document.getElementById('neg-saving-val').textContent = `${fmtGBP(Math.abs(diff))} (${Math.abs(pct).toFixed(1)}%)`;
+    document.getElementById('neg-subtitle').textContent = `${fmtGBP(Math.abs(diff))} saved · 11.9% BMV*`;
+    showToast(`Offer of ${fmtGBP(amount)} logged — marked as accepted, figures updated`);
+  } else {
+    showToast(`Offer of ${fmtGBP(amount)} logged as ${tagLabel.toLowerCase()}`);
+  }
+  return true;
+}
+
+/* ── Edit motivation ── */
+const MOT_META = {
+  hot:  { label:'Motivated', icon:'ti-flame',    cls:'mot-hot',  desc:'Needs to sell — timeline pressure or financial urgency.' },
+  warm: { label:'Flexible',  icon:'ti-minus',    cls:'mot-warm', desc:'Open to selling at the right price and terms.' },
+  cool: { label:'Firm',      icon:'ti-lock',     cls:'mot-cool', desc:'Not in a rush — may walk away if terms don\'t suit.' }
+};
+function openEditMotivation(){
+  const typeBtns = Object.keys(MOT_META).map(k =>
+    `<button class="so-type-btn${k===motivationLevel?' on':''}" data-val="${k}" onclick="soSelect('#so-body [data-val]', this, 'motivationLevel')">${MOT_META[k].label}</button>`
+  ).join('');
+  const body = `
+    <div class="so-field"><span class="so-label">Motivation level</span><div class="so-type-row">${typeBtns}</div></div>
+    <div class="so-field"><span class="so-label">Context &amp; notes</span>
+      <textarea class="f-ta" id="so-mot-ctx" style="height:110px;" placeholder="e.g. Moving abroad, wants to complete before September...">${motivationContext.replace(/</g,'&lt;')}</textarea>
+      <div class="so-hint">This record is shared with your Sellers CRM — updating it here keeps both in sync automatically.</div>
+    </div>
+  `;
+  openSlideover('Motivation &amp; context', body, {kind:'edit-motivation', motivationLevel});
+}
+function saveEditMotivation(){
+  const ctx = document.getElementById('so-mot-ctx').value.trim();
+  motivationLevel   = soContext.motivationLevel;
+  motivationContext = ctx;
+  const meta = MOT_META[motivationLevel];
+  const pill = document.getElementById('mot-pill-display');
+  if(pill){ pill.className = 'mot-pill ' + meta.cls; pill.innerHTML = `<i class="ti ${meta.icon}" style="font-size:11px;"></i> ${meta.label}`; }
+  const ctxEl = document.getElementById('mot-context-display');
+  if(ctxEl) ctxEl.textContent = motivationContext || '—';
+  showToast('Motivation saved — Sellers CRM updated');
+  return true;
+}
+
+/* ── Edit vendor ── */
+function openEditVendor(){
+  const body = `
+    <div class="so-field"><span class="so-label">Name</span><input id="so-v-name" class="f-in" value="${vendorName}"></div>
+    <div class="so-field"><span class="so-label">Mobile</span><input id="so-v-mobile" class="f-in" value="${vendorMobile}"></div>
+    <div class="so-field"><span class="so-label">Email</span><input id="so-v-email" class="f-in" value="${vendorEmail}" type="email"></div>
+    <div class="so-hint">Saving here also updates the Sellers CRM record for this vendor — there's no need to enter it twice.</div>
+  `;
+  openSlideover('Edit vendor details', body, {kind:'edit-vendor'});
+}
+function saveEditVendor(){
+  const name   = document.getElementById('so-v-name').value.trim();
+  const mobile = document.getElementById('so-v-mobile').value.trim();
+  const email  = document.getElementById('so-v-email').value.trim();
+  if(!name){ showToast('Vendor name can’t be empty'); return false; }
+
+  vendorName = name; vendorMobile = mobile; vendorEmail = email;
+
+  document.getElementById('vendor-name-display').textContent = vendorName;
+  document.getElementById('vendor-avatar-init').textContent = initials(vendorName);
+  document.getElementById('vendor-mobile').textContent = vendorMobile;
+  document.getElementById('vendor-email').textContent = vendorEmail;
+  document.getElementById('strip-seller').textContent = privacyOn ? maskName(vendorName) : vendorName;
+  document.getElementById('vendor-updated').textContent = 'Updated today · ' + nowTime();
+  showToast('Vendor details saved — synced to Sellers CRM');
+  return true;
+}
+
+/* ── Edit chain & property ── */
+function openEditChain(){
+  const statuses = ['No chain','Chain — below','Chain — above','Chain — both'];
+  const rows = statuses.map(s => `<button class="so-type-btn${s===chainStatus ? ' on' : ''}" data-val="${s}" onclick="soSelect('#so-body [data-val]', this, 'chainStatus')">${s}</button>`).join('');
+  const body = `
+    <div class="so-field"><span class="so-label">Chain status</span><div class="so-type-row">${rows}</div></div>
+    <div class="so-field"><span class="so-label">Tenure</span><input id="so-c-tenure" class="f-in" value="${chainTenure}"></div>
+    <div class="so-field"><span class="so-label">Solicitor</span><input id="so-c-solicitor" class="f-in" value="${chainSolicitor}"></div>
+    <div class="so-field"><span class="so-label">Target completion</span><input id="so-c-completion" class="f-in" value="${chainCompletion}"></div>
+  `;
+  openSlideover('Edit chain & property', body, {kind:'edit-chain', chainStatus: chainStatus});
+}
+function saveEditChain(){
+  const tenure     = document.getElementById('so-c-tenure').value.trim();
+  const solicitor  = document.getElementById('so-c-solicitor').value.trim();
+  const completion = document.getElementById('so-c-completion').value.trim();
+  if(!tenure){ showToast('Tenure can’t be empty'); return false; }
+
+  chainStatus     = soContext.chainStatus || chainStatus;
+
+  chainTenure     = tenure;
+  chainSolicitor  = solicitor;
+  chainCompletion = completion;
+
+  const meta = CHAIN_ICON[chainStatus] || CHAIN_ICON['No chain'];
+  document.getElementById('chain-status-val').style.color = meta.color;
+  document.getElementById('chain-status-val').innerHTML = `<i class="ti ${meta.icon}" style="font-size:12px;margin-right:4px;"></i><span id="chain-status-text">${chainStatus}</span>`;
+  document.getElementById('chain-tenure-val').textContent = chainTenure;
+  document.getElementById('chain-solicitor-val').textContent = chainSolicitor;
+  document.getElementById('chain-completion-val').textContent = chainCompletion;
+  showToast('Chain & property details saved');
+  return true;
+}
+
+/* ── Save dispatcher ── */
+function saveSlideover(){
+  if(!soContext) return;
+  let ok = false;
+  if(soContext.kind === 'activity')          ok = saveActivity();
+  else if(soContext.kind === 'offer')        ok = saveOffer();
+  else if(soContext.kind === 'edit-vendor')  ok = saveEditVendor();
+  else if(soContext.kind === 'edit-chain')   ok = saveEditChain();
+  else if(soContext.kind === 'edit-motivation') ok = saveEditMotivation();
+  if(ok) closeSlideover();
+}
+
+/* Esc closes the slide-over */
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && soContext) closeSlideover();
+});
+</script>
+<script>
+/* ══ NOTIFICATION SYSTEM ══ */
+var notifOpen = false;
+var notifData = (function(){
+  var today = new Date();
+  var fmt = function(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+  var add = function(d,n){ var r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  // Simulated deal-aware notifications
+  var coolingEnd  = add(today, 2);
+  var packRelease = add(today, 5);
+  var noteDate1   = add(today,-1);
+  var noteDate2   = add(today,-3);
+  return [
+    { id:'n1', unread:true,  type:'amber', icon:'ti-alert-triangle',
+      deal:'14 Roath Court Rd', msg:'Cooling-off period ends '+fmt(coolingEnd)+' — confirm investor is proceeding', time:'Today' },
+    { id:'n2', unread:true,  type:'navy',  icon:'ti-file-text',
+      deal:'14 Roath Court Rd', msg:'Pack release scheduled for '+fmt(packRelease)+' — ensure content is finalised', time:'Today' },
+    { id:'n3', unread:true,  type:'teal',  icon:'ti-user-check',
+      deal:'14 Roath Court Rd', msg:'James Thornton expressed interest — log a response in Investors', time:'Yesterday' },
+    { id:'n4', unread:false, type:'navy',  icon:'ti-user',
+      deal:'14 Roath Court Rd', msg:'Seller details not yet completed — add vendor motivation before sharing packs', time:fmt(noteDate2) },
+    { id:'n5', unread:false, type:'red',   icon:'ti-clock-exclamation',
+      deal:'52 Crwys Rd', msg:'Deal has been in Negotiation for 18 days with no update', time:fmt(noteDate2) },
+  ];
+}());
+function renderNotifs(){
+  var unread = notifData.filter(function(n){ return n.unread; }).length;
+  var badge = document.getElementById('notif-badge');
+  if(badge){ badge.classList.toggle('show', unread > 0); }
+  var list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!notifData.length){
+    list.innerHTML = '<div class="notif-empty"><i class="ti ti-bell-off"></i><div class="notif-empty-msg">All caught up — no new notifications</div></div>';
+    return;
+  }
+  list.innerHTML = notifData.map(function(n){
+    return '<div class="notif-item'+(n.unread?' unread':'')+'" id="ni-'+n.id+'" onclick="readNotif(''+n.id+'')">'
+      +'<div class="notif-icon-wrap '+n.type+'"><i class="ti '+n.icon+'"></i></div>'
+      +'<div class="notif-body">'
+      +'<div class="notif-deal-tag">'+n.deal+'</div>'
+      +'<div class="notif-msg">'+n.msg+'</div>'
+      +'<div class="notif-time">'+n.time+'</div>'
+      +'</div>'
+      +(n.unread ? '<div class="notif-unread-dot"></div>' : '')
+      +'</div>';
+  }).join('');
+}
+function toggleNotif(e){
+  e.stopPropagation();
+  notifOpen = !notifOpen;
+  var drop = document.getElementById('notif-drop');
+  if(drop) drop.classList.toggle('show', notifOpen);
+  if(notifOpen) renderNotifs();
+}
+function readNotif(id){
+  var n = notifData.find(function(x){ return x.id===id; });
+  if(n) n.unread = false;
+  renderNotifs();
+}
+function markAllRead(){
+  notifData.forEach(function(n){ n.unread=false; });
+  renderNotifs();
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.notif-wrap')){ notifOpen=false; var d=document.getElementById('notif-drop'); if(d) d.classList.remove('show'); }
+});
+
+document.addEventListener("DOMContentLoaded",function(){ renderNotifs(); });
+</script>
+
+<script>
+/* ══ STAGE-AWARE NEXT ACTION SUGGESTIONS ══ */
+var stageSuggestions = {
+  sourcing: [
+    { icon:'ti-phone',         text:'Initial vendor call — qualify motivation and timeline' },
+    { icon:'ti-home',          text:'Book viewing — confirm property condition' },
+    { icon:'ti-file-analytics',text:'Run comparables — validate market value', route:'ds_analysis_hub.html?view=inputs' },
+  ],
+  negotiating: [
+    { icon:'ti-coin',         text:'Submit offer at agreed price point' },
+    { icon:'ti-phone',        text:'Follow up with vendor / agent on offer status' },
+    { icon:'ti-file-text',    text:'Prepare heads of terms draft' },
+  ],
+  agreed: [
+    { icon:'ti-file-text',    text:'Send fee agreement for signature' },
+    { icon:'ti-users',        text:'Instruct solicitors — buyer and seller' },
+    { icon:'ti-file-download',text:'Prepare investor pack for release', route:'ds_content_hub.html' },
+  ],
+  reserved: [
+    { icon:'ti-file-text',    text:'Chase fee agreement signature' },
+    { icon:'ti-phone',        text:'Follow up with vendor on exchange timeline' },
+    { icon:'ti-calendar',     text:'Confirm pack release date with investor', route:'ds_investor_tab.html' },
+    { icon:'ti-coin',         text:'Chase sourcing fee — confirm payment method' },
+  ],
+  exchanged: [
+    { icon:'ti-calendar',     text:'Confirm completion date with all parties' },
+    { icon:'ti-coin',         text:'Confirm fee received / invoice sent' },
+    { icon:'ti-file-check',   text:'Prepare completion documents', route:'ds_deal_status.html' },
+  ],
+  complete: [
+    { icon:'ti-star',         text:'Request testimonial from investor' },
+    { icon:'ti-coin',         text:'Confirm final fee reconciliation' },
+    { icon:'ti-archive',      text:'Archive deal — mark as complete', route:'ds_deal_overview.html' },
+  ],
+};
+function renderStageSuggestions(){
+  var sel = document.getElementById('na-stage-sel');
+  var stage = sel ? sel.value : 'reserved';
+  var suggs = stageSuggestions[stage] || [];
+  var container = document.getElementById('na-suggestions');
+  if(!container) return;
+  container.innerHTML = suggs.map(function(s){
+    var rArg = s.route ? ',\''+s.route+'\'' : '';
+    return '<button class="log-btn" style="justify-content:flex-start;font-size:11px;gap:5px;" onclick="setNextAction(\''+s.text.replace(/'/g,"\\'")+'\''+rArg+')">'  
+      +'<i class="ti '+s.icon+'" style="font-size:11px;flex-shrink:0;"></i>'
+      +'<span style="flex:1;text-align:left;">'+s.text+'</span>'
+      +(s.route ? '<i class="ti ti-arrow-right" style="font-size:9px;opacity:.35;"></i>' : '')
+      +'</button>';
+  }).join('');
+}
+document.addEventListener('DOMContentLoaded', renderStageSuggestions);
+
+/* ══ SELLER PICKER ══ */
+var spickMode = 'search';
+var spickCrmPool = [
+  { name:'Patricia Williams', mobile:'07700 900222', email:'p.williams@gmail.com', agent:'David Jones · Knight Frank' },
+  { name:'Sandra Okafor',     mobile:'07700 900444', email:'',                     agent:'Kim Lee · Martin & Co' },
+  { name:'Michael Reeves',    mobile:'07700 900555', email:'m.reeves@gmail.com',   agent:'Emma Clarke · Savills' },
+  { name:'Robert Clarke',     mobile:'07700 900666', email:'r.clarke@outlook.com', agent:'James Murphy · Reeds Rains' },
+  { name:'Anita Shah',        mobile:'07700 900777', email:'anita.shah@icloud.com',agent:'Priya Patel · Your Move' }
+];
+
+function openSellerPicker(){
+  spickSetMode('search');
+  spickFilter('');
+  document.getElementById('spickOverlay').classList.add('show');
+  document.getElementById('spickPanel').classList.add('show');
+}
+function closeSellerPicker(){
+  document.getElementById('spickOverlay').classList.remove('show');
+  document.getElementById('spickPanel').classList.remove('show');
+}
+function spickSetMode(mode){
+  spickMode = mode;
+  document.getElementById('spickModeSearchBtn').classList.toggle('on', mode==='search');
+  document.getElementById('spickModeNewBtn').classList.toggle('on', mode==='new');
+  document.getElementById('spickSearchView').style.display = mode==='search' ? 'block' : 'none';
+  document.getElementById('spickNewView').style.display   = mode==='new'    ? 'block' : 'none';
+}
+function spickFilter(q){
+  var matches = q.trim()
+    ? spickCrmPool.filter(function(s){ return s.name.toLowerCase().indexOf(q.toLowerCase())>-1 || s.mobile.indexOf(q)>-1; })
+    : spickCrmPool;
+  spickRenderResults(matches);
+}
+function spickRenderResults(list){
+  var container = document.getElementById('spickResults');
+  if(!list.length){ container.innerHTML='<div style="text-align:center;padding:24px 0;color:var(--text-2);font-size:12px;">No sellers found</div>'; return; }
+  container.innerHTML = list.map(function(s, idx){
+    var meta = [s.mobile, s.email, s.agent].filter(Boolean).join(' · ');
+    return '<div class="spick-item">'
+      +'<div class="spick-item-left">'
+      +'<div class="spick-avt">'+s.name.split(' ').map(function(p){return p[0];}).join('').toUpperCase().slice(0,2)+'</div>'
+      +'<div><div class="spick-name pii">'+s.name+'</div><div class="spick-meta pii">'+meta+'</div></div>'
+      +'</div>'
+      +'<button class="spick-add-btn" onclick="spickSelectExisting('+spickCrmPool.indexOf(s)+')"><i class="ti ti-link" style="font-size:11px;"></i> Link</button>'
+      +'</div>';
+  }).join('');
+}
+function spickSelectExisting(idx){
+  var s = spickCrmPool[idx];
+  if(!s) return;
+  applySellerToPage(s.name, s.mobile, s.email, s.agent ? s.agent.split(' · ')[0]||'' : '', s.agent ? s.agent.split(' · ')[1]||'' : '');
+  closeSellerPicker();
+  showToast(s.name + ' linked to this deal · Sellers CRM updated');
+}
+function spickToggleCreateBtn(){
+  var name = document.getElementById('spickName').value.trim();
+  document.getElementById('spickCreateBtn').disabled = !name;
+}
+function spickCreateNew(){
+  var name       = document.getElementById('spickName').value.trim();
+  var mobile     = document.getElementById('spickMobile').value.trim();
+  var email      = document.getElementById('spickEmail').value.trim();
+  var agentName  = document.getElementById('spickAgent').value.trim();
+  var agentPhone = document.getElementById('spickAgentPhone').value.trim();
+  if(!name) return;
+  applySellerToPage(name, mobile, email, agentName, agentPhone);
+  closeSellerPicker();
+  showToast(name + ' created and linked to this deal · saved to Sellers CRM');
+  /* reset */
+  ['spickName','spickMobile','spickEmail','spickAgent','spickAgentPhone'].forEach(function(id){ document.getElementById(id).value=''; });
+  spickToggleCreateBtn();
+}
+function applySellerToPage(name, mobile, email, agentName, agentPhone){
+  vendorName   = name;
+  vendorMobile = mobile || vendorMobile;
+  vendorEmail  = email  || vendorEmail;
+  var init = name.trim().split(' ').map(function(p){return p[0];}).join('').toUpperCase().slice(0,2);
+  document.getElementById('vendor-name-display').textContent = name;
+  document.getElementById('vendor-avatar-init').textContent  = init;
+  if(mobile) document.getElementById('vendor-mobile').textContent = mobile;
+  if(email)  document.getElementById('vendor-email').textContent  = email;
+  document.getElementById('strip-seller').textContent = privacyOn ? maskName(name) : name;
+  document.getElementById('vendor-updated').textContent = 'Updated today · '+nowTime();
+}
+</script>
+</body>
+</html>

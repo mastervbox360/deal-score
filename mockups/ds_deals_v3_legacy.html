@@ -1,0 +1,281 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+body{background:#eef0f4;width:1280px;}
+.hdr{background:#1B3A6B;height:50px;display:flex;align-items:center;padding:0 24px;gap:0;}
+.logo{font-size:14px;font-weight:500;color:white;display:flex;align-items:center;gap:7px;flex-shrink:0;margin-right:20px;}
+/* small separator between logo and nav */
+.nav-sep{width:.5px;height:18px;background:rgba(255,255,255,.15);margin-right:14px;flex-shrink:0;}
+.hnav{display:flex;gap:2px;flex:1;justify-content:center;}
+.hn{font-size:12px;padding:5px 12px;border-radius:7px;background:none;border:none;color:rgba(255,255,255,.45);cursor:pointer;font-family:inherit;transition:all .1s;}
+.hn:hover{color:white;}.hn.on{background:rgba(255,255,255,.14);color:white;}
+/* gap between dashboard and investors */
+.hn-gap{width:12px;flex-shrink:0;}
+.hdrr{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.badge-trial{font-size:11px;background:rgba(245,158,11,.2);color:#FCD34D;border:.5px solid rgba(245,158,11,.3);padding:3px 11px;border-radius:20px;}
+.pvbtn{font-size:11px;display:flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;cursor:pointer;border:.5px solid;background:none;}
+.pvbtn.off{background:rgba(239,68,68,.1);color:#FCA5A5;border-color:rgba(239,68,68,.22);}
+.btn-advert{font-size:12px;color:rgba(255,255,255,.65);border:.5px solid rgba(255,255,255,.2);background:none;padding:5px 13px;border-radius:8px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;}
+.btn-advert:hover{color:white;border-color:rgba(255,255,255,.4);}
+.btnnew{background:#00C896;border:none;color:#082b1e;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;}
+.avt{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.18);border:.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;cursor:pointer;}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);background:#fff;border-bottom:.5px solid #e3e5e9;}
+.sc{padding:13px 20px;border-right:.5px solid #e3e5e9;}
+.sc:last-child{border-right:none;}
+.sl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:#aaa;margin-bottom:4px;}
+.sv{font-size:23px;font-weight:500;color:#1B3A6B;}
+.sv.gr{color:#10B981;}.sv.am{color:#F59E0B;}
+.vstrip{background:#fff;border-bottom:.5px solid #e3e5e9;padding:11px 24px;}
+.vt{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:#aaa;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.vrow{display:flex;gap:9px;}
+.vchip{background:#EFF6FF;border:.5px solid #BFDBFE;border-radius:9px;padding:9px 13px;min-width:185px;}
+.vcd{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#1E40AF;margin-bottom:3px;}
+.vca{font-size:12px;font-weight:500;color:#1B3A6B;}
+.vct{font-size:11px;color:#888;}
+
+/* TOOLBAR — persistent across all screens */
+.tbar{background:#fff;border-bottom:.5px solid #e3e5e9;display:flex;align-items:center;justify-content:space-between;padding:9px 24px;position:sticky;top:0;z-index:10;}
+.vgrp{display:flex;gap:2px;background:#f5f6f8;border:.5px solid #e3e5e9;border-radius:9px;padding:2px;}
+.vbtn{font-size:12px;padding:5px 10px;border-radius:7px;border:none;background:none;color:#666;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .1s;white-space:nowrap;}
+.vbtn:hover{background:#fff;color:#1B3A6B;}
+.vbtn.on{background:#fff;color:#1B3A6B;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+/* icon-only view buttons */
+.vbtn.vb-icon{padding:5px 8px;font-size:14px;}
+/* thin separator inside vgrp */
+.vgrp-sep{width:.5px;height:20px;background:#e3e5e9;align-self:center;margin:0 1px;flex-shrink:0;}
+/* "on" variant for pipeline/compare pages */
+.vbtn.page-on{background:#1B3A6B;color:white;}
+.fgrp{display:flex;gap:6px;align-items:center;}
+.fsel{padding:5px 8px;border:.5px solid #e3e5e9;border-radius:7px;font-size:11px;background:#fff;color:#666;outline:none;font-family:inherit;}
+.sinp{padding:5px 10px;border:.5px solid #e3e5e9;border-radius:7px;font-size:11px;background:#fff;outline:none;width:150px;font-family:inherit;}
+.sinp:focus{border-color:#1B3A6B;}
+
+/* DEAL CARDS */
+.cgrid{display:grid;gap:13px;padding:20px 24px;}
+.g3c{grid-template-columns:repeat(3,1fr);}
+.dc{background:#fff;border-radius:12px;border:.5px solid #e3e5e9;border-top:3px solid #10B981;overflow:hidden;cursor:pointer;transition:box-shadow .15s;}
+.dc:hover{box-shadow:0 3px 16px rgba(0,0,0,.07);}
+.dc.am{border-top-color:#F59E0B;}.dc.re{border-top-color:#EF4444;}.dc.gy{border-top-color:#9CA3AF;}
+.ctop{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;}
+.stag{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;background:#f5f6f8;color:#888;padding:2px 8px;border-radius:20px;}
+.tright{display:flex;align-items:center;gap:5px;}
+.prdot{width:8px;height:8px;border-radius:50%;}
+.prdot.g{background:#10B981;}.prdot.a{background:#F59E0B;}
+.sbdg{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;border:.5px solid;}
+.sbg{background:#ECFDF5;color:#065F46;border-color:#A7F3D0;}
+.sba{background:#FFFBEB;color:#92400E;border-color:#FDE68A;}
+.sbr{background:#FEF2F2;color:#7F1D1D;border-color:#FECACA;}
+.sbgr{background:#f5f6f8;color:#888;border-color:#e3e5e9;}
+.cadr{padding:2px 14px;font-size:13px;font-weight:500;color:#1B3A6B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cdid{padding:0 14px 2px;font-size:10px;color:#bbb;letter-spacing:.03em;}
+.cprice{padding:0 14px 7px;font-size:12px;color:#888;}
+.csell{padding:5px 14px;font-size:11px;color:#92400E;background:#FFFBEB;border-top:.5px solid rgba(253,230,138,.35);border-bottom:.5px solid rgba(253,230,138,.35);}
+.coolc{padding:4px 14px;font-size:11px;color:#92400E;background:#FFFBEB;}
+.coolp{height:2px;background:#e3e5e9;margin:0 14px;overflow:hidden;}
+.coolpf{height:100%;background:#F59E0B;}
+.cmet{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px 14px 11px;}
+.cm{background:#f5f6f8;border-radius:8px;padding:8px 10px;}
+.cml{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:#aaa;margin-bottom:2px;}
+.cmv{font-size:13px;font-weight:500;color:#1B3A6B;}
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:.5px solid #e3e5e9;}
+.sdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;}
+.d1{background:#10B981;}.d2{background:#3B82F6;}.d3{background:#F59E0B;}
+.cacts{display:flex;gap:3px;}
+.cbtn{font-size:11px;font-weight:500;padding:5px 9px;border-radius:7px;cursor:pointer;border:.5px solid;font-family:inherit;display:flex;align-items:center;gap:4px;}
+.cbo{background:#1B3A6B;color:white;border-color:#1B3A6B;}
+.cbe{background:#f5f6f8;color:#555;border-color:#e3e5e9;}
+/* Edit opens deal in editable inputs state; Open → opens deal in locked/view state */
+</style>
+
+<div style="background:#eef0f4;min-height:100vh;">
+  <div class="hdr">
+    <div class="logo"><i class="ti ti-chart-bar" aria-hidden="true"></i> DealScore</div>
+    <div class="nav-sep"></div>
+    <div class="hnav">
+      <button class="hn on">Deals</button>
+      <div class="hn-gap"></div>
+      <button class="hn">Investors</button>
+      <button class="hn">Sellers</button>
+    </div>
+    <div class="hdrr">
+      <span class="badge-trial"><i class="ti ti-clock" aria-hidden="true"></i> 5 days left</span>
+      <button class="pvbtn off"><i class="ti ti-shield" aria-hidden="true"></i> Privacy off</button>
+      <button class="btn-advert"><i class="ti ti-speakerphone" aria-hidden="true"></i> Create advert</button>
+      <button class="btnnew"><i class="ti ti-plus" aria-hidden="true"></i> New deal</button>
+      <div class="avt">VM</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="sc"><div class="sl">Total deals</div><div class="sv">8</div></div>
+    <div class="sc"><div class="sl">Advertised</div><div class="sv gr">3</div></div>
+    <div class="sc"><div class="sl">Fee received</div><div class="sv am">2</div></div>
+    <div class="sc"><div class="sl">Completed</div><div class="sv">3</div></div>
+    <div class="sc"><div class="sl">Avg cash flow</div><div class="sv gr" style="font-size:18px;">+£612/mo</div></div>
+    <div class="sc"><div class="sl">Viewings this week</div><div class="sv" style="font-size:18px;">2</div></div>
+  </div>
+
+  <div class="vstrip">
+    <div class="vt"><i class="ti ti-calendar" aria-hidden="true"></i> Upcoming viewings</div>
+    <div class="vrow">
+      <div class="vchip"><div class="vcd">Tomorrow · Tue 3 Jun</div><div class="vca">65a Horwood Close, Leeds LS7</div><div class="vct">10:30am · Sarah Michaels</div></div>
+      <div class="vchip"><div class="vcd">Thu 5 Jun</div><div class="vca">12 Victoria Street, Manchester</div><div class="vct">2:00pm · David Jones</div></div>
+      <div class="vchip" style="background:#f5f6f8;border-color:#e3e5e9;"><div class="vcd" style="color:#aaa;">Next</div><div class="vca" style="color:#888;font-size:12px;font-weight:400;">8 Park Lane · Mon 9 Jun</div></div>
+    </div>
+  </div>
+
+  <!-- PERSISTENT TOOLBAR — same component on Dashboard, Pipeline, Compare -->
+  <div class="tbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <!-- View group — 4 Dashboard views as icon pairs with separator -->
+      <div class="vgrp" id="dash-views" title="Grid / Grid Compact / List / List Compact">
+        <button class="vbtn vb-icon on" onclick="setView('grid',this)" title="Grid"><i class="ti ti-layout-grid"></i></button>
+        <button class="vbtn vb-icon" onclick="setView('grid-compact',this)" title="Grid Compact"><i class="ti ti-layout-grid-add"></i></button>
+        <div class="vgrp-sep"></div>
+        <button class="vbtn vb-icon" onclick="setView('list',this)" title="List"><i class="ti ti-table"></i></button>
+        <button class="vbtn vb-icon" onclick="setView('list-compact',this)" title="List Compact"><i class="ti ti-list-details"></i></button>
+      </div>
+      <!-- Page group — Pipeline and Compare as separate pages -->
+      <div class="vgrp">
+        <button class="vbtn" onclick="alert('→ Pipeline page (columns view)')"><i class="ti ti-columns" aria-hidden="true"></i> Pipeline</button>
+        <button class="vbtn" onclick="alert('→ Compare page (side by side)')"><i class="ti ti-arrows-diff" aria-hidden="true"></i> Compare</button>
+      </div>
+    </div>
+    <div class="fgrp">
+      <select class="fsel"><option>Newest first</option><option>Score: best first</option><option>Cash flow: high–low</option><option>Viewings: soonest</option><option>Motivation: highest</option></select>
+      <select class="fsel"><option>All strategies</option><option>BTL</option><option>HMO</option><option>FLIP</option><option>SA</option><option>BRRR</option><option>R2R</option></select>
+      <select class="fsel"><option>All scores</option><option>RECOMMENDED</option><option>REVIEW</option><option>AVOID</option></select>
+      <select class="fsel"><option>All statuses</option><option>Analysing</option><option>Advertised</option><option>Fee received</option><option>Pack released</option><option>Completed</option></select>
+      <select class="fsel"><option>All vendors</option><option>Motivated</option><option>Flexible</option><option>Firm</option></select>
+      <input class="sinp" placeholder="Search deals...">
+    </div>
+  </div>
+
+  <div class="cgrid g3c" id="deal-grid">
+    <div class="dc">
+      <div class="ctop"><span class="stag">BTL</span><div class="tright"><div class="prdot g"></div><span class="sbdg sbg">RECOMMENDED</span></div></div>
+      <div class="cadr">65a Horwood Close, Leeds LS7</div><div class="cdid">DS-001</div><div class="cprice">£207,000</div>
+      <div class="csell"><i class="ti ti-user" aria-hidden="true" style="font-size:10px;"></i> Motivated vendor · Viewing Tue 3 Jun 10:30am</div>
+      <div class="coolc"><i class="ti ti-clock" aria-hidden="true"></i> Sarah Jones — 6 of 14 days cooling off</div>
+      <div class="coolp"><div class="coolpf" style="width:43%"></div></div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv" style="color:#10B981;">+£482</div></div>
+        <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">6.4%</div></div>
+        <div class="cm"><div class="cml">Gross yield</div><div class="cmv">6.4%</div></div>
+        <div class="cm"><div class="cml">Cash invested</div><div class="cmv">£63,420</div></div>
+      </div>
+      <div class="cfoot">
+        <span style="font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;background:#ECFDF5;color:#065F46;border:.5px solid #A7F3D0;display:flex;align-items:center;"><span class="sdot d1"></span>Advertised</span>
+        <div class="cacts">
+          <button class="cbtn cbe" title="Open Advert Builder for this deal"><i class="ti ti-speakerphone" aria-hidden="true"></i> Advert</button>
+          <button class="cbtn cbe" title="Download investor pack"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="cbtn cbe" title="Edit deal inputs"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="cbtn cbo">Open <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="dc am">
+      <div class="ctop"><span class="stag">HMO</span><div class="tright"><div class="prdot a"></div><span class="sbdg sba">REVIEW</span></div></div>
+      <div class="cadr">12 Victoria Street, Manchester M1</div><div class="cdid">DS-002</div><div class="cprice">£310,000</div>
+      <div class="csell"><i class="ti ti-user" aria-hidden="true" style="font-size:10px;"></i> Flexible vendor · Viewing Thu 5 Jun 2:00pm</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv" style="color:#10B981;">+£1,247</div></div>
+        <div class="cm"><div class="cml">Gross yield</div><div class="cmv">8.9%</div></div>
+        <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">5.2%</div></div>
+        <div class="cm"><div class="cml">Cash invested</div><div class="cmv">£97,150</div></div>
+      </div>
+      <div class="cfoot">
+        <span style="font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;background:#FFFBEB;color:#92400E;border:.5px solid #FDE68A;display:flex;align-items:center;"><span class="sdot d3"></span>Fee received</span>
+        <div class="cacts">
+          <button class="cbtn cbe" title="Open Advert Builder for this deal"><i class="ti ti-speakerphone" aria-hidden="true"></i> Advert</button>
+          <button class="cbtn cbe" title="Download investor pack"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="cbtn cbe" title="Edit deal inputs"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="cbtn cbo">Open <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="ctop"><span class="stag">BRRR</span><span class="sbdg sbg">RECOMMENDED</span></div>
+      <div class="cadr">8 Park Lane, Birmingham B15</div><div class="cdid">DS-003</div><div class="cprice">£185,000</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv" style="color:#10B981;">+£394</div></div>
+        <div class="cm"><div class="cml">Cash left in</div><div class="cmv">£8,200</div></div>
+        <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">5.8%</div></div>
+        <div class="cm"><div class="cml">Equity created</div><div class="cmv">£34,000</div></div>
+      </div>
+      <div class="cfoot">
+        <span style="font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;background:#EFF6FF;color:#1E40AF;border:.5px solid #BFDBFE;display:flex;align-items:center;"><span class="sdot d2"></span>Analysing</span>
+        <div class="cacts">
+          <button class="cbtn cbe" title="Open Advert Builder for this deal"><i class="ti ti-speakerphone" aria-hidden="true"></i> Advert</button>
+          <button class="cbtn cbe" title="Download investor pack"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="cbtn cbe" title="Edit deal inputs"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="cbtn cbo">Open <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="dc re">
+      <div class="ctop"><span class="stag">FLIP</span><span class="sbdg sbr">AVOID</span></div>
+      <div class="cadr">22 Oak Road, Sheffield S1</div><div class="cdid">DS-004</div><div class="cprice">£145,000</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Net profit</div><div class="cmv" style="color:#EF4444;">£4,200</div></div>
+        <div class="cm"><div class="cml">Profit on cost</div><div class="cmv" style="color:#EF4444;">4.1%</div></div>
+        <div class="cm"><div class="cml">GDV</div><div class="cmv">£165,000</div></div>
+        <div class="cm"><div class="cml">Refurb cost</div><div class="cmv">£22,000</div></div>
+      </div>
+      <div class="cfoot">
+        <span style="font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;background:#EFF6FF;color:#1E40AF;border:.5px solid #BFDBFE;display:flex;align-items:center;"><span class="sdot d2"></span>Analysing</span>
+        <div class="cacts">
+          <button class="cbtn cbe" title="Open Advert Builder for this deal"><i class="ti ti-speakerphone" aria-hidden="true"></i> Advert</button>
+          <button class="cbtn cbe" title="Download investor pack"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="cbtn cbe" title="Edit deal inputs"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="cbtn cbo">Open <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="ctop"><span class="stag">SA</span><span class="sbdg sbg">RECOMMENDED</span></div>
+      <div class="cadr">3 Marina View, Brighton BN1</div><div class="cdid">DS-005</div><div class="cprice">£295,000</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Monthly CF</div><div class="cmv" style="color:#10B981;">+£1,016</div></div>
+        <div class="cm"><div class="cml">Net yield</div><div class="cmv">11.2%</div></div>
+        <div class="cm"><div class="cml">CoC ROI</div><div class="cmv">9.1%</div></div>
+        <div class="cm"><div class="cml">Cash invested</div><div class="cmv">£88,250</div></div>
+      </div>
+      <div class="cfoot">
+        <span style="font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;background:#EFF6FF;color:#1E40AF;border:.5px solid #BFDBFE;display:flex;align-items:center;"><span class="sdot d2"></span>Analysing</span>
+        <div class="cacts">
+          <button class="cbtn cbe" title="Open Advert Builder for this deal"><i class="ti ti-speakerphone" aria-hidden="true"></i> Advert</button>
+          <button class="cbtn cbe" title="Download investor pack"><i class="ti ti-download" aria-hidden="true"></i></button>
+          <button class="cbtn cbe" title="Edit deal inputs"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="cbtn cbo">Open <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="dc gy">
+      <div class="ctop"><span class="stag">R2R</span><span class="sbdg sbgr">INCOMPLETE</span></div>
+      <div class="cadr" style="color:#aaa;">Untitled deal</div><div class="cdid" style="opacity:.3;">DS-006</div><div class="cprice" style="color:#ccc;">Price not set</div>
+      <div class="cmet">
+        <div class="cm"><div class="cml">Monthly profit</div><div class="cmv" style="color:#ccc;">—</div></div>
+        <div class="cm"><div class="cml">ROI on setup</div><div class="cmv" style="color:#ccc;">—</div></div>
+        <div class="cm"><div class="cml">R2R spread</div><div class="cmv" style="color:#ccc;">—</div></div>
+        <div class="cm"><div class="cml">Break-even</div><div class="cmv" style="color:#ccc;">—</div></div>
+      </div>
+      <div class="cfoot">
+        <span style="font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;background:#f5f6f8;color:#888;border:.5px solid #e3e5e9;display:flex;align-items:center;"><span class="sdot d2"></span>Analysing</span>
+        <div class="cacts"><button class="cbtn cbo">Complete inputs</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function setView(v, btn) {
+  document.querySelectorAll('#dash-views .vbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  var grid = document.getElementById('deal-grid');
+  grid.style.gap = '13px';
+  if(v === 'grid') { grid.style.gridTemplateColumns = 'repeat(3,1fr)'; }
+  else if(v === 'grid-compact') { grid.style.gridTemplateColumns = 'repeat(4,1fr)'; grid.style.gap = '9px'; }
+  else if(v === 'list') { grid.style.gridTemplateColumns = '1fr'; grid.style.gap = '6px'; }
+  else if(v === 'list-compact') { grid.style.gridTemplateColumns = '1fr'; grid.style.gap = '3px'; }
+}
+</script>

@@ -1,0 +1,58 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_deals_v1_legacy.html in full before writing any code. Focus on the nd-* elements and functions.
+
+DO NOT CHANGE:
+- createDeal service function — use it as-is for the actual deal creation API call
+- Supabase auth or data fetching
+- Any existing deal state or sync logic
+
+IMPLEMENT:
+
+1. NEW DEAL SLIDE-OVER (480px panel from the right, backdrop, spring-eased entry/exit)
+   Triggered by: "New deal" button in header, "+ Add deal" in kanban columns
+   3-step rail at top: Strategy → Deal basics → Source & vendor
+   Progress dots update as user advances.
+
+   Step 1 — Strategy:
+   7 strategy tiles in a grid: BTL / HMO / FLIP / SA / BRRR / R2R / Social Housing
+   Single-select tiles. Next button disabled until one is selected.
+   Inline validation error if user tries to skip: "Please select a strategy to continue"
+   Smart Capture tile at top (Pro+ gated): shows locked state on Pro with amber lock + "Pro+" badge; shows "Selected" teal badge on Pro+
+
+   Step 2 — Deal basics:
+   Address input (optional — defaults to "Untitled deal" if left blank)
+   Asking price (£ input)
+   Country/tax region (England & NI / Wales / Scotland — stacked vertical list, not horizontal pills)
+   Property type (Terraced / Semi-detached / Detached / Flat / HMO / Other)
+   Bedrooms (number)
+   Live review card on right (auto-populates from inputs as user types)
+   Validation: address OR asking price must be present to advance
+
+   Step 3 — Source & vendor (optional fields):
+   Live review card (final populated state)
+   Two collapsible optional sections:
+   - Source of deal (11-option dropdown: Estate agent / Auction / Direct mail / Leaflet / Online / Social media / Referral / Networking event / Property sourcer / Land Registry / Other)
+   - Vendor details (name, phone, motivation badges — 8 options)
+
+   On "Create deal" button:
+   - Call createDeal() with the collected data
+   - Show success overlay with generated deal reference (DS-00X format)
+   - Hold 1.9 seconds
+   - Navigate to the Analysis Hub / Inputs sub-view for the new deal
+
+2. ESCAPE TO CLOSE: pressing Escape or clicking backdrop closes the panel (with confirmation if data entered on step 2+)
+
+3. EMPTY STATE (shown when user has 0 deals)
+   Centred panel with DealScore logomark, headline "Add your first deal to get started", sub-text, primary teal CTA (opens new deal panel), secondary ghost "Watch demo" button (stub toast), "~3 minutes per deal" time hint.
+   Show when dealCount === 0; hide when dealCount > 0.
+
+4. WELCOME RAIL (shown to new users who haven't dismissed it)
+   Horizontal dismissable strip above the deal grid. 3 action tiles:
+   - "Add your first deal" (opens new deal panel)
+   - "Watch 2-min demo" (stub toast: "Demo video — coming soon")
+   - "Import from spreadsheet" (stub: "Coming soon")
+   Smart Capture teaser in tile 1: locked amber state on Pro, unlocked teal state on Pro+.
+   X dismiss button fades out the rail and persists dismissal.
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.
