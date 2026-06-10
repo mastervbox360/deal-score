@@ -1,0 +1,48 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference designs: open and read both files in full:
+- 04_Mockups/UI_Screens/_Confirmed/ds_pipeline_view.html
+- 04_Mockups/UI_Screens/_Confirmed/ds_compare_view.html
+
+DO NOT CHANGE: auth, deal data fetching, calculations.
+
+IMPLEMENT — PIPELINE VIEW:
+
+1. TARGETS SECTION (3-stage connected flow with arrow connectors)
+   Stage 1 — Input: New deals sourced (e.g. 4/8 this month) · progress bar · pace note
+   Stage 2 — Conversion: Deals completed (e.g. 1/3 target) · progress bar · bottleneck note
+   Stage 3 — Revenue: Fee revenue (e.g. £3,500/£15,000) · progress bar · remaining amount
+   Arrow connectors (→) between stages — shows pipeline flow visually.
+   Velocity footer card: avg days in pipeline · month-on-month improvement
+   CSS classes from mockup: .tflow-wrap, .tflow, .tflow-card, .tflow-arrow
+
+2. FUNNEL SECTION (dynamic renderFunnel function)
+   Centered tapering bars: each bar width proportional to deal count vs max stage
+   Conversion % badges between stages: healthy/watch/weak colours
+   Live deal positions strip: shows how many deals are at each stage right now
+   3 insight cards: Bottleneck (top drop-off) · Closing rate (vs industry benchmark) · Revenue opportunity
+
+3. STALLED DEALS LIST
+   Deals that haven't moved stage in >14 days. Name, stage, days stalled, quick action.
+
+4. BUSINESS BAR (sticky bottom, 54px)
+   Total pipeline value · Fees pending · Deals per stage · Avg days in pipeline · Monthly target progress
+
+IMPLEMENT — COMPARE VIEW:
+
+1. DEAL PICKER (search by address/ID/strategy, pin up to 4 deals)
+   Shows a sensible 2-deal default on load.
+
+2. COMPARISON TABLE
+   Row labels (12px, font-weight 700): metric names — wider column (160px)
+   Columns: one per selected deal, auto-built
+   Vertical grid lines on all cells. Outer card border with rounded corners.
+   Rows: Deal ref · Address · Strategy · Status / then all financial metrics for each strategy
+
+3. MIXED-STRATEGY ALERT (#cmp-strat-alert)
+   Shown above the table when 2+ selected deals have different strategies.
+   Shows "BTL vs FLIP" (or equivalent). Dismissable with X. Amber-tinted card.
+
+4. "OPEN DEAL" CTA per column (navigates to that deal's Overview tab)
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.

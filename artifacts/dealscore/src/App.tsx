@@ -12,6 +12,8 @@ import ProfilePage from './pages/ProfilePage'
 import InvestorsPage from './pages/InvestorsPage'
 import SellersCrmPage from './pages/SellersCrmPage'
 import InvestorsCrmPage from './pages/InvestorsCrmPage'
+import PipelinePage from './pages/PipelinePage'
+import ComparePage from './pages/ComparePage'
 import LoginPage from './pages/LoginPage'
 
 const queryClient = new QueryClient()
@@ -32,6 +34,8 @@ export default function App() {
             <Route path="/investors" element={<ProtectedRoute><InvestorsPage /></ProtectedRoute>} />
             <Route path="/sellers-crm" element={<ProtectedRoute><SellersCrmPage /></ProtectedRoute>} />
             <Route path="/investors-crm" element={<ProtectedRoute><InvestorsCrmPage /></ProtectedRoute>} />
+            <Route path="/pipeline" element={<ProtectedRoute><PipelinePage /></ProtectedRoute>} />
+            <Route path="/compare" element={<ProtectedRoute><ComparePage /></ProtectedRoute>} />
           </Routes>
           <Toaster />
         </AuthProvider>
