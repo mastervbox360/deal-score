@@ -10,6 +10,8 @@ import DealPage from './pages/DealPage'
 import NewDealPage from './pages/NewDealPage'
 import ProfilePage from './pages/ProfilePage'
 import InvestorsPage from './pages/InvestorsPage'
+import SellersCrmPage from './pages/SellersCrmPage'
+import InvestorsCrmPage from './pages/InvestorsCrmPage'
 import LoginPage from './pages/LoginPage'
 
 const queryClient = new QueryClient()
@@ -28,6 +30,8 @@ export default function App() {
             <Route path="/deal/:id" element={<ProtectedRoute><DealPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/investors" element={<ProtectedRoute><InvestorsPage /></ProtectedRoute>} />
+            <Route path="/sellers-crm" element={<ProtectedRoute><SellersCrmPage /></ProtectedRoute>} />
+            <Route path="/investors-crm" element={<ProtectedRoute><InvestorsCrmPage /></ProtectedRoute>} />
           </Routes>
           <Toaster />
         </AuthProvider>
