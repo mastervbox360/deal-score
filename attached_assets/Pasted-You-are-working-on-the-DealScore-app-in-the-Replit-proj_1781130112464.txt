@@ -1,0 +1,33 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_content_hub.html IN FULL. Pay close attention to the type selector row, the two-column workspace, and each content type's input panel + preview.
+
+DO NOT CHANGE:
+- PDF generation components (DealScorePDF, DealScorePDFProPlus)
+- Auth, deal data fetching
+- Stripe billing hooks
+
+IMPLEMENT the Content Hub as a two-column workspace:
+
+1. CONTENT TYPE SELECTOR (5 card-style tabs at page top)
+   Advert · One-pager · Investor pack (privacy) · Investor pack (full) · Contracts & agreements (coming soon — greyed, non-clickable)
+   Only one type active at a time. Clicking switches the inputs panel and preview.
+
+2. TWO-COLUMN LAYOUT: 360px inputs (left) + 1fr sticky live preview (right)
+   Left panel: per-type input fields only (no DealScore-calculated results — those auto-populate in preview)
+   Right panel: live preview that updates as inputs change
+
+3. PER-TYPE INPUT PANELS + PREVIEWS:
+   a) Advert: Metric toggles (7 chips: Cash flow / CoC ROI / Gross yield / BMV / Day-one equity / Asking price / Sourcing fee — first 5 default on). Ad format selector (Social / Listing). Tone selector (Professional / Friendly). Nearby locations (read-only pull-through from deal data with "Edit in Inputs →" link). Preview: social tile or listing copy.
+   b) One-pager: Headline override. Key stats selection. Preview: condensed A4 teaser doc.
+   c) Investor pack (privacy): Address protection toggle ON by default. Photo protection toggle. Preview: 6-page paginated PDF with address/photo redacted. Prev/Next page nav.
+   d) Investor pack (full): Cover style picker (Branded / Minimal / Custom). All protections off. Export & share button → calls existing PDF generation. Preview: 8-page paginated PDF. Fullscreen preview button.
+   e) Contracts: Template picker (Reservation agreement / Sourcing agreement). Auto-filled with deal data (address, buyer name, fee, cooling-off period). Coming soon state for non-reservation templates.
+
+4. DEAL PROGRESS SUB-VIEW (accessible via a "Deal progress" link or secondary nav)
+   Shows: cooling-off countdown · key dates timeline · reservation & fees breakdown · Day 15 milestone callout
+   Deep-linkable via URL parameter ?view=progress
+
+5. LIVE BAR DATA: Content type label · Pack completeness % · Last edited
+
+After implementing, run npx tsc --noEmit. List what connects to real PDF generation vs what is previewed as a stub.
