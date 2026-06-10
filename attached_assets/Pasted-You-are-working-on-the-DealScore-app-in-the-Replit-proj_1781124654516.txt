@@ -1,0 +1,61 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_deals.html in full before writing any code.
+
+Rebuild the dashboard/deals list screen to match the confirmed mockup. The dashboard is the screen shown when the user is logged in and has not opened a specific deal. 
+
+DO NOT CHANGE:
+- Supabase data fetching, deal loading, or deal saving logic
+- Authentication (useAuth, AuthContext)
+- useDealSync hook or any deal sync logic
+- createDeal / loadDeal service functions
+- calculations.ts or any calculation imports
+- PDF generation components
+
+IMPLEMENT these visual sections, wiring them to existing data where it already exists and using placeholder/mock values where the real data layer doesn't exist yet:
+
+1. HEADER (56px tall, background var(--navy-dark) #152d55)
+   - Left: DealScore wordmark (Deal in white, Score in var(--teal))
+   - Logo click → navigate to the HQ/home screen (stub as showToast for now if route doesn't exist)
+   - Centre nav: Dashboard (active) · Investors · Sellers — stub non-active with showToast
+   - Right: Privacy toggle pill · "Create advert" ghost button · "New deal" teal button (triggers new deal flow) · Avatar with dropdown (Profile / Settings / Sign out)
+
+2. STATS BAR (7 cells, full width below header)
+   Format: [All deals N] [Active N] [Pack sent N] [Complete N] [Fee pipeline £X] [Avg days X] [This month X]
+   Clicking a cell filters the deal grid. Active cell gets navy underline. Click again to clear.
+   Wire to actual deal counts where available; show 0 for unavailable metrics.
+
+3. TODAY STRIP (dismissable, shows 3–5 action chips)
+   Each chip: deal ref · action label · colour-matched micro-action button
+   Action types: Viewing / Chase / Day 15 / Sensitivity — each routes to the correct deal tab
+   Can be stubbed with sample data — this is a "coming soon" strip for now.
+
+4. TOOLBAR (below stats bar)
+   Left: search input (filters deal grid by address/ref/strategy)
+   Right: view switcher (Grid 3col / Grid compact 4col / List / Board) · Compare button → compare view · Sort dropdown
+
+5. DEAL GRID — 4 view modes
+   a) Grid 3col (default): Deal cards with address, strategy/score using the .ds-tag pattern (see Prompt 1 CSS), key metrics (monthly CF, yield, CoC ROI), status pill, 3 action buttons (Advert / Edit / Open)
+   b) Grid compact 4col: Smaller cards, same .ds-tag, truncated address, 2 metrics
+   c) List view: Horizontal rows, same data
+   d) Board (Kanban): 7 columns (Sourcing · Ready · Live · Reserved · Pack sent · Complete · Withdrawn). Cards in each column. Stage dropdown on each card moves it between columns. Add deal button in each column calls new deal flow.
+
+6. ARCHIVED SECTION (below active deals)
+   Three groups: Archived (paused) / Rejected (removed as non-viable) / Deal intelligence card
+   Deal intelligence card: aggregated insight from rejected deals ("Deals in [area] with margins under 5% have been rejected N times")
+
+7. DEAL STATUS PILLS
+   Sourcing (grey) · Ready (amber) · Live (teal) · Reserved · Day X (blue) · Pack sent (purple) · Complete (green) · Withdrawn (red)
+
+8. DEAL STATUS MODEL (4 exit states — important):
+   complete = deal successfully completed (teal/green)
+   archived = paused, may resume (slate/neutral)
+   withdrawn = fell through (red)
+   deleted = rejected/non-viable, soft-recorded for intelligence (dark red)
+   These are distinct — deleted ≠ completed.
+
+Strategy/score display on all cards: use the .ds-tag / .dst-strat / .dst-score classes from Prompt 1. No pill backgrounds. .dst-score colour: rec=teal, rev=amber, avo=red, inc=grey.
+
+cinfo-zone on cards: set height:72px; overflow:hidden; flex-shrink:0 to ensure all cards align vertically whether or not they have a vendor reminder or cooling-off bar.
+
+After implementing, run npx tsc --noEmit. Confirm zero errors. Tell me what sections you implemented and what you stubbed.
