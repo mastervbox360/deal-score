@@ -1,0 +1,77 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference designs: open and read all four files in full:
+- 04_Mockups/UI_Screens/_Confirmed/ds_investor_share_page.html
+- 04_Mockups/UI_Screens/_Confirmed/ds_advert_builder.html
+- 04_Mockups/UI_Screens/_Confirmed/ds_cover_designer.html
+- 04_Mockups/UI_Screens/_Confirmed/ds_recommendation_engine.html
+
+DO NOT CHANGE: auth, share link generation, Supabase, Stripe, PDF generation.
+
+IMPLEMENT — INVESTOR SHARE PAGE (public-facing, served via unique share link):
+
+Two mockup toggle states:
+a) Branded (Pro): DealScore-branded header, teal/navy palette
+b) Custom brand (Pro+): overrides CSS with sourcer's brand colours (brand-primary, brand-accent, brand-light)
+
+Two trust level states:
+a) Committed (full trust): address visible, all deal details shown
+b) Open market (protected trust): address blurred (filter:blur(6px)), approximate location only, auth gate hint
+
+Content sections: Deal hero + image strip · 6-metric grid · Financial breakdown (acquisition + monthly) · Why this deal · Property details · Location map placeholder · FCA disclaimer
+
+Sticky response bar (bottom): "I'm interested" (teal) / "Not for me" (grey)
+On click: modal opens with optional note textarea, confirm button, cancel button
+On confirm: bar shows confirmed state, toast
+
+IMPLEMENT — ADVERT BUILDER (standalone + in-deal, wired from Content Hub):
+
+Two-panel layout: grid-template-columns: 1fr 420px (left scales, right is 420px preview)
+Left panel: deal search bar (pre-populated when launched from a deal) · metric toggles (7 chips) · ad format (Social / WhatsApp / Listing) · tone selector · nearby locations list (editable: name, distance, walk time) · multi-deal / portfolio mode toggle · branding section (Pro: DealScore branded only, tagline locked; Pro+: full colour customisation, free tagline)
+Right panel: live advert preview updating on every input change
+
+Wire to existing deal data. On Pro, hide colour pickers and lock tagline. On Pro+, show both.
+
+IMPLEMENT — COVER DESIGNER (launched from Content Hub "Cover style picker"):
+
+3 cover styles: Branded · Minimal · Custom
+For each: live cover preview (A4 format) showing sourcer's branding, deal ref, property photo, key metrics
+Toggles: show/hide Deal Score · Sourcing fee · BMV · strategy-aware metric cards
+"Use this cover" button → sets as cover style for the active deal's investor pack
+
+IMPLEMENT — RECOMMENDATION ENGINE (Pro+ only — 4-step wizard):
+
+On Pro: show locked/blurred preview state with upgrade prompt overlay. Do not show full content.
+On Pro+:
+  Step 1 — Choose deal: deal picker (search by address/ref)
+  Step 2 — Match criteria: investment range · target yield · preferred strategy · location preference · risk appetite
+  Step 3 — Ranked matches: investor list ranked by match score (name, match %, criteria alignment, contact)
+  Step 4 — Review & send: selected investors, personalised message, send pack CTA
+
+FINAL ROUTING VERIFICATION:
+
+Confirm every navigation link is wired:
+- Logo from any screen → HQ Command View
+- Dashboard "Open" → Deal Overview tab
+- All 5 deal tabs navigate between each other
+- Stats bar cells → filter deal grid
+- "New deal" → new deal slide-over
+- "Create advert" → Advert Builder
+- "Sellers" nav → Sellers CRM
+- "Investors" nav → Investors CRM
+- "Pipeline" nav → Pipeline View
+- "Compare" button → Compare View
+- "Optimise Deal" → Deal Optimiser slide-over in Analysis Hub
+- "Recommendation Engine" teaser → Recommendation Engine (Pro+ gated)
+- All upgrade prompts → Upgrade Modal (correct state)
+
+FINAL TYPE CHECK + PUSH:
+
+Run npx tsc --noEmit. There must be zero TypeScript errors.
+Then push: git add -A && git commit -m "Stage 10 complete — all screens implemented" && git push origin stage-6
+
+Tell me:
+1. What connected to real data
+2. What is stubbed (list each stub)
+3. Any TypeScript errors you could not resolve (list them)
+4. The Netlify preview URL to verify
