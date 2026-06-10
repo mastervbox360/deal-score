@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { loadDeal } from '../lib/dealService'
 import { Deal } from '../lib/database.types'
 import DealChrome, { TabKey } from '../components/DealChrome'
+import AnalysisHub from '../components/AnalysisHub'
 
 // ─── Tab content stubs ────────────────────────────────────────────────────────
 // Each tab renders its own content inside the DealChrome shell.
@@ -122,7 +123,7 @@ export default function DealPage() {
   return (
     <DealChrome deal={deal} activeTab={activeTab} onTabChange={handleTabChange}>
       {activeTab === 'overview'   && <TabStub label="Overview"   deal={deal} />}
-      {activeTab === 'analysis'  && <TabStub label="Analysis"   deal={deal} />}
+      {activeTab === 'analysis'  && <AnalysisHub deal={deal} />}
       {activeTab === 'content'   && <TabStub label="Content"    deal={deal} />}
       {activeTab === 'seller'    && <TabStub label="Seller"     deal={deal} />}
       {activeTab === 'investors' && <TabStub label="Investors"  deal={deal} />}

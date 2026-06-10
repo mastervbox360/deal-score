@@ -1,0 +1,86 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_analysis_hub.html IN FULL before writing any code. This is a 2,425-line file. Pay particular attention to: the .subnav pill row, the four view-* sections, all input field IDs, all strategy-specific field sections (sf-btl, sf-hmo, sf-sa, sf-social, sf-brrr, sf-flip, sf-r2r), and the .sbar-* sidebar.
+
+DO NOT CHANGE:
+- calculations.ts — all calculation functions stay exactly as they are
+- calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, calculateDealScore
+- All existing useState hooks for input values — update the UI around them, do not rename or remove state variables
+- PDF generation components
+- Auth or Supabase logic
+
+IMPLEMENT the Analysis Hub as a tabbed workspace with a secondary sub-nav (pill row, NOT sticky — the 4-layer sticky stack is already ~190px deep):
+
+SUB-VIEWS (switchable via pill row):
+  Inputs · Results · Sensitivity · Show Workings
+
+--- INPUTS SUB-VIEW ---
+
+Wire all existing state variables to the correct input fields. The field layout uses a 3-column grid (.ig.g3). Use the confirmed field order from the mockup exactly.
+
+Sections:
+1. Property information: Address (PII) · Property type · Bedrooms · Bathrooms · Tenure (segmented: Freehold / Leasehold) · Remaining lease years + Lease extension cost (leasehold only) · Source of deal · EPC rating · Flood risk
+2. Vendor situation card: Collapsible card before Step 1. 8 motivation checkboxes. Data flows to Seller tab.
+3. Route & strategy selector: Buy / Rent / Specialist (segmented control). Strategy grid below (shows strategies for selected route only).
+4. Smart Capture toggle (Pro+ gated): teaser with lock on Pro.
+5. Property & purchase: Purchase price · Market value/GDV · Country (stacked list: England & NI / Scotland / Wales) · Stamp duty (auto-calculated, read-only) · Buyer type · Other costs (legal, broker)
+6. Purchase financing: Method row tiles (Cash / Mortgage / Bridging). Contextual fields show/hide per method: Mortgage → Deposit % + Rate + Term + Type (IO/Repayment) + Arrangement fee. Bridging → LTV + Monthly rate + Term + Exit fee.
+7. Refurb: Refurb cost · Contingency % · Post-refurb value. Refurb financing method row (Cash / Bridging).
+8. Monthly costs: Management fee % · Buildings insurance/mo · Maintenance reserve/mo · Void allowance % · Service charge/mo (leasehold) · Ground rent/yr (leasehold)
+9. Strategy-specific fields (show only the active strategy's section):
+   BTL: Monthly rent
+   HMO: Rooms · Rent per room/mo · Occupancy rate % · HMO licence cost · Bills & utilities/mo
+   SA: Avg nightly rate · Target occupancy % · Platform fee % · Cleaning cost/stay · Bills & utilities/mo
+   Social: Monthly lease income · Lease term (yrs) · Management costs/mo · Provider/council
+   BRRR: Post-refurb value (GDV) · Target refinance LTV · Exit strategy selector · Refinance rate · Refinance term · Refinance type (IO/Repayment) · Rent post-refurb
+   FLIP: GDV (expected sale price) · Selling agent fee % · Project length (months) · Holding costs/mo · Contingency %
+   R2R: Rent to landlord/mo · Setup costs · Rooms · Rent per room · Occupancy rate % · Management fee % · Running costs/mo
+10. Deal terms: Sourcing fee · Cooling-off period · Payment terms
+
+INFO ICONS: Every input field label gets a ⓘ tooltip using the .fld-tip pattern. The tooltip strings are in the TT object in Home.tsx. Wire each field's InfoIcon component to the matching TT key. The tooltip CSS is already in the global stylesheet from Prompt 1 — match the .fld-tip / .fld-tip-icon / .fld-tip-text pattern exactly.
+
+INPUTS SIDEBAR (280px right sticky):
+- Input completion tracker: 10 sections, each with done/missing state
+- Score readiness progress bar
+- "View results" CTA → switches sub-view to Results
+- Strategy-adaptive section labels
+
+VIEWING MODE: When deal is not being edited, all inputs are read-only. Show "Edit inputs" CTA button that switches to edit mode.
+
+--- RESULTS SUB-VIEW ---
+
+Use the existing calculation results (already computed from the state). Wire to the correct strategy's results object.
+
+Layout matches existing confirmed design:
+- Strategy tabs/tiles row (shows all strategies for the selected route; active strategy highlighted)
+- On Pro: single strategy selected manually. Tile clicks = preview only, do not change active strategy.
+- On Pro+: Smart Capture results — clicking a ranked tile IS the sourcing commitment.
+- Verdict card: score ring + RECOMMENDED / REVIEW / AVOID verdict + narrative
+- 6-metric grid: Monthly CF · Annual CF · Gross yield · Net yield · CoC ROI · Day-one equity/BMV (strategy-specific)
+- Sensitivity teaser strip: 3 scenarios (Rate +1.5% / Rent −10% / Worst case) → "Full sensitivity →" pill links to Sensitivity sub-view
+- Deal Optimiser (inline): max purchase price calculator working backwards from target return. "Optimise Deal" button opens full optimiser slide-over.
+- Results sidebar: completion checklist on Pro (lists missing fields + where to go). Smart Capture per-field guidance on Pro+.
+
+--- SENSITIVITY SUB-VIEW ---
+
+Delta strip at top: Monthly CF · CoC ROI · Gross yield · Verdict — all vs base case.
+Narrative card: scenario title + description.
+4 scenario presets: Base case / Conservative / Stress test / Worst case. Clicking applies pre-modelled values.
+3 sliders per strategy (e.g. Rent / Mortgage rate / Purchase price). Moving a slider breaks out to custom state.
+Reference table: rows for each scenario, columns for CF/CoC/Yield/Verdict. Table rows are clickable (same as preset buttons).
+Capital & exit risk section: value slider (−40% to 0%), LTV thresholds, dynamic warnings.
+
+--- SHOW WORKINGS SUB-VIEW ---
+
+4 accordion sections (expand/collapse):
+1. What you put in — input summary
+2. Cash flow build — step-by-step monthly CF calculation with actual numbers
+3. How this deal is scored — scoring criteria for the active strategy
+4. Financing breakdown — loan amounts, costs, LTV
+
+"Jump to a section" TOC sidebar: links scroll the page to each accordion.
+Read badges (tick) mark sections the user has opened.
+
+LIVE BAR switches per sub-view (see DealChrome prompt — pass the correct lb-set as a prop).
+
+After implementing, run npx tsc --noEmit. Confirm zero errors. List what you wired to real data vs what is stubbed.
