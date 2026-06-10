@@ -99,7 +99,52 @@
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* DealScore design tokens */
+  --navy: #1B3A6B;
+  --navy-dark: #152d55;
+  --navy-light: #e8eef7;
+  --teal: #1D9E75;
+  --teal-light: #e6f7f1;
+  --amber: #F59E0B;
+  --text-1: #1a2332;
+  --text-2: #5a6270;
+  --text-3: #9ca3af;
+  --bg-sec: #f5f6f8;
+  --ds-border: #e3e5e9;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* Sticky chrome heights */
+  --hdr-h: 56px;
+  --strip-h: 48px;
+  --livebar-h: 44px;
+  --tabs-h: 42px;
 }
+
+/* ── Privacy overlay ─────────────────────────────── */
+.pii { transition: opacity .2s; }
+body.privacy .pii { opacity: 0; pointer-events: none; }
+
+/* ── Pro+ tier gate ──────────────────────────────── */
+.tier-proplus .proplus-gate { display: block; }
+.proplus-gate { display: none; }
+
+/* ── Deal score tag (sidebar / list) ─────────────── */
+.ds-tag { display: flex; flex-direction: column; gap: 1px; }
+.dst-strat { font-size: 11px; font-weight: 700; color: var(--navy); }
+.dst-score { font-size: 10px; font-weight: 500; }
+.dst-score.rec { color: var(--teal); }
+.dst-score.rev { color: var(--amber); }
+.dst-score.avo { color: #dc2626; }
+.dst-score.inc { color: var(--text-3); }
+
+/* ── Verdict pill ────────────────────────────────── */
+.verdict-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .03em; }
+.vp-rec { background: #d1fae5; color: #065f46; }
+.vp-rev { background: #fef3c7; color: #92400e; }
+.vp-avo { background: #fee2e2; color: #991b1b; }
 
 .dark {
   --background: 170 50% 10%;
