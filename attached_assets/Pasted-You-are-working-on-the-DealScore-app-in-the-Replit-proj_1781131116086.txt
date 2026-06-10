@@ -1,0 +1,52 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference designs: open and read both files in full before writing:
+- 04_Mockups/UI_Screens/_Confirmed/ds_seller_tab.html (1,317 lines)
+- 04_Mockups/UI_Screens/_Confirmed/ds_fees_tab.html (935 lines)
+
+DO NOT CHANGE: deal data fetching, auth, Supabase logic.
+
+IMPLEMENT — SELLER TAB:
+
+1. VENDOR PROFILE CARD
+   Name (PII) · Phone (tel: link) · Email (mailto: link) · Source · Motivation display (auto-populated from vendor situation card in Inputs — show as badges)
+
+2. OFFER TRACKER
+   Timeline of offers made: date · amount · status (Pending / Accepted / Rejected / Countered)
+   "Log offer" button → inline form (amount + notes). Stub persistence.
+
+3. CONTACT LOG
+   Timeline of contacts: date · method (Call/Email/WhatsApp/Visit) · outcome · notes
+   "Log contact" button → inline form. Stub persistence.
+
+4. CHAIN & PROPERTY
+   Seller's current property status · Solicitor (name, firm) · AML/ID verification status flag (placeholder — deferred to full Replit build)
+
+5. RIGHT SIDEBAR (280px .sbar-* system)
+   Chase reminder card · Negotiation summary (current offer vs asking, gap %) · Reserved day counter if deal is Reserved · Next action capture (free text, save button) · CRM link
+
+6. MOTIVATION DISPLAY
+   8 motivation types from the vendor situation card. Show the ones checked. Read-only here.
+
+7. LIVE BAR DATA (negotiation-pulse framing):
+   Asking price · Current offer · Discount % (highlighted) · Status: Offer accepted / awaiting solicitor · Waiting on: Seller's solicitor · Next step: Survey instruction
+
+IMPLEMENT — FEES & INVOICE TAB (Pro feature — Pro gated):
+
+1. FEE SUMMARY CARD (right sidebar)
+   Sourcing fee total · Amount received · Outstanding · Invoice reference (DS-004-SF format)
+   Payment terms · CTA: "Create invoice" / "Send reminder"
+
+2. INVOICE MANAGEMENT (main area)
+   Active invoice card: recipient name, company, amount, status pill (Draft / Sent / Viewed / Paid / Overdue)
+   "Create & send invoice" button (stub — deferred to full implementation)
+   "Mark as paid" button on sent invoices
+
+3. INVOICE HISTORY LOG
+   List of past invoices: ref, date, amount, recipient, status
+   Seeded with one example invoice (DS-004-SF, £3,500, James Brown / Brown Property Investments)
+
+4. LIVE BAR DATA:
+   Sourcing fee total · Amount received · Outstanding (highlighted if > 0) · Invoice status · Days since sent
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.
