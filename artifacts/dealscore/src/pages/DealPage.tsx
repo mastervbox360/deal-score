@@ -7,7 +7,7 @@ import AnalysisHub from '../components/AnalysisHub'
 import DealOverview from '../components/DealOverview'
 import ContentHub from '../components/ContentHub'
 import SellerTab from '../components/SellerTab'
-import FeesTab from '../components/FeesTab'
+import InvestorsTab from '../components/InvestorsTab'
 
 // ─── Tab content stubs ────────────────────────────────────────────────────────
 // Each tab renders its own content inside the DealChrome shell.
@@ -130,7 +130,7 @@ export default function DealPage() {
       {activeTab === 'analysis'  && <AnalysisHub deal={deal} />}
       {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} />}
       {activeTab === 'seller'    && <SellerTab deal={deal} />}
-      {activeTab === 'investors' && <FeesTab   deal={deal} />}
+      {activeTab === 'investors' && <InvestorsTab deal={deal} />}
     </DealChrome>
   )
 }

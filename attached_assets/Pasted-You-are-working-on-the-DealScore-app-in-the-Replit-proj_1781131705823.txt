@@ -1,0 +1,48 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_investor_tab.html IN FULL before writing any code. Pay close attention to the two investor type sections, the investor row structure, the add-investor picker slide-over (.invpick-panel), and the Pro/Pro+ gating.
+
+DO NOT CHANGE: deal data fetching, auth, share link generation logic, Supabase.
+
+IMPLEMENT:
+
+1. TWO INVESTOR SECTIONS
+   Committed investors (grey section header): investors the sourcer has a direct relationship with. Full trust — address visible, all deal details shown.
+   Open market investors (navy section header): investors sourced via the platform or external channels. Protected trust — address blurred/hidden until reserved.
+
+2. INVESTOR ROWS (white mini-cards within grey section backgrounds)
+   Per row: investor name · company · contact · status pill · match info (plain text) · investor note (left-border quote: teal for interested, red for passed) · action buttons (.inv-act: Chase email / Open notes / View response / Revoke access)
+   ONE coloured element per row = status pill only. Professional B2B aesthetic — no multi-colour overload.
+   Status pills: Sent (grey) · Opened (blue) · Interested (teal) · Passed (red) · Reserved (amber) · Revoked (grey)
+
+3. COMPACT STATS BAR (single inline row above sections)
+   Shared N · Opened N · Interested N · Passed N · Reserved N
+
+4. QUICK-SEND SIDEBAR (280px .sbar-* system)
+   Investor type selector (Committed / Open market — auto-sets trust level note)
+   Pack share form: investor name · email · message · Send pack button
+   Recommendation Engine teaser (Pro+ gated): "Find matching investors →" CTA
+
+5. ADD INVESTOR PICKER (slide-over from right, 480px, .invpick-panel)
+   Triggered by "Add investor" button in the action row.
+   Two modes via segmented toggle:
+   a) Search CRM: live-filtered list of CRM investors (name, type badge, criteria, contact). Each row has "Add to deal" button. Empty state when no matches.
+   b) New investor: form (Name · Type selector with trust-level explanation · Phone · Email). "Create & add" button. Form resets on submit.
+   Both paths close the drawer and confirm via toast.
+
+6. RESPONSE LOG MODAL
+   Opened via "View response" on an investor row.
+   Shows the investor's history: when pack was sent, when opened, when they responded, their note.
+
+7. NOTIFICATION PANEL (bell icon in header area of this tab)
+   Recent deal-related notifications: investor opened pack, investor expressed interest, Day 15 approaching.
+   Mark as read on click. Mark all read button.
+
+8. PRO/PRO+ GATING
+   Pro: engagement analytics hidden (.proplus-gate), link controls hidden, bulk share hidden
+   Pro+: shows engagement analytics (time spent per section, open count), link controls (expiry/revoke/password), bulk share, custom branding on share pages
+
+9. LIVE BAR DATA (funding-pipeline framing):
+   Funding target £57,850 · Pledged £42,000 · 73% funded (highlighted) · Investors: 4 shared / 2 interested / 1 pledged · Sourcing fee £6,500 · Days to close: 6 (highlighted)
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.
