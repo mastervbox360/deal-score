@@ -1,0 +1,44 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference designs: open and read all three files:
+- 04_Mockups/UI_Screens/_Confirmed/ds_profile_settings.html
+- 04_Mockups/UI_Screens/_Confirmed/ds_upgrade_modal.html
+- 04_Mockups/UI_Screens/_Confirmed/ds_home.html
+
+DO NOT CHANGE: Stripe billing hooks, auth logic, Supabase profile saving, existing subscription state.
+
+IMPLEMENT — PROFILE & SETTINGS (two-panel: 224px sidebar nav + content area):
+
+11 panes across 4 nav groups:
+  You: Profile (bio, LinkedIn, Instagram, completion chips) · Branding (logo, colours, FCA disclaimer)
+  Business: Deal Defaults (default strategy, cooling-off, sourcing fees, sharing/access) · Notifications (stale deal threshold, viewing reminders, calendar connection) · Referrals (referral history table)
+  Growth: DS Assistant (auto-suggest toggle, strategy-specific analysis toggle, confidence level, strategies to analyse)
+  Technical: Account & Security (active sessions, 2FA) · Integrations (6 coming-soon items with "Notify me" buttons)
+
+Per-section save with animated toast confirmation.
+Completion chips in the Profile pane navigate to the correct pane when clicked.
+
+IMPLEMENT — UPGRADE MODAL (3 states, shown contextually):
+
+State A1: Free → Pro upgrade prompt. Feature list for Pro tier.
+State A2: Pro → Pro+ upgrade prompt. Lead with Smart Capture as headline feature. Feature comparison (Pro vs Pro+).
+State A3: Smart Capture locked on Pro trial. Shows SC teaser with upgrade prompt.
+
+Features by tier (exact — do not change):
+  Pro (£29/mo): 10 active deals · Single-strategy analysis · Investor pack PDF (portrait) · Sellers & Investors CRM · AI pack generation · Advert Builder (DealScore branded) · Sensitivity analysis · Dashboard + pipeline · Smart Capture visible but locked
+  Pro+ (£59/mo): Unlimited deals · Smart Capture (full access) · Both PDF formats · White-label branding · Deal Optimiser · Compare view + Radar chart · Recommendation Engine · CRM advanced (analytics, link controls, bulk share) · Advert Builder (full customisation)
+
+Wire to existing Stripe upgrade flow.
+
+IMPLEMENT — HQ COMMAND VIEW (personal earnings dashboard — accessible from logo click on all deal screens):
+
+No sticky chrome. Light and dark modes (toggle pill: sun/moon icon).
+Layout: two columns.
+Left column: Greeting (first name + time of day) · Date · Earnings hero (fees pending collection, deals closed, avg fee, projected year) · 3 KPI progress bars (New deals sourced / Deals completed / Fee revenue — each with fill bar, pace note, coloured pct label) · Projection callout card
+Right column: 3×2 metrics grid (key numbers at a glance) · Insight card (context note)
+Top bar: wordmark + theme toggle + settings gear (opens slide-down settings panel with monthly target inputs)
+
+CSS variable system: [data-theme="light"] and [data-theme="dark"] covering background gradients, text layers, card bg/border.
+Logo click from HQ view → navigates to deals dashboard (ds_deals / main dashboard screen).
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.
