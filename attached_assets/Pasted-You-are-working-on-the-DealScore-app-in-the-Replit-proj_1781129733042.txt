@@ -1,0 +1,51 @@
+You are working on the DealScore app in the Replit project, branch stage-6. File paths are artifacts/dealscore/src/...
+
+Reference design: open and read 04_Mockups/UI_Screens/_Confirmed/ds_deal_overview.html IN FULL before writing any code.
+
+DO NOT CHANGE:
+- Deal data fetching, routing, auth
+- Any existing calculation logic
+
+IMPLEMENT the Deal Overview tab as the default landing tab when a user opens a deal:
+
+1. DEAL HERO (navy banner)
+   Score ring: circular SVG ring with the deal score number (0–100) in the centre. Colour: teal for RECOMMENDED, amber for REVIEW, red for AVOID.
+   Right of ring: full address (PII) · strategy + status pill stack · deal ref (DS-00X)
+   Score verdict label below ring: RECOMMENDED / REVIEW / AVOID (never "Strong"/"Weak"/"Average")
+
+2. DEAL FLOW RAIL (horizontal, shows deal progress)
+   7 stages: Sourcing → Analysis → Pack sent → Shared → Reserved → Complete
+   Each node: done (teal filled) / active (navy filled) / future (grey outline)
+   Rule: "Pack sent" node = done once pack has been sent to any investor, regardless of pack completeness.
+   Pack completeness flags live in the tab checklist (below), not here.
+
+3. NEXT ACTIONS (3 prioritised, state-aware)
+   Each action card: icon · title · description · inline CTA button → routes to correct deal tab
+   State-aware: when deal is Reserved, "Reserve for investor" → "View reservation details"
+   Wire to deal status where data exists; use representative stubs otherwise.
+
+4. TAB STATUS CHECKLIST
+   Lists all 5 tabs + their completion state:
+   Overview ✓ · Analysis (fields complete X/Y) · Content (pack ready?) · Seller (vendor confirmed?) · Investors (X shared)
+   Each row is clickable and navigates to that tab.
+   This is where pack completeness lives — NOT on the flow rail.
+
+5. ACTIVITY FEED (right side of main content area)
+   Chronological dot-and-trail log of deal events (deal created, pack sent, investor viewed, etc.)
+   Use actual deal events where available; seed with representative events otherwise.
+
+6. RIGHT SIDEBAR (.sbar-* system, 280px sticky)
+   Key metrics card: 4 read-only metrics pulled from Results (Monthly CF · CoC ROI · Gross yield · BMV)
+   Investor snapshot: up to 4 investor rows with name + status pill (Sent/Interested/Passed/Reserved)
+   Quick actions: Reserve deal → (shows only when status is Live/Ready) · Download pack · Share
+
+7. CLOSE DEAL MODAL (triggered by deal status change)
+   4 outcome options: Sold — deal complete / Exchanged — awaiting completion / Fell through — marked withdrawn / Withdrawn — deal removed
+   On confirm: shows archived banner below header
+   Banner colour: green (.archived-banner.complete) for Sold/Exchanged; red for Fell through/Withdrawn
+   "Undo" link in banner reverts the status change.
+
+8. LIVE BAR DATA (passed to DealChrome)
+   Stage Reserved · Day 8 of 14 · Cooling-off ends in 6 days (highlighted teal) · Next milestone: Survey booked · Deal score: 82 — RECOMMENDED (highlighted) · Investors: 2 interested · 4 shared
+
+After implementing, run npx tsc --noEmit. Confirm zero errors.
