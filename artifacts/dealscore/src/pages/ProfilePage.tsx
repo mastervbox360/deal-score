@@ -219,7 +219,7 @@ export default function ProfilePage() {
         <div className="page">
 
           {/* ══ LEFT NAV ══ */}
-          <div className="nav-panel">
+          <div className="nav-panel" style={{ width: '224px', minWidth: '224px', maxWidth: '224px', flexShrink: 0 }}>
             <div className="nav-identity">
               <div className="nav-avt">
                 {initials}
