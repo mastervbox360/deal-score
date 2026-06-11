@@ -1,0 +1,34 @@
+In ContentHub.tsx, find the renderInputsPanel() function (or wherever the left panel is built for the 'full' / 'Investor pack · full view' type). Add a Cover Style card before the Metrics section, only for the full pack type. It should use this structure:
+tsx<div className="inp-card">
+  <div className="inp-card-hdr">
+    <i className="ti ti-palette" style={{fontSize:'13px',color:'var(--navy)'}}></i>
+    <span className="inp-card-title">Cover style</span>
+  </div>
+  <div className="inp-body">
+    <div className="cover-pick-row">
+      {(['branded','clean','custom'] as const).map(s => (
+        <div key={s} className={`cover-opt${coverStyle===s?' on':''}`} onClick={()=>setCoverStyle(s)}>
+          <div className={`cover-opt-preview ${s==='branded'?'branded':s==='clean'?'clean':'custom'}`}/>
+          <div className="cover-opt-name">{s==='branded'?'Branded':s==='clean'?'Minimal':'Your brand'}</div>
+          <div className="cover-opt-sub">{s==='branded'?'DealScore · Pro':s==='clean'?'Clean white · Pro':'Custom · Pro+'}</div>
+        </div>
+      ))}
+    </div>
+    <div style={{marginTop:'8px'}}>
+      <a style={{fontSize:'11px',color:'var(--navy)',fontWeight:500,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+        <i className="ti ti-adjustments-horizontal" style={{fontSize:'12px'}}></i> Customise cover in Cover Designer
+      </a>
+    </div>
+  </div>
+</div>
+Add coverStyle state above return() (const [coverStyle, setCoverStyle] = useState<'branded'|'clean'|'custom'>('branded')). Add these CSS classes to index.css if not already present:
+css.cover-pick-row{display:flex;gap:8px;}
+.cover-opt{flex:1;border:.5px solid var(--ds-border);border-radius:var(--r-md);padding:9px 8px;text-align:center;cursor:pointer;transition:all .15s;}
+.cover-opt.on{border-color:var(--navy);background:var(--navy-light);}
+.cover-opt-preview{height:34px;border-radius:5px;margin-bottom:6px;}
+.cover-opt-preview.branded{background:var(--navy);}
+.cover-opt-preview.clean{background:#f9fafb;border:.5px solid var(--ds-border);}
+.cover-opt-preview.custom{background:linear-gradient(135deg,#7C3AED,#4F46E5);}
+.cover-opt-name{font-size:10px;font-weight:600;color:var(--text-1);}
+.cover-opt-sub{font-size:9px;color:var(--text-2);margin-top:1px;}
+This addition is the only change needed — do not touch anything else."

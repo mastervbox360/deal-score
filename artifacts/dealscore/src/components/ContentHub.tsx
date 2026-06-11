@@ -27,7 +27,7 @@ const DS_TEXT2  = '#5a6270'
 type ContentType = 'advert' | 'onepager' | 'privacy' | 'full'
 type AdFormat    = 'tile' | 'listing' | 'whatsapp' | 'brochure'
 type Tone        = 'professional' | 'friendly' | 'urgent'
-type CoverStyle  = 'branded' | 'minimal' | 'custom'
+type CoverStyle  = 'branded' | 'clean' | 'custom'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 const fc = (n: number | null | undefined) =>
@@ -570,20 +570,28 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
             <FTa value={strategyNote} onChange={setStrategyNote} rows={4} placeholder={`Why ${strategy} is well-suited to this property…`} />
           </InputCard>
 
-          <InputCard title="Cover style" icon="🎨">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-              {([['branded', '🏷️', 'Branded'], ['minimal', '⬜', 'Minimal'], ['custom', '🎨', 'Custom']] as const).map(([key, icon, lbl]) => (
-                <div
-                  key={key}
-                  onClick={() => setCoverStyle(key)}
-                  style={{ border: `1.5px solid ${coverStyle === key ? DS_NAVY : DS_BORDER}`, borderRadius: '8px', padding: '12px 8px', textAlign: 'center', cursor: 'pointer', background: coverStyle === key ? 'rgba(27,58,107,.05)' : '#fff', transition: 'all .15s' }}
-                >
-                  <div style={{ fontSize: '20px', marginBottom: '5px' }}>{icon}</div>
-                  <div style={{ fontSize: '10px', fontWeight: coverStyle === key ? 700 : 400, color: coverStyle === key ? DS_NAVY : DS_TEXT2 }}>{lbl}</div>
-                </div>
-              ))}
+          <div className="inp-card">
+            <div className="inp-card-hdr">
+              <i className="ti ti-palette" style={{ fontSize: '13px', color: 'var(--navy)' }}></i>
+              <span className="inp-card-title">Cover style</span>
             </div>
-          </InputCard>
+            <div className="inp-body">
+              <div className="cover-pick-row">
+                {(['branded', 'clean', 'custom'] as const).map(s => (
+                  <div key={s} className={`cover-opt${coverStyle === s ? ' on' : ''}`} onClick={() => setCoverStyle(s)}>
+                    <div className={`cover-opt-preview ${s === 'branded' ? 'branded' : s === 'clean' ? 'clean' : 'custom'}`} />
+                    <div className="cover-opt-name">{s === 'branded' ? 'Branded' : s === 'clean' ? 'Minimal' : 'Your brand'}</div>
+                    <div className="cover-opt-sub">{s === 'branded' ? 'DealScore · Pro' : s === 'clean' ? 'Clean white · Pro' : 'Custom · Pro+'}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: '8px' }}>
+                <a style={{ fontSize: '11px', color: 'var(--navy)', fontWeight: 500, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <i className="ti ti-adjustments-horizontal" style={{ fontSize: '12px' }}></i> Customise cover in Cover Designer
+                </a>
+              </div>
+            </div>
+          </div>
 
           {MetricPickerCard}
 

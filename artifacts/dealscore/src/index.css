@@ -1810,6 +1810,17 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 .ctype-badge.sent{background:#eff6ff;color:#1e40af;}
 .ctype-badge.soon{background:#f3f4f6;color:#9ca3af;}
 
+/* ══ COVER STYLE PICKER ══ */
+.cover-pick-row{display:flex;gap:8px;}
+.cover-opt{flex:1;border:.5px solid var(--ds-border);border-radius:var(--r-md);padding:9px 8px;text-align:center;cursor:pointer;transition:all .15s;}
+.cover-opt.on{border-color:var(--navy);background:var(--navy-light);}
+.cover-opt-preview{height:34px;border-radius:5px;margin-bottom:6px;}
+.cover-opt-preview.branded{background:var(--navy);}
+.cover-opt-preview.clean{background:#f9fafb;border:.5px solid var(--ds-border);}
+.cover-opt-preview.custom{background:linear-gradient(135deg,#7C3AED,#4F46E5);}
+.cover-opt-name{font-size:10px;font-weight:600;color:var(--text-1);}
+.cover-opt-sub{font-size:9px;color:var(--text-2);margin-top:1px;}
+
 /* ══ WORKSPACE ══ */
 .workspace{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start;}
 
