@@ -1,0 +1,43 @@
+Create a new file: artifacts/dealscore/src/components/DealsDashboard.tsx
+
+Paste in the full component code below (do not modify the JSX or CSS classes).
+
+Then add this mapDealToProps() function at the top of the file, 
+before the component:
+
+function mapDealToProps(deal: any, calcResult: any): Deal {
+  const verdict = deal.verdict ?? calcResult?.verdict ?? null;
+  const scoreCls = verdict === 'RECOMMENDED' ? 'rec' : verdict === 'REVIEW' ? 'rev' : verdict === 'AVOID' ? 'avo' : 'inc';
+  const scoreLabel = verdict ? verdict.charAt(0) + verdict.slice(1).toLowerCase() : 'Incomplete';
+  const cf = calcResult?.monthlyCashFlow;
+  return {
+    id: deal.deal_ref ?? deal.id?.slice(0,8).toUpperCase(),
+    strat: deal.strategy ?? 'BTL',
+    score: verdict ?? 'INCOMPLETE',
+    scoreCls,
+    scoreLabel,
+    status: deal.status ?? 'sourcing',
+    statusLabel: deal.status ? deal.status.charAt(0).toUpperCase() + deal.status.slice(1) : 'Sourcing',
+    addr: deal.address ?? 'No address',
+    price: deal.inputs?.purchasePrice ? '£' + Number(deal.inputs.purchasePrice).toLocaleString() : 'Price not set',
+    desc: [deal.inputs?.bedrooms, 'bed', deal.inputs?.propertyType].filter(Boolean).join(' '),
+    heroVal: cf ? (cf >= 0 ? '+' : '') + '£' + Math.abs(cf).toFixed(0) + '/mo' : '—',
+    heroCls: cf > 0 ? 'gr' : cf < 0 ? 're' : '',
+    metrics: [
+      { l: 'Monthly CF', v: cf ? (cf >= 0 ? '+' : '') + '£' + Math.abs(cf).toFixed(0) : '—', c: cf > 0 ? 'gr' : 're' },
+      { l: 'Gross yield', v: calcResult?.grossYield ? calcResult.grossYield.toFixed(1) + '%' : '—', c: '' },
+      { l: 'CoC ROI', v: calcResult?.cocRoi ? calcResult.cocRoi.toFixed(1) + '%' : '—', c: '' },
+    ]
+  };
+}
+
+Then in DashboardPage.tsx:
+- Import DealsDashboard from './components/DealsDashboard'
+- After loading deals from listDeals(), map them using mapDealToProps(deal, null) for now (calcResult as null until we wire calculations)
+- Replace the existing dashboard JSX return with <DealsDashboard deals={mappedDeals} userName={user?.name} userInitials={...} />
+- Keep all existing auth, createDeal, navigate logic intact
+
+[paste the full DealsDashboard component code here]
+
+CRITICAL: Do not change anything in the component's JSX or CSS classes.
+Run npx tsc --noEmit after. Zero errors required.
