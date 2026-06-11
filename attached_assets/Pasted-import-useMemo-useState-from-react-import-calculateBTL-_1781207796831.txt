@@ -1335,53 +1335,9 @@ export default function AnalysisHub({ deal }: { deal: Deal }) {
   const stressCombined  = useMemo(() => runCalc(p, { ...getIncomeKey(), ...getRateKey(), ...getCostsKey() }), [p])
 
   return (
-    <div className="ds-content">
-
-      {/* ── Explainer card ─────────────────────────────────────────────────── */}
-      <div className="exp-card">
-        <button
-          className="exp-dismiss"
-          title="Dismiss guide"
-          onClick={e => {
-            const wrap = e.currentTarget.closest<HTMLElement>('.ds-content')
-            if (!wrap) return
-            const card = wrap.querySelector<HTMLElement>('.exp-card')
-            const restore = wrap.querySelector<HTMLElement>('.exp-restore')
-            if (card) card.style.display = 'none'
-            if (restore) restore.classList.add('show')
-          }}
-        >×</button>
-        <div className="exp-icon"><i className="ti ti-chart-line"></i></div>
-        <div>
-          <div className="exp-title">Four lenses on the same numbers — switch without losing your place</div>
-          <div className="exp-text">
-            Tweak an input, check the result, stress-test it, then check the workings if something looks off —
-            all on one screen, with the same chrome and sidebar throughout.{' '}
-            <strong>Results</strong> opens by default since that's usually what you came here to see; flip to{' '}
-            <strong>Inputs</strong> to adjust the deal, <strong>Sensitivity</strong> to stress-test it, or{' '}
-            <strong>Workings</strong> to see exactly how every number was calculated.
-          </div>
-        </div>
-      </div>
-
-      <button
-        className="exp-restore"
-        onClick={e => {
-          const wrap = e.currentTarget.closest<HTMLElement>('.ds-content')
-          if (!wrap) return
-          const card = wrap.querySelector<HTMLElement>('.exp-card')
-          const btn = e.currentTarget
-          if (card) card.style.display = ''
-          btn.classList.remove('show')
-        }}
-      >
-        <i className="ti ti-book-2" style={{ fontSize: '11px' }}></i> Page guide
-      </button>
-
-      {/* ── Sub-nav ────────────────────────────────────────────────────────── */}
+    <div style={{ width: '100%', padding: '20px 24px 32px' }}>
       <SubNav active={activeView} onChange={setActiveView} />
 
-      {/* ── Views ─────────────────────────────────────────────────────────── */}
       {activeView === 'results' && (
         <ViewResults
           p={p}
@@ -1411,7 +1367,6 @@ export default function AnalysisHub({ deal }: { deal: Deal }) {
       {activeView === 'workings' && (
         <ViewWorkings p={p} base={base} composite={composite} />
       )}
-
     </div>
   )
 }
