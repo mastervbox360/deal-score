@@ -905,165 +905,65 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
   )
   void completeness // used by parent chrome livebar in future
 
-  // ─── Tabler icon map (for ctype-card icons) ──────────────────────────────
-  const CTYPE_ICONS: Record<string, string> = {
-    advert: 'ti-speakerphone', onepager: 'ti-file-description',
-    privacy: 'ti-shield-lock', full: 'ti-file-text', contracts: 'ti-file-certificate',
-  }
-
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="ds-content">
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: DS_BG, minHeight: '100%' }}>
+      <div style={{ width: '100%', padding: '24px 24px 60px' }}>
 
-      {/* ── Explainer card ─────────────────────────────────────────────────── */}
-      <div className="exp-card">
-        <div className="exp-icon"><i className="ti ti-files" /></div>
-        <div>
-          <div className="exp-title">Build and share investor materials</div>
-          <div className="exp-text">Create four content types — Advert, One-pager, Privacy pack, and Full pack — all auto-populated from your deal data. Choose which metrics to show, edit labels, then copy or download to share with investors.</div>
-        </div>
-      </div>
-      <button className="exp-restore"><i className="ti ti-book-2" style={{ fontSize: '11px' }} /> Page guide</button>
-
-      {/* ── Type prompt ──────────────────────────────────────────────────────── */}
-      <div className="ctype-prompt">What do you want to create? <span>— auto-populated from your deal data</span></div>
-
-      {/* ── Type selector cards ──────────────────────────────────────────────── */}
-      <div className="ctype-row">
-        {CONTENT_TYPES.map(ct => {
-          const isActive  = !ct.disabled && contentType === ct.key
-          const status    = typeStatuses[ct.key] ?? 'Not started'
-          const badgeCls  = ct.disabled ? 'soon' : status === 'Draft saved' ? 'draft' : status !== 'Not started' ? 'sent' : 'notstarted'
-          const badgeText = ct.disabled ? ('badge' in ct ? ct.badge : 'Coming soon') : status
-          return (
-            <div
-              key={ct.key}
-              className={`ctype-card${isActive ? ' on' : ''}${ct.disabled ? ' soon' : ''}`}
-              onClick={() => {
-                if (ct.disabled) return
-                setContentType(ct.key as ContentType)
-                setCurrentPage(1)
-              }}
-            >
-              <div className="ctype-icon"><i className={`ti ${CTYPE_ICONS[ct.key] ?? 'ti-file'}`} /></div>
-              <div className="ctype-name">{ct.label}</div>
-              <div className="ctype-sub">{ct.sub}</div>
-              <span className={`ctype-badge ${badgeCls}`}>{badgeText}</span>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* ── Workspace ────────────────────────────────────────────────────────── */}
-      <div className="workspace">
-
-        {/* Left: inputs panel */}
-        <div className="wp-left">
-          {renderInputsPanel()}
-        </div>
-
-        {/* Right: sticky live-preview shell */}
-        <div className="wp-right">
-          <div className="pv-shell">
-
-            {/* Preview top bar */}
-            <div className="pv-top">
-              <div className="pv-top-label">
-                <i className={`ti ${CTYPE_ICONS[contentType] ?? 'ti-file'}`} />
-                {contentType === 'advert'   ? 'Advert preview'
-                 : contentType === 'onepager' ? 'One-pager preview'
-                 : contentType === 'privacy'  ? 'Privacy pack preview'
-                 : 'Investor pack preview'}
-              </div>
-              <div className="pv-controls">
-                {(contentType === 'privacy' || contentType === 'full') && (
-                  <div className="page-nav">
-                    <button className="page-nav-btn" onClick={() => goPage(-1)} disabled={currentPage <= 1}>
-                      <i className="ti ti-chevron-left" style={{ fontSize: '10px' }} />
-                    </button>
-                    <span>{currentPage} / {totalPageCount}</span>
-                    <button className="page-nav-btn" onClick={() => goPage(1)} disabled={currentPage >= totalPageCount}>
-                      <i className="ti ti-chevron-right" style={{ fontSize: '10px' }} />
-                    </button>
+        {/* ── Content type selector cards ─────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginBottom: '20px' }}>
+          {CONTENT_TYPES.map(ct => {
+            const isActive = !ct.disabled && contentType === ct.key
+            const status   = typeStatuses[ct.key] ?? 'Not started'
+            return (
+              <div
+                key={ct.key}
+                onClick={() => {
+                  if (ct.disabled) return
+                  setContentType(ct.key as ContentType)
+                  setCurrentPage(1)
+                }}
+                style={{
+                  background: '#fff',
+                  border: `1.5px solid ${isActive ? DS_NAVY : DS_BORDER}`,
+                  borderRadius: '10px',
+                  padding: '14px',
+                  cursor: ct.disabled ? 'not-allowed' : 'pointer',
+                  opacity: ct.disabled ? 0.5 : 1,
+                  position: 'relative',
+                  transition: 'border-color .15s, box-shadow .15s',
+                  boxShadow: isActive ? `0 0 0 3px rgba(27,58,107,.09)` : 'none',
+                }}
+              >
+                {'badge' in ct && ct.badge && (
+                  <div style={{ position: 'absolute', top: '8px', right: '8px', background: DS_BG, border: `0.5px solid ${DS_BORDER}`, borderRadius: '20px', fontSize: '8px', fontWeight: 600, color: DS_TEXT2, padding: '2px 7px' }}>
+                    {ct.badge}
                   </div>
                 )}
-                <button className="pv-btn">
-                  <i className="ti ti-arrows-maximize" style={{ fontSize: '10px' }} /> Full screen
-                </button>
+                {isActive && (
+                  <div style={{ position: 'absolute', top: '10px', right: '10px', width: '8px', height: '8px', borderRadius: '50%', background: DS_NAVY }} />
+                )}
+                <div style={{ fontSize: '20px', marginBottom: '6px' }}>{ct.icon}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#1a2332', marginBottom: '2px' }}>{ct.label}</div>
+                <div style={{ fontSize: '10px', color: DS_TEXT2, lineHeight: 1.4, marginBottom: ct.disabled ? 0 : '8px' }}>{ct.sub}</div>
+                {!ct.disabled && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusDot(status), flexShrink: 0 }} />
+                    <div style={{ fontSize: '9px', color: DS_TEXT2 }}>{status}</div>
+                  </div>
+                )}
               </div>
-            </div>
+            )
+          })}
+        </div>
 
-            {/* Preview canvas */}
-            <div className="pv-canvas">
-              {contentType === 'advert'   && <AdvertPreview />}
-              {contentType === 'onepager' && <OnepagerPreview />}
-              {contentType === 'privacy'  && <PackPagePreview type="privacy" page={currentPage} />}
-              {contentType === 'full'     && <PackPagePreview type="full"    page={currentPage} />}
-            </div>
+        {/* ── Two-column workspace ────────────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '20px', alignItems: 'start' }}>
+          {/* Left: inputs panel */}
+          <div>{renderInputsPanel()}</div>
 
-            {/* Page label for packs */}
-            {(contentType === 'privacy' || contentType === 'full') && (
-              <div style={{ textAlign: 'center', fontSize: '10px', color: DS_TEXT2, padding: '4px 0 2px' }}>
-                {pages[currentPage - 1]} · Page {currentPage} of {totalPageCount}
-              </div>
-            )}
-
-            {/* Preview actions */}
-            <div className="pv-actions">
-              {contentType === 'advert' && (
-                <>
-                  <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-download" style={{ fontSize: '11px' }} /> Download
-                  </button>
-                  <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-copy" style={{ fontSize: '11px' }} /> Copy text
-                  </button>
-                  <button className="log-btn">
-                    <i className="ti ti-external-link" style={{ fontSize: '11px' }} /> Advert Builder
-                  </button>
-                </>
-              )}
-              {contentType === 'onepager' && (
-                <>
-                  <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-download" style={{ fontSize: '11px' }} /> Export PDF
-                  </button>
-                  <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-link" style={{ fontSize: '11px' }} /> Share link
-                  </button>
-                </>
-              )}
-              {contentType === 'privacy' && (
-                <>
-                  <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-link" style={{ fontSize: '11px' }} /> Share link
-                  </button>
-                  <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-eye" style={{ fontSize: '11px' }} /> Preview
-                  </button>
-                </>
-              )}
-              {contentType === 'full' && (
-                <>
-                  <PDFDownloadLink
-                    document={<DealScorePDF {...pdfProps} />}
-                    fileName={`DealScore_${(deal.reference ?? deal.address ?? 'deal').replace(/[^a-z0-9]/gi, '_').slice(0, 40)}.pdf`}
-                    style={{ flex: 1, textDecoration: 'none' }}
-                  >
-                    {({ loading: pdfLoading }: { loading: boolean }) => (
-                      <button className="log-btn primary" style={{ width: '100%', justifyContent: 'center' }}>
-                        <i className="ti ti-download" style={{ fontSize: '11px' }} />
-                        {pdfLoading ? ' Preparing…' : ' Export & share'}
-                      </button>
-                    )}
-                  </PDFDownloadLink>
-                  <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
-                    <i className="ti ti-eye" style={{ fontSize: '11px' }} /> Preview
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          {/* Right: sticky live preview */}
+          <div style={{ position: 'sticky', top: '80px' }}>{renderPreviewPanel()}</div>
         </div>
       </div>
     </div>
