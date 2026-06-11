@@ -437,7 +437,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '20px 24px 60px', fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div style={{ width: '100%', padding: '20px 24px 60px', fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
       {archivedBanner && (

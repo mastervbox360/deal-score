@@ -630,7 +630,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
   const anyPanelOpen = pickerOpen || notesOpen
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '20px 24px 32px', position: 'relative' }}>
+    <div style={{ width: '100%', padding: '20px 24px 32px', position: 'relative' }}>
       <Toast msg={toast} show={toastShow} />
 
       {!expDismissed && (

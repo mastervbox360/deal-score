@@ -21,7 +21,7 @@ const DS_BORDER = '#e3e5e9'
 function TabStub({ label, deal }: { label: string; deal: Deal }) {
   return (
     <div style={{
-      maxWidth: '1280px', margin: '0 auto', padding: '28px 24px 60px',
+      width: '100%', padding: '28px 24px 60px',
     }}>
       <div style={{
         background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px',

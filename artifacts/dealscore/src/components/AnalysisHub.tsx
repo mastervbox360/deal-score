@@ -1335,7 +1335,7 @@ export default function AnalysisHub({ deal }: { deal: Deal }) {
   const stressCombined  = useMemo(() => runCalc(p, { ...getIncomeKey(), ...getRateKey(), ...getCostsKey() }), [p])
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '20px 24px 32px' }}>
+    <div style={{ width: '100%', padding: '20px 24px 32px' }}>
       <SubNav active={activeView} onChange={setActiveView} />
 
       {activeView === 'results' && (

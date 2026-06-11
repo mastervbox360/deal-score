@@ -908,7 +908,7 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: DS_BG, minHeight: '100%' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 60px' }}>
+      <div style={{ width: '100%', padding: '24px 24px 60px' }}>
 
         {/* ── Content type selector cards ─────────────────────────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginBottom: '20px' }}>

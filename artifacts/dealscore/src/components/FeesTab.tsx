@@ -288,7 +288,7 @@ export default function FeesTab({ deal }: FeesTabProps) {
   const sbarBadgeLabel  = feeStatus === 'received' ? 'Received' : feeStatus === 'waived' ? 'Waived' : 'Outstanding'
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '20px 24px 32px' }}>
+    <div style={{ width: '100%', padding: '20px 24px 32px' }}>
       <Toast msg={toast} show={toastShow} />
 
       {!expDismissed && (

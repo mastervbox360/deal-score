@@ -7,7 +7,6 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Home from '@/pages/Home'
 import DashboardPage from './pages/DashboardPage'
 import DealPage from './pages/DealPage'
-import NewDealPage from './pages/NewDealPage'
 import ProfilePage from './pages/ProfilePage'
 import InvestorsPage from './pages/InvestorsPage'
 import SellersCrmPage from './pages/SellersCrmPage'
@@ -36,7 +35,7 @@ export default function App() {
             <Route path="/share/:token" element={<InvestorSharePage />} />
             {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/deal/new" element={<ProtectedRoute><NewDealPage /></ProtectedRoute>} />
+            <Route path="/deal/new" element={<Navigate to="/dashboard" replace />} />
             <Route path="/deal/:id" element={<ProtectedRoute><DealPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/investors" element={<ProtectedRoute><InvestorsPage /></ProtectedRoute>} />
