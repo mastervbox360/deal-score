@@ -4,7 +4,6 @@ import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { startCheckout } from '../lib/checkoutService'
 import { UserTier } from '../lib/database.types'
-import AppHeader from '../components/AppHeader'
 import UpgradeModal, { UpgradeModalState } from '../components/UpgradeModal'
 
 const NAVY = '#1B3A6B'
@@ -121,6 +120,8 @@ export default function ProfilePage() {
 
   const [activePane, setActivePane] = useState<PaneId>('profile')
   const [upgradeModal, setUpgradeModal] = useState<UpgradeModalState | null>(null)
+  const [avatarOpen, setAvatarOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
 
   // Profile fields
   const [fullName, setFullName] = useState('')
@@ -208,7 +209,78 @@ export default function ProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: BG_BODY, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-      <AppHeader />
+      {/* ══ FULL APP HEADER ══ */}
+      <div className="hdr">
+        <div className="hdr-left">
+          <div className="logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>Deal<span>Score</span></div>
+          <div className="logo-sep"></div>
+          <nav className="hdr-nav">
+            <button className="hn" onClick={() => navigate('/dashboard')}>Deals</button>
+            <div className="hn-sep"></div>
+            <button className="hn" onClick={() => navigate('/pipeline')}>Pipeline</button>
+            <div className="hn-sep"></div>
+            <button className="hn" onClick={() => navigate('/compare')}>Compare</button>
+          </nav>
+        </div>
+        <div className="hdr-centre">
+          <div className="search-bar">
+            <i className="ti ti-search"></i>
+            <input type="text" placeholder="Search deals, sellers, addresses… " readOnly onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }} />
+            <span className="search-kbd">⌘K</span>
+          </div>
+        </div>
+        <div className="hdr-right">
+          <nav className="hdr-right-nav">
+            <button className="hn" onClick={() => navigate('/sellers-crm')}>Seller</button>
+            <div className="hn-sep"></div>
+            <button className="hn" onClick={() => navigate('/investors-crm')}>Investors</button>
+          </nav>
+          <div className="logo-sep"></div>
+          <div className="notif-wrap">
+            <button className="notif-btn" onClick={() => setNotifOpen(p => !p)}>
+              <i className="ti ti-bell"></i>
+            </button>
+            {notifOpen && (
+              <div className="notif-drop show">
+                <div className="notif-drop-hdr">
+                  <span className="notif-drop-title">Notifications</span>
+                  <button className="notif-mark-all" onClick={() => setNotifOpen(false)}>Dismiss</button>
+                </div>
+                <div className="notif-list">
+                  <div className="notif-empty">
+                    <i className="ti ti-bell-off"></i>
+                    <div className="notif-empty-msg">All caught up</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="logo-sep"></div>
+          <button className="btn-new" onClick={() => navigate('/app')}><i className="ti ti-plus"></i> New deal</button>
+          <div className="logo-sep"></div>
+          <div className="avt-wrap">
+            <div className="avt-wrap-inner" onClick={() => setAvatarOpen(p => !p)}>
+              <div className="avt">{initials}</div>
+              <i className="ti ti-chevron-down avt-chevron"></i>
+            </div>
+            {avatarOpen && (
+              <div className="avt-drop show">
+                <div className="avt-drop-head">
+                  <div className="avt-drop-name">{fullName || user?.email?.split('@')[0] || 'User'}</div>
+                  <div className="avt-drop-email">{user?.email ?? ''}</div>
+                </div>
+                <button className="avt-drop-item" onClick={() => { setAvatarOpen(false); setActivePane('profile') }}>
+                  <i className="ti ti-user"></i> Profile settings
+                </button>
+                <div className="avt-drop-divider"></div>
+                <button className="avt-drop-item danger" onClick={async () => { setAvatarOpen(false); await signOut(); navigate('/login') }}>
+                  <i className="ti ti-logout"></i> Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="page-wrap">
         <div className="page-header">
