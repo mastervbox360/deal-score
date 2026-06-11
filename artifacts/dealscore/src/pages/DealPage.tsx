@@ -125,9 +125,11 @@ export default function DealPage() {
     )
   }
 
+  const [contentType, setContentType] = useState('advert')
+
   // ── Render with chrome ─────────────────────────────────────────────────────
   return (
-    <DealChrome deal={deal} analysisView={analysisView}>
+    <DealChrome deal={deal} analysisView={analysisView} contentType={contentType}>
       {activeTab === 'overview'   && <DealOverview deal={deal} onTabChange={handleTabChange} />}
       {activeTab === 'analysis'  && (
         <AnalysisHub
@@ -136,7 +138,7 @@ export default function DealPage() {
           onViewChange={setAnalysisView}
         />
       )}
-      {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} />}
+      {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} onTypeChange={setContentType} />}
       {activeTab === 'seller'    && <SellerTab deal={deal} />}
       {activeTab === 'investors' && <InvestorsTab deal={deal} />}
     </DealChrome>

@@ -23,6 +23,7 @@ export interface DealChromeProps {
   deal: Deal
   children: React.ReactNode
   analysisView?: string
+  contentType?: string
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ function parseTab(raw: string | null): TabKey {
   return 'overview'
 }
 
-function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
+function getLbItems(deal: Deal, tab: TabKey, contentType: string): LbItem[] {
   switch (tab) {
     case 'overview':
       return [
@@ -129,7 +130,12 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
       if (!deal.deal_score)     missing.push('deal score')
       return [
         { label: 'Pack readiness', value: `${readyCount}/${totalAssets} assets ready`, highlight: readyCount >= 7 },
-        { label: 'Creating',       value: deal.strategy ?? '—' },
+        { label: 'Creating',       value: ({
+          advert:    'Advert / listing copy',
+          onepager:  'One-pager',
+          privacy:   'Investor pack · privacy mode',
+          full:      'Investor pack · full view',
+        } as Record<string, string>)[contentType ?? ''] ?? (contentType ?? '—') },
         { label: 'Last export',    value: deal.packs_generated > 0 ? fDate(deal.updated_at) : 'Not exported' },
         { label: 'Still missing',  value: missing.length ? missing.join(', ') : 'Nothing' },
         { label: 'Shared with',    value: deal.packs_generated > 0 ? `${deal.packs_generated} pack${deal.packs_generated !== 1 ? 's' : ''} sent` : '—' },
@@ -166,7 +172,7 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function DealChrome({ deal, children, analysisView = 'results' }: DealChromeProps) {
+export default function DealChrome({ deal, children, analysisView = 'results', contentType = 'advert' }: DealChromeProps) {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -245,7 +251,7 @@ export default function DealChrome({ deal, children, analysisView = 'results' }:
     setNotes(prev => prev.filter(n => n.id !== id))
   }
 
-  const lbItems = getLbItems(deal, activeTab)
+  const lbItems = getLbItems(deal, activeTab, contentType)
 
   return (
     <div>

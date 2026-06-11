@@ -200,11 +200,12 @@ function buildPdfProps(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface ContentHubProps {
+  onTypeChange?: (t: string) => void
   deal: Deal
   onTabChange?: (tab: string) => void
 }
 
-export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
+export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentHubProps) {
   // ── State ─────────────────────────────────────────────────────────────────
   const [contentType, setContentType] = useState<ContentType>('advert')
   const [adFormat, setAdFormat]       = useState<AdFormat>('tile')
@@ -442,9 +443,9 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
             <InpGroup label="Platform">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', background: DS_BG, borderRadius: '6px', padding: '3px', border: `0.5px solid ${DS_BORDER}` }}>
                 <SegBtn active={adFormat === 'tile'}     onClick={() => setAdFormat('tile')}>📷 Social tile</SegBtn>
-                <SegBtn active={adFormat === 'listing'}  onClick={() => setAdFormat('listing')}>📄 Listing</SegBtn>
+                <SegBtn active={adFormat === 'listing'}  onClick={() => setAdFormat('listing')}>📄 Listing copy</SegBtn>
                 <SegBtn active={adFormat === 'whatsapp'} onClick={() => setAdFormat('whatsapp')}>💬 WhatsApp</SegBtn>
-                <SegBtn active={adFormat === 'brochure'} onClick={() => setAdFormat('brochure')}>📋 Brochure</SegBtn>
+                <SegBtn active={adFormat === 'brochure'} onClick={() => setAdFormat('brochure')}>📋 Deal brochure</SegBtn>
               </div>
             </InpGroup>
             <InpGroup label="Tone">
@@ -998,6 +999,7 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
               onClick={() => {
                 if (ct.disabled) return
                 setContentType(ct.key as ContentType)
+                onTypeChange?.(ct.key)
                 setCurrentPage(1)
               }}
             >
