@@ -22,6 +22,7 @@ interface LbItem {
 export interface DealChromeProps {
   deal: Deal
   children: React.ReactNode
+  analysisView?: string
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -143,7 +144,7 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function DealChrome({ deal, children }: DealChromeProps) {
+export default function DealChrome({ deal, children, analysisView = 'results' }: DealChromeProps) {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -425,15 +426,17 @@ export default function DealChrome({ deal, children }: DealChromeProps) {
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
-                  background: 'var(--navy-light)', color: 'var(--navy)',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
-                </button>
+                {(analysisView === 'inputs' || analysisView === 'results') && (
+                  <button style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                    borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
+                    background: 'var(--navy-light)', color: 'var(--navy)',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
+                    <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
+                  </button>
+                )}
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
@@ -448,7 +451,10 @@ export default function DealChrome({ deal, children }: DealChromeProps) {
                   background: 'var(--navy)', color: '#fff',
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  <i className="ti ti-checks" style={{ fontSize: '11px' }}></i> Confirm inputs
+                  {analysisView === 'inputs' && <><i className="ti ti-checks" style={{ fontSize: '11px' }}></i> Confirm inputs</>}
+                  {analysisView === 'results' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export results</>}
+                  {analysisView === 'sensitivity' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export</>}
+                  {analysisView === 'workings' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export workings</>}
                 </button>
               </>
             ) : (

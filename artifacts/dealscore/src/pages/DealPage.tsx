@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { type SubView } from '../components/AnalysisHub'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { loadDeal } from '../lib/dealService'
 import { Deal } from '../lib/database.types'
@@ -74,9 +75,10 @@ export default function DealPage() {
 
   const activeTab = parseTab(searchParams.get('tab'))
 
-  const [deal, setDeal]       = useState<Deal | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [deal, setDeal]         = useState<Deal | null>(null)
+  const [loading, setLoading]   = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [analysisView, setAnalysisView] = useState<SubView>('results')
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return }
@@ -125,9 +127,15 @@ export default function DealPage() {
 
   // ── Render with chrome ─────────────────────────────────────────────────────
   return (
-    <DealChrome deal={deal}>
+    <DealChrome deal={deal} analysisView={analysisView}>
       {activeTab === 'overview'   && <DealOverview deal={deal} onTabChange={handleTabChange} />}
-      {activeTab === 'analysis'  && <AnalysisHub deal={deal} />}
+      {activeTab === 'analysis'  && (
+        <AnalysisHub
+          deal={deal}
+          activeView={analysisView}
+          onViewChange={setAnalysisView}
+        />
+      )}
       {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} />}
       {activeTab === 'seller'    && <SellerTab deal={deal} />}
       {activeTab === 'investors' && <InvestorsTab deal={deal} />}

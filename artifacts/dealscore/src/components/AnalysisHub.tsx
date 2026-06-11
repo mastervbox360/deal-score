@@ -526,7 +526,7 @@ function Insight({ text }: { text: string }) {
 }
 
 // ── Sub-nav ───────────────────────────────────────────────────────────────────
-type SubView = 'results' | 'inputs' | 'sensitivity' | 'workings'
+export type SubView = 'results' | 'inputs' | 'sensitivity' | 'workings'
 
 function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) => void }) {
   const items: { key: SubView; label: string }[] = [
@@ -1302,8 +1302,17 @@ function ViewWorkings({ p, base, composite }: { p: ParsedInputs; base: CalcResul
 }
 
 // ── Main AnalysisHub component ────────────────────────────────────────────────
-export default function AnalysisHub({ deal }: { deal: Deal }) {
-  const [activeView, setActiveView] = useState<SubView>('results')
+export default function AnalysisHub({
+  deal,
+  activeView: externalView,
+  onViewChange,
+}: {
+  deal: Deal
+  activeView?: SubView
+  onViewChange?: (v: SubView) => void
+}) {
+  const [localView, setLocalView] = useState<SubView>('results')
+  const activeView: SubView = externalView ?? localView
 
   const p = useMemo(() => parseInputs(deal), [deal])
 
@@ -1379,7 +1388,7 @@ export default function AnalysisHub({ deal }: { deal: Deal }) {
       </button>
 
       {/* ── Sub-nav ────────────────────────────────────────────────────────── */}
-      <SubNav active={activeView} onChange={setActiveView} />
+      <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
 
       {/* ── Views ─────────────────────────────────────────────────────────── */}
       {activeView === 'results' && (
