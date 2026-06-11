@@ -211,6 +211,7 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
   const navigate = useNavigate()
   const dealId   = deal.id
 
+  const [photoSel, setPhotoSel]       = useState(1)
   const [contentType, setContentType] = useState<ContentType>('advert')
   const [adFormat, setAdFormat]       = useState<AdFormat>('tile')
   const [tone, setTone]               = useState<Tone>('professional')
@@ -529,6 +530,30 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
           </InputCard>
 
           {MetricPickerCard}
+
+          <div className="inp-card">
+            <div className="inp-card-hdr">
+              <i className="ti ti-photo" style={{ fontSize: '13px', color: 'var(--navy)' }}></i>
+              <span className="inp-card-title">Featured photo</span>
+            </div>
+            <div className="inp-body">
+              <div className="inp-group">
+                <div className="inp-label">Select one to feature on the cover</div>
+                <div className="photo-pick-row">
+                  {[1, 2, 3].map(n => (
+                    <div
+                      key={n}
+                      className={`photo-thumb${photoSel === n ? ' on' : ''}`}
+                      onClick={() => setPhotoSel(n)}
+                    >
+                      <span className="photo-thumb-num">{n}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '12px 14px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
