@@ -1,0 +1,47 @@
+"Two additions to the Advert left panel in ContentHub.tsx return():
+1. Platform button labels — already fixed in a previous step but verify these exact labels are in the seg-row: 📷 Social tile | ≡ Listing copy | WhatsApp | 📄 Deal brochure. Icons: ti-photo, ti-align-left, ti-brand-whatsapp, ti-file-description.
+2. Nearby locations card — add this card below the Metrics section in the Advert panel only:
+tsx<div className="inp-card">
+  <div className="inp-card-hdr">
+    <i className="ti ti-map-pin" style={{fontSize:'13px',color:'var(--teal)'}}></i>
+    <span className="inp-card-title">Nearby locations</span>
+    <span className="inp-card-badge ai">Auto-populated</span>
+  </div>
+  <div className="inp-body">
+    <div className="loc-pull">
+      <div className="loc-pull-hdr">
+        <span className="loc-pull-lbl">
+          <i className="ti ti-api"></i> Pulled from your deal inputs
+        </span>
+        <a onClick={()=>navigate(`/deal/${dealId}?tab=analysis`)} className="loc-edit-link">
+          Edit in Inputs →
+        </a>
+      </div>
+      <div className="loc-chips">
+        {(deal?.nearby_locations || []).map((l:string) => (
+          <span key={l} className="loc-chip">{l}</span>
+        ))}
+        {(!deal?.nearby_locations || deal.nearby_locations.length === 0) && (
+          <span style={{fontSize:'10px',color:'var(--text-2)'}}>
+            No locations added yet
+          </span>
+        )}
+      </div>
+    </div>
+    <div style={{fontSize:'10px',color:'var(--text-2)',marginTop:'8px',lineHeight:1.5}}>
+      These will auto-populate via API in production. Add or edit nearby locations in the{' '}
+      <a onClick={()=>navigate(`/deal/${dealId}?tab=analysis`)} style={{color:'var(--navy)',cursor:'pointer'}}>
+        Inputs
+      </a> tab.
+    </div>
+  </div>
+</div>
+Use whatever variable name holds the deal address/postcode in the existing component (check what's already used above return()). Add these CSS classes to index.css if not already there:
+css.loc-pull{background:var(--bg-sec);border:.5px solid var(--ds-border);border-radius:var(--r-md);padding:10px 12px;}
+.loc-pull-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.loc-pull-lbl{font-size:10px;color:var(--text-2);display:flex;align-items:center;gap:4px;}
+.loc-pull-lbl i{font-size:11px;color:var(--teal);}
+.loc-edit-link{font-size:10px;font-weight:500;color:var(--navy);text-decoration:none;cursor:pointer;}
+.loc-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.loc-chip{font-size:10px;font-weight:500;padding:3px 10px;border-radius:20px;background:#fff;border:.5px solid var(--ds-border);color:var(--text-1);}
+Do not change anything else."

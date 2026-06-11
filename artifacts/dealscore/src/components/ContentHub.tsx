@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import DealScorePDF from './DealScorePDF'
 import type { DealScorePDFProps } from './DealScorePDF'
@@ -207,6 +208,9 @@ interface ContentHubProps {
 
 export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentHubProps) {
   // ── State ─────────────────────────────────────────────────────────────────
+  const navigate = useNavigate()
+  const dealId   = deal.id
+
   const [contentType, setContentType] = useState<ContentType>('advert')
   const [adFormat, setAdFormat]       = useState<AdFormat>('tile')
   const [tone, setTone]               = useState<Tone>('professional')
@@ -442,10 +446,10 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
           <InputCard title="Format & tone" icon="🎨">
             <InpGroup label="Platform">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', background: DS_BG, borderRadius: '6px', padding: '3px', border: `0.5px solid ${DS_BORDER}` }}>
-                <SegBtn active={adFormat === 'tile'}     onClick={() => setAdFormat('tile')}>📷 Social tile</SegBtn>
-                <SegBtn active={adFormat === 'listing'}  onClick={() => setAdFormat('listing')}>📄 Listing copy</SegBtn>
-                <SegBtn active={adFormat === 'whatsapp'} onClick={() => setAdFormat('whatsapp')}>💬 WhatsApp</SegBtn>
-                <SegBtn active={adFormat === 'brochure'} onClick={() => setAdFormat('brochure')}>📋 Deal brochure</SegBtn>
+                <SegBtn active={adFormat === 'tile'}     onClick={() => setAdFormat('tile')}><i className="ti ti-photo" style={{ fontSize: '10px' }} /> Social tile</SegBtn>
+                <SegBtn active={adFormat === 'listing'}  onClick={() => setAdFormat('listing')}><i className="ti ti-align-left" style={{ fontSize: '10px' }} /> Listing copy</SegBtn>
+                <SegBtn active={adFormat === 'whatsapp'} onClick={() => setAdFormat('whatsapp')}><i className="ti ti-brand-whatsapp" style={{ fontSize: '10px' }} /> WhatsApp</SegBtn>
+                <SegBtn active={adFormat === 'brochure'} onClick={() => setAdFormat('brochure')}><i className="ti ti-file-description" style={{ fontSize: '10px' }} /> Deal brochure</SegBtn>
               </div>
             </InpGroup>
             <InpGroup label="Tone">
@@ -459,14 +463,41 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
 
           {MetricPickerCard}
 
-          <InputCard title="Nearby locations" icon="📍" badge={<AiBadge />}>
-            <div style={{ fontSize: '11px', color: DS_TEXT2, lineHeight: 1.6 }}>
-              Nearby locations from deal inputs will appear here automatically.
-              {onTabChange && (
-                <> <button onClick={() => onTabChange('analysis')} style={{ background: 'none', border: 'none', color: DS_NAVY, cursor: 'pointer', fontSize: '11px', padding: 0, textDecoration: 'underline' }}>Edit in Inputs →</button></>
-              )}
+          <div className="inp-card">
+            <div className="inp-card-hdr">
+              <i className="ti ti-map-pin" style={{ fontSize: '13px', color: 'var(--teal)' }}></i>
+              <span className="inp-card-title">Nearby locations</span>
+              <span className="inp-card-badge ai">Auto-populated</span>
             </div>
-          </InputCard>
+            <div className="inp-body">
+              <div className="loc-pull">
+                <div className="loc-pull-hdr">
+                  <span className="loc-pull-lbl">
+                    <i className="ti ti-api"></i> Pulled from your deal inputs
+                  </span>
+                  <a onClick={() => navigate(`/deal/${dealId}?tab=analysis`)} className="loc-edit-link">
+                    Edit in Inputs →
+                  </a>
+                </div>
+                <div className="loc-chips">
+                  {((deal as unknown as Record<string, unknown>)['nearby_locations'] as string[] | undefined ?? []).map((l: string) => (
+                    <span key={l} className="loc-chip">{l}</span>
+                  ))}
+                  {(!((deal as unknown as Record<string, unknown>)['nearby_locations'] as string[] | undefined)?.length) && (
+                    <span style={{ fontSize: '10px', color: 'var(--text-2)' }}>
+                      No locations added yet
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '8px', lineHeight: 1.5 }}>
+                These will auto-populate via API in production. Add or edit nearby locations in the{' '}
+                <a onClick={() => navigate(`/deal/${dealId}?tab=analysis`)} style={{ color: 'var(--navy)', cursor: 'pointer' }}>
+                  Inputs
+                </a> tab.
+              </div>
+            </div>
+          </div>
 
           <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '12px 14px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
