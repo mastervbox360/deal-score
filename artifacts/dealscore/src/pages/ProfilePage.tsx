@@ -202,821 +202,959 @@ export default function ProfilePage() {
 
   const SIDEBAR_W = 224
 
+  // Derived initials
+  const nameParts = fullName.trim().split(/\s+/)
+  const initials = ((nameParts[0]?.[0] ?? '') + (nameParts[1]?.[0] ?? '')).toUpperCase() || (user?.email?.[0] ?? '?').toUpperCase()
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: BG_BODY, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       <AppHeader />
 
-      <div style={{ display: 'flex', maxWidth: 1100, margin: '0 auto', padding: '28px 24px', gap: 28, alignItems: 'flex-start' }}>
+      <div className="page-wrap">
+        <div className="page-header">
+          <div className="page-header-title">Profile &amp; settings</div>
+          <div className="page-header-sub">Manage your account, branding, and preferences</div>
+        </div>
 
-        {/* Sidebar */}
-        <aside style={{ width: SIDEBAR_W, flexShrink: 0, position: 'sticky', top: 24 }}>
-          {NAV_GROUPS.map(group => (
-            <div key={group.label} style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: TEXT3, marginBottom: 6, paddingLeft: 10 }}>{group.label}</div>
-              {group.items.map(item => (
-                <button key={item.id} onClick={() => setActivePane(item.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '8px 10px', borderRadius: 7,
-                  border: 'none', background: activePane === item.id ? '#fff' : 'transparent',
-                  boxShadow: activePane === item.id ? `0 1px 4px rgba(0,0,0,.08), inset 0 0 0 .5px ${BORDER}` : 'none',
-                  color: activePane === item.id ? NAVY : TEXT2, fontWeight: activePane === item.id ? 600 : 400,
-                  fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 1,
-                  transition: 'all .15s',
-                }}>
-                  <i className={`ti ${item.icon}`} style={{ fontSize: 14, opacity: activePane === item.id ? 1 : .65 }} />
-                  <span style={{ flex: 1 }}>{item.label}</span>
-                  {item.badge && <Badge color="soon">soon</Badge>}
-                </button>
-              ))}
-            </div>
-          ))}
-        </aside>
+        <div className="page">
 
-        {/* Content panel */}
-        <main style={{ flex: 1, background: '#fff', border: `.5px solid ${BORDER}`, borderRadius: 10, padding: '24px 28px', minWidth: 0 }}>
-
-          {/* ── PROFILE ── */}
-          {activePane === 'profile' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Profile</h2>
-
-              <div style={{ ...sect }}>
-                <div style={sHdr}><div style={sTitle}>Personal details</div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px', marginBottom: 10 }}>
-                  <div>
-                    <label style={lbl}>Full name</label>
-                    <input style={inp} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" />
-                  </div>
-                  <div>
-                    <label style={lbl}>Email</label>
-                    <div style={{ ...inp, background: BG_SEC, color: TEXT2 }}>{user?.email ?? '—'}</div>
-                  </div>
-                  <div>
-                    <label style={lbl}>Company / trading name</label>
-                    <input style={inp} value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Your company (optional)" />
-                  </div>
-                  <div>
-                    <label style={lbl}>Phone</label>
-                    <input style={inp} value={phone} onChange={e => setPhone(e.target.value)} placeholder="+44 7700 000000" />
-                  </div>
-                  <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>About / bio <span style={{ fontWeight: 400, color: TEXT3 }}>optional</span></label>
-                    <textarea style={{ ...inp, minHeight: 68, resize: 'vertical' }} value={bio} onChange={e => setBio(e.target.value)} placeholder="A short note about your sourcing business — shown on shared deal pages" />
-                  </div>
-                </div>
-                {profileError && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 6, padding: '8px 12px', fontSize: 12, marginBottom: 10 }}>{profileError}</div>}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                  <div style={{ fontSize: 11, color: TEAL, display: 'flex', alignItems: 'center', gap: 5, opacity: profileSaved ? 1 : 0, transition: 'opacity .3s', marginRight: 8 }}>
-                    <i className="ti ti-circle-check" style={{ fontSize: 13 }} /> Saved
-                  </div>
-                  <button onClick={handleProfileSave} disabled={profileSaving} style={{ padding: '6px 14px', border: 'none', borderRadius: 6, background: profileSaving ? '#9ca3af' : NAVY, color: '#fff', fontSize: 12, fontWeight: 600, cursor: profileSaving ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
-                    {profileSaving ? 'Saving…' : 'Save changes'}
-                  </button>
-                </div>
+          {/* ══ LEFT NAV ══ */}
+          <div className="nav-panel">
+            <div className="nav-identity">
+              <div className="nav-avt">
+                {initials}
+                <div className="nav-avt-edit"><i className="ti ti-camera" /></div>
               </div>
-
-              <div style={{ ...sect }}>
-                <div style={sHdr}><div style={sTitle}>Social links</div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px' }}>
-                  <div>
-                    <label style={lbl}>LinkedIn</label>
-                    <input style={inp} value={linkedin} onChange={e => setLinkedin(e.target.value)} placeholder="linkedin.com/in/yourname" />
-                  </div>
-                  <div>
-                    <label style={lbl}>Instagram</label>
-                    <input style={inp} value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@yourhandle" />
-                  </div>
-                </div>
-                <SaveRow toastId="toast-social" />
+              <div className="nav-name">{fullName || user?.email?.split('@')[0] || 'User'}</div>
+              <div className="nav-email">{user?.email ?? ''}</div>
+              <div className="nav-plan">
+                <i className="ti ti-clock" style={{ fontSize: 10 }} />
+                {trialDays !== null
+                  ? `Pro Trial · ${trialDays} days left`
+                  : isProPlus ? 'Pro Plus' : isPro ? 'Pro' : 'Free'}
               </div>
-
-              <div style={{ ...sectLast }}>
-                <div style={sHdr}><div style={sTitle}>Profile completion</div></div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  {[
-                    { label: '+ Add logo', pane: 'branding' as PaneId, done: !!profile?.logo_url },
-                    { label: '+ Add bio', pane: 'profile' as PaneId, done: !!bio },
-                    { label: '+ Brand colour', pane: 'branding' as PaneId, done: !!profile?.brand_colour },
-                    { label: '+ Sourcing fee default', pane: 'defaults' as PaneId, done: false },
-                    { label: '+ Connect calendar', pane: 'integrations' as PaneId, done: false },
-                  ].map(chip => (
-                    <button key={chip.label} onClick={() => setActivePane(chip.pane)} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20, border: `.5px solid ${chip.done ? TEAL : BORDER}`, background: chip.done ? '#d1fae5' : '#fff', color: chip.done ? '#065f46' : NAVY, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
-                      {chip.done ? <><i className="ti ti-check" style={{ fontSize: 10, marginRight: 4 }} />{chip.label.replace('+ ', '')}</> : chip.label}
-                    </button>
-                  ))}
+              <div className="nav-completion">
+                <div className="nav-completion-lbl">
+                  <span>Profile complete</span>
+                  <span className="pct">63%</span>
+                </div>
+                <div className="nav-completion-bar">
+                  <div className="nav-completion-fill" style={{ width: '63%' }} />
                 </div>
               </div>
             </div>
-          )}
 
-          {/* ── NOTIFICATIONS ── */}
-          {activePane === 'notifications' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Notifications</h2>
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Deal workflow</div><div style={sSub}>Events in your deal pipeline</div></div></div>
-                <TglRow label="Cooling-off expiring" desc="Remind me 48 hours before a buyer's cooling-off window closes" defaultOn />
-                <TglRow label="Cooling-off expired" desc="Notify when the protection period ends and the deal is binding" defaultOn />
-                <TglRow label="Offer deadline approaching" desc="24-hour warning before a deal's offer deadline" defaultOn />
-                <TglRow label="Pack released" desc="Confirmation when an investor pack is successfully sent" defaultOn />
-              </div>
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Investor activity</div></div></div>
-                <TglRow label="Fee received" desc="Notify when an investor fee payment is logged" defaultOn />
-                <TglRow label="Investor logged" desc="Alert when a new investor is added to a deal" defaultOn />
-              </div>
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Reminders</div></div></div>
-                <TglRow label="Viewing reminders" desc="Email reminder the morning of a scheduled viewing" defaultOn />
-                <TglRow label="Follow-up nudges" desc="7-day nudge if a pack has been sent but no fee logged" />
-              </div>
-              <div style={sectLast}>
-                <div style={sHdr}><div><div style={sTitle}>Digest</div></div></div>
-                <TglRow label="Weekly summary email" desc="Every Monday — deals in progress, fees pending, pipeline snapshot" defaultOn />
-                <TglRow label="Monthly performance summary" desc="1st of each month — fees earned, deals closed, referrals" defaultOn />
-                <SaveRow toastId="toast-notif" />
-              </div>
-            </div>
-          )}
-
-          {/* ── PREFERENCES ── */}
-          {activePane === 'preferences' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Preferences</h2>
-              <div style={sect}>
-                <div style={sHdr}><div style={sTitle}>Display</div></div>
-                <TglRow label="Compact pipeline view" desc="Reduce row height in the pipeline table for more deals on screen" />
-                <TglRow label="Show deal reference prefix" desc="Display DS-001 style references on deal cards and lists" defaultOn />
-                <TglRow label="Show metrics in sidebar" desc="Live cash flow and yield figures in the deal navigation sidebar" defaultOn />
-              </div>
-              <div style={sectLast}>
-                <div style={sHdr}><div style={sTitle}>Region &amp; language</div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px' }}>
-                  <div>
-                    <label style={lbl}>Currency</label>
-                    <select style={sel}><option>£ GBP — British Pound</option></select>
-                  </div>
-                  <div>
-                    <label style={lbl}>Date format</label>
-                    <select style={sel}><option>DD / MM / YYYY</option><option>MM / DD / YYYY</option></select>
-                  </div>
-                  <div>
-                    <label style={lbl}>Language</label>
-                    <select style={sel}><option>English (UK)</option></select>
-                  </div>
-                </div>
-                <SaveRow toastId="toast-prefs" />
-              </div>
-            </div>
-          )}
-
-          {/* ── BRANDING ── */}
-          {activePane === 'branding' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Branding</h2>
-              <div style={sect}>
-                <div style={sHdr}>
-                  <div><div style={sTitle}>Company details</div><div style={sSub}>Shown on shared deal pages and pack footers</div></div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px' }}>
-                  <div>
-                    <label style={lbl}>Display name</label>
-                    <input style={inp} defaultValue={companyName || ''} placeholder="Your trading name" />
-                  </div>
-                  <div>
-                    <label style={lbl}>Tagline</label>
-                    <input style={inp} placeholder="e.g. Off-market property specialists" />
-                  </div>
-                  <div>
-                    <label style={lbl}>FCA / regulatory disclaimer</label>
-                    <textarea style={{ ...inp, minHeight: 56, resize: 'vertical', gridColumn: '1/-1' }} placeholder="e.g. This is not financial advice. Past performance does not guarantee future results." />
-                  </div>
-                </div>
-                <SaveRow toastId="toast-brand-co" />
-              </div>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Logo <Badge color="pro">PRO</Badge></div><div style={sSub}>Appears on PDF pack covers and deal share pages</div></div></div>
-                {isPro ? (
-                  <div style={{ border: `.5px dashed ${BORDER}`, borderRadius: 8, padding: '24px 16px', textAlign: 'center', cursor: 'pointer', background: BG_SEC }}>
-                    <i className="ti ti-cloud-upload" style={{ fontSize: 24, color: TEXT3, display: 'block', marginBottom: 8 }} />
-                    <div style={{ fontSize: 12, fontWeight: 600, color: TEXT2, marginBottom: 3 }}>Click to upload your logo</div>
-                    <div style={{ fontSize: 11, color: TEXT3 }}>PNG, SVG or JPG · Max 2MB · Transparent background recommended</div>
-                  </div>
-                ) : (
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ border: `.5px dashed ${BORDER}`, borderRadius: 8, padding: '24px 16px', textAlign: 'center', background: BG_SEC, filter: 'blur(1px)' }}>
-                      <i className="ti ti-cloud-upload" style={{ fontSize: 24, color: TEXT3, display: 'block', marginBottom: 8 }} />
-                      <div style={{ fontSize: 12, fontWeight: 600, color: TEXT2 }}>Click to upload your logo</div>
-                    </div>
-                    <GatedOverlay label="Upgrade to Pro to upload your logo" />
-                  </div>
-                )}
-              </div>
-
-              <div style={{ position: 'relative', ...sect }}>
-                <div style={sHdr}><div style={sTitle}>Brand colours <Badge color="plus">PRO+</Badge></div></div>
-                {!isProPlus && <GatedOverlay label="Upgrade to Pro Plus to unlock brand colours" />}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px', opacity: isProPlus ? 1 : .4 }}>
-                  <div>
-                    <label style={lbl}>Primary colour</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 6, background: profile?.brand_colour ?? NAVY, border: `.5px solid ${BORDER}`, flexShrink: 0 }} />
-                      <input style={inp} defaultValue={profile?.brand_colour ?? '#1B3A6B'} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={lbl}>Accent colour</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 6, background: profile?.accent_colour ?? TEAL, border: `.5px solid ${BORDER}`, flexShrink: 0 }} />
-                      <input style={inp} defaultValue={profile?.accent_colour ?? '#1D9E75'} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ position: 'relative', ...sectLast }}>
-                <div style={sHdr}><div style={sTitle}>Pack cover style <Badge color="plus">PRO+</Badge></div></div>
-                {!isProPlus && <GatedOverlay label="Upgrade to Pro Plus to unlock cover styles" />}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, opacity: isProPlus ? 1 : .4 }}>
-                  {[
-                    { label: 'Branded', bg: NAVY_DARK, textC: '#fff', text: 'BRANDED' },
-                    { label: 'Minimal', bg: BG_SEC, textC: TEXT2, text: 'MINIMAL' },
-                    { label: 'Your brand', bg: `linear-gradient(135deg,${NAVY},${TEAL})`, textC: '#fff', text: 'YOUR BRAND' },
-                  ].map((s, i) => (
-                    <div key={s.label} style={{ border: `.5px solid ${i === 0 ? NAVY : BORDER}`, borderRadius: 8, overflow: 'hidden', cursor: 'pointer' }}>
-                      <div style={{ height: 52, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: s.textC, letterSpacing: '.06em' }}>{s.text}</div>
-                      <div style={{ padding: '7px 10px', fontSize: 11, fontWeight: 600, color: TEXT1 }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-                {isProPlus && <SaveRow toastId="toast-brand" />}
-              </div>
-            </div>
-          )}
-
-          {/* ── DEAL DEFAULTS ── */}
-          {activePane === 'defaults' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Deal defaults</h2>
-              <div style={sect}>
-                <div style={sHdr}><div style={sTitle}>Tax &amp; ownership</div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 14px' }}>
-                  {[
-                    { lbl: 'Country', opts: ['England / NI — SDLT', 'Wales — LTT', 'Scotland — LBTT'] },
-                    { lbl: 'Buyer type', opts: ['Additional property / BTL', 'First time buyer', 'Standard residential'] },
-                    { lbl: 'Ownership structure', opts: ['Personal name', 'Limited company (SPV)', 'Partnership / LLP'] },
-                    { lbl: 'Default strategy', opts: ['BTL — Buy to let', 'SA — Serviced accommodation', 'HMO — House in multiple occ.', 'Flip / refurb', 'BRRR'] },
-                  ].map(f => (
-                    <div key={f.lbl}>
-                      <label style={lbl}>{f.lbl}</label>
-                      <select style={sel}>{f.opts.map(o => <option key={o}>{o}</option>)}</select>
-                    </div>
-                  ))}
-                  <div>
-                    <label style={lbl}>Cooling-off period</label>
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      <input type="number" defaultValue={14} style={{ ...inp, flex: 1 }} />
-                      <span style={{ padding: '7px 10px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: TEXT2, whiteSpace: 'nowrap' }}>days</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Sourcing fees</div><div style={sSub}>Defaults when generating deal packs and invoices</div></div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 14px' }}>
-                  <div>
-                    <label style={lbl}>Default fee</label>
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      <input type="number" placeholder="2.5" style={{ ...inp, flex: 1 }} />
-                      <span style={{ padding: '7px 10px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: TEXT2 }}>%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={lbl}>Fee minimum</label>
-                    <div style={{ display: 'flex', gap: 5 }}>
-                      <span style={{ padding: '7px 10px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: '6px 0 0 6px', fontSize: 12, color: TEXT2, borderRight: 'none' }}>£</span>
-                      <input type="number" placeholder="3000" style={{ ...inp, borderRadius: '0 6px 6px 0' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={lbl}>Payment terms</label>
-                    <select style={sel}><option>Due on pack release</option><option>50% on reservation, 50% on completion</option><option>Due on completion</option></select>
-                  </div>
-                </div>
-              </div>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Financing</div><div style={sSub}>Update when your broker confirms a new rate</div></div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 14px' }}>
-                  {[
-                    { l: 'Finance method', type: 'select', opts: ['Mortgage', 'Bridging loan', 'Cash'] },
-                    { l: 'LTV', type: 'number', val: '75', suf: '%' },
-                    { l: 'Interest rate', type: 'number', val: '5.5', suf: '% pa' },
-                    { l: 'Mortgage term', type: 'number', val: '25', suf: 'yrs' },
-                    { l: 'Repayment type', type: 'select', opts: ['Interest only', 'Capital repayment'] },
-                    { l: 'Arrangement fee', type: 'number', val: '995', pre: '£' },
-                    { l: 'Solicitor / legal', type: 'number', val: '1500', pre: '£' },
-                    { l: 'Survey', type: 'number', val: '400', pre: '£' },
-                    { l: 'Broker fee', type: 'number', val: '500', pre: '£' },
-                  ].map(f => (
-                    <div key={f.l}>
-                      <label style={lbl}>{f.l}</label>
-                      {f.type === 'select' ? (
-                        <select style={sel}>{(f.opts ?? []).map(o => <option key={o}>{o}</option>)}</select>
-                      ) : f.pre ? (
-                        <div style={{ display: 'flex', gap: 0 }}>
-                          <span style={{ padding: '7px 9px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: '6px 0 0 6px', fontSize: 12, color: TEXT2, borderRight: 'none' }}>{f.pre}</span>
-                          <input type="number" defaultValue={f.val} style={{ ...inp, borderRadius: '0 6px 6px 0', borderLeft: 'none' }} />
-                        </div>
-                      ) : f.suf ? (
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          <input type="number" defaultValue={f.val} style={{ ...inp, flex: 1 }} />
-                          <span style={{ padding: '7px 9px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: TEXT2, whiteSpace: 'nowrap' }}>{f.suf}</span>
-                        </div>
-                      ) : (
-                        <input type="number" defaultValue={f.val} style={inp} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Monthly running costs</div><div style={sSub}>DS Assistant will prompt you to confirm each one per deal</div></div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 14px' }}>
-                  {[
-                    { l: 'Maintenance', val: '75', pre: '£', hint: 'Per month' },
-                    { l: 'Buildings insurance', val: '30', pre: '£' },
-                    { l: 'Management fee', val: '10', suf: '% rent', hint: '0 if self-managing' },
-                    { l: 'Void allowance', val: '4', suf: 'wks/yr' },
-                    { l: 'Accountancy', val: '50', pre: '£', hint: 'Pro-rated monthly' },
-                    { l: 'Service charge/mo', val: '0', pre: '£' },
-                    { l: 'Ground rent/mo', val: '0', pre: '£' },
-                  ].map(f => (
-                    <div key={f.l}>
-                      <label style={lbl}>{f.l}</label>
-                      {f.pre ? (
-                        <div style={{ display: 'flex' }}>
-                          <span style={{ padding: '7px 9px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: '6px 0 0 6px', fontSize: 12, color: TEXT2, borderRight: 'none' }}>{f.pre}</span>
-                          <input type="number" defaultValue={f.val} style={{ ...inp, borderRadius: '0 6px 6px 0', borderLeft: 'none' }} />
-                        </div>
-                      ) : f.suf ? (
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          <input type="number" defaultValue={f.val} style={{ ...inp, flex: 1 }} />
-                          <span style={{ padding: '7px 9px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: TEXT2, whiteSpace: 'nowrap' }}>{f.suf}</span>
-                        </div>
-                      ) : <input type="number" defaultValue={f.val} style={inp} />}
-                      {f.hint && <span style={fieldHint}>{f.hint}</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Deal targets</div><div style={sSub}>Deals below these thresholds are flagged on the analysis screen</div></div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px 14px' }}>
-                  {[
-                    { l: 'Min gross yield', val: '6', suf: '%' },
-                    { l: 'Min net yield', val: '4', suf: '%' },
-                    { l: 'Min monthly cashflow', val: '200', pre: '£' },
-                    { l: 'Min ROI', val: '10', suf: '%' },
-                    { l: 'Min cash-on-cash', val: '8', suf: '%' },
-                  ].map(f => (
-                    <div key={f.l}>
-                      <label style={lbl}>{f.l}</label>
-                      {f.pre ? (
-                        <div style={{ display: 'flex' }}>
-                          <span style={{ padding: '7px 9px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: '6px 0 0 6px', fontSize: 12, color: TEXT2, borderRight: 'none' }}>{f.pre}</span>
-                          <input type="number" defaultValue={f.val} style={{ ...inp, borderRadius: '0 6px 6px 0', borderLeft: 'none' }} />
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          <input type="number" defaultValue={f.val} style={{ ...inp, flex: 1 }} />
-                          <span style={{ padding: '7px 9px', background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 6, fontSize: 12, color: TEXT2 }}>{f.suf}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={sectLast}>
-                <div style={sHdr}><div><div style={sTitle}>Sharing &amp; access</div><div style={sSub}>Defaults applied when creating new deal share links</div></div></div>
-                <TglRow label="Protect address on shared links" desc="New deals default to masking the property address in investor share links and packs" defaultOn />
-                <TglRow label="Require investor auth on share links" desc="Shared deal links require the investor to authenticate before viewing" defaultOn />
-                <SaveRow toastId="toast-defaults" />
-              </div>
-            </div>
-          )}
-
-          {/* ── DS ASSISTANT ── */}
-          {activePane === 'assistant' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>DS Assistant</h2>
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Validation flags</div><div style={sSub}>Fields the Assistant always prompts you to confirm on each deal</div></div></div>
-                <TglRow label="Flag maintenance allowance" desc="Prompt to confirm the default is appropriate for this property's age and condition" defaultOn />
-                <TglRow label="Flag void allowance" desc="Confirm void % is appropriate for the local market" defaultOn />
-                <TglRow label="Flag missing strategy fields" desc="Alert when SA nightly rate, HMO room count, or other strategy-specific fields are absent" defaultOn />
-                <TglRow label="Flag below-target metrics" desc="Warn when a deal falls below the thresholds set in Deal Defaults" defaultOn />
-              </div>
-              <div style={sectLast}>
-                <div style={sHdr}><div><div style={sTitle}>Assistant behaviour</div><div style={sSub}>Control how the DS Assistant works when analysing your deals</div></div></div>
-                <TglRow label="Auto-suggest on deal open" desc="DS Assistant automatically surfaces insights when you open a deal, without waiting to be asked" defaultOn />
-                <TglRow label="Strategy-specific analysis" desc="Show only the metrics and flags relevant to the deal's chosen strategy" defaultOn />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px', marginTop: 12 }}>
-                  <div>
-                    <label style={lbl}>Confidence threshold</label>
-                    <select style={sel}><option>Show all suggestions</option><option selected>Medium confidence +</option><option>High confidence only</option></select>
-                    <span style={fieldHint}>How certain the Assistant must be before flagging an issue</span>
-                  </div>
-                  <div>
-                    <label style={lbl}>Strategies to analyse</label>
-                    <select style={sel}><option selected>All strategies</option><option>BTL only</option><option>SA only</option><option>HMO only</option></select>
-                    <span style={fieldHint}>Limit assistant suggestions to specific strategies</span>
-                  </div>
-                </div>
-                <SaveRow toastId="toast-assistant" />
-              </div>
-            </div>
-          )}
-
-          {/* ── SUBSCRIPTION ── */}
-          {activePane === 'subscription' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Subscription</h2>
-
-              <div style={sect}>
-                <div style={sHdr}><div style={sTitle}>Current plan</div></div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: trialDays !== null ? '#f0fdf4' : BG_SEC, border: `.5px solid ${trialDays !== null ? '#86efac' : BORDER}`, borderRadius: 8, marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: trialDays !== null ? '#d1fae5' : '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <i className={`ti ${trialDays !== null ? 'ti-clock' : 'ti-crown'}`} style={{ fontSize: 16, color: trialDays !== null ? TEAL : NAVY }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: TEXT1, display: 'flex', alignItems: 'center', gap: 7 }}>
-                        {tier === 'free' ? 'Free' : tier === 'pro' ? 'Pro' : 'Pro Plus'}
-                        {trialDays !== null && <Badge color="trial">{trialDays} days remaining</Badge>}
-                      </div>
-                      <div style={{ fontSize: 11, color: TEXT2, marginTop: 2 }}>
-                        {trialDays !== null ? 'No card required. Your deals and data are saved throughout.' : `Your current plan`}
-                      </div>
-                    </div>
-                  </div>
-                  {isPro && <button onClick={() => window.open('https://billing.stripe.com/p/login', '_blank')} style={{ padding: '7px 14px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>Manage billing</button>}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '.5px', background: BORDER, borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
-                  {[['14', 'Deals saved'], ['6', 'Packs this month'], [trialDays !== null ? 'Active' : 'Live', 'Status']].map(([val, label]) => (
-                    <div key={label} style={{ background: '#fff', padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, color: TEXT3, fontWeight: 600, marginBottom: 3 }}>{label}</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: TEXT1 }}>{val}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {checkoutError && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 6, padding: '8px 12px', fontSize: 12, marginBottom: 14 }}>{checkoutError}</div>}
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Plans</div><div style={sSub}>Upgrade or downgrade at any time</div></div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {/* Pro */}
-                  <div style={{ border: `.5px solid ${tier === 'pro' ? NAVY : BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ padding: '12px 14px', background: tier === 'pro' ? BG_SEC : '#fff', borderBottom: `.5px solid ${BORDER}` }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: TEXT1, display: 'flex', alignItems: 'center', gap: 7 }}>Pro {tier === 'pro' && <Badge color="current">Current</Badge>}</div>
-                      <div style={{ fontSize: 11, color: TEXT2, marginTop: 2 }}>£29/mo · or £279/yr</div>
-                    </div>
-                    <div style={{ padding: '12px 14px' }}>
-                      {['All 7 deal strategies', 'Save deals & pipeline', 'PDF packs', 'Deal sharing', 'DealScore Assistant', 'Calendar sync'].map(f => (
-                        <div key={f} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 11, color: TEXT2, padding: '2px 0' }}>
-                          <i className="ti ti-check" style={{ color: TEAL, fontSize: 10 }} /> {f}
-                        </div>
-                      ))}
-                      {tier !== 'pro' && (
-                        <button onClick={() => handleUpgrade('pro')} disabled={checkoutLoading !== null} style={{ width: '100%', marginTop: 12, padding: '8px', border: 'none', borderRadius: 6, background: NAVY, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                          {checkoutLoading === 'pro' ? 'Redirecting…' : 'Upgrade to Pro'}
-                        </button>
-                      )}
-                      {tier === 'pro' && <div style={{ marginTop: 12, padding: '8px', border: `.5px solid ${BORDER}`, borderRadius: 6, textAlign: 'center', fontSize: 12, color: TEXT2 }}>Current plan</div>}
-                    </div>
-                  </div>
-                  {/* Pro Plus */}
-                  <div style={{ border: `.5px solid ${tier === 'pro_plus' ? NAVY : BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ padding: '12px 14px', background: `linear-gradient(135deg, ${NAVY_DARK}, #4f46e5)`, borderBottom: `.5px solid ${BORDER}` }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Pro Plus</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,.55)', marginTop: 2 }}>£59/mo · or £559/yr</div>
-                    </div>
-                    <div style={{ padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, color: TEXT3, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Everything in Pro, plus:</div>
-                      {['Smart Capture', 'Landscape Pro Plus PDF', 'Deal Optimiser', 'Visual branding', 'Webhooks & API'].map(f => (
-                        <div key={f} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 11, color: TEXT2, padding: '2px 0' }}>
-                          <i className="ti ti-check" style={{ color: PURPLE, fontSize: 10 }} /> {f}
-                        </div>
-                      ))}
-                      {!isProPlus && (
-                        <button onClick={() => handleUpgrade('pro_plus')} disabled={checkoutLoading !== null} style={{ width: '100%', marginTop: 12, padding: '8px', border: 'none', borderRadius: 6, background: `linear-gradient(135deg, ${NAVY_DARK}, #4f46e5)`, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                          {checkoutLoading === 'pro_plus' ? 'Redirecting…' : 'Upgrade to Pro Plus'}
-                        </button>
-                      )}
-                      {isProPlus && <div style={{ marginTop: 12, padding: '8px', border: `.5px solid ${BORDER}`, borderRadius: 6, textAlign: 'center', fontSize: 12, color: TEXT2 }}>Current plan</div>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={sectLast}>
-                <div style={sHdr}><div style={sTitle}>Payment</div></div>
-                <div style={actionRow}>
-                  <div>
-                    <div style={actionLbl}>Payment method</div>
-                    <div style={{ ...actionDesc, color: AMBER, display: 'flex', alignItems: 'center', gap: 4 }}><i className="ti ti-alert-circle" style={{ fontSize: 11 }} /> No card on file — add one before your trial ends</div>
-                  </div>
-                  <button style={{ padding: '6px 12px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Add card</button>
-                </div>
-                <div style={{ ...actionRow, borderBottom: 'none' }}>
-                  <div>
-                    <div style={actionLbl}>Invoice history</div>
-                    <div style={actionDesc}>No invoices yet</div>
-                  </div>
-                  <button style={{ padding: '6px 12px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT2, fontSize: 12, cursor: 'default', fontFamily: 'inherit', opacity: .4, flexShrink: 0 }}>Download</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── REFERRALS ── */}
-          {activePane === 'referrals' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Referrals</h2>
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Your referral link</div><div style={sSub}>Earn 1 free month for every person who upgrades to Pro or above</div></div></div>
-                <div style={{ background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 8, padding: '14px 16px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: TEXT2, marginBottom: 8 }}>Share this link</div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', position: 'relative' }}>
-                    <input readOnly value={referralLink} style={{ ...inp, flex: 1, background: '#fff', color: TEXT1, fontFamily: 'monospace', fontSize: 12 }} />
-                    <button onClick={copyRef} style={{ padding: '7px 14px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Copy</button>
-                    <div ref={refToast} style={{ position: 'absolute', right: 80, top: '50%', transform: 'translateY(-50%)', background: NAVY, color: '#fff', fontSize: 11, padding: '4px 10px', borderRadius: 6, opacity: 0, transition: 'opacity .3s', pointerEvents: 'none', whiteSpace: 'nowrap' }}>Copied!</div>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '.5px', background: BORDER, borderRadius: 8, overflow: 'hidden' }}>
-                  {[['3', 'Referrals sent'], ['2', 'Converted'], ['2', 'Months earned']].map(([val, lbl2]) => (
-                    <div key={lbl2} style={{ background: '#fff', padding: '12px 14px' }}>
-                      <div style={{ fontSize: 10, color: TEXT3, fontWeight: 600, marginBottom: 3 }}>{lbl2}</div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: lbl2 === 'Months earned' ? TEAL : TEXT1 }}>{val}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={sectLast}>
-                <div style={sHdr}><div style={sTitle}>Referral history</div></div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ borderBottom: `.5px solid ${BORDER}` }}>
-                      {['Referred to', 'Date sent', 'Status', 'Reward'].map(h => (
-                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', fontSize: 10, fontWeight: 600, color: TEXT3, textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { email: 'sarah@investormail.co.uk', date: '14 Apr 2026', status: 'Converted · Pro', reward: '+1 month', converted: true },
-                      { email: 'james@propertynow.com', date: '2 Mar 2026', status: 'Converted · Pro', reward: '+1 month', converted: true },
-                      { email: 'mike@homesearch.co.uk', date: '18 Feb 2026', status: 'Signed up · free', reward: '—', converted: false },
-                    ].map(row => (
-                      <tr key={row.email} style={{ borderBottom: `.5px solid ${BORDER}` }}>
-                        <td style={{ padding: '10px 10px', color: TEXT1 }}>{row.email}</td>
-                        <td style={{ padding: '10px 10px', color: TEXT2 }}>{row.date}</td>
-                        <td style={{ padding: '10px 10px' }}>
-                          <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: row.converted ? '#d1fae5' : '#f3f4f6', color: row.converted ? '#065f46' : TEXT2 }}>{row.status}</span>
-                        </td>
-                        <td style={{ padding: '10px 10px', fontWeight: 600, color: row.converted ? TEAL : TEXT3 }}>{row.reward}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ── AGENCY ── */}
-          {activePane === 'agency' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Agency</h2>
-              <div style={sect}>
-                <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                    <i className="ti ti-building-store" style={{ fontSize: 22, color: PURPLE }} />
-                  </div>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: TEXT3, marginBottom: 8 }}>Coming soon</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: TEXT1, marginBottom: 6 }}>DealScore Agency</div>
-                  <div style={{ fontSize: 12, color: TEXT2, maxWidth: 380, margin: '0 auto', lineHeight: 1.6 }}>Your brand, your domain, your investors — DealScore runs invisibly behind the scenes.</div>
-                </div>
-              </div>
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>What's included</div><div style={sSub}>Everything in Pro Plus, plus full white-labelling and team management</div></div></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {[
-                    { icon: 'ti-world', title: 'Custom domain', desc: 'deals.yourbrand.co.uk — investors see your URL' },
-                    { icon: 'ti-paint', title: 'Full app white-label', desc: 'Your logo and colours replace DealScore throughout' },
-                    { icon: 'ti-mail', title: 'Branded email sender', desc: 'Pack notifications sent from your domain' },
-                    { icon: 'ti-users', title: 'Team seats', desc: 'Add sourcers and VAs with role controls' },
-                    { icon: 'ti-eye', title: 'Investor portal', desc: 'Branded read-only portal for investors to browse packs' },
-                    { icon: 'ti-file-text', title: 'Custom PDF footer', desc: 'Your tagline and legal disclaimer — no DealScore mention' },
-                    { icon: 'ti-login', title: 'Branded login page', desc: 'Investors sign in through your brand' },
-                    { icon: 'ti-chart-bar', title: 'Agency analytics', desc: 'Team volume, investor engagement, pack performance' },
-                  ].map(f => (
-                    <div key={f.title} style={{ background: BG_SEC, border: `.5px solid ${BORDER}`, borderRadius: 8, padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <i className={`ti ${f.icon}`} style={{ fontSize: 14, color: PURPLE }} />
-                        <div style={{ fontSize: 12, fontWeight: 600, color: TEXT1 }}>{f.title}</div>
-                      </div>
-                      <div style={{ fontSize: 11, color: TEXT2 }}>{f.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={sectLast}>
-                <div style={sHdr}><div><div style={sTitle}>Join the waiting list</div><div style={sSub}>We'll email you before Agency launches publicly</div></div></div>
-                {agencySubmitted ? (
-                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                    <i className="ti ti-circle-check" style={{ fontSize: 28, color: TEAL, display: 'block', marginBottom: 8 }} />
-                    <div style={{ fontSize: 14, fontWeight: 700, color: TEXT1, marginBottom: 3 }}>You're on the list</div>
-                    <div style={{ fontSize: 12, color: TEXT2 }}>We'll email {agencyEmail} before Agency launches.</div>
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px', marginBottom: 12 }}>
-                      <div><label style={lbl}>Name</label><input style={inp} value={agencyName} onChange={e => setAgencyName(e.target.value)} /></div>
-                      <div><label style={lbl}>Email</label><input style={inp} value={agencyEmail} onChange={e => setAgencyEmail(e.target.value)} /></div>
-                      <div style={{ gridColumn: '1/-1' }}><label style={lbl}>Company / trading name</label><input style={inp} value={agencyCompany} onChange={e => setAgencyCompany(e.target.value)} placeholder="e.g. Mardania Property Sourcing" /></div>
-                      <div style={{ gridColumn: '1/-1' }}>
-                        <label style={lbl}>Team size</label>
-                        <select style={sel} value={agencyTeamSize} onChange={e => setAgencyTeamSize(e.target.value)}>
-                          {['Just me', '2–5', '6–15', '15+'].map(o => <option key={o}>{o}</option>)}
-                        </select>
-                      </div>
-                      <div style={{ gridColumn: '1/-1' }}>
-                        <label style={lbl}>Anything specific you need? <span style={{ fontWeight: 400, color: TEXT3 }}>optional</span></label>
-                        <textarea style={{ ...inp, minHeight: 56, resize: 'vertical' }} value={agencyNotes} onChange={e => setAgencyNotes(e.target.value)} placeholder="e.g. I need a custom domain and my own investor login page…" />
-                      </div>
-                    </div>
-                    <button onClick={() => { if (agencyEmail.includes('@')) setAgencySubmitted(true) }} style={{ padding: '8px 20px', border: 'none', borderRadius: 6, background: PURPLE, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Join waiting list</button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── INTEGRATIONS ── */}
-          {activePane === 'integrations' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Integrations</h2>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Calendar <Badge color="pro">PRO</Badge></div><div style={sSub}>Sync viewings, Day 15 countdowns, and chase reminders</div></div></div>
-                {[
-                  { name: 'Google Calendar', desc: 'Not connected', connected: false, iconBg: '#fff4f4', iconBorder: '#ffd0d0', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21.8055 10.0415H21V10H12V14H17.6515C16.827 16.3285 14.6115 18 12 18C8.6865 18 6 15.3135 6 12C6 8.6865 8.6865 6 12 6C13.5295 6 14.921 6.577 15.9805 7.5195L18.809 4.691C17.023 3.0265 14.634 2 12 2C6.4775 2 2 6.4775 2 12C2 17.5225 6.4775 22 12 22C17.5225 22 22 17.5225 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#FFC107"/><path d="M3.15283 7.3455L6.43833 9.755C7.32733 7.554 9.48033 6 11.9998 6C13.5293 6 14.9208 6.577 15.9803 7.5195L18.8088 4.691C17.0228 3.0265 14.6338 2 11.9998 2C8.15883 2 4.82783 4.1685 3.15283 7.3455Z" fill="#FF3D00"/><path d="M12.0002 22C14.5832 22 16.9302 21.0115 18.7047 19.404L15.6097 16.785C14.5719 17.5742 13.3039 18.001 12.0002 18C9.39916 18 7.19066 16.3415 6.35866 14.027L3.09766 16.5395C4.75266 19.778 8.11366 22 12.0002 22Z" fill="#4CAF50"/><path d="M21.8055 10.0415H21V10H12V14H17.6515C17.2571 15.1082 16.5467 16.0766 15.608 16.7855L18.7045 19.4035C18.4855 19.6025 22 17 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#1976D2"/></svg> },
-                  { name: 'Apple Calendar', desc: 'Connected', connected: true, iconBg: '#f5f5f5', iconBorder: '#e5e5e5', icon: <i className="ti ti-brand-apple" style={{ fontSize: 15, color: '#333' }} /> },
-                  { name: 'Outlook / Microsoft 365', desc: 'Not connected', connected: false, iconBg: '#f0f4ff', iconBorder: '#c7d4ff', icon: <i className="ti ti-mail" style={{ fontSize: 15, color: '#0078d4' }} /> },
-                ].map(row => (
-                  <div key={row.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: `.5px solid ${BORDER}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 34, height: 34, borderRadius: 8, background: row.iconBg, border: `.5px solid ${row.iconBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{row.icon}</div>
-                      <div>
-                        <div style={actionLbl}>{row.name}</div>
-                        <div style={{ ...actionDesc, color: row.connected ? TEAL : TEXT2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          {row.connected && <i className="ti ti-circle-check" style={{ fontSize: 10 }} />} {row.desc}
-                        </div>
-                      </div>
-                    </div>
-                    <button style={{ padding: '5px 12px', border: `.5px solid ${row.connected ? '#fca5a5' : BORDER}`, borderRadius: 6, background: '#fff', color: row.connected ? '#dc2626' : TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
-                      {row.connected ? 'Disconnect' : 'Connect'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {[
-                { title: 'Property portals', sub: 'Auto-import listing data when you paste a URL into a new deal', items: ['Rightmove', 'Zoopla', 'OnTheMarket'] },
-                { title: 'Workflow', sub: 'Connect to your existing tools and automations', items: ['Zapier', 'Notion', 'Airtable'] },
-              ].map(group => (
-                <div key={group.title} style={sect}>
-                  <div style={sHdr}><div><div style={sTitle}>{group.title}</div><div style={sSub}>{group.sub}</div></div></div>
+            <div className="nav-card">
+              {NAV_GROUPS.map(group => (
+                <div key={group.label} className="nav-group">
+                  <div className="nav-group-lbl">{group.label}</div>
                   {group.items.map(item => (
-                    <div key={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: `.5px solid ${BORDER}` }}>
-                      <div style={actionLbl}>{item}</div>
+                    <button
+                      key={item.id}
+                      className={`nav-item${activePane === item.id ? ' active' : ''}`}
+                      onClick={() => setActivePane(item.id)}
+                    >
+                      <i className={`ti ${item.icon}`} />
+                      {item.label}
+                      {item.badge === 'soon' && <span className="nav-soon">Soon</span>}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ══ CONTENT ══ */}
+          <div className="content-panel">
+
+            {/* ══════════ PROFILE ══════════ */}
+            {activePane === 'profile' && (
+              <div>
+                <div className="profile-hero">
+                  <div className="profile-hero-banner" />
+                  <div className="profile-hero-body">
+                    <div className="profile-hero-row">
+                      <div>
+                        <div className="profile-hero-avt">
+                          {initials}
+                          <div className="profile-hero-avt-edit"><i className="ti ti-camera" /></div>
+                        </div>
+                        <div className="profile-hero-name">{fullName || user?.email?.split('@')[0] || 'User'}</div>
+                        <div className="profile-hero-meta">
+                          <span><i className="ti ti-mail" style={{ fontSize: 10 }} /> {user?.email ?? ''}</span>
+                          <span><i className="ti ti-building" style={{ fontSize: 10 }} /> Property sourcer</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Profile completeness</div>
+                    <div className="section-sub">A complete profile makes your investor packs look more professional</div>
+                  </div>
+                  <div className="completion-wrap">
+                    <div className="completion-labels">
+                      <span>5 of 8 fields complete</span>
+                      <span className="pct">63%</span>
+                    </div>
+                    <div className="completion-bar">
+                      <div className="completion-fill" style={{ width: '63%' }} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: TEXT2, marginBottom: 6 }}>Still missing — click to jump to the field:</div>
+                  <div className="completion-missing">
+                    <span className="missing-chip" onClick={() => setActivePane('branding')}>Company logo</span>
+                    <span className="missing-chip" onClick={() => setActivePane('branding')}>Business address</span>
+                    <span className="missing-chip" onClick={() => setActivePane('integrations')}>Connect calendar</span>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Personal details</div></div>
+                  <div className="fg">
+                    <div className="field">
+                      <label>First name</label>
+                      <input
+                        type="text"
+                        value={nameParts[0] ?? ''}
+                        onChange={e => setFullName(e.target.value + (nameParts.slice(1).join(' ') ? ' ' + nameParts.slice(1).join(' ') : ''))}
+                        placeholder="First name"
+                      />
+                    </div>
+                    <div className="field">
+                      <label>Last name</label>
+                      <input
+                        type="text"
+                        value={nameParts.slice(1).join(' ')}
+                        onChange={e => setFullName((nameParts[0] ?? '') + (e.target.value ? ' ' + e.target.value : ''))}
+                        placeholder="Last name"
+                      />
+                    </div>
+                    <div className="field" style={{ gridColumn: '1/-1' }}>
+                      <label>Company name <span style={{ fontSize: 10, fontWeight: 400, color: '#bbb' }}>(optional)</span></label>
+                      <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="e.g. Mardania Property Sourcing" />
+                    </div>
+                    <div className="field">
+                      <label>Email address</label>
+                      <input type="text" value={user?.email ?? ''} disabled />
+                      <span className="field-link">Request email change →</span>
+                    </div>
+                    <div className="field">
+                      <label>Phone number</label>
+                      <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+44 7700 000000" />
+                    </div>
+                    <div className="field">
+                      <label>Job title</label>
+                      <input type="text" placeholder="e.g. Property Sourcing Specialist" />
+                    </div>
+                    <div className="field">
+                      <label>Your role</label>
+                      <select>
+                        <option>Property sourcer</option>
+                        <option>Investor</option>
+                        <option>Estate agent</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>Preferred contact</label>
+                      <select>
+                        <option>Email</option>
+                        <option>Phone</option>
+                        <option>WhatsApp</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="divider-lbl"><span>About you</span></div>
+                  <div className="fg col1" style={{ marginBottom: 14 }}>
+                    <div className="field">
+                      <label>Bio <span className="field-hint" style={{ display: 'inline', margin: 0 }}>— shown on investor deal pages and PDF packs</span></label>
+                      <textarea style={{ minHeight: 68, resize: 'vertical' }} value={bio} onChange={e => setBio(e.target.value)} placeholder="A short introduction to you and your sourcing business…" />
+                    </div>
+                  </div>
+                  <div className="divider-lbl"><span>Social links</span></div>
+                  <div className="fg" style={{ marginBottom: 0 }}>
+                    <div className="field">
+                      <label>LinkedIn</label>
+                      <div className="pfx">
+                        <span className="pfx-lbl">linkedin.com/in/</span>
+                        <input type="text" value={linkedin} onChange={e => setLinkedin(e.target.value)} placeholder="yourname" />
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label>Instagram</label>
+                      <div className="pfx">
+                        <span className="pfx-lbl">instagram.com/</span>
+                        <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="yourhandle" />
+                      </div>
+                    </div>
+                  </div>
+                  {profileError && (
+                    <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 6, padding: '8px 12px', fontSize: 12, marginTop: 10 }}>
+                      {profileError}
+                    </div>
+                  )}
+                  <div className="save-row">
+                    <div style={{ fontSize: 11, color: TEAL, display: 'flex', alignItems: 'center', gap: 5, opacity: profileSaved ? 1 : 0, transition: 'opacity .3s', marginRight: 'auto' }}>
+                      <i className="ti ti-circle-check" style={{ fontSize: 14 }} /> Saved
+                    </div>
+                    <button className="btn btn-sm" onClick={() => {}}>Cancel</button>
+                    <button className="btn btn-primary btn-sm" onClick={handleProfileSave} disabled={profileSaving}>
+                      {profileSaving ? 'Saving…' : 'Save changes'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ NOTIFICATIONS ══════════ */}
+            {activePane === 'notifications' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Deal workflow</div>
+                    <div className="section-sub">Keep your pipeline moving</div>
+                  </div>
+                  <TglRow label="Daily deal digest" desc="Morning summary of active deals, viewings, and Day 15 countdowns" defaultOn />
+                  <TglRow label="Day 15 countdown alerts" desc="Reminders at Day 10, 13, and 14 of every cooling-off window" defaultOn />
+                  <TglRow label="Chase reminders" desc="Alert when a seller follow-up passes your next action date" defaultOn />
+                  <TglRow label="Stale deal alerts" desc="Flag deals with no activity for more than 7 days" defaultOn />
+                </div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Investor activity</div>
+                    <div className="section-sub">Know when investors engage with your deals</div>
+                  </div>
+                  <TglRow label="Investor views deal link" desc="Real-time alert when a protected link is opened for the first time" />
+                  <TglRow label="Investor downloads PDF" desc="Notified when an investor downloads from your shared link" />
+                  <TglRow label="Link expiry warning" desc="24-hour reminder before a time-limited share link expires" defaultOn />
+                </div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Viewing reminders <Badge color="pro">PRO</Badge></div>
+                    <div className="section-sub">For viewings synced from your calendar</div>
+                  </div>
+                  <TglRow label="30-minute reminder" desc="Push and email before each scheduled viewing" defaultOn />
+                  <TglRow label="Day-before summary" desc="Evening email listing tomorrow's viewings" defaultOn />
+                </div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Digest timing</div></div>
+                  <div className="fg" style={{ maxWidth: 360, marginBottom: 0 }}>
+                    <div className="field">
+                      <label>Send digest at</label>
+                      <select><option>7:00 AM</option><option>8:00 AM</option><option>9:00 AM</option><option>10:00 AM</option></select>
+                    </div>
+                    <div className="field">
+                      <label>Delivery</label>
+                      <select><option>Email + in-app</option><option>Email only</option><option>In-app only</option></select>
+                    </div>
+                  </div>
+                  <SaveRow toastId="toast-notif" />
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ PREFERENCES ══════════ */}
+            {activePane === 'preferences' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Pipeline view</div></div>
+                  <TglRow label="Compact deal cards" desc="Denser list layout instead of expanded cards" />
+                  <TglRow label="Show yield on deal cards" desc="Gross yield shown as the primary metric on pipeline cards" defaultOn />
+                  <TglRow label="Highlight below-target deals" desc="Colour-code deals that fall below your Deal Defaults thresholds" defaultOn />
+                  <div className="fg" style={{ maxWidth: 360, marginTop: 14, marginBottom: 0 }}>
+                    <div className="field">
+                      <label>Default pipeline layout</label>
+                      <select><option>Kanban board</option><option>List view</option></select>
+                    </div>
+                    <div className="field">
+                      <label>Default deal tab</label>
+                      <select><option>Analysis</option><option>Summary</option><option>CRM / notes</option></select>
+                    </div>
+                  </div>
+                </div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Language &amp; region</div></div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field">
+                      <label>Currency</label>
+                      <select><option>GBP — £</option><option>EUR — €</option><option>USD — $</option></select>
+                    </div>
+                    <div className="field">
+                      <label>Date format</label>
+                      <select><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option></select>
+                    </div>
+                    <div className="field">
+                      <label>Number format</label>
+                      <select><option>1,000.00</option><option>1.000,00</option></select>
+                    </div>
+                  </div>
+                  <SaveRow toastId="toast-prefs" />
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ BRANDING ══════════ */}
+            {activePane === 'branding' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Company details</div></div>
+                  <div className="fg">
+                    <div className="field">
+                      <label>Company / trading name</label>
+                      <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="e.g. Mardania Property Sourcing" />
+                    </div>
+                    <div className="field">
+                      <label>Website</label>
+                      <div className="pfx">
+                        <span className="pfx-lbl">https://</span>
+                        <input type="text" placeholder="yourwebsite.co.uk" />
+                      </div>
+                    </div>
+                    <div className="field" style={{ gridColumn: '1/-1' }}>
+                      <label>Tagline <span className="field-hint" style={{ display: 'inline', margin: 0 }}>— shown on PDF covers</span></label>
+                      <input type="text" placeholder="e.g. Trusted property deals across South Wales" />
+                    </div>
+                    <div className="field" style={{ gridColumn: '1/-1' }}>
+                      <label>Business address <span className="field-hint" style={{ display: 'inline', margin: 0 }}>— shown in PDF footer</span></label>
+                      <input type="text" placeholder="e.g. 123 Main St, Cardiff CF10 1AA" />
+                    </div>
+                    <div className="field" style={{ gridColumn: '1/-1' }}>
+                      <label>FCA / compliance disclosure <span className="field-hint" style={{ display: 'inline', margin: 0 }}>— shown in PDF footer</span></label>
+                      <textarea style={{ minHeight: 52, resize: 'vertical' }} placeholder="e.g. This property information is provided by a member of The Property Ombudsman…" />
+                    </div>
+                  </div>
+                  <SaveRow toastId="toast-brand-co" />
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Logo <Badge color="pro">PRO</Badge></div>
+                    <div className="section-sub">Appears on PDF pack covers and deal share pages</div>
+                  </div>
+                  {isPro ? (
+                    <div className="logo-zone">
+                      <i className="ti ti-cloud-upload" />
+                      <div className="logo-zone-lbl">Click to upload your logo</div>
+                      <div className="logo-zone-sub">PNG, SVG or JPG · Max 2MB · Transparent background recommended</div>
+                    </div>
+                  ) : (
+                    <div style={{ position: 'relative' }}>
+                      <div className="logo-zone" style={{ filter: 'blur(1px)' }}>
+                        <i className="ti ti-cloud-upload" />
+                        <div className="logo-zone-lbl">Click to upload your logo</div>
+                        <div className="logo-zone-sub">PNG, SVG or JPG · Max 2MB</div>
+                      </div>
+                      <GatedOverlay label="Upgrade to Pro to upload your logo" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="gated-wrap">
+                  <div className={`section${isProPlus ? '' : ' gated'}`}>
+                    <div className="section-hdr">
+                      <div className="section-title">Brand colours <Badge color="plus">PRO+</Badge></div>
+                    </div>
+                    <div className="fg">
+                      <div className="field">
+                        <label>Primary colour</label>
+                        <div className="colour-row">
+                          <div className="colour-swatch" style={{ background: NAVY }} />
+                          <input className="colour-hex" type="text" defaultValue="#1B3A6B" />
+                        </div>
+                      </div>
+                      <div className="field">
+                        <label>Accent colour</label>
+                        <div className="colour-row">
+                          <div className="colour-swatch" style={{ background: TEAL }} />
+                          <input className="colour-hex" type="text" defaultValue="#1D9E75" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {!isProPlus && (
+                    <div className="gated-overlay">
+                      <div className="lock-msg"><i className="ti ti-lock" /> Upgrade to Pro Plus to unlock brand colours</div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="gated-wrap">
+                  <div className={`section${isProPlus ? '' : ' gated'}`}>
+                    <div className="section-hdr">
+                      <div className="section-title">Pack cover style <Badge color="plus">PRO+</Badge></div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                      <div style={{ border: `.5px solid ${NAVY}`, borderRadius: 8, overflow: 'hidden' }}>
+                        <div style={{ height: 52, background: NAVY_DARK, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '.06em' }}>BRANDED</div>
+                        <div style={{ padding: '7px 10px', fontSize: 11, fontWeight: 600 }}>Branded</div>
+                      </div>
+                      <div style={{ border: `.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+                        <div style={{ height: 52, background: BG_SEC, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: TEXT2, letterSpacing: '.06em' }}>MINIMAL</div>
+                        <div style={{ padding: '7px 10px', fontSize: 11, fontWeight: 600 }}>Minimal</div>
+                      </div>
+                      <div style={{ border: `.5px solid ${BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+                        <div style={{ height: 52, background: `linear-gradient(135deg,${NAVY},${TEAL})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '.06em' }}>YOUR BRAND</div>
+                        <div style={{ padding: '7px 10px', fontSize: 11, fontWeight: 600 }}>Your brand</div>
+                      </div>
+                    </div>
+                  </div>
+                  {!isProPlus && (
+                    <div className="gated-overlay">
+                      <div className="lock-msg"><i className="ti ti-lock" /> Upgrade to Pro Plus to unlock cover styles</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ DEAL DEFAULTS ══════════ */}
+            {activePane === 'defaults' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Tax &amp; ownership</div></div>
+                  <div className="fg col3">
+                    <div className="field"><label>Country</label><select><option>England / NI — SDLT</option><option>Wales — LTT</option><option>Scotland — LBTT</option></select></div>
+                    <div className="field"><label>Buyer type</label><select><option>Additional property / BTL</option><option>First time buyer</option><option>Standard residential</option></select></div>
+                    <div className="field"><label>Ownership structure</label><select><option>Personal name</option><option>Limited company (SPV)</option><option>Partnership / LLP</option></select></div>
+                    <div className="field"><label>Default deal strategy</label><select><option>BTL — Buy to let</option><option>SA — Serviced accommodation</option><option>HMO — House in multiple occ.</option><option>Flip / refurb</option><option>BRRR</option></select></div>
+                  </div>
+                  <div className="divider-lbl"><span>Deal structure</span></div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field">
+                      <label>Cooling off period</label>
+                      <div className="pfx"><input type="number" defaultValue={14} /><span className="pfx-suf">days</span></div>
+                      <span className="field-hint">Statutory buyer protection window</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Sourcing fees</div>
+                    <div className="section-sub">Used as defaults when generating deal packs and invoices</div>
+                  </div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field"><label>Default sourcing fee</label><div className="pfx"><input type="number" placeholder="2.5" /><span className="pfx-suf">%</span></div></div>
+                    <div className="field"><label>Fee minimum</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" placeholder="3000" /></div></div>
+                    <div className="field"><label>Default payment terms</label><select><option>Due on pack release</option><option>50% on reservation, 50% on completion</option><option>Due on completion</option></select></div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Financing</div>
+                    <div className="section-sub">Update when your broker confirms a new rate</div>
+                  </div>
+                  <div className="divider-lbl"><span>Primary finance</span></div>
+                  <div className="fg col3">
+                    <div className="field"><label>Finance method</label><select><option>Mortgage</option><option>Bridging loan</option><option>Cash</option></select></div>
+                    <div className="field"><label>LTV</label><div className="pfx"><input type="number" defaultValue={75} /><span className="pfx-suf">%</span></div></div>
+                    <div className="field"><label>Interest rate</label><div className="pfx"><input type="number" defaultValue={5.5} step={0.05} /><span className="pfx-suf">% pa</span></div></div>
+                    <div className="field"><label>Mortgage term</label><div className="pfx"><input type="number" defaultValue={25} /><span className="pfx-suf">yrs</span></div></div>
+                    <div className="field"><label>Repayment type</label><select><option>Interest only</option><option>Capital repayment</option></select></div>
+                    <div className="field"><label>Arrangement fee</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={995} /></div></div>
+                  </div>
+                  <div className="divider-lbl"><span>Acquisition costs</span></div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field"><label>Solicitor / legal</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={1500} /></div></div>
+                    <div className="field"><label>Survey</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={400} /></div></div>
+                    <div className="field"><label>Broker fee</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={500} /></div></div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Monthly running costs</div>
+                    <div className="section-sub">DS Assistant will prompt you to confirm each one per deal</div>
+                  </div>
+                  <div className="fg col3">
+                    <div className="field"><label>Maintenance</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={75} /></div><span className="field-hint">Per month</span></div>
+                    <div className="field"><label>Buildings insurance</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={30} /></div></div>
+                    <div className="field"><label>Management fee</label><div className="pfx"><input type="number" defaultValue={10} /><span className="pfx-suf">% rent</span></div><span className="field-hint">0 if self-managing</span></div>
+                    <div className="field"><label>Void allowance</label><div className="pfx"><input type="number" defaultValue={4} /><span className="pfx-suf">wks/yr</span></div></div>
+                    <div className="field"><label>Accountancy</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={50} /></div><span className="field-hint">Pro-rated monthly</span></div>
+                    <div className="field"><label>Other monthly</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={0} /></div></div>
+                  </div>
+                  <div className="divider-lbl"><span>Leasehold — leave at 0 for freehold</span></div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field"><label>Service charge/mo</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={0} /></div></div>
+                    <div className="field"><label>Ground rent/mo</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={0} /></div></div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Refurb &amp; project</div></div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field"><label>Refurb contingency</label><div className="pfx"><input type="number" defaultValue={10} /><span className="pfx-suf">%</span></div><span className="field-hint">On top of quoted costs</span></div>
+                    <div className="field"><label>Finance hold period</label><div className="pfx"><input type="number" defaultValue={6} /><span className="pfx-suf">months</span></div><span className="field-hint">Before re-mortgage</span></div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Deal targets</div>
+                    <div className="section-sub">Deals below these thresholds are flagged on the analysis screen</div>
+                  </div>
+                  <div className="fg col3" style={{ marginBottom: 0 }}>
+                    <div className="field"><label>Min gross yield</label><div className="pfx"><input type="number" defaultValue={6} step={0.5} /><span className="pfx-suf">%</span></div></div>
+                    <div className="field"><label>Min net yield</label><div className="pfx"><input type="number" defaultValue={4} step={0.5} /><span className="pfx-suf">%</span></div></div>
+                    <div className="field"><label>Min monthly cashflow</label><div className="pfx"><span className="pfx-lbl">£</span><input type="number" defaultValue={200} /></div></div>
+                    <div className="field"><label>Min ROI</label><div className="pfx"><input type="number" defaultValue={10} /><span className="pfx-suf">%</span></div></div>
+                    <div className="field"><label>Min cash-on-cash</label><div className="pfx"><input type="number" defaultValue={8} /><span className="pfx-suf">%</span></div></div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Sharing &amp; access</div>
+                    <div className="section-sub">Defaults applied when creating new deal share links</div>
+                  </div>
+                  <TglRow label="Protect address on shared links" desc="New deals default to masking the property address in investor share links and packs" defaultOn />
+                  <TglRow label="Require investor auth on share links" desc="Shared deal links require the investor to authenticate before viewing" defaultOn />
+                </div>
+
+                <div className="section">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+                    <div>
+                      <div className="section-title">Custom defaults</div>
+                      <div className="section-sub" style={{ marginTop: 3 }}>Named values for anything not covered above — shown as reference on the deal form</div>
+                    </div>
+                    <button className="btn btn-sm" style={{ flexShrink: 0, marginTop: 2 }}><i className="ti ti-plus" style={{ fontSize: 12 }} /> Add field</button>
+                  </div>
+                  <div className="note" style={{ marginBottom: 12 }}>
+                    <i className="ti ti-bulb" />
+                    <span>Can't find a field you always use? <a href="#" style={{ color: NAVY, fontWeight: 600, textDecoration: 'none' }}>Request it →</a> — most-requested fields get added in future updates.</span>
+                  </div>
+                  <SaveRow toastId="toast-defaults" />
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ DS ASSISTANT ══════════ */}
+            {activePane === 'assistant' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Validation flags</div>
+                    <div className="section-sub">Fields the Assistant always prompts you to confirm on each deal</div>
+                  </div>
+                  <TglRow label="Flag maintenance allowance" desc="Prompt to confirm the default is appropriate for this property's age and condition" defaultOn />
+                  <TglRow label="Flag void allowance" desc="Confirm void % is appropriate for the local market" defaultOn />
+                  <TglRow label="Flag missing strategy fields" desc="Alert when SA nightly rate, HMO room count, or other strategy-specific fields are absent" defaultOn />
+                  <TglRow label="Flag below-target metrics" desc="Warn when a deal falls below the thresholds set in Deal Defaults" defaultOn />
+                </div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Assistant behaviour</div>
+                    <div className="section-sub">Control how the DS Assistant works when analysing your deals</div>
+                  </div>
+                  <TglRow label="Auto-suggest on deal open" desc="DS Assistant automatically surfaces insights when you open a deal, without waiting to be asked" defaultOn />
+                  <TglRow label="Strategy-specific analysis" desc="Show only the metrics and flags relevant to the deal's chosen strategy (e.g. nightly rate for SA, room yield for HMO)" defaultOn />
+                  <div className="fg col3" style={{ marginTop: 14, marginBottom: 0 }}>
+                    <div className="field">
+                      <label>Confidence threshold</label>
+                      <select><option>Show all suggestions</option><option>Medium confidence +</option><option>High confidence only</option></select>
+                      <span className="field-hint">How certain the Assistant must be before flagging an issue</span>
+                    </div>
+                    <div className="field">
+                      <label>Strategies to analyse</label>
+                      <select><option>All strategies</option><option>BTL only</option><option>SA only</option><option>HMO only</option><option>Flip / refurb only</option><option>BRRR only</option></select>
+                      <span className="field-hint">Limit assistant suggestions to specific strategies</span>
+                    </div>
+                  </div>
+                  <SaveRow toastId="toast-assistant" />
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ SUBSCRIPTION ══════════ */}
+            {activePane === 'subscription' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Current plan</div></div>
+                  <div className="plan-banner">
+                    <div className="plan-banner-left">
+                      <div className="plan-banner-icon"><i className="ti ti-clock" /></div>
+                      <div>
+                        <div className="plan-banner-name">
+                          {trialDays !== null
+                            ? <>Pro Trial <span className="badge badge-trial" style={{ marginLeft: 4 }}>{trialDays} days remaining</span></>
+                            : isProPlus ? 'Pro Plus' : isPro ? 'Pro' : 'Free'}
+                        </div>
+                        <div className="plan-banner-sub">
+                          {trialDays !== null
+                            ? 'No card required. Your deals and data are saved throughout.'
+                            : 'Manage your subscription below.'}
+                        </div>
+                      </div>
+                    </div>
+                    <button className="btn">Manage billing</button>
+                  </div>
+                  <div className="plan-meta">
+                    <div className="plan-meta-tile"><div className="lbl">Deals saved</div><div className="val">—</div></div>
+                    <div className="plan-meta-tile"><div className="lbl">Packs this month</div><div className="val">—</div></div>
+                    <div className="plan-meta-tile"><div className="lbl">Trial status</div><div className="val" style={{ color: TEAL }}>{trialDays !== null ? 'Active' : '—'}</div></div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Plans</div>
+                    <div className="section-sub">Upgrade or downgrade at any time</div>
+                  </div>
+                  <div className="tier-grid">
+                    <div className={`tier-card${(tier === 'pro' || trialDays !== null) && !isProPlus ? ' current' : ''}`}>
+                      <div className="tier-head light">
+                        <div className="tier-name" style={{ color: TEXT1 }}>
+                          Pro{(tier === 'pro' || trialDays !== null) && !isProPlus && <span className="badge badge-current" style={{ marginLeft: 4 }}>Current</span>}
+                        </div>
+                        <div className="tier-price" style={{ color: TEXT2, marginTop: 2 }}>£29/mo · or £279/yr</div>
+                      </div>
+                      <div className="tier-body">
+                        <div className="tier-feat"><i className="ti ti-check ok" /> All 7 deal strategies</div>
+                        <div className="tier-feat"><i className="ti ti-check ok" /> Save deals &amp; pipeline</div>
+                        <div className="tier-feat"><i className="ti ti-check ok" /> PDF packs</div>
+                        <div className="tier-feat"><i className="ti ti-check ok" /> Deal sharing</div>
+                        <div className="tier-feat"><i className="ti ti-check ok" /> DealScore Assistant</div>
+                        <div className="tier-feat"><i className="ti ti-check ok" /> Calendar sync</div>
+                        {(tier === 'pro' || trialDays !== null) && !isProPlus ? (
+                          <button className="tier-cta cta-current">Current plan</button>
+                        ) : (
+                          <button className="tier-cta cta-navy" onClick={() => handleUpgrade('pro')} disabled={checkoutLoading === 'pro'}>
+                            {checkoutLoading === 'pro' ? 'Loading…' : 'Upgrade to Pro'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className={`tier-card${isProPlus ? ' current' : ''}`}>
+                      <div className="tier-head purple">
+                        <div className="tier-name" style={{ color: '#fff' }}>
+                          Pro Plus{isProPlus && <span className="badge badge-current" style={{ marginLeft: 4 }}>Current</span>}
+                        </div>
+                        <div className="tier-price" style={{ color: 'rgba(255,255,255,.55)', marginTop: 2 }}>£59/mo · or £559/yr</div>
+                      </div>
+                      <div className="tier-body">
+                        <div className="tier-feat" style={{ fontSize: 10, fontWeight: 600, color: TEXT3, textTransform: 'uppercase', letterSpacing: '.06em', paddingBottom: 4 }}>Everything in Pro, plus:</div>
+                        <div className="tier-feat"><i className="ti ti-check pp" /> Smart Capture</div>
+                        <div className="tier-feat"><i className="ti ti-check pp" /> Landscape Pro Plus PDF</div>
+                        <div className="tier-feat"><i className="ti ti-check pp" /> Deal Optimiser</div>
+                        <div className="tier-feat"><i className="ti ti-check pp" /> Visual branding</div>
+                        <div className="tier-feat"><i className="ti ti-check pp" /> Webhooks &amp; API</div>
+                        {isProPlus ? (
+                          <button className="tier-cta cta-current">Current plan</button>
+                        ) : (
+                          <button className="tier-cta cta-purple" onClick={() => handleUpgrade('pro_plus')} disabled={checkoutLoading === 'pro_plus'}>
+                            {checkoutLoading === 'pro_plus' ? 'Loading…' : 'Upgrade to Pro Plus'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {checkoutError && <div style={{ marginTop: 10, fontSize: 11, color: '#dc2626' }}>{checkoutError}</div>}
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Payment</div></div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label">Payment method</div>
+                      <div className="action-desc action-status-warn"><i className="ti ti-alert-circle" style={{ fontSize: 12 }} /> No card on file — add one before your trial ends</div>
+                    </div>
+                    <button className="btn">Add card</button>
+                  </div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label">Invoice history</div>
+                      <div className="action-desc">No invoices yet</div>
+                    </div>
+                    <button className="btn" style={{ opacity: .4, cursor: 'default' }}>Download</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ REFERRALS ══════════ */}
+            {activePane === 'referrals' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Your referral link</div>
+                    <div className="section-sub">Earn 1 free month for every person who upgrades to Pro or above</div>
+                  </div>
+                  <div className="ref-box">
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TEXT2, marginBottom: 6 }}>Share this link</div>
+                    <div className="ref-link-row">
+                      <input className="ref-link" type="text" value={referralLink} readOnly />
+                      <button className="btn" onClick={copyRef}>Copy</button>
+                    </div>
+                    <div ref={refToast} style={{ fontSize: 11, color: TEAL, marginTop: 6, opacity: 0, transition: 'opacity .3s' }}>Copied!</div>
+                  </div>
+                  <div className="ref-stats">
+                    <div className="ref-stat"><div className="lbl">Referrals sent</div><div className="val">—</div></div>
+                    <div className="ref-stat"><div className="lbl">Converted</div><div className="val">—</div></div>
+                    <div className="ref-stat"><div className="lbl">Months earned</div><div className="val" style={{ color: TEAL }}>—</div></div>
+                  </div>
+                </div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Referral history</div></div>
+                  <table className="team-table">
+                    <thead>
+                      <tr><th>Referred to</th><th>Date sent</th><th>Status</th><th>Reward</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan={4} style={{ color: TEXT3, fontSize: 11, textAlign: 'center', padding: '16px 0' }}>No referrals yet</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ AGENCY ══════════ */}
+            {activePane === 'agency' && (
+              <div>
+                <div className="section">
+                  <div className="agency-cs-hero">
+                    <div className="agency-cs-icon"><i className="ti ti-building-store" /></div>
+                    <div className="agency-cs-tag">Coming soon</div>
+                    <div className="agency-cs-title">DealScore Agency</div>
+                    <div className="agency-cs-sub">Your brand, your domain, your investors — DealScore runs invisibly behind the scenes.</div>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">What's included</div>
+                    <div className="section-sub">Everything in Pro Plus, plus full white-labelling and team management</div>
+                  </div>
+                  <div className="agency-feat-grid">
+                    {[
+                      { icon: 'ti-world', title: 'Custom domain', desc: 'deals.yourbrand.co.uk — investors see your URL' },
+                      { icon: 'ti-paint', title: 'Full app white-label', desc: 'Your logo and colours replace DealScore throughout' },
+                      { icon: 'ti-mail', title: 'Branded email sender', desc: 'Pack notifications sent from your domain' },
+                      { icon: 'ti-users', title: 'Team seats', desc: 'Add sourcers and VAs with role controls' },
+                      { icon: 'ti-eye', title: 'Investor portal', desc: 'Branded read-only portal for investors to browse packs' },
+                      { icon: 'ti-file-text', title: 'Custom PDF footer', desc: 'Your tagline and legal disclaimer — no DealScore mention' },
+                      { icon: 'ti-login', title: 'Branded login page', desc: 'Investors sign in through your brand' },
+                      { icon: 'ti-chart-bar', title: 'Agency analytics', desc: 'Team volume, investor engagement, pack performance' },
+                    ].map(f => (
+                      <div key={f.title} className="agency-feat">
+                        <div className="agency-feat-head"><i className={`ti ${f.icon}`} /><div className="agency-feat-title">{f.title}</div></div>
+                        <div className="agency-feat-desc">{f.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Join the waiting list</div>
+                    <div className="section-sub">We'll email you before Agency launches publicly</div>
+                  </div>
+                  {agencySubmitted ? (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <i className="ti ti-circle-check" style={{ fontSize: 28, color: TEAL, display: 'block', marginBottom: 8 }} />
+                      <div style={{ fontSize: 14, fontWeight: 700, color: TEXT1, marginBottom: 3 }}>You're on the list</div>
+                      <div style={{ fontSize: 12, color: TEXT2 }}>We'll email {agencyEmail} before Agency launches.</div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="fg">
+                        <div className="field"><label>Name</label><input type="text" value={agencyName} onChange={e => setAgencyName(e.target.value)} /></div>
+                        <div className="field"><label>Email</label><input type="text" value={agencyEmail} onChange={e => setAgencyEmail(e.target.value)} /></div>
+                        <div className="field" style={{ gridColumn: '1/-1' }}><label>Company / trading name</label><input type="text" value={agencyCompany} onChange={e => setAgencyCompany(e.target.value)} placeholder="e.g. Mardania Property Sourcing" /></div>
+                        <div className="field" style={{ gridColumn: '1/-1' }}><label>Team size</label><select value={agencyTeamSize} onChange={e => setAgencyTeamSize(e.target.value)}><option>Just me</option><option>2–5</option><option>6–15</option><option>15+</option></select></div>
+                        <div className="field" style={{ gridColumn: '1/-1' }}>
+                          <label>Anything specific you need? <span className="field-hint" style={{ display: 'inline', margin: 0 }}>optional</span></label>
+                          <textarea style={{ resize: 'vertical', minHeight: 56 }} value={agencyNotes} onChange={e => setAgencyNotes(e.target.value)} placeholder="e.g. I need a custom domain and my own investor login page…" />
+                        </div>
+                      </div>
+                      <button className="btn btn-primary" onClick={() => setAgencySubmitted(true)} style={{ padding: '8px 20px' }}>Join waiting list</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ══════════ INTEGRATIONS ══════════ */}
+            {activePane === 'integrations' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Calendar <Badge color="pro">PRO</Badge></div>
+                    <div className="section-sub">Sync viewings, Day 15 countdowns, and chase reminders</div>
+                  </div>
+                  <div className="int-row">
+                    <div className="int-row-left">
+                      <div className="int-logo" style={{ background: '#fff4f4', borderColor: '#ffd0d0' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                          <path d="M21.8055 10.0415H21V10H12V14H17.6515C16.827 16.3285 14.6115 18 12 18C8.6865 18 6 15.3135 6 12C6 8.6865 8.6865 6 12 6C13.5295 6 14.921 6.577 15.9805 7.5195L18.809 4.691C17.023 3.0265 14.634 2 12 2C6.4775 2 2 6.4775 2 12C2 17.5225 6.4775 22 12 22C17.5225 22 22 17.5225 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#FFC107"/>
+                          <path d="M3.15283 7.3455L6.43833 9.755C7.32733 7.554 9.48033 6 11.9998 6C13.5293 6 14.9208 6.577 15.9803 7.5195L18.8088 4.691C17.0228 3.0265 14.6338 2 11.9998 2C8.15883 2 4.82783 4.1685 3.15283 7.3455Z" fill="#FF3D00"/>
+                          <path d="M12.0002 22C14.5832 22 16.9302 21.0115 18.7047 19.404L15.6097 16.785C14.5719 17.5742 13.3039 18.001 12.0002 18C9.39916 18 7.19066 16.3415 6.35866 14.027L3.09766 16.5395C4.75266 19.778 8.11366 22 12.0002 22Z" fill="#4CAF50"/>
+                          <path d="M21.8055 10.0415H21V10H12V14H17.6515C17.2571 15.1082 16.5467 16.0766 15.608 16.7855L18.7045 19.4035C18.4855 19.6025 22 17 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#1976D2"/>
+                        </svg>
+                      </div>
+                      <div><div className="action-label">Google Calendar</div><div className="action-desc">Not connected</div></div>
+                    </div>
+                    <button className="btn btn-sm">Connect</button>
+                  </div>
+                  <div className="int-row">
+                    <div className="int-row-left">
+                      <div className="int-logo" style={{ background: '#f5f5f5', borderColor: '#e5e5e5' }}><i className="ti ti-brand-apple" style={{ fontSize: 17, color: '#333' }} /></div>
+                      <div><div className="action-label">Apple Calendar</div><div className="action-desc">Not connected</div></div>
+                    </div>
+                    <button className="btn btn-sm">Connect</button>
+                  </div>
+                  <div className="int-row">
+                    <div className="int-row-left">
+                      <div className="int-logo" style={{ background: '#f0f4ff', borderColor: '#c7d4ff' }}><i className="ti ti-mail" style={{ fontSize: 17, color: '#0078d4' }} /></div>
+                      <div><div className="action-label">Outlook / Microsoft 365</div><div className="action-desc">Not connected</div></div>
+                    </div>
+                    <button className="btn btn-sm">Connect</button>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Property portals</div>
+                    <div className="section-sub">Auto-import listing data when you paste a URL into a new deal</div>
+                  </div>
+                  {[
+                    { label: 'Rightmove', desc: 'Import listing data from any Rightmove URL', logo: 'RM', logoStyle: { background: '#e8f4fd', borderColor: '#b8ddf7', fontSize: 10, fontWeight: 800, color: '#0066cc' } as React.CSSProperties },
+                    { label: 'Zoopla', desc: 'Import listing data from any Zoopla URL', logo: 'Z', logoStyle: { background: '#fdf0e8', borderColor: '#f7d0b0', fontSize: 11, fontWeight: 800, color: '#e06000' } as React.CSSProperties },
+                    { label: 'OnTheMarket', desc: 'Import listing and comparable sales data', logo: 'OTM', logoStyle: { background: '#edfaf3', borderColor: '#9fddbe', fontSize: 9, fontWeight: 800, color: '#1a7a45' } as React.CSSProperties },
+                  ].map(item => (
+                    <div key={item.label} className="int-row">
+                      <div className="int-row-left">
+                        <div className="int-logo" style={item.logoStyle}>{item.logo}</div>
+                        <div><div className="action-label">{item.label}</div><div className="action-desc">{item.desc}</div></div>
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#f3f4f6', color: TEXT2 }}>Coming soon</span>
-                        <button style={{ padding: '5px 12px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>Notify me</button>
+                        <span className="badge badge-soon">Coming soon</span>
+                        <button className="btn btn-sm">Notify me</button>
                       </div>
                     </div>
                   ))}
                 </div>
-              ))}
 
-              <div style={sectLast}>
-                <div style={sHdr}><div style={sTitle}>Webhooks &amp; API</div></div>
-                {[['Webhook endpoint', 'POST deal events to your URL'], ['API key', 'Access the DealScore API from your own tools']].map(([lbl2, desc2]) => (
-                  <div key={lbl2} style={{ ...actionRow, borderBottom: 'none', paddingBottom: 11, paddingTop: 11, borderTop: `.5px solid ${BORDER}` }}>
-                    <div>
-                      <div style={actionLbl}>{lbl2}</div>
-                      <div style={actionDesc}>{desc2}</div>
-                    </div>
-                    <span style={{ fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4, background: '#f1f5f9', color: '#64748b', whiteSpace: 'nowrap' }}>Coming soon</span>
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Workflow</div>
+                    <div className="section-sub">Connect to your existing tools and automations</div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── ACCOUNT & SECURITY ── */}
-          {activePane === 'security' && (
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 700, color: TEXT1, margin: '0 0 20px' }}>Account &amp; Security</h2>
-
-              <div style={sect}>
-                <div style={sHdr}><div style={sTitle}>Sign-in &amp; authentication</div></div>
-                {[
-                  { label: 'Password', desc: 'Last changed — never', warn: true, btn: 'Change password' },
-                  { label: 'Google SSO', desc: 'Sign in with your Google account', warn: false, btn: 'Connect Google' },
-                  { label: 'Two-factor authentication', desc: 'Not enabled — adds extra protection', warn: true, btn: 'Enable 2FA' },
-                ].map(row => (
-                  <div key={row.label} style={actionRow}>
-                    <div>
-                      <div style={actionLbl}>{row.label}</div>
-                      <div style={{ ...actionDesc, color: row.warn ? AMBER : TEXT2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {row.warn && <i className="ti ti-alert-circle" style={{ fontSize: 11 }} />} {row.desc}
+                  {[
+                    { label: 'Zapier', desc: 'Trigger workflows in 5,000+ apps on deal events', icon: 'ti-bolt', iconColor: '#7C3AED', logoStyle: { background: '#f5f0ff', borderColor: '#d4b8f7' } as React.CSSProperties },
+                    { label: 'Notion', desc: 'Sync deal summaries to a Notion database', icon: 'ti-brand-notion', iconColor: '#333', logoStyle: { background: '#f5f5f5', borderColor: '#e5e5e5' } as React.CSSProperties },
+                    { label: 'Airtable', desc: 'Push deal data to an Airtable base', icon: 'ti-table', iconColor: '#1a7a55', logoStyle: { background: '#e8fdf5', borderColor: '#9fddc8' } as React.CSSProperties },
+                  ].map(item => (
+                    <div key={item.label} className="int-row">
+                      <div className="int-row-left">
+                        <div className="int-logo" style={item.logoStyle}><i className={`ti ${item.icon}`} style={{ fontSize: 17, color: item.iconColor }} /></div>
+                        <div><div className="action-label">{item.label}</div><div className="action-desc">{item.desc}</div></div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span className="badge badge-soon">Coming soon</span>
+                        <button className="btn btn-sm">Notify me</button>
                       </div>
                     </div>
-                    <button style={{ padding: '5px 12px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>{row.btn}</button>
+                  ))}
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Webhooks &amp; API</div></div>
+                  <div className="action-row">
+                    <div><div className="action-label">Webhook endpoint</div><div className="action-desc">POST deal events to your URL</div></div>
+                    <span style={{ background: '#f1f5f9', color: '#64748b', fontSize: 10, padding: '3px 8px', borderRadius: 4, fontWeight: 600, whiteSpace: 'nowrap' }}>Coming soon</span>
                   </div>
-                ))}
+                  <div className="action-row">
+                    <div><div className="action-label">API key</div><div className="action-desc">Access the DealScore API from your own tools</div></div>
+                    <span style={{ background: '#f1f5f9', color: '#64748b', fontSize: 10, padding: '3px 8px', borderRadius: 4, fontWeight: 600, whiteSpace: 'nowrap' }}>Coming soon</span>
+                  </div>
+                </div>
               </div>
+            )}
 
-              <div style={sect}>
-                <div style={sHdr}><div style={sTitle}>Privacy</div></div>
-                <TglRow label="Default privacy mode on" desc="Masks addresses, seller names, and personal data at startup. Toggle off anytime from the header." />
-              </div>
-
-              <div style={sect}>
-                <div style={sHdr}><div><div style={sTitle}>Active sessions</div><div style={sSub}>Devices currently signed in to DealScore</div></div></div>
-                {[
-                  { device: 'MacBook Pro — Chrome', icon: 'ti-device-laptop', desc: 'Current session · London, UK', current: true },
-                  { device: 'iPhone 15 — Safari', icon: 'ti-device-mobile', desc: 'Last active 2 hours ago · London, UK', current: false },
-                  { device: 'Windows PC — Edge', icon: 'ti-device-desktop', desc: 'Last active 3 days ago · Birmingham, UK', current: false },
-                ].map(s => (
-                  <div key={s.device} style={actionRow}>
+            {/* ══════════ ACCOUNT & SECURITY ══════════ */}
+            {activePane === 'security' && (
+              <div>
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Sign-in &amp; authentication</div></div>
+                  <div className="action-row">
                     <div>
-                      <div style={{ ...actionLbl, display: 'flex', alignItems: 'center', gap: 7 }}>
-                        <i className={`ti ${s.icon}`} style={{ fontSize: 13, color: TEXT2 }} /> {s.device}
-                      </div>
-                      <div style={{ ...actionDesc, color: s.current ? TEAL : TEXT2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {s.current && <i className="ti ti-circle-check" style={{ fontSize: 10 }} />} {s.desc}
-                      </div>
+                      <div className="action-label">Password</div>
+                      <div className="action-desc action-status-warn"><i className="ti ti-alert-circle" style={{ fontSize: 11 }} /> Last changed — never</div>
                     </div>
-                    <button disabled={s.current} style={{ padding: '5px 12px', border: `.5px solid ${s.current ? BORDER : '#fca5a5'}`, borderRadius: 6, background: '#fff', color: s.current ? TEXT2 : '#dc2626', fontSize: 12, cursor: s.current ? 'default' : 'pointer', fontFamily: 'inherit', flexShrink: 0, opacity: s.current ? .4 : 1 }}>
-                      {s.current ? 'This device' : 'Sign out'}
-                    </button>
+                    <button className="btn btn-sm">Change password</button>
                   </div>
-                ))}
-                <div style={{ paddingTop: 12, textAlign: 'right' }}>
-                  <button style={{ padding: '5px 12px', border: '.5px solid #fca5a5', borderRadius: 6, background: '#fff', color: '#dc2626', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <i className="ti ti-logout" style={{ fontSize: 12 }} /> Sign out all other devices
-                  </button>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label">Google SSO</div>
+                      <div className="action-desc">Sign in with your Google account</div>
+                    </div>
+                    <button className="btn btn-sm">Connect Google</button>
+                  </div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label">Two-factor authentication</div>
+                      <div className="action-desc action-status-warn"><i className="ti ti-alert-circle" style={{ fontSize: 11 }} /> Not enabled — adds extra protection</div>
+                    </div>
+                    <button className="btn btn-sm">Enable 2FA</button>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title">Privacy</div></div>
+                  <TglRow label="Default privacy mode on" desc="Masks addresses, seller names, and personal data at startup. Toggle off anytime from the header." />
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr">
+                    <div className="section-title">Active sessions</div>
+                    <div className="section-sub">Devices currently signed in to DealScore</div>
+                  </div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label" style={{ display: 'flex', alignItems: 'center', gap: 7 }}><i className="ti ti-device-laptop" style={{ fontSize: 14, color: TEXT2 }} /> This device</div>
+                      <div className="action-desc action-status-ok"><i className="ti ti-circle-check" style={{ fontSize: 11 }} /> Current session</div>
+                    </div>
+                    <button className="btn btn-sm" style={{ opacity: .35, cursor: 'default' }}>This device</button>
+                  </div>
+                </div>
+
+                <div className="section">
+                  <div className="section-hdr"><div className="section-title" style={{ color: '#b91c1c' }}>Account actions</div></div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label">Export all my data</div>
+                      <div className="action-desc">Download all deals, packs, and settings as a ZIP — GDPR Article 20</div>
+                    </div>
+                    <button className="btn btn-sm">Export data</button>
+                  </div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label">Sign out</div>
+                      <div className="action-desc">Sign out of this browser session</div>
+                    </div>
+                    <button className="btn btn-sm btn-danger" onClick={() => { signOut().then(() => navigate('/login')) }}>Sign out</button>
+                  </div>
+                  <div className="action-row">
+                    <div>
+                      <div className="action-label" style={{ color: '#dc2626' }}>Delete account</div>
+                      <div className="action-desc">Permanently removes your account and all data. This cannot be undone.</div>
+                    </div>
+                    <button className="btn btn-sm btn-danger">Delete account</button>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div style={sectLast}>
-                <div style={sHdr}><div style={{ ...sTitle, color: '#b91c1c' }}>Account actions</div></div>
-                <div style={actionRow}>
-                  <div>
-                    <div style={actionLbl}>Export all my data</div>
-                    <div style={actionDesc}>Download all deals, packs, and settings as a ZIP — GDPR Article 20</div>
-                  </div>
-                  <button style={{ padding: '5px 12px', border: `.5px solid ${BORDER}`, borderRadius: 6, background: '#fff', color: TEXT1, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Export data</button>
-                </div>
-                <div style={{ ...actionRow, borderBottom: 'none' }}>
-                  <div>
-                    <div style={actionLbl}>Sign out</div>
-                    <div style={actionDesc}>Sign out of this browser session</div>
-                  </div>
-                  <button onClick={() => { signOut().then(() => navigate('/login')) }} style={{ padding: '5px 12px', border: '.5px solid #fca5a5', borderRadius: 6, background: '#fff', color: '#dc2626', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Sign out</button>
-                </div>
-                <div style={{ ...actionRow, borderBottom: 'none', marginTop: 8, paddingTop: 12, borderTop: `.5px solid ${BORDER}` }}>
-                  <div>
-                    <div style={{ ...actionLbl, color: '#dc2626' }}>Delete account</div>
-                    <div style={actionDesc}>Permanently removes your account and all data. This cannot be undone.</div>
-                  </div>
-                  <button style={{ padding: '5px 12px', border: '.5px solid #fca5a5', borderRadius: 6, background: '#fff', color: '#dc2626', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>Delete account</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </main>
-      </div>
+          </div>{/* /content-panel */}
+        </div>{/* /page */}
+      </div>{/* /page-wrap */}
 
       {upgradeModal && (
         <UpgradeModal state={upgradeModal} onClose={() => setUpgradeModal(null)} />

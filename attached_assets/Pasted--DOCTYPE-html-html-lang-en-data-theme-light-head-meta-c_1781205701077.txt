@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealScore — HQ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --teal:#1D9E75;--teal-mid:#10B981;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --ease:.22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── LIGHT (default) ── */
+[data-theme="light"]{
+  --bg:linear-gradient(145deg,#bfdbfe 0%,#dbeafe 25%,#eff6ff 60%,#ffffff 100%);
+  --text-1:#0d1f3c;
+  --text-2:#456;
+  --text-3:#8aa;
+  --rule:rgba(15,45,100,.08);
+  --card:rgba(255,255,255,.72);
+  --card-border:rgba(15,45,100,.1);
+  --input-bg:#fff;
+  --input-border:rgba(15,45,100,.18);
+  --input-text:#0d1f3c;
+  --panel-bg:#fff;
+  --panel-shadow:0 20px 60px rgba(15,45,100,.14);
+  --track:rgba(15,45,100,.1);
+  --btn-ring:rgba(15,45,100,.18);
+  --btn-fg:#1e3a5f;
+  --btn-bg:rgba(255,255,255,.8);
+  --btn-bg-hover:#fff;
+  --wm:#5470a0;
+  --amber:#D97706;--red:#dc2626;
+  --tog-bg:#e0eaff;--tog-icon:#3b6fd4;
+}
+/* ── DARK ── */
+[data-theme="dark"]{
+  --bg:linear-gradient(145deg,#071829 0%,#0d2645 40%,#112d52 70%,#0a1e38 100%);
+  --text-1:#fff;
+  --text-2:rgba(255,255,255,.6);
+  --text-3:rgba(255,255,255,.3);
+  --rule:rgba(255,255,255,.08);
+  --card:rgba(255,255,255,.05);
+  --card-border:rgba(255,255,255,.1);
+  --input-bg:rgba(255,255,255,.07);
+  --input-border:rgba(255,255,255,.15);
+  --input-text:#fff;
+  --panel-bg:#0f2845;
+  --panel-shadow:0 20px 60px rgba(0,0,0,.55);
+  --track:rgba(255,255,255,.1);
+  --btn-ring:rgba(255,255,255,.22);
+  --btn-fg:rgba(255,255,255,.75);
+  --btn-bg:rgba(255,255,255,.07);
+  --btn-bg-hover:rgba(255,255,255,.12);
+  --wm:rgba(255,255,255,.3);
+  --amber:#F59E0B;--red:#f87171;
+  --tog-bg:rgba(255,255,255,.1);--tog-icon:rgba(255,255,255,.8);
+}
+
+html,body{height:100%;font-family:var(--font);}
+body{
+  min-height:100vh;height:100vh;overflow:hidden;
+  background:var(--bg);background-attachment:fixed;
+  color:var(--text-1);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:background var(--ease),color var(--ease);
+  padding:0 32px;
+}
+
+/* ── WRAPPER ── */
+.wrap{width:min(960px,100%);display:flex;flex-direction:column;gap:0;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;position:relative;}
+.wordmark{display:flex;align-items:center;gap:7px;cursor:pointer;transition:opacity var(--ease);}
+.wordmark:hover{opacity:.7;}
+.wm-text{font-size:14px;font-weight:800;letter-spacing:-.02em;color:var(--text-1);}
+.wm-text em{color:var(--teal-mid);font-style:normal;}
+.wm-dot{width:.5px;height:11px;background:var(--rule);}
+.wm-tag{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--wm);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+
+/* ── THEME TOGGLE (pill) ── */
+.theme-toggle{
+  display:flex;align-items:center;gap:6px;
+  background:var(--tog-bg);
+  border:1.5px solid var(--btn-ring);
+  border-radius:20px;padding:5px 12px;
+  cursor:pointer;transition:all var(--ease);
+  font-size:12px;font-weight:600;color:var(--tog-icon);
+  font-family:var(--font);
+}
+.theme-toggle:hover{border-color:var(--teal-mid);color:var(--teal-mid);}
+.theme-toggle i{font-size:13px;}
+
+/* ── SETTINGS BTN ── */
+.settings-btn{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--btn-bg);border:1.5px solid var(--btn-ring);
+  color:var(--btn-fg);font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all var(--ease);position:relative;
+}
+.settings-btn:hover{background:var(--btn-bg-hover);border-color:var(--teal-mid);color:var(--teal-mid);}
+.settings-btn.active{background:rgba(16,185,129,.12);border-color:var(--teal-mid);color:var(--teal-mid);}
+
+/* ── SETTINGS PANEL ── */
+.settings-panel{
+  position:absolute;top:46px;right:0;z-index:200;
+  background:var(--panel-bg);border:1px solid var(--card-border);
+  border-radius:14px;box-shadow:var(--panel-shadow);
+  width:300px;padding:20px;display:none;
+}
+.settings-panel.open{display:block;animation:sdown .15s ease;}
+@keyframes sdown{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.sp-title{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;}
+.sp-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.sp-label{font-size:12px;color:var(--text-2);flex:1;}
+.sp-prefix{font-size:12px;color:var(--text-3);}
+.sp-input{
+  width:80px;background:var(--input-bg);border:1px solid var(--input-border);
+  border-radius:7px;padding:5px 9px;font-size:12px;font-weight:600;
+  color:var(--input-text);text-align:right;font-family:var(--font);outline:none;
+}
+.sp-input:focus{border-color:var(--teal-mid);}
+.sp-actions{display:flex;gap:8px;margin-top:4px;}
+.sp-save{flex:1;background:var(--teal-mid);border:none;color:#fff;font-size:12px;font-weight:600;padding:8px;border-radius:7px;cursor:pointer;font-family:var(--font);}
+.sp-cancel{background:none;border:1px solid var(--btn-ring);color:var(--btn-fg);font-size:12px;padding:8px 12px;border-radius:7px;cursor:pointer;font-family:var(--font);}
+.sp-note{font-size:10px;color:var(--text-3);text-align:center;margin-top:10px;}
+
+/* ── TWO-COLUMN BODY ── */
+.body{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;}
+
+/* ── LEFT ── */
+.left{}
+.greeting{font-size:26px;font-weight:300;color:var(--text-1);letter-spacing:-.02em;line-height:1.2;margin-bottom:3px;}
+.greeting strong{font-weight:700;}
+.dt{font-size:11px;color:var(--text-2);margin-bottom:18px;}
+.rule{height:.5px;background:var(--rule);margin-bottom:18px;}
+
+/* ── EARNINGS HERO ── */
+.earn{margin-bottom:18px;}
+.earn-sup{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-mid);margin-bottom:6px;opacity:.8;}
+.earn-row{display:flex;align-items:baseline;gap:10px;margin-bottom:5px;}
+.earn-amount{font-size:38px;font-weight:800;color:var(--text-1);letter-spacing:-.03em;line-height:1;}
+.earn-amount .cur{color:var(--teal-mid);}
+.earn-subs{display:flex;gap:14px;flex-wrap:wrap;}
+.earn-sub{font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:4px;}
+.earn-sub strong{color:var(--text-1);font-weight:600;}
+.earn-sub-sep{width:.5px;height:9px;background:var(--rule);}
+
+/* ── KPI BARS ── */
+.kpi-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.kpi-htitle{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);}
+.kpi-mbadge{font-size:10px;font-weight:600;color:var(--text-3);background:var(--card);border:.5px solid var(--card-border);border-radius:20px;padding:2px 9px;}
+.kbar{margin-bottom:11px;}
+.kbar:last-child{margin-bottom:0;}
+.kbar-meta{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px;}
+.kbar-name{font-size:11px;font-weight:500;color:var(--text-2);}
+.kbar-vals{font-size:11px;font-weight:700;color:var(--text-1);}
+.kbar-pct{font-size:10px;font-weight:600;margin-left:5px;}
+.kbar-pct.ok{color:var(--teal-mid);}
+.kbar-pct.behind{color:var(--amber);}
+.kbar-pct.done{color:var(--teal-mid);}
+.ktrack{height:3px;background:var(--track);border-radius:20px;overflow:hidden;}
+.kfill{height:100%;border-radius:20px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.kfill.ok{background:linear-gradient(90deg,var(--teal),var(--teal-mid));}
+.kfill.behind{background:linear-gradient(90deg,#d97706,#F59E0B);}
+.kfill.done{background:linear-gradient(90deg,var(--teal),#34d399);}
+.proj{
+  background:var(--card);border:.5px solid var(--card-border);
+  border-radius:8px;padding:9px 12px;margin-top:12px;
+  font-size:11px;color:var(--text-2);line-height:1.55;
+}
+.proj em{color:var(--teal-mid);font-style:normal;font-weight:600;}
+.proj.warn em{color:var(--amber);}
+
+/* ── RIGHT ── */
+.right{display:flex;flex-direction:column;gap:18px;}
+
+/* ── METRICS GRID ── */
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);border:.5px solid var(--card-border);border-radius:10px;overflow:hidden;background:var(--card);}
+.mc{padding:12px 13px;border-right:.5px solid var(--card-border);}
+.mc:nth-child(3n){border-right:none;}
+.mc:nth-child(n+4){border-top:.5px solid var(--card-border);}
+.mc-v{font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-.02em;margin-bottom:2px;}
+.mc-v.teal{color:var(--teal-mid);}
+.mc-v.amber{color:var(--amber);}
+.mc-l{font-size:9px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;}
+
+/* ── INSIGHT ── */
+.insight{background:var(--card);border:.5px solid var(--card-border);border-radius:10px;padding:16px;}
+.ins-tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-mid);margin-bottom:8px;opacity:.8;}
+.ins-text{font-size:13px;color:var(--text-2);line-height:1.65;font-style:italic;}
+.ins-text em{color:var(--text-1);font-style:normal;font-weight:500;}
+
+/* ── FOOTER ROW ── */
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:18px;}
+.footer-note{font-size:11px;color:var(--text-3);}
+.btn-go{
+  background:var(--teal-mid);border:none;color:#fff;
+  font-size:12px;font-weight:600;padding:9px 20px;
+  border-radius:9px;cursor:pointer;font-family:var(--font);
+  display:flex;align-items:center;gap:7px;transition:opacity var(--ease);
+}
+.btn-go:hover{opacity:.87;}
+.btn-go i{font-size:13px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="wordmark" onclick="window.location.href='ds_deals.html'">
+      <span class="wm-text">Deal<em>Score</em></span>
+      <div class="wm-dot"></div>
+      <span class="wm-tag">HQ</span>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+        <i class="ti ti-sun" id="theme-icon"></i>
+        <span id="theme-label">Light</span>
+      </button>
+      <div class="settings-btn" id="settings-btn" onclick="toggleSettings()">
+        <i class="ti ti-target"></i>
+      </div>
+    </div>
+
+    <!-- Settings panel -->
+    <div class="settings-panel" id="settings-panel">
+      <div class="sp-title">Monthly KPI Targets</div>
+      <div class="sp-row">
+        <span class="sp-label">Deals sourced</span>
+        <input class="sp-input" type="number" id="t-deals" min="1" max="50">
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Fees earned</span>
+        <span class="sp-prefix">£</span>
+        <input class="sp-input" type="number" id="t-fees" min="1000" step="500">
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Packs sent</span>
+        <input class="sp-input" type="number" id="t-packs" min="1" max="30">
+      </div>
+      <div class="sp-row">
+        <span class="sp-label">Viewings</span>
+        <input class="sp-input" type="number" id="t-viewings" min="1" max="20">
+      </div>
+      <div class="sp-actions">
+        <button class="sp-save" onclick="saveTargets()">Save</button>
+        <button class="sp-cancel" onclick="toggleSettings()">Cancel</button>
+      </div>
+      <div class="sp-note">Resets automatically on 1st of month</div>
+    </div>
+  </div>
+
+  <!-- Two-column body -->
+  <div class="body">
+
+    <!-- LEFT -->
+    <div class="left">
+
+      <!-- Greeting -->
+      <div class="greeting">Good <span id="tod">morning</span>, <strong>Videet.</strong></div>
+      <div class="dt" id="dt"></div>
+
+      <div class="rule"></div>
+
+      <!-- Earnings hero -->
+      <div class="earn">
+        <div class="earn-sup">Fees pending collection</div>
+        <div class="earn-row">
+          <div class="earn-amount"><span class="cur">£</span>14,500</div>
+        </div>
+        <div class="earn-subs">
+          <div class="earn-sub"><strong>3</strong> deals closed</div>
+          <div class="earn-sub-sep"></div>
+          <div class="earn-sub"><strong>£4,833</strong> avg fee</div>
+          <div class="earn-sub-sep"></div>
+          <div class="earn-sub"><strong>£58k</strong> projected yr</div>
+        </div>
+      </div>
+
+      <div class="rule"></div>
+
+      <!-- KPI section -->
+      <div class="kpi-hdr">
+        <div class="kpi-htitle">Monthly targets</div>
+        <div class="kpi-mbadge" id="month-badge"></div>
+      </div>
+      <div id="kpi-bars"></div>
+      <div class="proj" id="proj-line"></div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+
+      <!-- Metrics grid -->
+      <div class="mgrid">
+        <div class="mc"><div class="mc-v">8</div><div class="mc-l">Total deals</div></div>
+        <div class="mc"><div class="mc-v teal">1</div><div class="mc-l">Live</div></div>
+        <div class="mc"><div class="mc-v teal">2</div><div class="mc-l">Reserved</div></div>
+        <div class="mc"><div class="mc-v amber">2</div><div class="mc-l">Packs out</div></div>
+        <div class="mc"><div class="mc-v">7.4%</div><div class="mc-l">Avg yield</div></div>
+        <div class="mc"><div class="mc-v">12</div><div class="mc-l">Investors</div></div>
+        <div class="mc"><div class="mc-v">4</div><div class="mc-l">Sellers</div></div>
+        <div class="mc"><div class="mc-v teal">2</div><div class="mc-l">Viewings</div></div>
+        <div class="mc"><div class="mc-v">+£612</div><div class="mc-l">Avg CF/mo</div></div>
+      </div>
+
+      <!-- Daily insight -->
+      <div class="insight">
+        <div class="ins-tag">Today's insight</div>
+        <div class="ins-text" id="ins"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-note" id="days-left"></div>
+    <button class="btn-go" onclick="window.location.href='ds_deals.html'">
+      <i class="ti ti-layout-dashboard"></i> Go to deals
+    </button>
+  </div>
+
+</div>
+
+<script>
+/* ── THEME ── */
+(function(){
+  var t=localStorage.getItem('ds-hq-theme')||'light';
+  applyTheme(t);
+})();
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('ds-hq-theme',t);
+  var icon=document.getElementById('theme-icon');
+  var lbl=document.getElementById('theme-label');
+  if(icon) icon.className=t==='dark'?'ti ti-moon':'ti ti-sun';
+  if(lbl) lbl.textContent=t==='dark'?'Dark':'Light';
+}
+function toggleTheme(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  applyTheme(cur==='dark'?'light':'dark');
+}
+
+/* ── GREETING ── */
+(function(){
+  var d=new Date(),h=d.getHours();
+  document.getElementById('tod').textContent=h<12?'morning':h<17?'afternoon':'evening';
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var m=d.getMinutes(),hh=h%12||12;
+  document.getElementById('dt').textContent=
+    days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear()+
+    ' · '+hh+':'+(m<10?'0'+m:m)+(h>=12?'pm':'am');
+  var last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  var left=last-d.getDate();
+  document.getElementById('days-left').textContent=left+' days left in the month';
+  document.getElementById('month-badge').textContent=months[d.getMonth()];
+})();
+
+/* ── KPI ── */
+var DEFS=[{id:'deals',label:'Deals sourced',current:3,pre:'',suf:''},{id:'fees',label:'Fees earned',current:14500,pre:'£',suf:''},{id:'packs',label:'Packs sent',current:2,pre:'',suf:''},{id:'viewings',label:'Viewings',current:2,pre:'',suf:''}];
+var DEFAULTS={deals:5,fees:20000,packs:4,viewings:4};
+function getTargets(){try{return Object.assign({},DEFAULTS,JSON.parse(localStorage.getItem('ds-hq-targets')||'{}'));}catch(e){return Object.assign({},DEFAULTS);}}
+function fmt(kpi,v){if(kpi.pre==='£'){return v>=1000?'£'+(v/1000).toFixed(1).replace('.0','')+'k':'£'+v;}return kpi.pre+v+kpi.suf;}
+
+var settingsOpen=false;
+function toggleSettings(){
+  settingsOpen=!settingsOpen;
+  document.getElementById('settings-panel').classList.toggle('open',settingsOpen);
+  document.getElementById('settings-btn').classList.toggle('active',settingsOpen);
+  if(settingsOpen){var t=getTargets();['deals','fees','packs','viewings'].forEach(function(k){document.getElementById('t-'+k).value=t[k];});}
+}
+function saveTargets(){
+  var t={};['deals','fees','packs','viewings'].forEach(function(k){t[k]=parseInt(document.getElementById('t-'+k).value)||DEFAULTS[k];});
+  localStorage.setItem('ds-hq-targets',JSON.stringify(t));
+  toggleSettings();
+  renderKPIs();
+}
+document.addEventListener('click',function(e){if(!e.target.closest('#settings-panel')&&!e.target.closest('#settings-btn')&&settingsOpen)toggleSettings();});
+
+function renderKPIs(){
+  var targets=getTargets();
+  var d=new Date(),dDone=d.getDate()-1,dTotal=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  var html='',projLead=null;
+  DEFS.forEach(function(kpi){
+    var target=targets[kpi.id]||DEFAULTS[kpi.id];
+    var cur=kpi.current,pct=Math.min(100,Math.round(cur/target*100));
+    var done=pct>=100;
+    var expected=target*(dDone/dTotal);
+    var onTrack=cur>=expected||done;
+    var statusClass=done?'done':onTrack?'ok':'behind';
+    var dLeft=dTotal-d.getDate();
+    var pace=dDone>0?cur/dDone:0,proj=Math.round(pace*dTotal);
+    if(!projLead&&kpi.id==='fees'&&!done){
+      projLead={onTrack:onTrack,text:onTrack
+        ?'Fees on pace for <em>'+fmt(kpi,proj)+'</em> this month'
+        :'Fees projected at <em>'+fmt(kpi,proj)+'</em> — <em>'+fmt(kpi,target-cur)+' short</em>'};
+    }
+    var valStr=fmt(kpi,cur)+' <span style="font-weight:400;color:var(--text-3);">/ '+fmt(kpi,target)+'</span>';
+    html+='<div class="kbar"><div class="kbar-meta"><span class="kbar-name">'+kpi.label+'</span>';
+    html+='<span class="kbar-vals">'+valStr+'<span class="kbar-pct '+statusClass+'"> '+pct+'%</span></span></div>';
+    html+='<div class="ktrack"><div class="kfill '+statusClass+'" style="width:'+pct+'%"></div></div></div>';
+  });
+  document.getElementById('kpi-bars').innerHTML=html;
+  var pl=document.getElementById('proj-line');
+  if(projLead){pl.innerHTML='<i class="ti ti-trending-up" style="font-size:11px;margin-right:5px;color:var(--teal-mid)"></i>'+projLead.text;pl.className='proj'+(projLead.onTrack?'':' warn');}
+  else{pl.innerHTML='<i class="ti ti-circle-check" style="font-size:11px;margin-right:5px;color:var(--teal-mid)"></i>All targets hit. <em>Strong month.</em>';pl.className='proj';}
+}
+renderKPIs();
+
+/* ── INSIGHT ── */
+var insights=[
+  "The sourcing fee isn't for finding the deal. It's for knowing <em>which ones not to find.</em>",
+  "Off-market doesn't mean hidden. It means the <em>seller chose you.</em> Don't waste that.",
+  "Speed of response is the cheapest competitive advantage you have. <em>Most people waste it.</em>",
+  "£5,000 a deal sounds modest. <em>Ten deals a year</em> doesn't. Protect the pipeline.",
+  "Investors remember the sourcers who <em>saved them time,</em> not the ones who sent beautiful PDFs.",
+  "The deal in due diligence is just a deal you <em>haven't closed yet.</em> Keep pushing.",
+  "One investor who trusts you completely <em>beats ten</em> who are mildly interested.",
+  "The best deal you'll ever do is the one you <em>nearly passed on.</em>",
+  "Your pipeline value is your business valuation. <em>Treat it like one.</em>",
+  "Due diligence isn't pessimism. It's how <em>you sleep at night</em> and your investor recommends you.",
+  "Most sourcers lose deals to faster sourcers, <em>not better ones.</em>",
+  "A motivated seller is worth more than a perfect property. <em>Both together</em> is a great month.",
+  "Yield is interesting. Cash flow is real. <em>Fees are immediate.</em> Know which game you're playing.",
+  "The best time to follow up on a pack was <em>yesterday.</em> The second best time is now.",
+  "Systems beat hustle at scale. <em>Build both</em> before you decide which one you need.",
+  "Track everything. The numbers you ignore <em>are the ones that cost you.</em>",
+  "A good relationship with one solicitor is worth <em>more than three on speed dial.</em>",
+  "Every deal you walk away from clean <em>builds the reputation</em> that brings the next one in.",
+  "Investors don't invest in properties. <em>They invest in you.</em> The property is just the paperwork.",
+  "The gap between a £3k fee and a £6k fee is usually just <em>how well you packaged it.</em>",
+  "Most deals don't fall through. <em>Most sourcers give up</em> on them too early.",
+  "Property is patient. <em>Sourcers can't afford to be.</em>",
+  "The deal that feels too hard is usually the one worth doing. <em>Everyone else already quit.</em>",
+  "Referrals don't happen because you're good. They happen because <em>you made someone else look good.</em>",
+  "You don't build a sourcing business by finding deals. <em>You build it by being unforgettable</em> to the right twelve people."
+];
+(function(){var d=new Date(),doy=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);document.getElementById('ins').innerHTML=insights[doy%insights.length];})();
+</script>
+</body>
+</html>
