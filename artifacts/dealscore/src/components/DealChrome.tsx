@@ -143,30 +143,27 @@ function getLbItems(deal: Deal, tab: TabKey, contentType: string): LbItem[] {
     }
     case 'seller':
       return [
-        { label: 'Asking price', value: fCurrency(deal.purchase_price) },
-        { label: 'Market value', value: fCurrency(deal.market_value) },
-        {
-          label: 'Discount',
-          value: deal.purchase_price && deal.market_value
-            ? fPct(((deal.market_value - deal.purchase_price) / deal.market_value) * 100)
-            : '—',
-          highlight: true,
-        },
-        { label: 'Stage', value: STATUS_LABELS[deal.status] },
+        { label: 'Asking price',  value: fCurrency(deal.purchase_price) },
+        { label: 'Current offer', value: '—', highlight: true },
+        { label: 'Status',        value: STATUS_LABELS[deal.status] },
+        { label: 'Waiting on',    value: '—' },
+        { label: 'Next step',     value: '—' },
       ]
     case 'investors':
       return [
-        { label: 'Strategy',    value: deal.strategy },
-        { label: 'Price',       value: fCurrency(deal.purchase_price) },
-        { label: 'Deal score',  value: deal.deal_score ?? 'No score', highlight: !!deal.deal_score },
-        { label: 'Pack status', value: deal.packs_generated > 0 ? 'Pack ready' : 'Not ready' },
+        { label: 'Funding target', value: '—' },
+        { label: 'Pledged',        value: '—', highlight: true },
+        { label: 'Investors',      value: '—' },
+        { label: 'Sourcing fee',   value: '—' },
+        { label: 'Days to close',  value: '—', highlight: true },
       ]
     case 'fees':
       return [
-        { label: 'Purchase price', value: fCurrency(deal.purchase_price) },
-        { label: 'Sourcing fee',   value: '—' },
-        { label: 'Stage',          value: STATUS_LABELS[deal.status] },
-        { label: 'Deal score',     value: deal.deal_score ?? 'No score', highlight: !!deal.deal_score },
+        { label: 'Agreed fee',        value: '—', highlight: true },
+        { label: 'Payment status',    value: 'Outstanding' },
+        { label: 'Due',               value: 'On completion' },
+        { label: 'Investor',          value: '—' },
+        { label: 'Days to completion', value: '—', highlight: true },
       ]
   }
 }
@@ -544,6 +541,99 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                   <i className="ti ti-download" style={{ fontSize: '11px' }}></i> Download pack
                 </button>
               </>
+            ) : activeTab === 'seller' ? (
+              <>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
+                  background: 'rgba(217,119,6,.08)', color: '#92400e',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
+                </button>
+                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                  <i className="ti ti-user-plus" style={{ fontSize: '11px' }}></i> Link seller
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid var(--navy)',
+                  background: 'var(--navy)', color: '#fff',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-pencil" style={{ fontSize: '11px' }}></i> Log activity
+                </button>
+              </>
+            ) : activeTab === 'investors' ? (
+              <>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
+                  background: 'rgba(217,119,6,.08)', color: '#92400e',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
+                </button>
+                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                  <i className="ti ti-user-plus" style={{ fontSize: '11px' }}></i> Add investor
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid var(--navy)',
+                  background: 'var(--navy)', color: '#fff',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-send" style={{ fontSize: '11px' }}></i> Share deal
+                </button>
+              </>
+            ) : activeTab === 'fees' ? (
+              <>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
+                  background: 'rgba(217,119,6,.08)', color: '#92400e',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
+                </button>
+                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                  <i className="ti ti-file-invoice" style={{ fontSize: '11px' }}></i> View invoice
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid var(--navy)',
+                  background: 'var(--navy)', color: '#fff',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-send" style={{ fontSize: '11px' }}></i> Send invoice
+                </button>
+              </>
             ) : (
               <>
                 <button
@@ -551,22 +641,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                   onClick={() => setNotesOpen(true)}
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
-                  {notes.length > 0 && (
-                    <span style={{
-                      fontSize: '9px', fontWeight: 700, minWidth: '16px', height: '16px',
-                      background: '#1D9E75', color: '#fff', borderRadius: '20px',
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      padding: '0 4px', marginLeft: '2px',
-                    }}>
-                      {notes.length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  className="log-btn"
-                  onClick={() => navigate('/dashboard')}
-                >
-                  <i className="ti ti-arrow-left" style={{ fontSize: '11px' }}></i> Dashboard
                 </button>
               </>
             )}
