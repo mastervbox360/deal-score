@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Deal } from '../lib/database.types'
 
 const NAVY       = '#1B3A6B'
+const NAVY_DARK  = '#152d55'
 const NAVY_LIGHT = '#eef3fb'
 const TEAL       = '#1D9E75'
 const TEAL_LIGHT = '#d1fae5'
@@ -40,16 +41,16 @@ function initials(name: string) {
 }
 
 const SEED_OFFERS: OfferRow[] = [
-  { date: '28 May', amount: 180000, note: 'Initial offer — declined',         status: 'declined' },
-  { date: '5 Jun',  amount: 183000, note: 'Counter after call',               status: 'declined' },
-  { date: '8 Jun',  amount: 185000, note: 'Final offer — verbally accepted',  status: 'accepted' },
+  { date: '28 May', amount: 180000, note: 'Initial offer — declined', status: 'declined' },
+  { date: '5 Jun',  amount: 183000, note: 'Counter after call', status: 'declined' },
+  { date: '8 Jun',  amount: 185000, note: 'Final offer — verbally accepted', status: 'accepted' },
 ]
 const SEED_CONTACTS: ContactEntry[] = [
-  { type: 'call',  label: 'Phone call · 12 min',     note: "Discussed the offer. Vendor says he'll speak to his wife and come back by Thursday. Seemed receptive — mentioned he wants to complete before September.", date: 'Today · 11:24am' },
+  { type: 'call',  label: 'Phone call · 12 min', note: 'Discussed the offer. Vendor says he\'ll speak to his wife and come back by Thursday. Seemed receptive — mentioned he wants to complete before September.', date: 'Today · 11:24am' },
   { type: 'note',  label: 'Offer accepted — verbal', note: '£185,000 verbally agreed. Instructed solicitors. Awaiting written confirmation from vendor\'s solicitor.', date: '8 Jun · 3:15pm' },
-  { type: 'call',  label: 'Phone call · 8 min',      note: 'Submitted £183k counter. Vendor pushed back — said lowest he\'d go is £185k. Agreed to discuss with investor and come back same day.', date: '5 Jun · 2:42pm' },
-  { type: 'email', label: 'Email sent',              note: 'Formal offer letter at £180,000 sent to agent (Mark Thornton, Purplebricks). Included comparables and rationale.', date: '2 Jun · 10:05am' },
-  { type: 'visit', label: 'Viewing',                 note: 'First viewing completed. Property in good condition — cosmetic refresh needed. Vendor present, mentioned timeline pressure (moving abroad in August).', date: '28 May · 10:30am' },
+  { type: 'call',  label: 'Phone call · 8 min', note: 'Submitted £183k counter. Vendor pushed back — said lowest he\'d go is £185k. Agreed to discuss with investor and come back same day.', date: '5 Jun · 2:42pm' },
+  { type: 'email', label: 'Email sent', note: 'Formal offer letter at £180,000 sent to agent (Mark Thornton, Purplebricks). Included comparables and rationale.', date: '2 Jun · 10:05am' },
+  { type: 'visit', label: 'Viewing', note: 'First viewing completed. Property in good condition — cosmetic refresh needed. Vendor present, mentioned timeline pressure (moving abroad in August).', date: '28 May · 10:30am' },
 ]
 
 const ACT_META: Record<ActType, { label: string; dotCls: string; iconColor: string; icon: string }> = {
@@ -163,7 +164,7 @@ function OfferStatusTag({ status }: { status: OfferRow['status'] }) {
   const cfg = {
     accepted: { bg: TEAL_LIGHT, color: '#065f46', label: 'Accepted' },
     declined: { bg: '#fef2f2',  color: '#991b1b', label: 'Declined' },
-    pending:  { bg: '#fef3c7',  color: '#92400e', label: 'Pending'  },
+    pending:  { bg: '#fef3c7',  color: '#92400e', label: 'Pending' },
   }[status]
   return (
     <span style={{
@@ -203,8 +204,8 @@ function SbarHdr({ icon, title, subtitle, badge, badgeColor }: {
   icon: React.ReactNode; title: string; subtitle?: string;
   badge?: string; badgeColor?: 'amber' | 'green' | 'navy';
 }) {
-  const badgeBg  = { amber: '#fef3c7', green: TEAL_LIGHT, navy: NAVY_LIGHT }[badgeColor ?? 'navy'] ?? NAVY_LIGHT
-  const badgeClr = { amber: '#92400e', green: '#065f46',  navy: NAVY       }[badgeColor ?? 'navy'] ?? NAVY
+  const badgeBg = { amber: '#fef3c7', green: TEAL_LIGHT, navy: NAVY_LIGHT, undefined: NAVY_LIGHT }[badgeColor ?? 'navy']
+  const badgeClr = { amber: '#92400e', green: '#065f46', navy: NAVY, undefined: NAVY }[badgeColor ?? 'navy']
   return (
     <div style={{
       padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`,
@@ -223,8 +224,8 @@ function SbarHdr({ icon, title, subtitle, badge, badgeColor }: {
       </div>
       {badge && (
         <span style={{
-          fontSize: '10px', fontWeight: 700, background: badgeBg,
-          color: badgeClr, padding: '2px 8px', borderRadius: '20px',
+          fontSize: '10px', fontWeight: 700, background: badgeBg as string,
+          color: badgeClr as string, padding: '2px 8px', borderRadius: '20px',
           flexShrink: 0, whiteSpace: 'nowrap',
         }}>
           {badge}
@@ -259,7 +260,7 @@ function FIn({ value, onChange, placeholder, type }: {
         fontFamily: 'inherit', width: '100%', outline: 'none',
       }}
       onFocus={e => (e.target.style.borderColor = NAVY)}
-      onBlur={e  => (e.target.style.borderColor = DS_BORDER)}
+      onBlur={e => (e.target.style.borderColor = DS_BORDER)}
     />
   )
 }
@@ -276,10 +277,9 @@ function FTa({ value, onChange, placeholder, height }: {
         fontSize: '12px', color: TEXT_1, background: '#fff',
         fontFamily: 'inherit', width: '100%', resize: 'none',
         outline: 'none', lineHeight: 1.5, height: height ?? '80px',
-        boxSizing: 'border-box',
       }}
       onFocus={e => (e.target.style.borderColor = NAVY)}
-      onBlur={e  => (e.target.style.borderColor = DS_BORDER)}
+      onBlur={e => (e.target.style.borderColor = DS_BORDER)}
     />
   )
 }
@@ -305,7 +305,7 @@ export interface SellerTabProps {
 export default function SellerTab({ deal }: SellerTabProps) {
   const askingPrice = deal.purchase_price ?? 192000
 
-  const [toast,     setToast]     = useState('')
+  const [toast, setToast] = useState('')
   const [toastShow, setToastShow] = useState(false)
 
   const [expDismissed, setExpDismissed] = useState(false)
@@ -328,29 +328,29 @@ export default function SellerTab({ deal }: SellerTabProps) {
   const [chainSolicitor,  setChainSolicitor]  = useState('TBC — instructing')
   const [chainCompletion, setChainCompletion] = useState('Before Aug 2026')
 
-  const [nextAction, setNextAction] = useState<string | null>(null)
-  const [naStage,    setNaStage]    = useState('reserved')
-  const [naInputVal, setNaInputVal] = useState('')
+  const [nextAction,   setNextAction]   = useState<string | null>(null)
+  const [naStage,      setNaStage]      = useState('reserved')
+  const [naInputVal,   setNaInputVal]   = useState('')
 
   const [reminderSet, setReminderSet] = useState(false)
 
-  const [soOpen, setSoOpen] = useState(false)
-  const [soKind, setSoKind] = useState<SoKind | null>(null)
+  const [soOpen, setSoOpen]       = useState(false)
+  const [soKind, setSoKind]       = useState<SoKind | null>(null)
 
-  const [soActType,   setSoActType]   = useState<ActType>('call')
-  const [soActNote,   setSoActNote]   = useState('')
-  const [soOfferAmt,  setSoOfferAmt]  = useState('')
-  const [soOfferSt,   setSoOfferSt]   = useState<OfferRow['status']>('pending')
-  const [soOfferNote, setSoOfferNote] = useState('')
-  const [soVName,     setSoVName]     = useState('')
-  const [soVMobile,   setSoVMobile]   = useState('')
-  const [soVEmail,    setSoVEmail]    = useState('')
-  const [soMotLevel,  setSoMotLevel]  = useState<MotLevel>('warm')
-  const [soMotCtx,    setSoMotCtx]    = useState('')
-  const [soChainSt,   setSoChainSt]   = useState<ChainSt>('No chain')
-  const [soChainTen,  setSoChainTen]  = useState('')
-  const [soChainSol,  setSoChainSol]  = useState('')
-  const [soChainComp, setSoChainComp] = useState('')
+  const [soActType,    setSoActType]    = useState<ActType>('call')
+  const [soActNote,    setSoActNote]    = useState('')
+  const [soOfferAmt,   setSoOfferAmt]   = useState('')
+  const [soOfferSt,    setSoOfferSt]    = useState<OfferRow['status']>('pending')
+  const [soOfferNote,  setSoOfferNote]  = useState('')
+  const [soVName,      setSoVName]      = useState('')
+  const [soVMobile,    setSoVMobile]    = useState('')
+  const [soVEmail,     setSoVEmail]     = useState('')
+  const [soMotLevel,   setSoMotLevel]   = useState<MotLevel>('warm')
+  const [soMotCtx,     setSoMotCtx]     = useState('')
+  const [soChainSt,    setSoChainSt]    = useState<ChainSt>('No chain')
+  const [soChainTen,   setSoChainTen]   = useState('')
+  const [soChainSol,   setSoChainSol]   = useState('')
+  const [soChainComp,  setSoChainComp]  = useState('')
 
   const showToast = useCallback((msg: string) => {
     setToast(msg); setToastShow(true)
@@ -415,11 +415,12 @@ export default function SellerTab({ deal }: SellerTabProps) {
 
   const diff = askingPrice - agreedPrice
   const pct  = diff / askingPrice * 100
+  const currentOfferLabel = `${fmtGBP(agreedPrice)} · -${pct.toFixed(1)}%`
 
-  const motMeta   = MOT_META[motLevel]
+  const motMeta = MOT_META[motLevel]
   const chainMeta = CHAIN_META[chainStatus]
 
-  const currentOffer    = offers.find(o => o.status === 'accepted')
+  const currentOffer = offers.find(o => o.status === 'accepted')
   const currentOfferAmt = currentOffer?.amount ?? agreedPrice
 
   return (
@@ -453,10 +454,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
 
-        {/* LEFT COLUMN */}
         <div>
-
-          {/* Vendor profile */}
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Vendor</span>
@@ -486,15 +484,14 @@ export default function SellerTab({ deal }: SellerTabProps) {
                 </div>
               </div>
               {[
-                { icon: '📞', label: 'Mobile',   value: vendorMobile },
-                { icon: '✉️', label: 'Email',    value: vendorEmail },
+                { icon: '📞', label: 'Mobile', value: vendorMobile },
+                { icon: '✉️', label: 'Email',  value: vendorEmail },
                 { icon: '🏠', label: 'Property', value: deal.address ?? '—' },
-                { icon: '👤', label: 'Agent',    value: 'Mark Thornton · Purplebricks' },
-              ].map((row, i, arr) => (
+                { icon: '👤', label: 'Agent',   value: 'Mark Thornton · Purplebricks' },
+              ].map(row => (
                 <div key={row.label} style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '8px 0',
-                  borderBottom: i < arr.length - 1 ? `.5px solid #f3f4f6` : 'none',
+                  padding: '8px 0', borderBottom: `.5px solid #f3f4f6`,
                   fontSize: '12px', color: TEXT_1,
                 }}>
                   <span style={{ fontSize: '13px', flexShrink: 0, width: '16px' }}>{row.icon}</span>
@@ -505,7 +502,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SecCard>
 
-          {/* Motivation & context */}
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Motivation &amp; context</span>
@@ -540,7 +536,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SecCard>
 
-          {/* Offer tracker */}
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Offer tracker</span>
@@ -554,9 +549,9 @@ export default function SellerTab({ deal }: SellerTabProps) {
             <div style={{ padding: '14px 16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '14px' }}>
                 {[
-                  { lbl: 'Asking price',  val: fmtGBP(askingPrice),     clr: NAVY,      delta: "Vendor's original ask" },
+                  { lbl: 'Asking price', val: fmtGBP(askingPrice), clr: NAVY, delta: "Vendor's original ask" },
                   { lbl: 'Current offer', val: fmtGBP(currentOfferAmt), clr: '#065f46', delta: `−${fmtGBP(diff)} (${pct.toFixed(1)}% below ask)` },
-                  { lbl: 'Status',        val: 'Verbally agreed',        clr: '#92400e', delta: 'Awaiting solicitors' },
+                  { lbl: 'Status', val: 'Verbally agreed', clr: '#92400e', delta: 'Awaiting solicitors' },
                 ].map(c => (
                   <div key={c.lbl} style={{ background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, padding: '10px 12px' }}>
                     <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>{c.lbl}</div>
@@ -581,7 +576,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SecCard>
 
-          {/* Contact log */}
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Contact log</span>
@@ -590,21 +584,9 @@ export default function SellerTab({ deal }: SellerTabProps) {
             <div style={{ padding: '14px 16px' }}>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
                 {(['call', 'email', 'visit', 'note'] as ActType[]).map(t => (
-                  <button
-                    key={t}
-                    onClick={() => { setSoActType(t); openSo('activity') }}
-                    style={{
-                      fontSize: '11px', fontWeight: 500, padding: '5px 12px',
-                      borderRadius: '20px',
-                      border: t === 'call' ? 'none' : `.5px solid ${DS_BORDER}`,
-                      background: t === 'call' ? NAVY : '#fff',
-                      color: t === 'call' ? '#fff' : TEXT_2,
-                      cursor: 'pointer', fontFamily: 'inherit',
-                      display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    }}
-                  >
+                  <SmBtn key={t} onClick={() => { setSoActType(t); openSo('activity') }} primary={t === 'call'}>
                     {ACT_META[t].icon} {t === 'call' ? 'Log call' : t === 'email' ? 'Log email' : t === 'visit' ? 'Log visit' : 'Add note'}
-                  </button>
+                  </SmBtn>
                 ))}
               </div>
               {contacts.map((c, i) => (
@@ -620,7 +602,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SecCard>
 
-          {/* Chain & property */}
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Chain &amp; property</span>
@@ -632,10 +613,10 @@ export default function SellerTab({ deal }: SellerTabProps) {
             <div style={{ padding: '14px 16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 {[
-                  { lbl: 'Chain status',      val: chainStatus,     color: chainMeta.color },
-                  { lbl: 'Tenure',            val: chainTenure,     color: undefined },
-                  { lbl: 'Solicitor',         val: chainSolicitor,  color: undefined },
-                  { lbl: 'Target completion', val: chainCompletion, color: undefined },
+                  { lbl: 'Chain status', val: chainStatus, color: chainMeta.color },
+                  { lbl: 'Tenure',       val: chainTenure },
+                  { lbl: 'Solicitor',    val: chainSolicitor },
+                  { lbl: 'Target completion', val: chainCompletion },
                 ].map(cell => (
                   <div key={cell.lbl} style={{ background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, padding: '10px 12px' }}>
                     <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>{cell.lbl}</div>
@@ -646,7 +627,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SecCard>
 
-          {/* Sourcing fee */}
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '14px', color: TEAL }}>💰</span>
@@ -669,13 +649,10 @@ export default function SellerTab({ deal }: SellerTabProps) {
               </SmBtn>
             </div>
           </SecCard>
-
         </div>
 
-        {/* RIGHT COLUMN — sticky sidebar */}
         <div style={{ position: 'sticky', top: `${STICKY_TOP}px` }}>
 
-          {/* Chase reminder */}
           <SbarCard>
             <SbarHdr icon="🔔" title="Chase reminder" subtitle="Action needed today" badge="Today" badgeColor="amber" />
             <div style={{ padding: '12px 14px' }}>
@@ -697,7 +674,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SbarCard>
 
-          {/* Negotiation summary */}
           <SbarCard>
             <SbarHdr icon="📊" title="Negotiation" subtitle={`${fmtGBP(diff)} saved · ${(diff / (deal.market_value ?? askingPrice) * 100).toFixed(1)}% BMV*`} />
             <div style={{ padding: '12px 14px' }}>
@@ -727,7 +703,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SbarCard>
 
-          {/* Next action */}
           <SbarCard>
             <SbarHdr icon="→" title="Next action" subtitle="Set by you" />
             <div style={{ padding: '12px 14px' }}>
@@ -789,7 +764,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
             </div>
           </SbarCard>
 
-          {/* Sellers CRM link */}
           <div style={{
             background: NAVY_LIGHT, border: '.5px solid rgba(27,58,107,.15)',
             borderRadius: R_MD, padding: '12px 14px',
@@ -810,7 +784,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
         </div>
       </div>
 
-      {/* Slide-over panel */}
       {soOpen && (
         <>
           <div
@@ -827,16 +800,11 @@ export default function SellerTab({ deal }: SellerTabProps) {
           }}>
             <div style={{ background: NAVY, padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff' }}>
-                {soKind === 'activity'         ? 'Log activity'
-                  : soKind === 'offer'          ? 'Log a new offer'
-                  : soKind === 'edit-vendor'    ? 'Edit vendor details'
-                  : soKind === 'edit-motivation'? 'Motivation & context'
-                  : 'Edit chain & property'}
+                {soKind === 'activity' ? 'Log activity' : soKind === 'offer' ? 'Log a new offer' : soKind === 'edit-vendor' ? 'Edit vendor details' : soKind === 'edit-motivation' ? 'Motivation & context' : 'Edit chain & property'}
               </div>
               <button onClick={closeSo} style={{ background: 'rgba(255,255,255,.1)', border: '.5px solid rgba(255,255,255,.2)', borderRadius: R_MD, color: '#fff', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px' }}>✕ Close</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
-
               {soKind === 'activity' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
@@ -854,7 +822,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   </div>
                 </div>
               )}
-
               {soKind === 'offer' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
@@ -883,13 +850,12 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   </div>
                 </div>
               )}
-
               {soKind === 'edit-vendor' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {[
                     { label: 'Name',   value: soVName,   onChange: setSoVName },
                     { label: 'Mobile', value: soVMobile, onChange: setSoVMobile },
-                    { label: 'Email',  value: soVEmail,  onChange: setSoVEmail, type: 'email' as const },
+                    { label: 'Email',  value: soVEmail,  onChange: setSoVEmail, type: 'email' },
                   ].map(f => (
                     <div key={f.label}>
                       <div style={{ fontSize: '10px', fontWeight: 600, color: '#bbb', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '8px' }}>{f.label}</div>
@@ -899,7 +865,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   <div style={{ fontSize: '10px', color: '#9ca3af', lineHeight: 1.5 }}>Saving here also updates the Sellers CRM record for this vendor.</div>
                 </div>
               )}
-
               {soKind === 'edit-motivation' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
@@ -917,7 +882,6 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   </div>
                 </div>
               )}
-
               {soKind === 'edit-chain' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
@@ -940,11 +904,10 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   ))}
                 </div>
               )}
-
             </div>
             <div style={{ padding: '16px 22px', borderTop: `.5px solid ${DS_BORDER}`, display: 'flex', gap: '8px', flexShrink: 0 }}>
               <button onClick={closeSo} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: `.5px solid ${DS_BORDER}`, background: '#fff', color: TEXT_2, fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={saveSo}  style={{ flex: 2, padding: '10px', borderRadius: '8px', border: 'none', background: NAVY, color: '#fff', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Save</button>
+              <button onClick={saveSo} style={{ flex: 2, padding: '10px', borderRadius: '8px', border: 'none', background: NAVY, color: '#fff', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Save</button>
             </div>
           </div>
         </>
