@@ -125,7 +125,7 @@ export default function DealPage() {
 
   // ── Render with chrome ─────────────────────────────────────────────────────
   return (
-    <DealChrome deal={deal} activeTab={activeTab} onTabChange={handleTabChange}>
+    <DealChrome deal={deal}>
       {activeTab === 'overview'   && <DealOverview deal={deal} onTabChange={handleTabChange} />}
       {activeTab === 'analysis'  && <AnalysisHub deal={deal} />}
       {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} />}

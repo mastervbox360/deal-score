@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useId } from 'react'
-import { useNavigate } from 'react-router-dom'
-import type { CSSProperties } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Deal, DealStatus } from '../lib/database.types'
 import { useAuth } from '../lib/AuthContext'
 
@@ -22,24 +21,13 @@ interface LbItem {
 
 export interface DealChromeProps {
   deal: Deal
-  activeTab: TabKey
-  onTabChange: (tab: TabKey) => void
   children: React.ReactNode
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const NAVY        = '#1B3A6B'
-const NAVY_DARK   = '#152d55'
-const NAVY_DEEP   = '#0f2040'
-const TEAL        = '#1D9E75'
-const DS_BORDER   = '#e3e5e9'
-const BG_SEC      = '#f5f6f8'
-const AMBER       = '#D97706'
-
 const HDR_H     = 56
 const ISTRIP_H  = 48
 const LIVEBAR_H = 44
-const TABS_H    = 42
 
 const TAB_LABELS: Record<TabKey, string> = {
   overview:  'Overview',
@@ -57,13 +45,15 @@ const STATUS_LABELS: Record<DealStatus, string> = {
   dead:       'Withdrawn',
 }
 
-const STATUS_BORDER: Record<DealStatus, string> = {
-  analysing:  '#9ca3af',
-  reviewing:  '#10b981',
-  presenting: '#8b5cf6',
-  closed:     '#10b981',
-  dead:       '#9ca3af',
+const STATUS_CSS: Record<DealStatus, string> = {
+  analysing:  'sourcing',
+  reviewing:  'ready',
+  presenting: 'pack-sent',
+  closed:     'complete',
+  dead:       'withdrawn',
 }
+
+const VALID_TABS: TabKey[] = ['overview', 'analysis', 'content', 'seller', 'investors']
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fCurrency(v: number | null): string {
@@ -84,7 +74,7 @@ function fDate(iso: string): string {
 
 function relTime(d: Date): string {
   const diff = Date.now() - d.getTime()
-  if (diff < 60_000)   return 'just now'
+  if (diff < 60_000)    return 'just now'
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
@@ -100,15 +90,20 @@ function getInitials(name: string | null | undefined, email: string | null | und
   return email ? email.slice(0, 2).toUpperCase() : '??'
 }
 
+function parseTab(raw: string | null): TabKey {
+  if (raw && (VALID_TABS as string[]).includes(raw)) return raw as TabKey
+  return 'overview'
+}
+
 function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
   switch (tab) {
     case 'overview':
       return [
-        { label: 'Stage',      value: STATUS_LABELS[deal.status] },
-        { label: 'Deal score', value: deal.deal_score ?? 'No score', highlight: !!deal.deal_score },
-        { label: 'Monthly CF', value: fCurrency(deal.cash_flow), highlight: true },
+        { label: 'Stage',       value: STATUS_LABELS[deal.status] },
+        { label: 'Deal score',  value: deal.deal_score ?? 'No score', highlight: !!deal.deal_score },
+        { label: 'Monthly CF',  value: fCurrency(deal.cash_flow), highlight: true },
         { label: 'Gross yield', value: fPct(deal.gross_yield) },
-        { label: 'CoC ROI',    value: fPct(deal.coc_roi) },
+        { label: 'CoC ROI',     value: fPct(deal.coc_roi) },
       ]
     case 'analysis':
       return [
@@ -120,14 +115,14 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
       ]
     case 'content':
       return [
-        { label: 'Strategy',    value: deal.strategy },
-        { label: 'Packs',       value: deal.packs_generated > 0 ? `${deal.packs_generated} generated` : 'Not created' },
+        { label: 'Strategy',     value: deal.strategy },
+        { label: 'Packs',        value: deal.packs_generated > 0 ? `${deal.packs_generated} generated` : 'Not created' },
         { label: 'Last updated', value: fDate(deal.updated_at) },
       ]
     case 'seller':
       return [
-        { label: 'Asking price',  value: fCurrency(deal.purchase_price) },
-        { label: 'Market value',  value: fCurrency(deal.market_value) },
+        { label: 'Asking price', value: fCurrency(deal.purchase_price) },
+        { label: 'Market value', value: fCurrency(deal.market_value) },
         {
           label: 'Discount',
           value: deal.purchase_price && deal.market_value
@@ -147,21 +142,22 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
   }
 }
 
-// ─── Button presets ───────────────────────────────────────────────────────────
-const BTN_GHOST_SM: CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: '4px',
-  fontSize: '11px', fontWeight: 500, padding: '5px 11px',
-  borderRadius: '7px', border: `.5px solid ${DS_BORDER}`,
-  background: BG_SEC, color: '#5a6270',
-  cursor: 'pointer', fontFamily: 'inherit', transition: 'all .12s',
-  flexShrink: 0, whiteSpace: 'nowrap',
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function DealChrome({ deal, activeTab, onTabChange, children }: DealChromeProps) {
+export default function DealChrome({ deal, children }: DealChromeProps) {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const noteInputId = useId()
+
+  const activeTab = parseTab(searchParams.get('tab'))
+
+  function handleTabChange(tab: TabKey) {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.set('tab', tab)
+      return next
+    }, { replace: true })
+  }
 
   // chrome state
   const [livebarVisible, setLivebarVisible] = useState(true)
@@ -174,11 +170,9 @@ export default function DealChrome({ deal, activeTab, onTabChange, children }: D
   const [notes, setNotes]         = useState<Note[]>([])
   const [noteInput, setNoteInput] = useState('')
 
-  // computed sticky tops
-  const lbH      = livebarVisible ? LIVEBAR_H : 0
-  const istripTop = HDR_H
-  const livebarTop = HDR_H + ISTRIP_H
-  const tabsTop    = HDR_H + ISTRIP_H + lbH
+  // computed tabwrap sticky top (CSS var can't react to livebar toggle)
+  const lbH     = livebarVisible ? LIVEBAR_H : 0
+  const tabsTop = HDR_H + ISTRIP_H + lbH
 
   // privacy mode → body class
   useEffect(() => {
@@ -231,229 +225,160 @@ export default function DealChrome({ deal, activeTab, onTabChange, children }: D
   const lbItems = getLbItems(deal, activeTab)
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: BG_SEC, fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div>
 
       {/* ═══════════════════════════════════════════════
-          HEADER  56px sticky top:0
+          HEADER
           ═══════════════════════════════════════════════ */}
-      <header style={{
-        height: `${HDR_H}px`, backgroundColor: NAVY_DARK,
-        display: 'flex', alignItems: 'center', padding: '0 20px', gap: '16px',
-        position: 'sticky', top: 0, zIndex: 220, flexShrink: 0, boxSizing: 'border-box',
-      }}>
-
-        {/* Left: logo + sep */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <button
+      <div className="hdr">
+        <div className="hdr-left">
+          <div
+            className="logo"
             onClick={() => navigate('/dashboard')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '-.01em', fontFamily: 'inherit', padding: 0 }}
+            style={{ cursor: 'pointer' }}
+            title="Back to dashboard"
           >
-            Deal<span style={{ color: TEAL }}>Score</span>
-          </button>
-          <div style={{ width: '.5px', height: '18px', background: 'rgba(255,255,255,.12)', flexShrink: 0 }} />
+            Deal<span>Score</span>
+          </div>
+          <div className="logo-sep"></div>
+          <nav className="hdr-nav">
+            <button className="hn on" onClick={() => navigate('/dashboard')}>Deals</button>
+            <div className="hn-sep"></div>
+            <button className="hn">Pipeline</button>
+            <div className="hn-sep"></div>
+            <button className="hn">Compare</button>
+          </nav>
         </div>
 
-        {/* Centre: reference + tab indicator */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-          <span style={{
-            fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,.55)',
-            background: 'rgba(255,255,255,.08)', border: '.5px solid rgba(255,255,255,.12)',
-            borderRadius: '20px', padding: '3px 11px', letterSpacing: '.04em',
-          }}>
-            {deal.reference}
-          </span>
-          <span style={{ color: 'rgba(255,255,255,.2)', fontSize: '12px' }}>›</span>
-          <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,.75)' }}>
-            {TAB_LABELS[activeTab]}
-          </span>
+        <div className="hdr-centre">
+          <div className="search-bar">
+            <i className="ti ti-search"></i>
+            <input type="text" placeholder="Search deals, sellers, addresses…" readOnly />
+            <span className="search-kbd">⌘K</span>
+          </div>
         </div>
 
-        {/* Right: Notes · Privacy · Avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-
-          {/* Notes button */}
-          <button
-            onClick={() => setNotesOpen(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              height: '30px', padding: '0 11px', borderRadius: '8px',
-              border: '.5px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)',
-              color: 'rgba(255,255,255,.7)', fontSize: '12px', fontWeight: 500,
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all .12s', flexShrink: 0,
-            }}
-          >
-            📝 Notes
-            {notes.length > 0 && (
-              <span style={{
-                fontSize: '9px', fontWeight: 700, minWidth: '16px', height: '16px',
-                background: TEAL, color: '#fff', borderRadius: '20px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
-              }}>
-                {notes.length}
-              </span>
-            )}
+        <div className="hdr-right">
+          <nav className="hdr-right-nav">
+            <button className="hn">Sellers</button>
+            <div className="hn-sep"></div>
+            <button className="hn">Investors</button>
+          </nav>
+          <div className="logo-sep"></div>
+          <button className="btn-new" onClick={() => navigate('/dashboard')}>
+            <i className="ti ti-plus"></i> New deal
           </button>
-
-          {/* Privacy toggle */}
-          <button
-            onClick={() => setPrivacyMode(p => !p)}
-            title={privacyMode ? 'Privacy on — click to reveal data' : 'Hide personal data'}
-            style={{
-              height: '30px', padding: '0 10px', borderRadius: '8px',
-              border: privacyMode ? '.5px solid rgba(217,119,6,.6)' : '.5px solid rgba(255,255,255,.18)',
-              background: privacyMode ? 'rgba(217,119,6,.2)' : 'rgba(255,255,255,.08)',
-              color: privacyMode ? '#FCD34D' : 'rgba(255,255,255,.55)',
-              fontSize: '12px', fontWeight: 500, cursor: 'pointer',
-              fontFamily: 'inherit', transition: 'all .15s', flexShrink: 0,
-              display: 'flex', alignItems: 'center', gap: '4px',
-            }}
-          >
-            {privacyMode ? '🔒' : '👁'} Privacy
-          </button>
-
-          {/* Avatar + dropdown */}
-          <div ref={avatarRef} style={{ position: 'relative' }}>
-            <button
-              onClick={() => setAvatarOpen(p => !p)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-              }}
-            >
-              <div style={{
-                width: '30px', height: '30px', borderRadius: '50%',
-                background: 'rgba(255,255,255,.16)', border: '.5px solid rgba(255,255,255,.18)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '11px', fontWeight: 600, color: '#fff', flexShrink: 0,
-              }}>
+          <div className="logo-sep"></div>
+          <div ref={avatarRef} className="avt-wrap">
+            <div className="avt-wrap-inner" onClick={() => setAvatarOpen(p => !p)}>
+              <div className="avt">
                 {getInitials(profile?.full_name, user?.email)}
               </div>
-              <span style={{ color: 'rgba(255,255,255,.35)', fontSize: '10px' }}>▾</span>
-            </button>
+              <i className="ti ti-chevron-down avt-chevron"></i>
+            </div>
 
             {avatarOpen && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                background: '#fff', border: `.5px solid ${DS_BORDER}`,
-                borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,.12)',
-                minWidth: '200px', overflow: 'hidden', zIndex: 300,
-              }}>
-                <div style={{ padding: '12px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1a2332' }}>
-                    {profile?.full_name ?? user?.email}
-                  </div>
+              <div className="avt-drop show">
+                <div className="avt-drop-head">
+                  <div className="avt-drop-name">{profile?.full_name ?? user?.email}</div>
                   {profile?.full_name && (
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>{user?.email}</div>
+                    <div className="avt-drop-email">{user?.email}</div>
                   )}
                 </div>
                 <div style={{ padding: '4px 0' }}>
-                  {[
-                    { label: 'Profile',  fn: () => { setAvatarOpen(false); navigate('/profile') } },
-                    { label: 'Settings', fn: () => { setAvatarOpen(false); navigate('/profile') } },
-                    { label: 'Dashboard', fn: () => { setAvatarOpen(false); navigate('/dashboard') } },
-                  ].map(item => (
-                    <button
-                      key={item.label}
-                      onClick={item.fn}
-                      style={{
-                        display: 'flex', width: '100%', textAlign: 'left',
-                        padding: '9px 14px', background: 'none', border: 'none',
-                        fontSize: '12px', color: '#374151', cursor: 'pointer', fontFamily: 'inherit',
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ borderTop: `.5px solid ${DS_BORDER}` }}>
                   <button
-                    onClick={async () => { setAvatarOpen(false); await signOut(); navigate('/login') }}
-                    style={{
-                      display: 'flex', width: '100%', textAlign: 'left',
-                      padding: '9px 14px', background: 'none', border: 'none',
-                      fontSize: '12px', color: '#b91c1c', cursor: 'pointer', fontFamily: 'inherit',
-                    }}
+                    className="avt-drop-item"
+                    onClick={() => { setAvatarOpen(false); navigate('/profile') }}
                   >
-                    Sign out
+                    <i className="ti ti-user"></i> Profile
+                  </button>
+                  <button
+                    className="avt-drop-item"
+                    onClick={() => { setAvatarOpen(false); navigate('/profile') }}
+                  >
+                    <i className="ti ti-settings"></i> Settings
+                  </button>
+                  <button
+                    className="avt-drop-item"
+                    onClick={() => { setAvatarOpen(false); navigate('/dashboard') }}
+                  >
+                    <i className="ti ti-layout-dashboard"></i> Dashboard
                   </button>
                 </div>
+                <div className="avt-drop-divider"></div>
+                <div className="avt-drop-toggle" onClick={() => setPrivacyMode(p => !p)}>
+                  <div className="avt-drop-toggle-left">
+                    <i className="ti ti-eye-off"></i> Privacy mode
+                  </div>
+                  <label className="mini-toggle" onClick={e => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={privacyMode}
+                      onChange={() => setPrivacyMode(p => !p)}
+                    />
+                    <span className="mini-track"></span>
+                    <span className="mini-thumb"></span>
+                  </label>
+                </div>
+                <div className="avt-drop-divider"></div>
+                <button
+                  className="avt-drop-item danger"
+                  onClick={async () => {
+                    setAvatarOpen(false)
+                    await signOut()
+                    navigate('/login')
+                  }}
+                >
+                  <i className="ti ti-logout"></i> Sign out
+                </button>
               </div>
             )}
           </div>
         </div>
-      </header>
+      </div>
+
+      {/* ═══════════════════════════════════════════════
+          PRIVACY BANNER
+          ═══════════════════════════════════════════════ */}
+      <div className={`privacy-banner${privacyMode ? ' show' : ''}`}>
+        <i className="ti ti-eye-off" style={{ fontSize: '13px' }}></i>
+        <span>Privacy mode is on — personal data hidden on screen</span>
+        <button
+          onClick={() => setPrivacyMode(false)}
+          style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 600, color: '#fef3c7', background: 'none', border: '.5px solid rgba(254,243,199,.4)', borderRadius: '20px', padding: '2px 10px', cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          Turn off
+        </button>
+      </div>
 
       {/* ═══════════════════════════════════════════════
           INFO STRIP  48px sticky below header
           ═══════════════════════════════════════════════ */}
-      <div style={{
-        backgroundColor: '#fff', borderBottom: `.5px solid ${DS_BORDER}`,
-        height: `${ISTRIP_H}px`, display: 'flex', alignItems: 'center',
-        padding: '0 20px', position: 'sticky', top: `${istripTop}px`, zIndex: 219,
-        boxSizing: 'border-box', gap: '8px',
-      }}>
-
-        {/* Left cluster */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
-          {/* Reference */}
-          <span style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af', flexShrink: 0 }}>
-            {deal.reference}
+      <div className="istrip">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <span style={{ fontSize: '11px', fontWeight: 500, color: '#bbb' }}>{deal.reference}</span>
+          <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+          <span className={`ds-status ${STATUS_CSS[deal.status]}`}>{STATUS_LABELS[deal.status]}</span>
+          <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <i className="ti ti-map-pin" style={{ fontSize: '11px', opacity: 0.4 }}></i>
+            <span className="pii">{deal.address ?? 'No address'}</span>
           </span>
-          <span style={{ color: '#ddd', flexShrink: 0 }}>·</span>
-
-          {/* Status pill */}
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '4px',
-            fontSize: '11px', fontWeight: 500, padding: '2px 8px 2px 6px',
-            background: BG_SEC, borderRadius: '4px',
-            borderLeft: `3px solid ${STATUS_BORDER[deal.status]}`,
-            whiteSpace: 'nowrap', flexShrink: 0, color: '#374151',
-          }}>
-            {STATUS_LABELS[deal.status]}
-          </span>
-          <span style={{ color: '#ddd', flexShrink: 0 }}>·</span>
-
-          {/* Address */}
-          <span className="pii" style={{
-            fontSize: '13px', fontWeight: 600, color: '#1a2332',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {deal.address ?? 'No address'}
-          </span>
-          <span style={{ color: '#ddd', flexShrink: 0 }}>·</span>
-
-          {/* Strategy */}
-          <span style={{
-            fontSize: '12px', fontWeight: 600, color: NAVY,
-            background: 'rgba(27,58,107,.07)', border: `.5px solid rgba(27,58,107,.15)`,
-            borderRadius: '20px', padding: '1px 9px', whiteSpace: 'nowrap', flexShrink: 0,
-          }}>
-            {deal.strategy}
-          </span>
+          <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{deal.strategy}</span>
         </div>
-
-        {/* Right cluster */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          <span style={{ fontSize: '11px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-            ⏱ {fDate(deal.updated_at)}
+        <div style={{ marginLeft: 'auto', paddingRight: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '11px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <i className="ti ti-clock" style={{ fontSize: '11px' }}></i> {fDate(deal.updated_at)}
           </span>
-
-          {/* Livebar hide/show toggle */}
           <button
+            className="lb-hide-toggle"
+            style={{ background: 'rgba(27,58,107,.75)' }}
             onClick={() => setLivebarVisible(v => !v)}
-            title={livebarVisible ? 'Hide live bar' : 'Show live bar'}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              fontSize: '10px', fontWeight: 500, color: 'rgba(255,255,255,.45)',
-              background: 'rgba(27,58,107,.75)', border: '.5px solid rgba(255,255,255,.15)',
-              borderRadius: '6px', padding: '3px 9px', cursor: 'pointer',
-              fontFamily: 'inherit', whiteSpace: 'nowrap',
-            }}
+            title={livebarVisible ? 'Hide page info bar' : 'Show page info bar'}
           >
-            <span style={{ fontSize: '9px', transform: livebarVisible ? 'none' : 'rotate(180deg)', display: 'inline-block', transition: 'transform .18s' }}>
-              ▲
-            </span>
-            {livebarVisible ? 'Hide page info' : 'Show page info'}
+            <i className={`ti ${livebarVisible ? 'ti-chevron-up' : 'ti-chevron-down'}`} style={{ fontSize: '11px' }}></i>
+            <span>{livebarVisible ? 'Hide page info' : 'Show page info'}</span>
           </button>
         </div>
       </div>
@@ -461,78 +386,55 @@ export default function DealChrome({ deal, activeTab, onTabChange, children }: D
       {/* ═══════════════════════════════════════════════
           LIVE BAR  44px → 0px sticky
           ═══════════════════════════════════════════════ */}
-      <div style={{
-        background: NAVY_DEEP, display: 'flex', alignItems: 'center',
-        padding: '0 24px', overflow: 'hidden',
-        position: 'sticky', top: `${livebarTop}px`, zIndex: 218,
-        height: `${lbH}px`, opacity: livebarVisible ? 1 : 0,
-        pointerEvents: livebarVisible ? 'all' : 'none',
-        transition: 'height .2s ease, opacity .2s ease',
-      }}>
-        {lbItems.map((item, idx) => (
-          <div
-            key={idx}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              padding: '0 16px',
-              borderRight: idx < lbItems.length - 1 ? '.5px solid rgba(255,255,255,.1)' : 'none',
-            }}
-          >
-            <div style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: 'rgba(255,255,255,.45)', marginBottom: '2px' }}>
-              {item.label}
+      <div className={`livebar${livebarVisible ? '' : ' hidden'}`}>
+        <div className="lb-set on">
+          {lbItems.map((item, idx) => (
+            <div key={idx} className="lb-item">
+              <div className="lb-lbl">{item.label}</div>
+              <div className={`lb-val${item.highlight ? ' hl' : ''}`}>{item.value}</div>
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: item.highlight ? '#34D399' : '#fff', whiteSpace: 'nowrap' }}>
-              {item.value}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════
-          TAB NAV  42px sticky (adjusts with livebar)
+          TAB NAV  42px sticky (top adjusts with livebar)
           ═══════════════════════════════════════════════ */}
-      <div style={{
-        backgroundColor: '#fff', borderBottom: `.5px solid ${DS_BORDER}`,
-        position: 'sticky', top: `${tabsTop}px`, zIndex: 217,
-        height: `${TABS_H}px`, boxSizing: 'border-box',
-        transition: 'top .2s ease',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', height: '100%', padding: '0 20px' }}>
+      <div className="tabwrap" style={{ top: `${tabsTop}px` }}>
+        <div className="tabrow">
           {(Object.entries(TAB_LABELS) as [TabKey, string][]).map(([key, label], idx, arr) => (
-            <div key={key} style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <div key={key} style={{ display: 'contents' }}>
               <button
-                onClick={() => onTabChange(key)}
-                style={{
-                  background: 'none', border: 'none', height: '100%',
-                  padding: '0 14px', fontSize: '12px', cursor: 'pointer',
-                  fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  borderBottom: activeTab === key ? `2px solid ${TEAL}` : '2px solid transparent',
-                  fontWeight: activeTab === key ? 600 : 500,
-                  color: activeTab === key ? NAVY : '#5a6270',
-                  transition: 'color .15s, border-color .15s',
-                }}
+                className={`vt${activeTab === key ? ' on' : ''}`}
+                onClick={() => handleTabChange(key)}
               >
                 {label}
               </button>
-              {idx < arr.length - 1 && (
-                <div style={{ width: '.5px', height: '14px', background: DS_BORDER, flexShrink: 0 }} />
-              )}
+              {idx < arr.length - 1 && <div className="tdiv"></div>}
             </div>
           ))}
-
-          {/* Tab-level actions */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <div className="tab-action">
             <button
+              className="log-btn"
               onClick={() => setNotesOpen(true)}
-              style={BTN_GHOST_SM}
             >
-              📝 Notes
+              <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+              {notes.length > 0 && (
+                <span style={{
+                  fontSize: '9px', fontWeight: 700, minWidth: '16px', height: '16px',
+                  background: '#1D9E75', color: '#fff', borderRadius: '20px',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 4px', marginLeft: '2px',
+                }}>
+                  {notes.length}
+                </span>
+              )}
             </button>
             <button
+              className="log-btn"
               onClick={() => navigate('/dashboard')}
-              style={{ ...BTN_GHOST_SM, background: NAVY_DARK, color: '#fff', border: `none` }}
             >
-              ← Dashboard
+              <i className="ti ti-arrow-left" style={{ fontSize: '11px' }}></i> Dashboard
             </button>
           </div>
         </div>
@@ -541,9 +443,7 @@ export default function DealChrome({ deal, activeTab, onTabChange, children }: D
       {/* ═══════════════════════════════════════════════
           CONTENT
           ═══════════════════════════════════════════════ */}
-      <div>
-        {children}
-      </div>
+      <div>{children}</div>
 
       {/* ═══════════════════════════════════════════════
           NOTES DRAWER
@@ -553,151 +453,102 @@ export default function DealChrome({ deal, activeTab, onTabChange, children }: D
       {notesOpen && (
         <div
           onClick={() => setNotesOpen(false)}
-          style={{
-            position: 'fixed', inset: 0,
-            background: 'rgba(10,20,40,.55)',
-            zIndex: 300, transition: 'opacity .25s',
-          }}
+          className="notes-overlay show"
         />
       )}
 
       {/* Panel */}
-      <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px',
-        background: '#fff', zIndex: 301,
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '-8px 0 40px rgba(0,0,0,.16)',
-        transform: notesOpen ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform .28s cubic-bezier(.32,.72,0,1)',
-      }}>
-        {/* Notes header */}
-        <div style={{ background: NAVY, padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div className={`notes-panel${notesOpen ? ' show' : ''}`}>
+        <div className="notes-hdr">
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff' }}>📝 Notes</div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.55)', marginTop: '2px' }}>
+            <div className="notes-title">
+              <i className="ti ti-notes"></i> Notes
+            </div>
+            <div className="notes-count">
               {notes.length === 0 ? 'No notes yet' : `${notes.length} note${notes.length !== 1 ? 's' : ''}`}
             </div>
           </div>
-          <button
-            onClick={() => setNotesOpen(false)}
-            style={{
-              background: 'rgba(255,255,255,.1)', border: '.5px solid rgba(255,255,255,.2)',
-              borderRadius: '8px', color: '#fff', padding: '6px 12px',
-              cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit',
-              display: 'flex', alignItems: 'center', gap: '4px',
-            }}
-          >
-            ✕ Close
+          <button className="notes-close" onClick={() => setNotesOpen(false)}>
+            <i className="ti ti-x"></i> Close
           </button>
         </div>
 
-        {/* Notes scrollable body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
-
-          {/* Composer */}
-          <div style={{
-            background: BG_SEC, border: `.5px solid ${DS_BORDER}`,
-            borderRadius: '12px', padding: '14px', marginBottom: '20px',
-          }}>
+        <div className="notes-body">
+          <div className="notes-composer">
             <textarea
               id={noteInputId}
+              className="notes-input"
               value={noteInput}
               onChange={e => setNoteInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote() }}
               placeholder="Add a note about this deal…"
-              rows={3}
-              style={{
-                width: '100%', border: `.5px solid ${DS_BORDER}`, borderRadius: '8px',
-                padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit',
-                color: '#1a2332', resize: 'vertical', minHeight: '64px',
-                background: '#fff', boxSizing: 'border-box', outline: 'none',
-              }}
             />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
-              <span style={{ fontSize: '10px', color: '#9ca3af' }}>⌘↵ to submit</span>
+            <div className="notes-add-row">
               <button
-                onClick={addNote}
+                className="notes-add-btn"
                 disabled={!noteInput.trim()}
-                style={{
-                  background: NAVY, color: '#fff', border: 'none',
-                  borderRadius: '8px', padding: '8px 16px',
-                  fontSize: '12px', fontWeight: 600, cursor: noteInput.trim() ? 'pointer' : 'not-allowed',
-                  fontFamily: 'inherit', opacity: noteInput.trim() ? 1 : 0.4,
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  transition: 'opacity .12s',
-                }}
+                onClick={addNote}
               >
-                + Add note
+                <i className="ti ti-plus" style={{ fontSize: '13px' }}></i> Add note
               </button>
             </div>
           </div>
 
-          {/* Section label */}
           {notes.length > 0 && (
-            <div style={{
-              fontSize: '10px', fontWeight: 600, textTransform: 'uppercase',
-              letterSpacing: '.08em', color: '#aaa', marginBottom: '10px',
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}>
-              Activity
-              <div style={{ flex: 1, height: '.5px', background: DS_BORDER }} />
-            </div>
+            <div className="notes-section-lbl">Activity</div>
           )}
 
-          {/* Note list */}
-          {notes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af', fontSize: '13px' }}>
-              <div style={{ fontSize: '28px', color: DS_BORDER, marginBottom: '10px' }}>📋</div>
-              No notes yet — add the first one above.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {notes.map(note => (
-                <div
-                  key={note.id}
-                  style={{
-                    border: `.5px solid ${DS_BORDER}`, borderRadius: '12px',
-                    padding: '14px 16px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <div style={{
-                        width: '22px', height: '22px', borderRadius: '50%',
-                        background: 'rgba(27,58,107,.12)', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center',
-                        fontSize: '9px', fontWeight: 700, color: NAVY,
-                      }}>
-                        {note.author.slice(0, 2).toUpperCase()}
+          <div id="notesList">
+            {notes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af', fontSize: '13px' }}>
+                <div style={{ fontSize: '28px', color: '#e3e5e9', marginBottom: '10px' }}>📋</div>
+                No notes yet — add the first one above.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {notes.map(note => (
+                  <div
+                    key={note.id}
+                    style={{ border: '.5px solid #e3e5e9', borderRadius: '12px', padding: '14px 16px' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{
+                          width: '22px', height: '22px', borderRadius: '50%',
+                          background: 'rgba(27,58,107,.12)', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          fontSize: '9px', fontWeight: 700, color: '#1B3A6B',
+                        }}>
+                          {note.author.slice(0, 2).toUpperCase()}
+                        </div>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a2332' }}>
+                          {note.author}
+                        </span>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a2332' }}>
-                        {note.author}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#9ca3af' }}>{relTime(note.ts)}</span>
+                        <button
+                          onClick={() => deleteNote(note.id)}
+                          title="Delete note"
+                          style={{
+                            background: 'none', border: 'none', color: '#9ca3af',
+                            cursor: 'pointer', padding: '3px', borderRadius: '6px',
+                            display: 'flex', alignItems: 'center', fontSize: '13px',
+                            fontFamily: 'inherit', transition: 'all .12s',
+                          }}
+                        >
+                          🗑
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', color: '#9ca3af' }}>{relTime(note.ts)}</span>
-                      <button
-                        onClick={() => deleteNote(note.id)}
-                        title="Delete note"
-                        style={{
-                          background: 'none', border: 'none', color: '#9ca3af',
-                          cursor: 'pointer', padding: '3px', borderRadius: '6px',
-                          display: 'flex', alignItems: 'center', fontSize: '13px',
-                          fontFamily: 'inherit', transition: 'all .12s',
-                        }}
-                      >
-                        🗑
-                      </button>
+                    <div style={{ fontSize: '13px', lineHeight: 1.55, color: '#1a2332', whiteSpace: 'pre-wrap' }}>
+                      {note.text}
                     </div>
                   </div>
-                  <div style={{ fontSize: '13px', lineHeight: 1.55, color: '#1a2332', whiteSpace: 'pre-wrap' }}>
-                    {note.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
