@@ -423,7 +423,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
   const currentOfferAmt = currentOffer?.amount ?? agreedPrice
 
   return (
-    <div style={{ width: '100%', padding: '20px 24px 32px' }}>
+    <div className="ds-content">
       <Toast msg={toast} show={toastShow} />
 
       {!expDismissed && (
