@@ -79,6 +79,7 @@ export default function DealPage() {
   const [loading, setLoading]   = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [analysisView, setAnalysisView] = useState<SubView>('results')
+  const [contentType, setContentType] = useState('advert')
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return }
@@ -124,8 +125,6 @@ export default function DealPage() {
       </div>
     )
   }
-
-  const [contentType, setContentType] = useState('advert')
 
   // ── Render with chrome ─────────────────────────────────────────────────────
   return (
