@@ -414,28 +414,69 @@ export default function DealChrome({ deal, children }: DealChromeProps) {
             </div>
           ))}
           <div className="tab-action">
-            <button
-              className="log-btn"
-              onClick={() => setNotesOpen(true)}
-            >
-              <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
-              {notes.length > 0 && (
-                <span style={{
-                  fontSize: '9px', fontWeight: 700, minWidth: '16px', height: '16px',
-                  background: '#1D9E75', color: '#fff', borderRadius: '20px',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 4px', marginLeft: '2px',
+            {activeTab === 'analysis' ? (
+              <>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
+                  background: 'rgba(217,119,6,.08)', color: '#92400e',
+                  cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  {notes.length}
-                </span>
-              )}
-            </button>
-            <button
-              className="log-btn"
-              onClick={() => navigate('/dashboard')}
-            >
-              <i className="ti ti-arrow-left" style={{ fontSize: '11px' }}></i> Dashboard
-            </button>
+                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
+                  background: 'var(--navy-light)', color: 'var(--navy)',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid var(--navy)',
+                  background: 'var(--navy)', color: '#fff',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-checks" style={{ fontSize: '11px' }}></i> Confirm inputs
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="log-btn"
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                  {notes.length > 0 && (
+                    <span style={{
+                      fontSize: '9px', fontWeight: 700, minWidth: '16px', height: '16px',
+                      background: '#1D9E75', color: '#fff', borderRadius: '20px',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '0 4px', marginLeft: '2px',
+                    }}>
+                      {notes.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  className="log-btn"
+                  onClick={() => navigate('/dashboard')}
+                >
+                  <i className="ti ti-arrow-left" style={{ fontSize: '11px' }}></i> Dashboard
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
