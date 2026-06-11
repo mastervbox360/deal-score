@@ -179,8 +179,8 @@ function CardActions({ dealId, navigate, onStub, disabled }: CardActionsProps) {
   return (
     <div style={{ display: 'flex', gap: '6px' }}>
       <button onClick={onStub} style={BTN_GHOST}>Advert</button>
-      <button onClick={() => navigate(`/app?deal=${dealId}`)} style={BTN_OUTLINE} disabled={disabled}>Edit</button>
-      <button onClick={() => navigate(`/app?deal=${dealId}`)} style={BTN_PRIMARY_SM} disabled={disabled}>Open →</button>
+      <button onClick={() => navigate(`/deal/${dealId}`)} style={BTN_OUTLINE} disabled={disabled}>Edit</button>
+      <button onClick={() => navigate(`/deal/${dealId}`)} style={BTN_PRIMARY_SM} disabled={disabled}>Open →</button>
     </div>
   )
 }
@@ -399,7 +399,7 @@ export default function DashboardPage() {
     setTimeout(() => {
       closeNd()
       void fetchDeals()
-      navigate(`/app?deal=${deal.id}`)
+      navigate(`/deal/${deal.id}`)
     }, 1900)
   }
 
@@ -502,8 +502,8 @@ export default function DashboardPage() {
         <nav style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '2px' }}>
           {([
             { label: 'Dashboard', active: true,  fn: () => navigate('/dashboard') },
-            { label: 'Investors', active: false, fn: () => stub('Investors coming soon') },
-            { label: 'Sellers',   active: false, fn: () => stub('Sellers coming soon') },
+            { label: 'Investors', active: false, fn: () => navigate('/investors-crm') },
+            { label: 'Sellers',   active: false, fn: () => navigate('/sellers-crm') },
           ] as const).map(n => (
             <button
               key={n.label}
@@ -994,7 +994,7 @@ export default function DashboardPage() {
                   </div>
 
                   <button
-                    onClick={() => navigate(`/app?deal=${deal.id}`)}
+                    onClick={() => navigate(`/deal/${deal.id}`)}
                     disabled={isDel}
                     style={{ ...BTN_PRIMARY_SM, width: '100%', textAlign: 'center', marginTop: 'auto' }}
                   >
@@ -1035,8 +1035,8 @@ export default function DashboardPage() {
                     <div style={{ fontSize: '10px', color: '#9ca3af' }}>Yield</div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                    <button onClick={() => navigate(`/app?deal=${deal.id}`)} style={BTN_OUTLINE} disabled={isDel}>Edit</button>
-                    <button onClick={() => navigate(`/app?deal=${deal.id}`)} style={BTN_PRIMARY_SM} disabled={isDel}>Open →</button>
+                    <button onClick={() => navigate(`/deal/${deal.id}`)} style={BTN_OUTLINE} disabled={isDel}>Edit</button>
+                    <button onClick={() => navigate(`/deal/${deal.id}`)} style={BTN_PRIMARY_SM} disabled={isDel}>Open →</button>
                   </div>
                 </div>
               )
@@ -1094,7 +1094,7 @@ export default function DashboardPage() {
                         </select>
 
                         <button
-                          onClick={() => navigate(`/app?deal=${deal.id}`)}
+                          onClick={() => navigate(`/deal/${deal.id}`)}
                           style={{ ...BTN_PRIMARY_SM, width: '100%', textAlign: 'center' }}
                         >
                           Open →
@@ -1148,7 +1148,7 @@ export default function DashboardPage() {
                     {deal.reference} · {fDate(deal.updated_at)}
                   </div>
                   <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                    <button onClick={() => navigate(`/app?deal=${deal.id}`)} style={BTN_OUTLINE}>Reopen</button>
+                    <button onClick={() => navigate(`/deal/${deal.id}`)} style={BTN_OUTLINE}>Reopen</button>
                     <button
                       onClick={() => handleDelete(deal.id)}
                       disabled={deleting.has(deal.id)}
