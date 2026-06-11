@@ -120,6 +120,16 @@ function topBorderColor(deal: Deal): string {
   if (deal.deal_score === 'AVOID') return '#dc2626'
   return DS_BORDER
 }
+function statusBorderColor(status: DealStatus): string {
+  switch (status) {
+    case 'analysing':  return '#9ca3af'
+    case 'reviewing':  return '#10b981'
+    case 'presenting': return '#8b5cf6'
+    case 'closed':     return '#059669'
+    case 'dead':       return '#f87171'
+    default:           return '#e5e7eb'
+  }
+}
 function getInitials(name: string | null | undefined, email: string | null | undefined): string {
   if (name?.trim()) {
     const p = name.trim().split(/\s+/)
@@ -154,6 +164,21 @@ function StatusPill({ status }: { status: DealStatus }) {
       padding: '3px 9px', borderRadius: '20px',
       backgroundColor: cfg.bg, color: cfg.color,
       letterSpacing: '.02em', whiteSpace: 'nowrap',
+    }}>
+      {cfg.label}
+    </span>
+  )
+}
+
+function DsStatusBar({ status }: { status: DealStatus }) {
+  const cfg = STATUS_CFG[status]
+  const bColor = statusBorderColor(status)
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '5px',
+      fontSize: '11px', fontWeight: 500, padding: '2px 8px 2px 7px',
+      background: BG_SEC, borderRadius: '4px', borderLeft: `3px solid ${bColor}`,
+      whiteSpace: 'nowrap', color: '#1a1a2e',
     }}>
       {cfg.label}
     </span>
@@ -256,6 +281,9 @@ export default function DashboardPage() {
   const [privacyMode, setPrivacyMode]       = useState(false)
   const [avatarOpen, setAvatarOpen]         = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
+  const [filterStrategy, setFilterStrategy] = useState<string>('')
+  const [filterScore, setFilterScore]       = useState<string>('')
+  const [filterStatus, setFilterStatus]     = useState<string>('')
 
   // Welcome rail
   const [welcomeDismissed, setWelcomeDismissed] = useState(
@@ -462,6 +490,13 @@ export default function DashboardPage() {
       if (dealFilter === 'active') return d.status === 'analysing' || d.status === 'reviewing'
       return d.status === dealFilter
     })
+    .filter(d => !filterStrategy || d.strategy === filterStrategy)
+    .filter(d => {
+      if (!filterScore) return true
+      if (filterScore === 'none') return !d.deal_score
+      return d.deal_score === filterScore
+    })
+    .filter(d => !filterStatus || d.status === filterStatus)
     .filter(d => {
       if (!search) return true
       const q = search.toLowerCase()
@@ -499,22 +534,22 @@ export default function DashboardPage() {
           Deal<span style={{ color: TEAL }}>Score</span>
         </button>
 
-        <nav style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '2px' }}>
+        <nav style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2px' }}>
           {([
-            { label: 'Dashboard', active: true,  fn: () => navigate('/dashboard') },
-            { label: 'Investors', active: false, fn: () => navigate('/investors-crm') },
-            { label: 'Sellers',   active: false, fn: () => navigate('/sellers-crm') },
-          ] as const).map(n => (
+            { label: 'Deals',    fn: () => navigate('/dashboard') },
+            { label: 'Pipeline', fn: () => stub('Pipeline view coming soon') },
+            { label: 'Compare',  fn: () => stub('Compare view coming soon') },
+          ] as const).map((n, i) => (
             <button
               key={n.label}
               onClick={n.fn}
               style={{
-                background: 'none', border: 'none',
-                borderBottom: n.active ? `2px solid ${TEAL}` : '2px solid transparent',
-                cursor: 'pointer', padding: '8px 14px', fontSize: '13px',
-                fontWeight: n.active ? 700 : 500,
-                color: n.active ? '#fff' : 'rgba(255,255,255,.55)',
-                fontFamily: 'inherit', transition: 'color .15s',
+                background: i === 0 ? 'rgba(255,255,255,.14)' : 'none',
+                border: 'none', borderRadius: '7px',
+                cursor: 'pointer', padding: '5px 13px', fontSize: '12px',
+                fontWeight: 500,
+                color: i === 0 ? '#fff' : 'rgba(255,255,255,.5)',
+                fontFamily: 'inherit', transition: 'color .12s, background .12s',
               }}
             >
               {n.label}
@@ -523,6 +558,20 @@ export default function DashboardPage() {
         </nav>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          {/* Sellers + Investors right-nav */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+            <button
+              onClick={() => navigate('/sellers-crm')}
+              style={{ background: 'none', border: 'none', borderRadius: '7px', cursor: 'pointer', padding: '5px 13px', fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,.5)', fontFamily: 'inherit' }}
+            >Seller</button>
+            <div style={{ width: '0.5px', height: '14px', background: 'rgba(255,255,255,.12)', margin: '0 4px' }} />
+            <button
+              onClick={() => navigate('/investors-crm')}
+              style={{ background: 'none', border: 'none', borderRadius: '7px', cursor: 'pointer', padding: '5px 13px', fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,.5)', fontFamily: 'inherit' }}
+            >Investors</button>
+          </nav>
+          <div style={{ width: '0.5px', height: '18px', background: 'rgba(255,255,255,.12)' }} />
+
           <button
             onClick={() => setPrivacyMode(p => !p)}
             title={privacyMode ? 'Privacy on — click to show data' : 'Click to hide sensitive data'}
@@ -755,7 +804,47 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <button onClick={() => stub('Compare view coming soon')} style={{ ...BTN_GHOST, flexShrink: 0 }}>Compare</button>
+          {/* Strategy filter */}
+          <select
+            value={filterStrategy}
+            onChange={e => setFilterStrategy(e.target.value)}
+            style={{ padding: '5px 8px', border: `0.5px solid ${DS_BORDER}`, borderRadius: '7px', fontSize: '11px', background: '#fff', color: '#555', outline: 'none', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <option value="">All strategies</option>
+            <option value="BTL">BTL</option>
+            <option value="HMO">HMO</option>
+            <option value="FLIP">Flip</option>
+            <option value="SA">SA</option>
+            <option value="BRRR">BRRR</option>
+            <option value="R2R">R2R</option>
+            <option value="SOCIAL">Social</option>
+          </select>
+
+          {/* Score filter */}
+          <select
+            value={filterScore}
+            onChange={e => setFilterScore(e.target.value)}
+            style={{ padding: '5px 8px', border: `0.5px solid ${DS_BORDER}`, borderRadius: '7px', fontSize: '11px', background: '#fff', color: '#555', outline: 'none', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <option value="">All scores</option>
+            <option value="RECOMMENDED">Recommended</option>
+            <option value="REVIEW">Review</option>
+            <option value="AVOID">Avoid</option>
+            <option value="none">No score</option>
+          </select>
+
+          {/* Status filter */}
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            style={{ padding: '5px 8px', border: `0.5px solid ${DS_BORDER}`, borderRadius: '7px', fontSize: '11px', background: '#fff', color: '#555', outline: 'none', fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <option value="">All statuses</option>
+            <option value="analysing">Sourcing</option>
+            <option value="reviewing">Ready</option>
+            <option value="presenting">Pack sent</option>
+            <option value="closed">Complete</option>
+          </select>
 
           <select
             value={sortBy}
@@ -929,31 +1018,53 @@ export default function DashboardPage() {
                   key={deal.id}
                   style={{
                     backgroundColor: '#fff',
-                    border: `1px solid ${DS_BORDER}`,
-                    borderTop: `3px solid ${topBorderColor(deal)}`,
+                    border: `0.5px solid ${DS_BORDER}`,
+                    borderTop: `2.5px solid ${topBorderColor(deal)}`,
                     borderRadius: '10px', display: 'flex', flexDirection: 'column',
                     opacity: isDel ? 0.5 : 1, transition: 'opacity .2s', overflow: 'hidden',
                   }}
                 >
-                  <div style={{ padding: '14px 14px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  {/* Card top: strategy tag + reference */}
+                  <div style={{ padding: '11px 13px 5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <DsTag deal={deal} />
-                    <StatusPill status={deal.status} />
+                    <span style={{ fontSize: '10px', color: '#ccc', letterSpacing: '.03em' }}>{deal.reference}</span>
                   </div>
 
-                  <div style={{ padding: '0 14px 10px' }}>
-                    <div className="pii" style={{ fontSize: '13px', fontWeight: 600, color: '#1a2332', lineHeight: 1.35 }}>
+                  {/* Purchase price — headline */}
+                  <div style={{ padding: '0 13px 2px' }}>
+                    <div className="pii" style={{ fontSize: '20px', fontWeight: 700, color: '#1a1a2e', lineHeight: 1.15, letterSpacing: '-0.3px' }}>
+                      {deal.purchase_price ? fCurrency(deal.purchase_price) : '—'}
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  <div style={{ padding: '0 13px 7px' }}>
+                    <div
+                      className="pii"
+                      style={{ fontSize: '13px', fontWeight: 600, color: deal.address ? '#1a2332' : '#ccc', fontStyle: deal.address ? 'normal' : 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
                       {deal.address || 'No address'}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{deal.reference}</div>
                   </div>
 
-                  <div style={{ height: '72px', overflow: 'hidden', flexShrink: 0, padding: '4px 14px 0', display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                    <Metric label="Monthly CF" value={fCurrency(deal.cash_flow)} />
-                    <Metric label="Yield"       value={fPct(deal.gross_yield)} />
-                    <Metric label="CoC ROI"     value={fPct(deal.coc_roi)} />
+                  {/* Metrics 2×2 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '4px 13px 10px', flex: 1 }}>
+                    {[
+                      { label: 'Monthly CF', value: fCurrency(deal.cash_flow) },
+                      { label: 'Yield',       value: fPct(deal.gross_yield) },
+                      { label: 'CoC ROI',     value: fPct(deal.coc_roi) },
+                      { label: 'Price',       value: fCurrency(deal.purchase_price) },
+                    ].map(m => (
+                      <div key={m.label} style={{ background: BG_SEC, borderRadius: '6px', padding: '7px 9px' }}>
+                        <div style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: '#bbb', marginBottom: '2px' }}>{m.label}</div>
+                        <div className="pii" style={{ fontSize: '13px', fontWeight: 500, color: NAVY }}>{m.value}</div>
+                      </div>
+                    ))}
                   </div>
 
-                  <div style={{ padding: '10px 14px 14px', marginTop: 'auto' }}>
+                  {/* Footer: status bar + actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 13px', borderTop: `0.5px solid ${DS_BORDER}` }}>
+                    <DsStatusBar status={deal.status} />
                     <CardActions dealId={deal.id} navigate={navigate} onStub={() => stub('Deal advert coming soon')} disabled={isDel} />
                   </div>
                 </div>
@@ -972,34 +1083,54 @@ export default function DashboardPage() {
                   key={deal.id}
                   style={{
                     backgroundColor: '#fff',
-                    border: `1px solid ${DS_BORDER}`,
-                    borderTop: `3px solid ${topBorderColor(deal)}`,
-                    borderRadius: '8px', padding: '12px',
-                    display: 'flex', flexDirection: 'column', gap: '6px',
-                    opacity: isDel ? 0.5 : 1, transition: 'opacity .2s',
+                    border: `0.5px solid ${DS_BORDER}`,
+                    borderTop: `2.5px solid ${topBorderColor(deal)}`,
+                    borderRadius: '8px', display: 'flex', flexDirection: 'column',
+                    opacity: isDel ? 0.5 : 1, transition: 'opacity .2s', overflow: 'hidden',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                    <DsTag deal={deal} />
-                    <StatusPill status={deal.status} />
+                  {/* Compact header: dark navy band */}
+                  <div style={{ background: NAVY_DARK, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '.07em', color: 'rgba(255,255,255,.65)' }}>{deal.strategy}</span>
+                    <span style={{
+                      fontSize: '9px', fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase',
+                      color: deal.deal_score === 'RECOMMENDED' ? '#34D399' : deal.deal_score === 'REVIEW' ? '#FCD34D' : deal.deal_score === 'AVOID' ? '#f87171' : 'rgba(255,255,255,.3)',
+                    }}>
+                      {deal.deal_score ?? 'No score'}
+                    </span>
                   </div>
 
-                  <div className="pii" style={{ fontSize: '12px', fontWeight: 600, color: '#1a2332', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {deal.address || 'No address'}
+                  {/* Body */}
+                  <div style={{ padding: '9px 10px 8px', flex: 1 }}>
+                    {/* Purchase price — headline */}
+                    <div className="pii" style={{ fontSize: '19px', fontWeight: 800, color: '#1a1a2e', lineHeight: 1.1, marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {deal.purchase_price ? fCurrency(deal.purchase_price) : '—'}
+                    </div>
+                    {/* Address */}
+                    <div
+                      className="pii"
+                      style={{ fontSize: '11px', fontWeight: 600, color: deal.address ? '#1a2332' : '#ccc', fontStyle: deal.address ? 'normal' : 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '8px' }}
+                    >
+                      {deal.address || 'No address'}
+                    </div>
+                    {/* Hero metric */}
+                    <div style={{ fontSize: '9px', color: '#6c757d', fontWeight: 500, marginBottom: '2px' }}>Monthly CF</div>
+                    <div className="pii" style={{ fontSize: '19px', fontWeight: 800, color: deal.cash_flow && deal.cash_flow > 0 ? TEAL : deal.cash_flow && deal.cash_flow < 0 ? '#DC2626' : '#d1d5db', lineHeight: 1.1 }}>
+                      {fCurrency(deal.cash_flow)}
+                    </div>
                   </div>
 
-                  <div style={{ height: '72px', overflow: 'hidden', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '4px' }}>
-                    <Metric label="CF"    value={fCurrency(deal.cash_flow)} />
-                    <Metric label="Yield" value={fPct(deal.gross_yield)} />
+                  {/* Footer: status bar + open button */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px 8px', borderTop: `0.5px solid ${DS_BORDER}` }}>
+                    <DsStatusBar status={deal.status} />
+                    <button
+                      onClick={() => navigate(`/deal/${deal.id}`)}
+                      disabled={isDel}
+                      style={{ fontSize: '10px', fontWeight: 600, color: NAVY, background: '#eef3fb', border: '0.5px solid rgba(27,58,107,.15)', borderRadius: '4px', padding: '3px 7px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+                    >
+                      Open →
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => navigate(`/deal/${deal.id}`)}
-                    disabled={isDel}
-                    style={{ ...BTN_PRIMARY_SM, width: '100%', textAlign: 'center', marginTop: 'auto' }}
-                  >
-                    Open →
-                  </button>
                 </div>
               )
             })}
