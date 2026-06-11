@@ -437,106 +437,132 @@ export default function DealOverview({ deal, onTabChange }: Props) {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="ds-content">
-
-      {/* ─── Explainer card ───────────────────────────────────────────────── */}
-      <div className="exp-card" id="ov-exp-card">
-        <button
-          className="exp-dismiss"
-          onClick={(e) => {
-            const card = (e.currentTarget.closest?.('.exp-card') as HTMLElement | null)
-              ?? (e.currentTarget.parentElement as HTMLElement | null)
-            if (card) card.style.display = 'none'
-            const restore = card?.nextElementSibling as HTMLElement | null
-            if (restore?.classList.contains('exp-restore')) restore.classList.add('show')
-          }}
-        >×</button>
-        <div className="exp-icon">🏠</div>
-        <div>
-          <div className="exp-title">Your deal command centre</div>
-          <div className="exp-text">
-            Summary shows next actions, tab progress, and recent activity. <strong>Deal Status</strong> tracks reservation countdown, key dates, and fees. Use <strong>Close deal</strong> when the deal completes or falls through.
-          </div>
-        </div>
-      </div>
-      <button
-        className="exp-restore"
-        onClick={(e) => {
-          ;(e.currentTarget as HTMLElement).classList.remove('show')
-          const card = (e.currentTarget as HTMLElement).previousElementSibling as HTMLElement | null
-          if (card?.classList.contains('exp-card')) card.style.display = 'flex'
-        }}
-      >📖 Page guide</button>
+    <div style={{ width: '100%', padding: '20px 24px 60px', fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
-      <div className={`archived-banner${archivedBanner ? (archivedSuccess ? ' show complete' : ' show') : ''}`}>
-        <span style={{ fontSize: '16px' }}>{archivedSuccess ? '✅' : '📁'}</span>
-        <span className="archived-banner-msg">{archivedMsg}</span>
-        <button className="archived-banner-undo" onClick={() => setArchivedBanner(false)}>Undo</button>
-      </div>
+      {archivedBanner && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          background: archivedSuccess ? '#d1fae5' : '#fee2e2',
+          border: `.5px solid ${archivedSuccess ? '#6ee7b7' : '#fca5a5'}`,
+          borderRadius: '10px', padding: '12px 16px', marginBottom: '16px',
+          fontSize: '12px', fontWeight: 500,
+          color: archivedSuccess ? '#065f46' : '#991b1b',
+        }}>
+          <span style={{ fontSize: '16px' }}>{archivedSuccess ? '✅' : '📁'}</span>
+          <span style={{ flex: 1 }}>{archivedMsg}</span>
+          <button
+            onClick={() => setArchivedBanner(false)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '11px', fontWeight: 600,
+              color: archivedSuccess ? '#065f46' : '#991b1b',
+              fontFamily: 'inherit', padding: '2px 8px',
+              borderRadius: '6px', flexShrink: 0,
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      )}
 
       {/* ─── Deal Hero ────────────────────────────────────────────────────── */}
-      <div className="deal-hero">
-        <div className="hero-score-ring">
-          {deal.deal_score === 'RECOMMENDED' ? (
-            <>
-              <div className="hero-score-num" style={{ fontSize: '18px' }}>✓</div>
-              <div className="hero-score-lbl">Score</div>
-            </>
-          ) : deal.deal_score === 'REVIEW' ? (
-            <>
-              <div className="hero-score-num" style={{ fontSize: '18px', color: '#FCD34D' }}>⚠</div>
-              <div className="hero-score-lbl">Review</div>
-            </>
-          ) : deal.deal_score ? (
-            <>
-              <div className="hero-score-num" style={{ fontSize: '18px', color: '#f87171' }}>✗</div>
-              <div className="hero-score-lbl">Score</div>
-            </>
-          ) : (
-            <>
-              <div className="hero-score-num" style={{ fontSize: '14px', color: 'rgba(52,211,153,.4)' }}>?</div>
-              <div className="hero-score-lbl">No score</div>
-            </>
-          )}
-        </div>
+      <div style={{
+        background: `linear-gradient(135deg, ${NAVY_DARK} 0%, ${NAVY} 100%)`,
+        borderRadius: '14px', padding: '22px 24px', marginBottom: '16px',
+        display: 'flex', alignItems: 'flex-start', gap: '20px',
+      }}>
+        {/* Score ring */}
+        <ScoreRing verdict={deal.deal_score} />
 
-        <div className="hero-info">
-          <div className="hero-title pii">{deal.address ?? 'No address set'}</div>
-          <div className="hero-sub">
-            <span>🏠 {stratLabel}</span>
-            <span style={{ opacity: 0.3 }}>·</span>
-            <span>📅 Created {daysSince} day{daysSince === 1 ? '' : 's'} ago</span>
+        {/* Hero info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="pii" style={{
+            fontSize: '17px', fontWeight: 700, color: '#fff',
+            marginBottom: '6px', lineHeight: 1.3,
+          }}>
+            {deal.address ?? 'No address set'}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,.6)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              🏠 {stratLabel}
+            </span>
+            <span style={{ color: 'rgba(255,255,255,.25)', fontSize: '11px' }}>·</span>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,.6)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              📅 Created {daysSince} day{daysSince === 1 ? '' : 's'} ago
+            </span>
             {deal.purchase_price && (
               <>
-                <span style={{ opacity: 0.3 }}>·</span>
-                <span>{fCurrency(deal.purchase_price)}</span>
+                <span style={{ color: 'rgba(255,255,255,.25)', fontSize: '11px' }}>·</span>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,.6)' }}>
+                  {fCurrency(deal.purchase_price)}
+                </span>
               </>
             )}
           </div>
-          <div className="hero-pills">
-            {deal.deal_score && verdictCfg ? (
-              <span className={`hero-pill ${deal.deal_score === 'RECOMMENDED' ? 'teal' : deal.deal_score === 'REVIEW' ? 'amber' : 'grey'}`}>
-                {deal.deal_score === 'RECOMMENDED' ? '✓ Recommended' : deal.deal_score === 'REVIEW' ? '⚠ Review deal' : '✗ Not recommended'}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+            {deal.deal_score && verdictCfg && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '10px', fontWeight: 700, padding: '3px 10px',
+                background: verdictCfg.bg, color: deal.deal_score === 'RECOMMENDED' ? '#065f46' : deal.deal_score === 'REVIEW' ? '#92400e' : '#991b1b',
+                borderRadius: '20px',
+              }}>
+                {deal.deal_score === 'RECOMMENDED' ? '✓' : deal.deal_score === 'REVIEW' ? '⚠' : '✗'} {deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase()} deal
               </span>
-            ) : (
-              <span className="hero-pill white">No score yet</span>
             )}
-            <span className="hero-pill white">{stratLabel}</span>
+            {!deal.deal_score && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '10px', fontWeight: 700, padding: '3px 10px',
+                background: 'rgba(255,255,255,.12)', color: 'rgba(255,255,255,.6)',
+                borderRadius: '20px',
+              }}>
+                No score yet
+              </span>
+            )}
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              fontSize: '10px', fontWeight: 600, padding: '3px 10px',
+              background: 'rgba(255,255,255,.12)', color: 'rgba(255,255,255,.7)',
+              borderRadius: '20px',
+            }}>
+              {stratLabel}
+            </span>
             {deal.status === 'analysing' && (
-              <span className="hero-pill amber">⚠ Run analysis to score</span>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontSize: '10px', fontWeight: 700, padding: '3px 10px',
+                background: 'rgba(251,191,36,.2)', color: '#FCD34D',
+                borderRadius: '20px',
+              }}>
+                ⚠ Run analysis to score this deal
+              </span>
             )}
           </div>
         </div>
 
-        <div className="hero-right">
-          <div className="hero-status-lbl">Current status</div>
-          <div className="hero-status-val">{STATUS_LABELS[deal.status]}</div>
-          <div className="hero-days">Day {daysSince} of deal</div>
+        {/* Hero right: status + close deal */}
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontSize: '9px', fontWeight: 600, color: 'rgba(255,255,255,.45)', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: '4px' }}>
+            Current status
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '2px' }}>
+            {STATUS_LABELS[deal.status]}
+          </div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.5)', marginBottom: '14px' }}>
+            Day {daysSince} of deal
+          </div>
           <button
-            className="action-btn"
-            style={{ marginTop: '10px', width: '100%', justifyContent: 'center' }}
             onClick={() => setCloseDealOpen(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', borderRadius: '8px',
+              border: '.5px solid rgba(255,255,255,.25)', background: 'rgba(255,255,255,.1)',
+              color: '#fff', fontSize: '11px', fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all .12s',
+              whiteSpace: 'nowrap',
+            }}
           >
             ✓ Close deal
           </button>
@@ -544,224 +570,207 @@ export default function DealOverview({ deal, onTabChange }: Props) {
       </div>
 
       {/* ─── Deal Flow Rail ───────────────────────────────────────────────── */}
-      <div className="flow-rail">
-        {FLOW_STAGES.flatMap((stage, i) => {
+      <div style={{
+        background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px',
+        padding: '14px 20px', marginBottom: '20px',
+        display: 'flex', alignItems: 'center',
+      }}>
+        {FLOW_STAGES.map((stage, i) => {
           const isDone   = stageIdx >= 0 && i < stageIdx
           const isActive = i === stageIdx
-          const isWarn   = isActive && deal.status === 'analysing'
-          const items = [
-            <div key={`step-${i}`} className="flow-step">
-              <div className={`flow-node ${isDone ? 'done' : isActive ? (isWarn ? 'warn' : 'active') : 'future'}`}>
-                {isDone ? '✓' : stage.icon}
+          const isFuture = stageIdx < 0 || i > stageIdx
+          return (
+            <div key={stage.label} style={{ display: 'flex', alignItems: 'center', flex: i < FLOW_STAGES.length - 1 ? '1 1 auto' : '0 0 auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '13px', fontWeight: 700, flexShrink: 0, transition: 'all .2s',
+                  background: isDone ? TEAL : isActive ? NAVY : BG_SEC,
+                  border: isDone ? `2px solid ${TEAL}` : isActive ? `2px solid ${NAVY}` : `.5px solid ${DS_BORDER}`,
+                  color: (isDone || isActive) ? '#fff' : '#9ca3af',
+                }}>
+                  {isDone ? '✓' : stage.icon}
+                </div>
+                <div style={{
+                  fontSize: '9px', fontWeight: 600, whiteSpace: 'nowrap',
+                  color: isDone ? TEAL : isActive ? NAVY : '#9ca3af',
+                  textTransform: 'uppercase', letterSpacing: '.04em',
+                }}>
+                  {stage.label}
+                </div>
               </div>
-              <div className={`flow-lbl${isDone ? ' done' : isActive ? (isWarn ? ' warn' : ' active') : ''}`}>
-                {stage.label}
-              </div>
-            </div>,
-          ]
-          if (i < FLOW_STAGES.length - 1) {
-            items.push(
-              <div key={`conn-${i}`} className={`flow-connector${isDone ? ' done' : isActive ? ' active' : ''}`} />
-            )
-          }
-          return items
+              {i < FLOW_STAGES.length - 1 && (
+                <div style={{
+                  flex: 1, height: '2px', margin: '0 4px', marginBottom: '20px',
+                  background: isDone ? TEAL : DS_BORDER,
+                  borderRadius: '2px', transition: 'background .2s',
+                }} />
+              )}
+            </div>
+          )
         })}
       </div>
 
       {/* ─── Split: left + right sidebar ─────────────────────────────────── */}
-      <div className="split">
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
 
-        {/* ── LEFT COLUMN ─────────────────────────────────────────────────── */}
-        <div>
+        {/* ── LEFT COLUMN ────────────────────────────────────────────────── */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
           {/* Next actions */}
-          <div className="sec">
-            <div className="sec-hdr">
-              <span style={{ fontSize: '14px', color: 'var(--amber)' }}>⚡</span>
-              <div className="sec-title">Next actions</div>
-              <span className="sec-badge amber">
-                {deal.status === 'analysing' ? '1 item' : '2 items'}
+          <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '12px 16px', borderBottom: `.5px solid ${DS_BORDER}`,
+            }}>
+              <span style={{ fontSize: '14px' }}>⚡</span>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a2332' }}>Next actions</div>
+              <span style={{
+                fontSize: '9px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
+                background: '#fef3c7', color: '#92400e', marginLeft: '4px',
+              }}>
+                {deal.status === 'analysing' ? '1 item' : deal.status === 'reviewing' ? '2 items' : '2 items'}
               </span>
             </div>
-            <div style={{ padding: '0 16px' }}>
 
+            <div style={{ padding: '4px 0 8px' }}>
+              {/* Action 1: run/review analysis */}
               {deal.status === 'analysing' && (
-                <div className="action-item">
-                  <div className="action-dot warn" />
-                  <div className="action-body">
-                    <div className="action-title">Run analysis to score this deal</div>
-                    <div className="action-sub">No analysis has been run yet. Add your financial inputs and run the deal score to see returns.</div>
-                    <div className="action-btns">
-                      <button className="action-btn primary" onClick={() => onTabChange('analysis')}>
-                        → Go to Analysis
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ActionItem
+                  dot={AMBER}
+                  title="Run analysis to score this deal"
+                  sub="No analysis has been run yet. Add your financial inputs and run the deal score to see returns."
+                  buttons={[
+                    { label: '→ Go to Analysis', color: NAVY, onClick: () => onTabChange('analysis') },
+                  ]}
+                />
               )}
 
               {(deal.status === 'reviewing' || deal.status === 'presenting' || deal.status === 'closed') && (
-                <div className="action-item">
-                  <div className="action-dot info" />
-                  <div className="action-body">
-                    <div className="action-title">Review analysis results</div>
-                    <div className="action-sub">
-                      {deal.deal_score
-                        ? `Deal scored as ${deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase()}. Review the full breakdown before sharing.`
-                        : 'Analysis run. Verify the results before sharing with investors.'}
-                    </div>
-                    <div className="action-btns">
-                      <button className="action-btn primary" onClick={() => onTabChange('analysis')}>
-                        📊 View Results
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ActionItem
+                  dot={TEAL}
+                  title="Review analysis results"
+                  sub={deal.deal_score
+                    ? `Deal scored as ${deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase()}. Review the full breakdown before sharing.`
+                    : 'Analysis run. Verify the results before sharing with investors.'}
+                  buttons={[
+                    { label: '📊 View Results', color: NAVY, onClick: () => onTabChange('analysis') },
+                  ]}
+                />
               )}
 
+              {/* Action 2: content / pack */}
               {deal.packs_generated === 0 && deal.status !== 'analysing' && (
-                <div className="action-item">
-                  <div className="action-dot warn" />
-                  <div className="action-body">
-                    <div className="action-title">Deal pack not yet created</div>
-                    <div className="action-sub">No investor pack has been generated for this deal. Create a pack before sharing with investors.</div>
-                    <div className="action-btns">
-                      <button className="action-btn primary" onClick={() => onTabChange('content')}>
-                        📦 Create pack
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ActionItem
+                  dot={AMBER}
+                  title="Deal pack not yet created"
+                  sub="No investor pack has been generated for this deal. Create a pack before sharing with investors."
+                  buttons={[
+                    { label: '📦 Create pack', color: NAVY, onClick: () => onTabChange('content') },
+                  ]}
+                />
               )}
 
               {deal.packs_generated > 0 && (
-                <div className="action-item">
-                  <div className="action-dot" style={{ background: 'var(--teal)' }} />
-                  <div className="action-body">
-                    <div className="action-title">{deal.packs_generated} pack{deal.packs_generated > 1 ? 's' : ''} ready — share with investors</div>
-                    <div className="action-sub">Your investor pack is ready. Share it with potential investors from the Investors tab.</div>
-                    <div className="action-btns">
-                      <button className="action-btn teal" onClick={() => onTabChange('investors')}>
-                        📤 Go to Investors
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ActionItem
+                  dot={TEAL}
+                  title={`${deal.packs_generated} pack${deal.packs_generated > 1 ? 's' : ''} ready — share with investors`}
+                  sub="Your investor pack is ready. Share it with potential investors from the Investors tab."
+                  buttons={[
+                    { label: '📤 Go to Investors', color: TEAL, onClick: () => onTabChange('investors') },
+                  ]}
+                />
               )}
 
+              {/* Action 3: close deal prompt for active deals */}
               {deal.status === 'presenting' && (
-                <div className="action-item">
-                  <div className="action-dot" style={{ background: '#8b5cf6' }} />
-                  <div className="action-body">
-                    <div className="action-title">Deal is live — log investor responses</div>
-                    <div className="action-sub">Your deal pack has been sent. Keep investor interest up to date in the Investors tab.</div>
-                    <div className="action-btns">
-                      <button className="action-btn" style={{ background: '#5b21b6', color: '#fff', border: 'none' }} onClick={() => onTabChange('investors')}>
-                        👥 Manage investors
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ActionItem
+                  dot="#8b5cf6"
+                  title="Deal is live — log investor responses"
+                  sub="Your deal pack has been sent. Keep investor interest up to date in the Investors tab."
+                  buttons={[
+                    { label: '👥 Manage investors', color: '#5b21b6', onClick: () => onTabChange('investors') },
+                  ]}
+                />
               )}
-
             </div>
           </div>
 
           {/* Tab status checklist */}
-          <div className="sec">
-            <div className="sec-hdr">
-              <span style={{ fontSize: '14px', color: 'var(--navy)' }}>📋</span>
-              <div className="sec-title">Tab status</div>
+          <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '12px 16px', borderBottom: `.5px solid ${DS_BORDER}`,
+            }}>
+              <span style={{ fontSize: '14px' }}>📋</span>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a2332' }}>Tab status</div>
             </div>
+
             <div>
-              <div className="tab-row" onClick={() => onTabChange('analysis')}>
-                <div className={`tab-icon ${deal.deal_score ? 'done' : 'warn'}`}>
-                  {deal.deal_score ? '✓' : '⚠'}
-                </div>
-                <div className="tab-row-body">
-                  <div className="tab-row-name">Analysis</div>
-                  <div className={`tab-row-sub ${deal.deal_score ? 'good' : 'warn'}`}>
-                    {deal.deal_score
-                      ? `Scored · ${deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase()}`
-                      : 'No score yet — run analysis'}
-                  </div>
-                </div>
-                <span className={`tab-row-badge ${deal.deal_score ? 'green' : 'amber'}`}>
-                  {deal.deal_score ? 'Scored' : 'Pending'}
-                </span>
-                <span className="tab-row-arrow">›</span>
-              </div>
-
-              <div className="tab-row" onClick={() => onTabChange('content')}>
-                <div className={`tab-icon ${deal.packs_generated > 0 ? 'done' : 'warn'}`}>
-                  {deal.packs_generated > 0 ? '✓' : '⚠'}
-                </div>
-                <div className="tab-row-body">
-                  <div className="tab-row-name">Content</div>
-                  <div className={`tab-row-sub ${deal.packs_generated > 0 ? 'good' : 'warn'}`}>
-                    {deal.packs_generated > 0
-                      ? `${deal.packs_generated} pack${deal.packs_generated > 1 ? 's' : ''} generated`
-                      : 'No pack created yet'}
-                  </div>
-                </div>
-                <span className={`tab-row-badge ${deal.packs_generated > 0 ? 'green' : 'amber'}`}>
-                  {deal.packs_generated > 0 ? 'Ready' : 'Draft'}
-                </span>
-                <span className="tab-row-arrow">›</span>
-              </div>
-
-              <div className="tab-row" onClick={() => onTabChange('seller')}>
-                <div className="tab-icon info">👤</div>
-                <div className="tab-row-body">
-                  <div className="tab-row-name">Seller</div>
-                  <div className="tab-row-sub">View seller details</div>
-                </div>
-                <span className="tab-row-badge navy">Review</span>
-                <span className="tab-row-arrow">›</span>
-              </div>
-
-              <div className="tab-row" onClick={() => onTabChange('investors')}>
-                <div className={`tab-icon ${deal.status === 'closed' ? 'done' : deal.status === 'presenting' ? 'teal' : 'info'}`}>
-                  👥
-                </div>
-                <div className="tab-row-body">
-                  <div className="tab-row-name">Investors</div>
-                  <div className={`tab-row-sub ${deal.status === 'presenting' ? 'good' : ''}`}>
-                    {deal.status === 'closed' ? 'Deal closed'
-                      : deal.status === 'presenting' ? 'Pack sent to investors'
-                      : 'No investors yet'}
-                  </div>
-                </div>
-                <span className={`tab-row-badge ${deal.status === 'closed' ? 'green' : deal.status === 'presenting' ? 'teal' : 'navy'}`}>
-                  {deal.status === 'closed' ? 'Closed' : deal.status === 'presenting' ? 'Active' : 'Waiting'}
-                </span>
-                <span className="tab-row-arrow">›</span>
-              </div>
+              <ChecklistRow
+                icon={deal.deal_score ? '✓' : '⚠'}
+                iconBg={deal.deal_score ? TEAL : AMBER}
+                name="Analysis"
+                sub={deal.deal_score ? `Scored · ${deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase()}` : 'No score yet — run analysis'}
+                badge={deal.deal_score ? 'Scored' : 'Pending'}
+                badgeColor={deal.deal_score ? 'green' : 'amber'}
+                onClick={() => onTabChange('analysis')}
+              />
+              <ChecklistRow
+                icon={deal.packs_generated > 0 ? '✓' : '⚠'}
+                iconBg={deal.packs_generated > 0 ? TEAL : AMBER}
+                name="Content"
+                sub={deal.packs_generated > 0 ? `${deal.packs_generated} pack${deal.packs_generated > 1 ? 's' : ''} generated` : 'No pack created yet'}
+                badge={deal.packs_generated > 0 ? 'Ready' : 'Draft'}
+                badgeColor={deal.packs_generated > 0 ? 'green' : 'amber'}
+                onClick={() => onTabChange('content')}
+              />
+              <ChecklistRow
+                icon="👤"
+                iconBg={NAVY}
+                name="Seller"
+                sub="View seller details"
+                badge="Review"
+                badgeColor="navy"
+                onClick={() => onTabChange('seller')}
+              />
+              <ChecklistRow
+                icon="👥"
+                iconBg={deal.status === 'closed' ? TEAL : NAVY}
+                name="Investors"
+                sub={deal.status === 'closed' ? 'Deal closed' : deal.status === 'presenting' ? 'Pack sent to investors' : 'No investors yet'}
+                badge={deal.status === 'closed' ? 'Closed' : deal.status === 'presenting' ? 'Active' : 'Waiting'}
+                badgeColor={deal.status === 'closed' ? 'green' : deal.status === 'presenting' ? 'teal' : 'navy'}
+                onClick={() => onTabChange('investors')}
+              />
             </div>
           </div>
 
           {/* Recent activity */}
-          <div className="sec">
-            <div className="sec-hdr">
-              <span style={{ fontSize: '14px', color: 'var(--navy)' }}>📈</span>
-              <div className="sec-title">Recent activity</div>
+          <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '12px 16px', borderBottom: `.5px solid ${DS_BORDER}`,
+            }}>
+              <span style={{ fontSize: '14px' }}>📈</span>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a2332' }}>Recent activity</div>
             </div>
-            <div style={{ padding: '4px 16px' }}>
+
+            <div style={{ padding: '8px 16px 12px' }}>
               {activityItems.map((item, i) => (
-                <div key={i} className="act-item">
-                  <div className="act-line">
-                    <div className={`act-dot ${
-                      item.dot === TEAL  ? 'teal'
-                      : item.dot === NAVY  ? 'navy'
-                      : item.dot === AMBER ? 'amber'
-                      : item.dot === '#8b5cf6' ? 'purple'
-                      : 'grey'
-                    }`} />
-                    {i < activityItems.length - 1 && <div className="act-line-trail" />}
+                <div key={i} style={{ display: 'flex', gap: '12px', marginBottom: i < activityItems.length - 1 ? '10px' : 0 }}>
+                  {/* Timeline dot + trail */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.dot, flexShrink: 0, marginTop: '4px' }} />
+                    {i < activityItems.length - 1 && (
+                      <div style={{ width: '1px', flex: 1, background: DS_BORDER, marginTop: '4px' }} />
+                    )}
                   </div>
-                  <div className="act-body">
-                    <div className="act-text">{item.text}</div>
-                    <div className="act-time">{item.time}</div>
+                  {/* Body */}
+                  <div style={{ paddingBottom: i < activityItems.length - 1 ? '10px' : 0 }}>
+                    <div style={{ fontSize: '12px', color: '#374151', lineHeight: 1.45 }}>{item.text}</div>
+                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>{item.time}</div>
                   </div>
                 </div>
               ))}
@@ -770,183 +779,90 @@ export default function DealOverview({ deal, onTabChange }: Props) {
 
         </div>{/* /left */}
 
-        {/* ── RIGHT SIDEBAR ───────────────────────────────────────────────── */}
-        <div className="right-sticky">
-
-          {/* Cooling-off countdown */}
-          {(() => {
-            const coolingTotal = 14
-            const daysIn = Math.min(daysSince, coolingTotal)
-            const coolingRemaining = Math.max(0, coolingTotal - daysSince)
-            const circumference = 175.9
-            const strokeOffset = circumference * (1 - daysIn / coolingTotal)
-            return (
-              <div className="sbar-card">
-                <div className="sbar-hdr">
-                  <div className="sbar-icon" style={{ background: '#fef3c7' }}>
-                    <span style={{ color: '#92400e' }}>⏳</span>
-                  </div>
-                  <div className="sbar-hdr-text">
-                    <div className="sbar-title">Cooling-off countdown</div>
-                    <div className="sbar-subtitle">
-                      {coolingRemaining > 0
-                        ? `${coolingRemaining} day${coolingRemaining === 1 ? '' : 's'} remaining`
-                        : 'Period ended'}
-                    </div>
-                  </div>
-                  <span className={`sbar-badge ${coolingRemaining > 3 ? 'navy' : 'amber'}`}>
-                    Day {daysIn}/{coolingTotal}
-                  </span>
-                </div>
-                <div className="sbar-body">
-                  <div className="countdown-wrap">
-                    <div className="countdown-ring">
-                      <svg width="64" height="64" viewBox="0 0 64 64">
-                        <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" strokeWidth="6" />
-                        <circle cx="32" cy="32" r="28" fill="none" stroke="#1B3A6B" strokeWidth="6"
-                          strokeLinecap="round"
-                          strokeDasharray={circumference}
-                          strokeDashoffset={strokeOffset}
-                          style={{ transform: 'rotate(-90deg)', transformOrigin: '32px 32px' }}
-                        />
-                      </svg>
-                      <div className="countdown-ring-num">{coolingRemaining}</div>
-                    </div>
-                    <div className="countdown-text">
-                      <div className="countdown-text-main">
-                        {coolingRemaining > 0 ? `${coolingRemaining} days remaining` : 'Period ended'}
-                      </div>
-                      <div className="countdown-text-sub">
-                        {coolingRemaining > 0
-                          ? `Pack release due day ${coolingTotal + 1}.`
-                          : 'Cooling-off period has passed.'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ padding: '0 14px 12px' }}>
-                  <button className="sbar-cta" onClick={() => onTabChange('investors')}>
-                    → View deal status
-                  </button>
-                </div>
-              </div>
-            )
-          })()}
+        {/* ── RIGHT SIDEBAR 280px ─────────────────────────────────────────── */}
+        <div style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
           {/* Key metrics */}
-          <div className="sbar-card">
-            <div className="sbar-hdr">
-              <div className="sbar-icon">🧮</div>
-              <div className="sbar-hdr-text">
-                <div className="sbar-title">Key metrics</div>
-                <div className="sbar-subtitle">From Results · read-only</div>
-              </div>
-              <span className={`sbar-badge ${deal.deal_score === 'RECOMMENDED' ? 'green' : deal.deal_score === 'REVIEW' ? 'amber' : 'navy'}`}>
-                {deal.deal_score ? deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase() : 'No score'}
-              </span>
-            </div>
-            <div className="sbar-body">
-              <div className="sbar-metric">
-                <span className="sbar-metric-lbl">Purchase price</span>
-                <span className="sbar-metric-val navy">{fCurrency(deal.purchase_price)}</span>
-              </div>
-              <div className="sbar-metric">
-                <span className="sbar-metric-lbl">Monthly cash flow</span>
-                <span className="sbar-metric-val teal">
-                  {deal.cash_flow !== null
-                    ? (deal.cash_flow >= 0 ? '+' : '') + fCurrency(deal.cash_flow) + '/mo'
-                    : '—'}
-                </span>
-              </div>
-              <div className="sbar-metric">
-                <span className="sbar-metric-lbl">Gross yield</span>
-                <span className="sbar-metric-val">{fPct(deal.gross_yield)}</span>
-              </div>
-              <div className="sbar-metric">
-                <span className="sbar-metric-lbl">CoC ROI</span>
-                <span className="sbar-metric-val">{fPct(deal.coc_roi)}</span>
-              </div>
+          <SidebarCard>
+            <SbarHdr
+              icon="🧮"
+              title="Key metrics"
+              subtitle="From Results · read-only"
+              badge={deal.deal_score ? deal.deal_score.charAt(0) + deal.deal_score.slice(1).toLowerCase() : 'No score'}
+              badgeColor={deal.deal_score === 'RECOMMENDED' ? 'green' : deal.deal_score === 'REVIEW' ? 'amber' : 'navy'}
+            />
+            <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+              <MetricRow label="Purchase price" value={fCurrency(deal.purchase_price)} color={NAVY} />
+              <MetricRow label="Monthly cash flow" value={deal.cash_flow !== null ? (deal.cash_flow >= 0 ? '+' : '') + fCurrency(deal.cash_flow) + '/mo' : '—'} color={TEAL} />
+              <MetricRow label="Gross yield" value={fPct(deal.gross_yield)} />
+              <MetricRow label="CoC ROI" value={fPct(deal.coc_roi)} />
               {deal.market_value && (
-                <div className="sbar-metric">
-                  <span className="sbar-metric-lbl">Market value</span>
-                  <span className="sbar-metric-val">{fCurrency(deal.market_value)}</span>
-                </div>
+                <MetricRow label="Market value" value={fCurrency(deal.market_value)} />
               )}
               {deal.purchase_price && deal.market_value && deal.market_value > deal.purchase_price && (
-                <div className="sbar-metric">
-                  <span className="sbar-metric-lbl">Discount</span>
-                  <span className="sbar-metric-val teal">
-                    {fPct(((deal.market_value - deal.purchase_price) / deal.market_value) * 100)}
-                  </span>
-                </div>
+                <MetricRow
+                  label="Discount"
+                  value={fPct(((deal.market_value - deal.purchase_price) / deal.market_value) * 100)}
+                  color={TEAL}
+                />
               )}
-              <div className="sbar-metric">
-                <span className="sbar-metric-lbl">Packs generated</span>
-                <span className="sbar-metric-val">
-                  {deal.packs_generated > 0
-                    ? `${deal.packs_generated} pack${deal.packs_generated > 1 ? 's' : ''}`
-                    : 'None'}
-                </span>
-              </div>
+              <MetricRow label="Packs generated" value={deal.packs_generated > 0 ? `${deal.packs_generated} pack${deal.packs_generated > 1 ? 's' : ''}` : 'None'} />
             </div>
             <div style={{ padding: '0 14px 12px' }}>
-              <button className="sbar-cta outline" onClick={() => onTabChange('analysis')}>
+              <SbarCta variant="outline" onClick={() => onTabChange('analysis')}>
                 → Full Results
-              </button>
+              </SbarCta>
             </div>
-          </div>
+          </SidebarCard>
 
           {/* Investor snapshot */}
-          <div className="sbar-card">
-            <div className="sbar-hdr">
-              <div className="sbar-icon">👥</div>
-              <div className="sbar-hdr-text">
-                <div className="sbar-title">Investors</div>
-                <div className="sbar-subtitle">Investor engagement snapshot</div>
-              </div>
-              <span className={`sbar-badge ${deal.status === 'presenting' ? 'green' : 'navy'}`}>
-                {deal.status === 'presenting' ? 'Active' : 'Pending'}
-              </span>
-            </div>
-            <div className="sbar-body" style={{ fontSize: '12px', color: '#5a6270', lineHeight: 1.5 }}>
+          <SidebarCard>
+            <SbarHdr
+              icon="👥"
+              title="Investors"
+              subtitle="Investor engagement snapshot"
+              badge={deal.status === 'presenting' ? 'Active' : 'Pending'}
+              badgeColor={deal.status === 'presenting' ? 'teal' : 'navy'}
+            />
+            <div style={{ padding: '12px 14px', fontSize: '12px', color: '#5a6270', lineHeight: 1.5 }}>
               {deal.packs_generated === 0
                 ? 'No pack created yet. Create a pack and share it to track investor engagement.'
                 : deal.status === 'presenting'
                   ? 'Pack sent. Monitor investor responses from the Investors tab.'
-                  : 'Investor management available once the deal pack is ready and shared.'}
+                  : 'Investor management available once the deal pack is ready and shared.'
+              }
             </div>
             <div style={{ padding: '0 14px 12px' }}>
-              <button className="sbar-cta outline" onClick={() => onTabChange('investors')}>
+              <SbarCta variant="outline" onClick={() => onTabChange('investors')}>
                 👥 Manage investors →
-              </button>
+              </SbarCta>
             </div>
-          </div>
+          </SidebarCard>
 
           {/* Quick actions */}
-          <div className="sbar-card">
-            <div className="sbar-hdr">
-              <div className="sbar-icon">⚡</div>
-              <div className="sbar-hdr-text">
-                <div className="sbar-title">Quick actions</div>
-              </div>
-            </div>
-            <div className="sbar-body" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <button className="sbar-cta teal" onClick={() => onTabChange('analysis')}>
+          <SidebarCard>
+            <SbarHdr icon="⚡" title="Quick actions" />
+            <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <SbarCta variant="teal" onClick={() => onTabChange('analysis')}>
                 📊 View analysis
-              </button>
+              </SbarCta>
               {deal.packs_generated > 0
-                ? <button className="sbar-cta" onClick={() => onTabChange('investors')}>📤 Share with investor</button>
-                : <button className="sbar-cta" onClick={() => onTabChange('content')}>📦 Create deal pack</button>
+                ? <SbarCta onClick={() => onTabChange('investors')}>📤 Share with investor</SbarCta>
+                : <SbarCta onClick={() => onTabChange('content')}>📦 Create deal pack</SbarCta>
               }
-              <button className="sbar-cta outline" onClick={() => setCloseDealOpen(true)}>
+              <SbarCta variant="outline" onClick={() => setCloseDealOpen(true)}>
                 ✓ Close deal
-              </button>
-              <div className="sbar-note">
+              </SbarCta>
+              <div style={{
+                fontSize: '10px', color: '#9ca3af', lineHeight: 1.45,
+                display: 'flex', alignItems: 'flex-start', gap: '5px',
+                background: BG_SEC, borderRadius: '8px', padding: '8px 10px',
+              }}>
                 <span>ℹ️</span>
                 <span>Strategy: {stratLabel}{deal.purchase_price ? ` · ${fCurrency(deal.purchase_price)}` : ''}</span>
               </div>
             </div>
-          </div>
+          </SidebarCard>
 
         </div>{/* /sidebar */}
 

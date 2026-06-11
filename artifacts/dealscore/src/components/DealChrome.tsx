@@ -415,7 +415,38 @@ export default function DealChrome({ deal, children, analysisView = 'results' }:
             </div>
           ))}
           <div className="tab-action">
-            {activeTab === 'analysis' ? (
+            {activeTab === 'overview' ? (
+              <>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
+                  background: 'rgba(217,119,6,.08)', color: '#92400e',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
+                </button>
+                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                  <i className="ti ti-file-description" style={{ fontSize: '11px' }}></i> Deal Status
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid var(--navy)',
+                  background: 'var(--navy)', color: '#fff',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }} onClick={() => handleTabChange('investors')}>
+                  <i className="ti ti-send" style={{ fontSize: '11px' }}></i> Send invoice
+                </button>
+              </>
+            ) : activeTab === 'analysis' ? (
               <>
                 <button style={{
                   display: 'inline-flex', alignItems: 'center', gap: '5px',
