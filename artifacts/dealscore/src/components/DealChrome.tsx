@@ -4,7 +4,7 @@ import { Deal, DealStatus } from '../lib/database.types'
 import { useAuth } from '../lib/AuthContext'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-export type TabKey = 'overview' | 'analysis' | 'content' | 'seller' | 'investors'
+export type TabKey = 'overview' | 'analysis' | 'content' | 'seller' | 'investors' | 'fees'
 
 interface Note {
   id: string
@@ -36,6 +36,7 @@ const TAB_LABELS: Record<TabKey, string> = {
   content:   'Content',
   seller:    'Seller',
   investors: 'Investors',
+  fees:      'Fees & invoice',
 }
 
 const STATUS_LABELS: Record<DealStatus, string> = {
@@ -54,7 +55,7 @@ const STATUS_CSS: Record<DealStatus, string> = {
   dead:       'withdrawn',
 }
 
-const VALID_TABS: TabKey[] = ['overview', 'analysis', 'content', 'seller', 'investors']
+const VALID_TABS: TabKey[] = ['overview', 'analysis', 'content', 'seller', 'investors', 'fees']
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fCurrency(v: number | null): string {
@@ -114,12 +115,26 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
         { label: 'Gross yield',    value: fPct(deal.gross_yield), highlight: true },
         { label: 'Deal score',     value: deal.deal_score ?? 'No score' },
       ]
-    case 'content':
+    case 'content': {
+      const totalAssets = 9
+      const readyCount = [
+        deal.address, deal.purchase_price, deal.market_value,
+        deal.cash_flow, deal.gross_yield, deal.coc_roi,
+        deal.deal_score, deal.packs_generated > 0 || null,
+        deal.strategy,
+      ].filter(Boolean).length
+      const missing: string[] = []
+      if (!deal.purchase_price) missing.push('purchase price')
+      if (!deal.cash_flow)      missing.push('cash flow')
+      if (!deal.deal_score)     missing.push('deal score')
       return [
-        { label: 'Strategy',     value: deal.strategy },
-        { label: 'Packs',        value: deal.packs_generated > 0 ? `${deal.packs_generated} generated` : 'Not created' },
-        { label: 'Last updated', value: fDate(deal.updated_at) },
+        { label: 'Pack readiness', value: `${readyCount}/${totalAssets} assets ready`, highlight: readyCount >= 7 },
+        { label: 'Creating',       value: deal.strategy ?? '—' },
+        { label: 'Last export',    value: deal.packs_generated > 0 ? fDate(deal.updated_at) : 'Not exported' },
+        { label: 'Still missing',  value: missing.length ? missing.join(', ') : 'Nothing' },
+        { label: 'Shared with',    value: deal.packs_generated > 0 ? `${deal.packs_generated} pack${deal.packs_generated !== 1 ? 's' : ''} sent` : '—' },
       ]
+    }
     case 'seller':
       return [
         { label: 'Asking price', value: fCurrency(deal.purchase_price) },
@@ -139,6 +154,13 @@ function getLbItems(deal: Deal, tab: TabKey): LbItem[] {
         { label: 'Price',       value: fCurrency(deal.purchase_price) },
         { label: 'Deal score',  value: deal.deal_score ?? 'No score', highlight: !!deal.deal_score },
         { label: 'Pack status', value: deal.packs_generated > 0 ? 'Pack ready' : 'Not ready' },
+      ]
+    case 'fees':
+      return [
+        { label: 'Purchase price', value: fCurrency(deal.purchase_price) },
+        { label: 'Sourcing fee',   value: '—' },
+        { label: 'Stage',          value: STATUS_LABELS[deal.status] },
+        { label: 'Deal score',     value: deal.deal_score ?? 'No score', highlight: !!deal.deal_score },
       ]
   }
 }
@@ -486,6 +508,34 @@ export default function DealChrome({ deal, children, analysisView = 'results' }:
                   {analysisView === 'results' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export results</>}
                   {analysisView === 'sensitivity' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export</>}
                   {analysisView === 'workings' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export workings</>}
+                </button>
+              </>
+            ) : activeTab === 'content' ? (
+              <>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
+                  background: 'rgba(217,119,6,.08)', color: '#92400e',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => setNotesOpen(true)}
+                >
+                  <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
+                </button>
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid var(--navy)',
+                  background: 'var(--navy)', color: '#fff',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  <i className="ti ti-download" style={{ fontSize: '11px' }}></i> Download pack
                 </button>
               </>
             ) : (

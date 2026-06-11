@@ -225,7 +225,11 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
     privacy: 'Not started', full: 'Not started',
   })
   const [metricOn, setMetricOn] = useState<Record<string, boolean>>({
-    cf: true, coc: true, yield: true, score: true, price: true, equity: true, mv: false, bmv: false,
+    cf: true, coc: true, yield: true, fee: true, price: true, equity: true, cashin: false, bmv: false,
+  })
+  const [metricLabels, setMetricLabels] = useState<Record<string, string>>({
+    cf: 'Cash flow', coc: 'CoC ROI', yield: 'Gross yield', fee: 'Sourcing fee',
+    price: 'Purchase price', equity: 'Day-1 equity', cashin: 'Cash invested', bmv: 'Below MV',
   })
 
   // ── Derived values from deal ──────────────────────────────────────────────
@@ -243,15 +247,23 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
     deal.deal_score === 'REVIEW'      ? 'Review'      :
     deal.deal_score === 'AVOID'       ? 'Avoid'       : '—'
 
+  const inp2 = (deal.inputs ?? {}) as SerializedInputs
+  const cashIn = pp > 0
+    ? pp * (Number(inp2.depositPercent ?? 25) / 100)
+      + Number(inp2.manualTaxValue ?? 0)
+      + Number(inp2.refurbCost ?? 0)
+      + Number(inp2.otherCosts ?? 2000)
+    : null
+
   const metricDefs: { key: string; label: string; val: string }[] = [
-    { key: 'cf',    label: 'Monthly CF',    val: fc(deal.cash_flow)  },
-    { key: 'coc',   label: 'CoC return',    val: fp(deal.coc_roi)    },
-    { key: 'yield', label: 'Gross yield',   val: fp(deal.gross_yield) },
-    { key: 'score', label: 'Deal score',    val: scoreLabel          },
-    { key: 'price', label: 'Purchase price', val: fc(pp)             },
-    { key: 'equity', label: 'Day-1 equity', val: equity > 0 ? fc(equity) : '—' },
-    { key: 'mv',    label: 'Market value',  val: fc(mv)              },
-    { key: 'bmv',   label: '% below MV',   val: bmvPct > 0 ? fp(bmvPct) : '—' },
+    { key: 'cf',     label: metricLabels['cf']     ?? 'Cash flow',       val: fc(deal.cash_flow)              },
+    { key: 'coc',    label: metricLabels['coc']    ?? 'CoC ROI',          val: fp(deal.coc_roi)                },
+    { key: 'yield',  label: metricLabels['yield']  ?? 'Gross yield',      val: fp(deal.gross_yield)            },
+    { key: 'fee',    label: metricLabels['fee']    ?? 'Sourcing fee',     val: finderFee                       },
+    { key: 'price',  label: metricLabels['price']  ?? 'Purchase price',   val: fc(pp)                          },
+    { key: 'equity', label: metricLabels['equity'] ?? 'Day-1 equity',     val: equity > 0 ? fc(equity) : '—'  },
+    { key: 'cashin', label: metricLabels['cashin'] ?? 'Cash invested',    val: cashIn ? fc(cashIn) : '—'       },
+    { key: 'bmv',    label: metricLabels['bmv']    ?? 'Below MV',         val: bmvPct > 0 ? fp(bmvPct) : '—'  },
   ]
 
   const maxMetrics    = contentType === 'advert' || contentType === 'onepager' ? 6 : 8
@@ -352,34 +364,41 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
 
   // ─── Metric picker card (shared) ──────────────────────────────────────────
   const MetricPickerCard = (
-    <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: `0.5px solid ${DS_BORDER}`, background: DS_BG }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>📊</span>
-          <span style={{ fontSize: '12px', fontWeight: 600, color: '#1a2332' }}>Metrics to show</span>
-        </div>
-        <span style={{ fontSize: '10px', color: DS_TEXT2 }}>{enabledCount}/{maxMetrics} selected</span>
+    <div className="inp-card">
+      <div className="inp-card-hdr">
+        <i className="ti ti-chart-bar" style={{ fontSize: '13px', color: DS_TEXT2 }} />
+        <span className="inp-card-title">Metrics to show</span>
+        <span className="inp-card-badge ai">Auto from analysis</span>
+        <span style={{ fontSize: '10px', color: DS_TEXT2, marginLeft: 'auto' }}>{enabledCount}/{maxMetrics} selected</span>
       </div>
-      <div style={{ padding: '12px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-        {metricDefs.map(m => {
-          const isOn     = metricOn[m.key]
-          const canToggle = isOn || enabledCount < maxMetrics
-          return (
-            <div
-              key={m.key}
-              onClick={() => canToggle && toggleMetric(m.key)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderRadius: '6px', border: `0.5px solid ${isOn ? DS_NAVY : DS_BORDER}`, background: isOn ? 'rgba(27,58,107,.06)' : '#fff', cursor: canToggle ? 'pointer' : 'not-allowed', opacity: !isOn && !canToggle ? 0.4 : 1, transition: 'all .15s', gap: '8px' }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: '#1a2332', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.label}</div>
-                <div style={{ fontSize: '10px', color: DS_TEXT2 }}>{m.val}</div>
+      <div className="inp-body">
+        <div className="metric-picker">
+          {metricDefs.map(m => {
+            const isOn      = metricOn[m.key]
+            const canToggle = isOn || enabledCount < maxMetrics
+            return (
+              <div
+                key={m.key}
+                className={`mpick-card${isOn ? ' on' : ''}${!isOn && !canToggle ? ' disabled' : ''}`}
+                onClick={() => canToggle && toggleMetric(m.key)}
+              >
+                <i className="ti ti-check mpick-check" />
+                <div className="mpick-card-val">{m.val}</div>
+                <input
+                  className="mpick-label-input"
+                  value={metricLabels[m.key] ?? m.label}
+                  onChange={e => setMetricLabels(prev => ({ ...prev, [m.key]: e.target.value }))}
+                  onClick={e => e.stopPropagation()}
+                />
               </div>
-              <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: isOn ? DS_NAVY : DS_BG, border: `1.5px solid ${isOn ? DS_NAVY : DS_BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#fff', flexShrink: 0 }}>
-                {isOn ? '✓' : ''}
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
+        {enabledCount >= maxMetrics && (
+          <div className="mpick-max-warn show">
+            Max {maxMetrics} metrics selected — deselect one to add another.
+          </div>
+        )}
       </div>
     </div>
   )
@@ -935,6 +954,21 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
           const status    = typeStatuses[ct.key] ?? 'Not started'
           const badgeCls  = ct.disabled ? 'soon' : status === 'Draft saved' ? 'draft' : status !== 'Not started' ? 'sent' : 'notstarted'
           const badgeText = ct.disabled ? ('badge' in ct ? ct.badge : 'Coming soon') : status
+
+          const nameNode: React.ReactNode = ct.key === 'privacy'
+            ? <><span>Investor pack</span><span style={{ color: DS_TEXT2, fontWeight: 400 }}> · privacy</span></>
+            : ct.key === 'full'
+            ? <><span>Investor pack</span><span style={{ color: DS_TEXT2, fontWeight: 400 }}> · full view</span></>
+            : ct.label
+
+          const subMap: Record<string, string> = {
+            advert:    'Social tile, listing copy or WhatsApp message for investors.',
+            onepager:  'Fast single-page teaser for investors who already know you.',
+            privacy:   'Address and photos withheld. Safe to share before fee agreement.',
+            full:      'Complete pack with address, photos and comparables.',
+            contracts: 'Reservation and sourcing agreement drafts.',
+          }
+
           return (
             <div
               key={ct.key}
@@ -946,8 +980,8 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
               }}
             >
               <div className="ctype-icon"><i className={`ti ${CTYPE_ICONS[ct.key] ?? 'ti-file'}`} /></div>
-              <div className="ctype-name">{ct.label}</div>
-              <div className="ctype-sub">{ct.sub}</div>
+              <div className="ctype-name">{nameNode}</div>
+              <div className="ctype-sub">{subMap[ct.key] ?? ct.sub}</div>
               <span className={`ctype-badge ${badgeCls}`}>{badgeText}</span>
             </div>
           )

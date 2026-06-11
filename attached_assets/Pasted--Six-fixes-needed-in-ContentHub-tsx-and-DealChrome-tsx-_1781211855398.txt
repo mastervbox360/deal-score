@@ -1,0 +1,39 @@
+"Six fixes needed in ContentHub.tsx and DealChrome.tsx:
+1. DealChrome — Fees & invoice tab: Add a 'Fees & invoice' tab to the tab row after 'Investors'. Use the same .vt button style. Route to tab=fees (or whatever the fees component key is). Do NOT remove any existing tabs.
+2. DealChrome — Content tab-action buttons: When activeTab === 'content', show: ⚠ '2 inputs to confirm' (amber, same style as Analysis tab), 📋 'Notes' (outlined, opens notes panel), ↓ 'Download pack' (navy filled, ti-download icon).
+3. ContentHub — type card labels and subtitles: Update the 5 type cards to match exactly:
+
+Advert — sub: "Social tile, listing copy or WhatsApp message for investors."
+One-pager — sub: "Fast single-page teaser for investors who already know you."
+Investor pack · privacy — name: "Investor pack" + muted "· privacy", sub: "Address and photos withheld. Safe to share before fee agreement."
+Investor pack · full view — name: "Investor pack" + muted "· full view", sub: "Complete pack with address, photos and comparables."
+Contracts — sub: "Reservation and sourcing agreement drafts."
+
+4. ContentHub — Content stats bar: The dark stats strip for the Content tab should show 5 metrics: PACK READINESS (e.g. "7/9 assets ready", green text), CREATING (active pack type name), LAST EXPORT (date), STILL MISSING (missing asset names), SHARED WITH (investor count). Pull these values from whatever pack/deal data is available in the component's existing state.
+5. ContentHub — Metrics selector UI: Replace the current checkbox-based metrics selector with a card-grid picker. Each metric is a .mpick-card div (3-column grid). When selected: navy border + navy-light background. Layout per card: large bold value on top (e.g. '+£312/mo'), editable label input below in small uppercase text, checkmark icon top-right when selected. CSS classes needed — add to index.css if not present:
+.metric-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px;}
+.mpick-card{border:.5px solid var(--ds-border);border-radius:var(--r-md);padding:9px 10px;cursor:pointer;transition:all .12s;background:#fff;position:relative;}
+.mpick-card.on{border-color:var(--navy);background:var(--navy-light);}
+.mpick-card.disabled{opacity:.38;pointer-events:none;}
+.mpick-card-val{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:3px;}
+.mpick-card.on .mpick-card-val{color:var(--navy);}
+.mpick-label-input{font-size:9px;font-weight:600;color:var(--text-2);background:none;border:none;width:100%;font-family:inherit;padding:0;text-transform:uppercase;letter-spacing:.05em;cursor:text;}
+.mpick-label-input:focus{outline:.5px solid var(--navy);background:#fff;border-radius:3px;padding:1px 3px;color:var(--navy);}
+.mpick-card.on .mpick-label-input{color:var(--navy);}
+.mpick-check{position:absolute;top:6px;right:7px;font-size:11px;color:var(--navy);opacity:0;}
+.mpick-card.on .mpick-check{opacity:1;}
+.mpick-max-warn{font-size:10px;color:#92400e;background:#fffbeb;border:.5px solid #fde68a;border-radius:var(--r-sm);padding:4px 10px;margin-top:6px;display:none;}
+.mpick-max-warn.show{display:block;}
+The 8 available metrics (use whichever are most relevant to what investors care about — you choose the best defaults based on the deal calculation outputs):
+
+cashflow: 'Cash flow' — monthly cash flow
+coc: 'CoC ROI' — cash-on-cash return
+yield: 'Gross yield'
+bmv: 'Below MV' — % below market value
+equity: 'Day-1 equity'
+price: 'Purchase price'
+fee: 'Sourcing fee'
+cashin: 'Cash invested'
+
+Max selectable: 6 for Advert/One-pager, 8 for Investor packs. Show 'Auto from analysis' badge in the section header. Labels should be editable inline.
+Do NOT touch anything above return() in ContentHub.tsx except to add the mpick state if needed."
