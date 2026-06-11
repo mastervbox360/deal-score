@@ -1,0 +1,51 @@
+"Three fixes in ContentHub.tsx:
+1. Cover style card (full pack left panel only) — add before the Metrics section:
+tsx<div className="inp-card">
+  <div className="inp-card-hdr">
+    <i className="ti ti-palette" style={{fontSize:'13px',color:'var(--navy)'}}></i>
+    <span className="inp-card-title">Cover style</span>
+  </div>
+  <div className="inp-body">
+    <div className="cover-pick-row">
+      {(['branded','clean','custom'] as const).map(s => (
+        <div key={s} className={`cover-opt${coverStyle===s?' on':''}`} onClick={()=>setCoverStyle(s)}>
+          <div className={`cover-opt-preview ${s==='branded'?'branded':s==='clean'?'clean':'custom'}`}/>
+          <div className="cover-opt-name">{s==='branded'?'Branded':s==='clean'?'Minimal':'Your brand'}</div>
+          <div className="cover-opt-sub">{s==='branded'?'DealScore · Pro':s==='clean'?'Clean white · Pro':'Custom · Pro+'}</div>
+        </div>
+      ))}
+    </div>
+    <div style={{marginTop:'8px'}}>
+      <a style={{fontSize:'11px',color:'var(--navy)',fontWeight:500,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+        <i className="ti ti-adjustments-horizontal" style={{fontSize:'12px'}}></i> Customise cover in Cover Designer
+      </a>
+    </div>
+  </div>
+</div>
+Add const [coverStyle, setCoverStyle] = useState<'branded'|'clean'|'custom'>('branded') above return().
+2. Left panel bottom buttons — replace whatever buttons currently appear at the bottom of each type's left panel with these exact buttons per type:
+
+advert: ✨ Regenerate with AI (navy primary, flex:1) + 💾 Save draft (outlined, flex:1)
+onepager: 👁 Preview PDF (navy primary, flex:1) + ↓ Export PDF (outlined, flex:1)
+privacy: 👁 Preview (outlined, flex:1) + 🔗 Copy share link (navy primary, flex:1)
+full: 👁 Preview (outlined, flex:1) + ↓ Export & share (navy primary, flex:1)
+
+Use ti-sparkles, ti-device-floppy, ti-eye, ti-download, ti-link icons. Primary = navy filled (background:var(--navy);color:#fff;border-color:var(--navy)). All buttons: log-btn class, style={{flex:1,justifyContent:'center'}}.
+3. Right panel (preview) bottom buttons — replace current preview panel footer buttons with these per type:
+
+advert: ↓ Download (navy primary, flex:1) + 📋 Copy text (outlined, flex:1) + 🔗 Advert Builder (outlined)
+onepager: ↓ Export PDF (navy primary, flex:1) + 🔗 Share link (outlined, flex:1)
+privacy: 🔗 Share link (navy primary, flex:1) + 👁 Preview (outlined, flex:1)
+full: ↓ Export & share (navy primary, flex:1) + 👁 Preview (outlined, flex:1)
+
+Add these CSS classes to index.css if missing:
+css.cover-pick-row{display:flex;gap:8px;}
+.cover-opt{flex:1;border:.5px solid var(--ds-border);border-radius:var(--r-md);padding:9px 8px;text-align:center;cursor:pointer;transition:all .15s;}
+.cover-opt.on{border-color:var(--navy);background:var(--navy-light);}
+.cover-opt-preview{height:34px;border-radius:5px;margin-bottom:6px;}
+.cover-opt-preview.branded{background:var(--navy);}
+.cover-opt-preview.clean{background:#f9fafb;border:.5px solid var(--ds-border);}
+.cover-opt-preview.custom{background:linear-gradient(135deg,#7C3AED,#4F46E5);}
+.cover-opt-name{font-size:10px;font-weight:600;color:var(--text-1);}
+.cover-opt-sub{font-size:9px;color:var(--text-2);margin-top:1px;}
+Do not touch any data wiring, Supabase queries, or PDF generation logic."

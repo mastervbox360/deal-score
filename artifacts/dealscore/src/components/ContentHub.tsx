@@ -469,11 +469,11 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
 
           <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '12px 14px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px 12px', borderRadius: '7px', border: 'none', background: DS_NAVY, color: '#fff', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                ✨ Regenerate with AI
+              <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ti ti-sparkles" style={{ fontSize: '11px' }} /> Regenerate with AI
               </button>
-              <button onClick={() => saveType('advert', 'Draft saved')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px 12px', borderRadius: '7px', border: `0.5px solid ${DS_BORDER}`, background: '#fff', color: '#374151', fontSize: '11px', fontWeight: 500, cursor: 'pointer' }}>
-                💾 Save draft
+              <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }} onClick={() => saveType('advert', 'Draft saved')}>
+                <i className="ti ti-device-floppy" style={{ fontSize: '11px' }} /> Save draft
               </button>
             </div>
           </div>
@@ -497,7 +497,16 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
           </InputCard>
 
           {MetricPickerCard}
-          <ActionRow type="onepager" primaryLabel="Export one-pager" primaryIcon="⬇️" onPrimary={() => {}} />
+          <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '12px 14px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ti ti-eye" style={{ fontSize: '11px' }} /> Preview PDF
+              </button>
+              <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ti ti-download" style={{ fontSize: '11px' }} /> Export PDF
+              </button>
+            </div>
+          </div>
         </div>
       )
     }
@@ -543,7 +552,16 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
           </InputCard>
 
           {MetricPickerCard}
-          <ActionRow type="privacy" primaryLabel="Export privacy pack" primaryIcon="⬇️" onPrimary={() => {}} />
+          <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '12px 14px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ti ti-eye" style={{ fontSize: '11px' }} /> Preview
+              </button>
+              <button className="log-btn primary" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ti ti-link" style={{ fontSize: '11px' }} /> Copy share link
+              </button>
+            </div>
+          </div>
         </div>
       )
     }
@@ -597,26 +615,22 @@ export default function ContentHub({ deal, onTabChange }: ContentHubProps) {
 
           {/* Full pack: real PDF export via PDFDownloadLink */}
           <div style={{ background: '#fff', border: `0.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '12px 14px' }}>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="log-btn" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ti ti-eye" style={{ fontSize: '11px' }} /> Preview
+              </button>
               <PDFDownloadLink
                 document={<DealScorePDF {...pdfProps} />}
                 fileName={`DealScore_${(deal.reference ?? deal.address ?? 'deal').replace(/[^a-z0-9]/gi, '_').slice(0, 40)}.pdf`}
                 style={{ flex: 1, textDecoration: 'none' }}
               >
                 {({ loading: pdfLoading }: { loading: boolean }) => (
-                  <button
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px 12px', borderRadius: '7px', border: 'none', background: DS_NAVY, color: '#fff', fontSize: '11px', fontWeight: 600, cursor: pdfLoading ? 'wait' : 'pointer' }}
-                  >
-                    {pdfLoading ? '⏳ Preparing PDF…' : '⬇️ Export & share'}
+                  <button className="log-btn primary" style={{ width: '100%', justifyContent: 'center', cursor: pdfLoading ? 'wait' : 'pointer' }}>
+                    <i className="ti ti-download" style={{ fontSize: '11px' }} />
+                    {pdfLoading ? ' Preparing…' : ' Export & share'}
                   </button>
                 )}
               </PDFDownloadLink>
-              <button onClick={() => saveType('full', 'Draft saved')} style={{ padding: '9px 14px', borderRadius: '7px', border: `0.5px solid ${DS_BORDER}`, background: '#fff', color: '#374151', fontSize: '11px', fontWeight: 500, cursor: 'pointer' }}>
-                💾 Save
-              </button>
-            </div>
-            <div style={{ fontSize: '10px', color: DS_TEXT2, textAlign: 'center' }}>
-              Exports a full investor pack PDF with all analysis data
             </div>
           </div>
         </div>
