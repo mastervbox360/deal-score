@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 interface Metric { l: string; v: string; c?: string; }
 interface Deal {
-  id: string; strat: string; score: string; scoreCls: string; scoreLabel: string;
+  id: string; dbId: string; strat: string; score: string; scoreCls: string; scoreLabel: string;
   status: string; statusLabel: string; addr: string; price: string; desc: string;
   heroLabel?: string; heroVal?: string; heroCls?: string; incomplete?: boolean;
   metrics: Metric[]; rejectReason?: string; archivedDate?: string;
@@ -24,6 +24,7 @@ function mapDealToProps(deal: any, calcResult: any): Deal {
   const cf = calcResult?.monthlyCashFlow;
   return {
     id: deal.deal_ref ?? deal.id?.slice(0,8).toUpperCase(),
+    dbId: deal.id,
     strat: deal.strategy ?? 'BTL',
     score: verdict ?? 'INCOMPLETE', scoreCls, scoreLabel,
     status: deal.status ?? 'sourcing',
@@ -75,7 +76,7 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
         </div>
         <div className="bc-foot">
           <span className={`ds-status ${deal.status}`}>{deal.statusLabel}</span>
-          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.id)}>Open</button>
+          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.dbId)}>Open</button>
         </div>
       </div>
     );
@@ -102,7 +103,7 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
       <div className="da-foot">
         <span className={`ds-status ${deal.status}`}>{deal.statusLabel}</span>
         <div className="da-acts">
-          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.id)}>Open <i className="ti ti-arrow-right"></i></button>
+          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.dbId)}>Open <i className="ti ti-arrow-right"></i></button>
         </div>
       </div>
     </div>
@@ -295,7 +296,7 @@ export default function DealsDashboard({
                 <div className={`dl-val ${d.heroCls}`}>{d.heroVal}</div>
                 <div className="dl-val">{d.metrics.find(m => m.l.includes('ROI'))?.v || '—'}</div>
                 <div><span className={`ds-status ${d.status}`}>{d.statusLabel}</span></div>
-                <div className="dl-acts"><button className="cbtn cbtn-primary" onClick={() => onOpenDeal?.(d.id)}>Open <i className="ti ti-arrow-right"></i></button></div>
+                <div className="dl-acts"><button className="cbtn cbtn-primary" onClick={() => onOpenDeal?.(d.dbId)}>Open <i className="ti ti-arrow-right"></i></button></div>
               </div>
             ))}
           </div>
@@ -312,7 +313,7 @@ export default function DealsDashboard({
                       <div className="kc-top"><span className="kc-strat">{d.strat}</span><span className={`kc-score ${d.scoreCls}`}>{d.score}</span></div>
                       <div className="kc-addr pii">{d.addr}</div>
                       <div className="kc-price">{d.id} · {d.price}</div>
-                      <div className="kc-foot"><button className="kc-open" onClick={() => onOpenDeal?.(d.id)}>Open</button></div>
+                      <div className="kc-foot"><button className="kc-open" onClick={() => onOpenDeal?.(d.dbId)}>Open</button></div>
                     </div>
                   ))}
                   <div className="kc-add" onClick={onNewDeal}><i className="ti ti-plus"></i> Add deal</div>
