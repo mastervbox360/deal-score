@@ -186,8 +186,6 @@ function getLbItems(deal: Deal, tab: TabKey, contentType: string): LbItem[] {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function DealChrome({ deal, children, analysisView = 'results', contentType = 'advert' }: DealChromeProps) {
-  console.log('DEAL OBJECT KEYS:', JSON.stringify(Object.keys(deal)));
-  console.log('DEAL DATA:', JSON.stringify(deal));
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -410,28 +408,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
           </span>
           <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{STRATEGY_LABELS[deal.strategy] ?? deal.strategy}</span>
-          {(() => {
-            const sellerName = (deal as any).sellerName ?? null
-            return sellerName ? (
-              <>
-                <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
-                <span className="pii" style={{ fontSize: '13px', color: 'var(--text-1)' }}>{sellerName}</span>
-              </>
-            ) : null
-          })()}
-          {(() => {
-            const interested = (deal as any).investorsInterested ?? 0
-            const shared     = (deal as any).investorsShared ?? 0
-            return (interested || shared) ? (
-              <>
-                <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <i className="ti ti-users" style={{ fontSize: 11, opacity: .5 }} />
-                  {interested} interested · {shared} shared
-                </span>
-              </>
-            ) : null
-          })()}
         </div>
         <div style={{ marginLeft: 'auto', paddingRight: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
