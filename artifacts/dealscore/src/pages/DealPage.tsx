@@ -62,7 +62,7 @@ function TabStub({ label, deal }: { label: string; deal: Deal }) {
   )
 }
 
-const VALID_TABS: TabKey[] = ['overview', 'analysis', 'content', 'seller', 'investors']
+const VALID_TABS: TabKey[] = ['overview', 'analysis', 'content', 'seller', 'investors', 'fees']
 
 function parseTab(raw: string | null): TabKey {
   if (raw && (VALID_TABS as string[]).includes(raw)) return raw as TabKey
