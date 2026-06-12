@@ -979,8 +979,10 @@ function ViewSensitivity({ p, base, stressRentDown, stressRateUp, stressCombined
 
   if (!supportsStress || isIncomplete) {
     return (
-      <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', padding: '32px', textAlign: 'center', color: TEXT_2, fontSize: '13px' }}>
-        {isIncomplete ? 'Add deal inputs to run sensitivity analysis.' : 'Sensitivity analysis is available for BTL, HMO, SA, BRRR, and Social Housing strategies.'}
+      <div style={{ background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '40px 24px', textAlign: 'center' }}>
+        <i className="ti ti-adjustments-horizontal" style={{ fontSize: '28px', color: DS_BORDER, display: 'block', marginBottom: '10px' }} />
+        <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1, marginBottom: '4px' }}>No sensitivity data yet</div>
+        <div style={{ fontSize: '11px', color: TEXT_2 }}>Add deal figures in the Inputs tab to run sensitivity analysis.</div>
       </div>
     )
   }
