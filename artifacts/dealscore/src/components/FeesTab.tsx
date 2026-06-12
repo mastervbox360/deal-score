@@ -293,7 +293,7 @@ export default function FeesTab({ deal }: FeesTabProps) {
   function closeInvoice() { setInvoiceOpen(false); setShowInvoice(false) }
 
   return (
-    <div style={{ width: '100%', padding: '20px 24px 32px' }}>
+    <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '20px 24px 32px' }}>
       <Toast msg={toast} show={toastShow} />
 
       {/* Explainer card */}
