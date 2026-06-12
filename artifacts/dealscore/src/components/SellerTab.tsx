@@ -426,29 +426,19 @@ export default function SellerTab({ deal }: SellerTabProps) {
     <div className="ds-content">
       <Toast msg={toast} show={toastShow} />
 
-      {!expDismissed && (
-        <div style={{
-          background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`,
-          boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '16px 18px',
-          marginBottom: '12px', display: 'flex', gap: '14px', alignItems: 'flex-start',
-          position: 'relative',
-        }}>
-          <button onClick={() => setExpDismissed(true)} style={{
-            position: 'absolute', top: '10px', right: '12px', background: 'none',
-            border: 'none', cursor: 'pointer', color: '#bbb', fontSize: '16px', lineHeight: 1, padding: '4px',
-          }}>×</button>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: R_MD, background: NAVY_LIGHT,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '16px', color: NAVY, flexShrink: 0,
-          }}>👤</div>
+      {!expDismissed ? (
+        <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
+          <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
+          <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="ti ti-user-check" /></div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1, marginBottom: '4px' }}>Vendor relationship for this deal</div>
-            <div style={{ fontSize: '12px', color: TEXT_2, lineHeight: 1.7 }}>
-              Log contact details, track motivation and chain position, and record negotiation notes. Stage-aware <strong style={{ color: TEXT_1 }}>next actions</strong> update automatically as the deal progresses. Manage sourcing fees and invoices in the <strong style={{ color: TEXT_1 }}>Fees &amp; invoice</strong> tab.
-            </div>
+            <div style={{fontSize:13,fontWeight:600,color:'var(--text-1)',marginBottom:4}}>Vendor relationship for this deal</div>
+            <div style={{fontSize:12,color:'var(--text-2)',lineHeight:1.7}}>Log contact details, track motivation and chain position, and record negotiation notes. Stage-aware <strong style={{color:'var(--text-1)'}}>next actions</strong> update automatically as the deal progresses. Manage sourcing fees and invoices in the <strong style={{color:'var(--text-1)'}}>Fees &amp; invoice</strong> tab.</div>
           </div>
         </div>
+      ) : (
+        <button onClick={()=>setExpDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
+          <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
+        </button>
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>

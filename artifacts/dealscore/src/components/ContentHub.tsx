@@ -211,6 +211,7 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
   const navigate = useNavigate()
   const dealId   = deal.id
 
+  const [expDismissed, setExpDismissed] = useState(false)
   const [photoSel, setPhotoSel]       = useState(1)
   const [contentType, setContentType] = useState<ContentType>('advert')
   const [adFormat, setAdFormat]       = useState<AdFormat>('tile')
@@ -1013,15 +1014,20 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
   return (
     <div className="ds-content">
 
-      {/* ── Explainer card ─────────────────────────────────────────────────── */}
-      <div className="exp-card">
-        <div className="exp-icon"><i className="ti ti-files" /></div>
-        <div>
-          <div className="exp-title">Build and share investor materials</div>
-          <div className="exp-text">Create four content types — Advert, One-pager, Privacy pack, and Full pack — all auto-populated from your deal data. Choose which metrics to show, edit labels, then copy or download to share with investors.</div>
+      {!expDismissed ? (
+        <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
+          <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
+          <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="ti ti-files" /></div>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:'var(--text-1)',marginBottom:4}}>Build and share investor materials</div>
+            <div style={{fontSize:12,color:'var(--text-2)',lineHeight:1.7}}>Create four content types — Advert, One-pager, Privacy pack, and Full pack — all auto-populated from your deal data. Choose which metrics to show, edit labels, then copy or download to share with investors.</div>
+          </div>
         </div>
-      </div>
-      <button className="exp-restore"><i className="ti ti-book-2" style={{ fontSize: '11px' }} /> Page guide</button>
+      ) : (
+        <button onClick={()=>setExpDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
+          <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
+        </button>
+      )}
 
       {/* ── Type prompt ──────────────────────────────────────────────────────── */}
       <div className="ctype-prompt">What do you want to create? <span>— auto-populated from your deal data</span></div>

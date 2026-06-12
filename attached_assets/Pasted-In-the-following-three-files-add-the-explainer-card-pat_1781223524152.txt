@@ -1,0 +1,35 @@
+In the following three files, add the explainer card pattern to each return() immediately after the opening <div className="ds-content"> wrapper. Also add const [expDismissed, setExpDismissed] = useState(false) inside the component above return() if not already present. Do NOT change anything else.
+
+--- DealOverview.tsx ---
+Icon: ti ti-home-check
+Title: Your deal command centre
+Text: Summary shows next actions, tab progress, and recent activity. <strong>Deal Status</strong> tracks reservation countdown, key dates, and fees. Use <strong>Close deal</strong> when the deal completes or falls through.
+
+--- ContentHub.tsx ---
+Icon: ti ti-files
+Title: Build and share investor materials
+Text: Create four content types — Advert, One-pager, Privacy pack, and Full pack — all auto-populated from your deal data. Choose which metrics to show, edit labels, then copy or download to share with investors.
+
+--- SellerTab.tsx ---
+Icon: ti ti-user-check
+Title: Vendor relationship for this deal
+Text: Log contact details, track motivation and chain position, and record negotiation notes. Stage-aware <strong>next actions</strong> update automatically as the deal progresses. Manage sourcing fees and invoices in the <strong>Fees & invoice</strong> tab.
+
+For all three, use this exact JSX pattern:
+
+{!expDismissed ? (
+  <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
+    <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
+    <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="[ICON CLASS]" /></div>
+    <div>
+      <div style={{fontSize:13,fontWeight:600,color:'var(--text-1)',marginBottom:4}}>[TITLE]</div>
+      <div style={{fontSize:12,color:'var(--text-2)',lineHeight:1.7}}>[TEXT — use JSX strong tags where bolding is needed]</div>
+    </div>
+  </div>
+) : (
+  <button onClick={()=>setExpDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
+    <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
+  </button>
+)}
+
+Note: AnalysisHub.tsx already has this pattern — do not touch that file.

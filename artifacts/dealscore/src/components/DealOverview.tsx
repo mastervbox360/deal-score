@@ -391,6 +391,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
   const [archivedBanner, setArchivedBanner]   = useState(false)
   const [archivedMsg, setArchivedMsg]         = useState('')
   const [archivedSuccess, setArchivedSuccess] = useState(false)
+  const [expDismissed, setExpDismissed] = useState(false)
 
   const stageIdx = STATUS_STAGE_IDX[deal.status]
   const daysSince = daysAgo(deal.created_at)
@@ -439,34 +440,20 @@ export default function DealOverview({ deal, onTabChange }: Props) {
   return (
     <div className="ds-content">
 
-      {/* ─── Explainer card ───────────────────────────────────────────────── */}
-      <div className="exp-card" id="ov-exp-card">
-        <button
-          className="exp-dismiss"
-          onClick={(e) => {
-            const card = (e.currentTarget.closest?.('.exp-card') as HTMLElement | null)
-              ?? (e.currentTarget.parentElement as HTMLElement | null)
-            if (card) card.style.display = 'none'
-            const restore = card?.nextElementSibling as HTMLElement | null
-            if (restore?.classList.contains('exp-restore')) restore.classList.add('show')
-          }}
-        >×</button>
-        <div className="exp-icon">🏠</div>
-        <div>
-          <div className="exp-title">Your deal command centre</div>
-          <div className="exp-text">
-            Summary shows next actions, tab progress, and recent activity. <strong>Deal Status</strong> tracks reservation countdown, key dates, and fees. Use <strong>Close deal</strong> when the deal completes or falls through.
+      {!expDismissed ? (
+        <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
+          <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
+          <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="ti ti-home-check" /></div>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:'var(--text-1)',marginBottom:4}}>Your deal command centre</div>
+            <div style={{fontSize:12,color:'var(--text-2)',lineHeight:1.7}}>Summary shows next actions, tab progress, and recent activity. <strong style={{color:'var(--text-1)'}}>Deal Status</strong> tracks reservation countdown, key dates, and fees. Use <strong style={{color:'var(--text-1)'}}>Close deal</strong> when the deal completes or falls through.</div>
           </div>
         </div>
-      </div>
-      <button
-        className="exp-restore"
-        onClick={(e) => {
-          ;(e.currentTarget as HTMLElement).classList.remove('show')
-          const card = (e.currentTarget as HTMLElement).previousElementSibling as HTMLElement | null
-          if (card?.classList.contains('exp-card')) card.style.display = 'flex'
-        }}
-      >📖 Page guide</button>
+      ) : (
+        <button onClick={()=>setExpDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
+          <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
+        </button>
+      )}
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
       <div className={`archived-banner${archivedBanner ? (archivedSuccess ? ' show complete' : ' show') : ''}`}>
