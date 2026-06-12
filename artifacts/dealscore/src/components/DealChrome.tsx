@@ -186,6 +186,8 @@ function getLbItems(deal: Deal, tab: TabKey, contentType: string): LbItem[] {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function DealChrome({ deal, children, analysisView = 'results', contentType = 'advert' }: DealChromeProps) {
+  console.log('DEAL OBJECT KEYS:', JSON.stringify(Object.keys(deal)));
+  console.log('DEAL DATA:', JSON.stringify(deal));
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
