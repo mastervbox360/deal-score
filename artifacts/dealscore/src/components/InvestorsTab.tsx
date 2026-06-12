@@ -633,28 +633,19 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
     <div className="ds-content" style={{ padding: '20px 24px 32px', position: 'relative' }}>
       <Toast msg={toast} show={toastShow} />
 
-      {!expDismissed && (
-        <div style={{
-          background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`,
-          boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '14px 18px',
-          marginBottom: '12px', display: 'flex', gap: '14px', alignItems: 'flex-start',
-          position: 'relative',
-        }}>
-          <button onClick={() => setExpDismissed(true)} style={{
-            position: 'absolute', top: '10px', right: '12px', background: 'none',
-            border: 'none', cursor: 'pointer', color: '#ccc', fontSize: '16px', padding: '4px',
-          }}>×</button>
-          <div style={{
-            width: '34px', height: '34px', borderRadius: R_MD, background: NAVY_LIGHT,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0,
-          }}>👥</div>
+      {!expDismissed ? (
+        <div style={{ position: 'relative', display: 'flex', gap: 14, alignItems: 'flex-start', background: '#fff', borderRadius: 12, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '14px 18px', marginBottom: 12 }}>
+          <button onClick={() => setExpDismissed(true)} style={{ position: 'absolute', top: 10, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16, lineHeight: 1, padding: 4 }}>×</button>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--navy-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: 'var(--navy)', flexShrink: 0 }}><i className="ti ti-users" /></div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1, marginBottom: '3px' }}>Investors for this deal</div>
-            <div style={{ fontSize: '12px', color: TEXT_2, lineHeight: 1.65 }}>
-              <strong style={{ color: TEXT_1 }}>Committed investors</strong> have paid a deposit and you're sourcing their specific deal. <strong style={{ color: TEXT_1 }}>Open market</strong> investors are shoppers across your deals. Log responses — calls, viewings, offers — and track each investor's activity timeline.
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>Investors for this deal</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.65 }}><strong style={{ color: 'var(--text-1)' }}>Committed investors</strong> have paid a deposit and you're sourcing their specific deal. <strong style={{ color: 'var(--text-1)' }}>Open market</strong> investors are shoppers across your deals. Log responses — calls, viewings, offers — and track each investor's activity timeline.</div>
           </div>
         </div>
+      ) : (
+        <button onClick={() => setExpDismissed(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-2)', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: 20, padding: '4px 12px', cursor: 'pointer', marginBottom: 12, width: 'fit-content' }}>
+          <i className="ti ti-book-2" style={{ fontSize: 11 }} /> Page guide
+        </button>
       )}
 
       <div style={{
@@ -769,14 +760,6 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
             {f === 'all' ? 'All' : f === 'committed' ? 'Committed' : 'Open market'}
           </button>
         ))}
-        <button onClick={openPickerReset} style={{
-          marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '5px',
-          fontSize: '11px', fontWeight: 600, padding: '5px 13px', borderRadius: '7px',
-          border: `.5px solid ${DS_BORDER}`, background: '#fff', color: TEXT_2,
-          cursor: 'pointer', fontFamily: 'inherit', transition: 'all .12s',
-        }}>
-          👤+ Add investor
-        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>

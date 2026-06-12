@@ -1,0 +1,25 @@
+In artifacts/dealscore/src/pages/InvestorsTab.tsx, make two targeted changes only inside return(). Do NOT touch anything above return().
+
+CHANGE 1 — Remove rogue "Add investor" button.
+Search return() for any standalone "+ Add investor" or "Add investor" button that sits outside the investor picker panel / empty-state area and appears near the top of the layout (above or adjacent to the right sidebar). Delete it. The only "Add investor" button that should exist is: (a) inside the investor picker slide-over panel, and (b) inside the empty-state card when no investors are listed.
+
+CHANGE 2 — Add explainer card at the very top of return(), before the stats bar.
+Add this block immediately after the opening <div className="ds-content"> wrapper:
+
+{/* EXPLAINER */}
+{!expDismissed ? (
+  <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'14px 18px',marginBottom:12}}>
+    <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
+    <div style={{width:34,height:34,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,color:'var(--navy)',flexShrink:0}}><i className="ti ti-users" /></div>
+    <div>
+      <div style={{fontSize:13,fontWeight:600,color:'var(--text-1)',marginBottom:3}}>Investors for this deal</div>
+      <div style={{fontSize:12,color:'var(--text-2)',lineHeight:1.65}}><strong style={{color:'var(--text-1)'}}>Committed investors</strong> have paid a deposit and you're sourcing their specific deal. <strong style={{color:'var(--text-1)'}}>Open market</strong> investors are shoppers across your deals. Log responses — calls, viewings, offers — and track each investor's activity timeline.</div>
+    </div>
+  </div>
+) : (
+  <button onClick={()=>setExpDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
+    <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
+  </button>
+)}
+
+Also add const [expDismissed, setExpDismissed] = useState(false) inside the component above return() if not already present.
