@@ -4,11 +4,11 @@ import { Deal, DealStatus } from '../lib/database.types'
 import type { TabKey } from './DealChrome'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const NAVY      = '#1B3A6B'
-const NAVY_DARK = '#152d55'
-const TEAL      = '#1D9E75'
-const DS_BORDER = '#e3e5e9'
-const BG_SEC    = '#f5f6f8'
+const NAVY      = 'var(--navy)'
+const NAVY_DARK = 'var(--navy-dark)'
+const TEAL      = 'var(--teal)'
+const DS_BORDER = 'var(--ds-border)'
+const BG_SEC    = 'var(--bg-sec)'
 const AMBER     = '#D97706'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ function SbarHdr({ icon, title, subtitle, badge, badgeColor }: {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '12px', fontWeight: 700, color: '#1a2332' }}>{title}</div>
-        {subtitle && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>{subtitle}</div>}
+        {subtitle && <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '1px' }}>{subtitle}</div>}
       </div>
       {badge && badgeColor && (
         <span style={{
@@ -433,7 +433,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
     { dot: TEAL,      text: `Deal created · ${stratLabel}`,                                  time: `${daysSince} day${daysSince === 1 ? '' : 's'} ago` },
     { dot: NAVY,      text: 'Analysis run · score calculated',                              time: deal.deal_score ? `${Math.max(0, daysSince - 1)} day${daysSince - 1 === 1 ? '' : 's'} ago` : '—' },
     { dot: '#8b5cf6', text: `Status set to ${STATUS_LABELS[deal.status]}`,                  time: fDate(deal.updated_at) },
-    { dot: '#9ca3af', text: `Last updated · ${stratLabel} inputs`,                          time: fDate(deal.updated_at) },
+    { dot: 'var(--text-2)', text: `Last updated · ${stratLabel} inputs`,                          time: fDate(deal.updated_at) },
   ].filter(a => a.time !== '—')
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -790,7 +790,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
                     <div className="countdown-ring">
                       <svg width="64" height="64" viewBox="0 0 64 64">
                         <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" strokeWidth="6" />
-                        <circle cx="32" cy="32" r="28" fill="none" stroke="#1B3A6B" strokeWidth="6"
+                        <circle cx="32" cy="32" r="28" fill="none" stroke="var(--navy)" strokeWidth="6"
                           strokeLinecap="round"
                           strokeDasharray={circumference}
                           strokeDashoffset={strokeOffset}
@@ -955,7 +955,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
 function MetricRow({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-      <span style={{ fontSize: '11px', color: '#6b7280' }}>{label}</span>
+      <span style={{ fontSize: '11px', color: 'var(--text-2)' }}>{label}</span>
       <span style={{ fontSize: '12px', fontWeight: 700, color: color ?? '#1a2332', whiteSpace: 'nowrap' }}>
         {value}
       </span>
@@ -1030,7 +1030,7 @@ function ChecklistRow({ icon, iconBg, name, sub, badge, badgeColor, onClick }: {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '12px', fontWeight: 600, color: '#1a2332' }}>{name}</div>
-        <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>
+        <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>
       </div>
       <span style={{
         fontSize: '9px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', flexShrink: 0,
@@ -1038,7 +1038,7 @@ function ChecklistRow({ icon, iconBg, name, sub, badge, badgeColor, onClick }: {
       }}>
         {badge}
       </span>
-      <span style={{ fontSize: '10px', color: '#9ca3af', flexShrink: 0 }}>›</span>
+      <span style={{ fontSize: '10px', color: 'var(--text-2)', flexShrink: 0 }}>›</span>
     </button>
   )
 }

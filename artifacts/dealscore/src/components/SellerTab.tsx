@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Deal } from '../lib/database.types'
 
-const NAVY       = '#1B3A6B'
-const NAVY_LIGHT = '#eef3fb'
-const TEAL       = '#1D9E75'
+const NAVY       = 'var(--navy)'
+const NAVY_LIGHT = 'var(--navy-light)'
+const TEAL       = 'var(--teal)'
 const TEAL_LIGHT = '#d1fae5'
-const BG_SEC     = '#f5f6f8'
-const DS_BORDER  = '#e3e5e9'
-const TEXT_1     = '#1a1a2e'
-const TEXT_2     = '#6c757d'
+const BG_SEC     = 'var(--bg-sec)'
+const DS_BORDER  = 'var(--ds-border)'
+const TEXT_1     = 'var(--text-1)'
+const TEXT_2     = 'var(--text-2)'
 const AMBER      = '#D97706'
 const R_MD       = '8px'
 const R_LG       = '12px'
@@ -450,7 +450,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
           <SecCard>
             <SecHdr>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Vendor</span>
-              <span style={{ fontSize: '10px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '3px', marginRight: 'auto', marginLeft: '10px' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '3px', marginRight: 'auto', marginLeft: '10px' }}>
                 🕐 <span>{vendorUpdated}</span>
               </span>
               <button onClick={() => openSo('edit-vendor')} style={{
@@ -488,7 +488,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   fontSize: '12px', color: TEXT_1,
                 }}>
                   <span style={{ fontSize: '13px', flexShrink: 0, width: '16px' }}>{row.icon}</span>
-                  <span style={{ fontSize: '10px', color: '#9ca3af', minWidth: '60px' }}>{row.label}</span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-2)', minWidth: '60px' }}>{row.label}</span>
                   <span>{row.value}</span>
                 </div>
               ))}
@@ -524,7 +524,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
               }}>
                 {motContext || '—'}
               </div>
-              <div style={{ fontSize: '10px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 🔄 Syncs to your Sellers CRM automatically
               </div>
             </div>
@@ -549,9 +549,9 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   { lbl: 'Status',        val: 'Verbally agreed',        clr: '#92400e', delta: 'Awaiting solicitors' },
                 ].map(c => (
                   <div key={c.lbl} style={{ background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, padding: '10px 12px' }}>
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>{c.lbl}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>{c.lbl}</div>
                     <div style={{ fontSize: '17px', fontWeight: 600, color: c.clr }}>{c.val}</div>
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>{c.delta}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>{c.delta}</div>
                   </div>
                 ))}
               </div>
@@ -561,7 +561,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                 </div>
                 {offers.map((o, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderBottom: i < offers.length - 1 ? `.5px solid #f3f4f6` : 'none', fontSize: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#9ca3af', minWidth: '70px' }}>{o.date}</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-2)', minWidth: '70px' }}>{o.date}</span>
                     <span style={{ fontWeight: 600, color: NAVY, minWidth: '80px' }}>{fmtGBP(o.amount)}</span>
                     <span style={{ flex: 1, fontSize: '11px', color: TEXT_2 }}>{o.note}</span>
                     <OfferStatusTag status={o.status} />
@@ -603,7 +603,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '11px', fontWeight: 600, color: TEXT_1, marginBottom: '2px' }}>{c.label}</div>
                     <div style={{ fontSize: '11px', color: TEXT_2, lineHeight: 1.5 }}>{c.note}</div>
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>{c.date}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>{c.date}</div>
                   </div>
                 </div>
               ))}
@@ -628,7 +628,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   { lbl: 'Target completion', val: chainCompletion, color: undefined },
                 ].map(cell => (
                   <div key={cell.lbl} style={{ background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, padding: '10px 12px' }}>
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>{cell.lbl}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>{cell.lbl}</div>
                     <div style={{ fontSize: '12px', fontWeight: 500, color: cell.color ?? TEXT_1 }}>{cell.val}</div>
                   </div>
                 ))}
@@ -711,7 +711,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   </span>
                 </div>
               </div>
-              <div style={{ fontSize: '10px', color: '#9ca3af', display: 'flex', alignItems: 'flex-start', gap: '5px', paddingTop: '10px', borderTop: `.5px solid ${DS_BORDER}`, marginTop: '2px', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '10px', color: 'var(--text-2)', display: 'flex', alignItems: 'flex-start', gap: '5px', paddingTop: '10px', borderTop: `.5px solid ${DS_BORDER}`, marginTop: '2px', lineHeight: 1.5 }}>
                 ℹ️ *BMV discount is measured against estimated market value, not asking price
               </div>
             </div>
@@ -767,7 +767,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                     <span style={{ fontSize: '12px', color: NAVY, flexShrink: 0, marginTop: '1px' }}>→</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: 600, color: NAVY }}>{nextAction}</div>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>Set just now</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>Set just now</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
@@ -840,7 +840,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   <div>
                     <div style={{ fontSize: '10px', fontWeight: 600, color: '#bbb', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '8px' }}>What happened</div>
                     <FTa value={soActNote} onChange={setSoActNote} placeholder="e.g. Spoke to Derek — he'll confirm with his wife by Thursday..." height="110px" />
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '6px' }}>This is added to the contact log and counted as a touchpoint.</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '6px' }}>This is added to the contact log and counted as a touchpoint.</div>
                   </div>
                 </div>
               )}
@@ -869,7 +869,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   <div>
                     <div style={{ fontSize: '10px', fontWeight: 600, color: '#bbb', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '8px' }}>Note</div>
                     <FTa value={soOfferNote} onChange={setSoOfferNote} placeholder="e.g. Counter offer after Tuesday's call" height="70px" />
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '6px' }}>Marking an offer "Accepted" updates the agreed price and negotiation summary.</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '6px' }}>Marking an offer "Accepted" updates the agreed price and negotiation summary.</div>
                   </div>
                 </div>
               )}
@@ -886,7 +886,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                       <FIn value={f.value} onChange={f.onChange} type={f.type} />
                     </div>
                   ))}
-                  <div style={{ fontSize: '10px', color: '#9ca3af', lineHeight: 1.5 }}>Saving here also updates the Sellers CRM record for this vendor.</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-2)', lineHeight: 1.5 }}>Saving here also updates the Sellers CRM record for this vendor.</div>
                 </div>
               )}
 
@@ -903,7 +903,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   <div>
                     <div style={{ fontSize: '10px', fontWeight: 600, color: '#bbb', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '8px' }}>Context &amp; notes</div>
                     <FTa value={soMotCtx} onChange={setSoMotCtx} placeholder="e.g. Moving abroad, wants to complete before September..." height="110px" />
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '6px' }}>This record is shared with your Sellers CRM — updating it here keeps both in sync.</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '6px' }}>This record is shared with your Sellers CRM — updating it here keeps both in sync.</div>
                   </div>
                 </div>
               )}

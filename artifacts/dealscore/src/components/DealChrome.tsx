@@ -394,7 +394,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{deal.strategy}</span>
         </div>
         <div style={{ marginLeft: 'auto', paddingRight: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '11px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <i className="ti ti-clock" style={{ fontSize: '11px' }}></i> {fDate(deal.updated_at)}
           </span>
           <button
@@ -708,8 +708,8 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
 
           <div id="notesList">
             {notes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af', fontSize: '13px' }}>
-                <div style={{ fontSize: '28px', color: '#e3e5e9', marginBottom: '10px' }}>📋</div>
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-2)', fontSize: '13px' }}>
+                <div style={{ fontSize: '28px', color: 'var(--ds-border)', marginBottom: '10px' }}>📋</div>
                 No notes yet — add the first one above.
               </div>
             ) : (
@@ -717,7 +717,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 {notes.map(note => (
                   <div
                     key={note.id}
-                    style={{ border: '.5px solid #e3e5e9', borderRadius: '12px', padding: '14px 16px' }}
+                    style={{ border: '.5px solid var(--ds-border)', borderRadius: '12px', padding: '14px 16px' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -725,7 +725,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                           width: '22px', height: '22px', borderRadius: '50%',
                           background: 'rgba(27,58,107,.12)', display: 'flex',
                           alignItems: 'center', justifyContent: 'center',
-                          fontSize: '9px', fontWeight: 700, color: '#1B3A6B',
+                          fontSize: '9px', fontWeight: 700, color: 'var(--navy)',
                         }}>
                           {note.author.slice(0, 2).toUpperCase()}
                         </div>
@@ -734,12 +734,12 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                         </span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '11px', color: '#9ca3af' }}>{relTime(note.ts)}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-2)' }}>{relTime(note.ts)}</span>
                         <button
                           onClick={() => deleteNote(note.id)}
                           title="Delete note"
                           style={{
-                            background: 'none', border: 'none', color: '#9ca3af',
+                            background: 'none', border: 'none', color: 'var(--text-2)',
                             cursor: 'pointer', padding: '3px', borderRadius: '6px',
                             display: 'flex', alignItems: 'center', fontSize: '13px',
                             fontFamily: 'inherit', transition: 'all .12s',

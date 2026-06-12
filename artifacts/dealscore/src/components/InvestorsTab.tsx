@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Deal } from '../lib/database.types'
 
-const NAVY       = '#1B3A6B'
-const NAVY_LIGHT = '#eef3fb'
-const TEAL       = '#1D9E75'
+const NAVY       = 'var(--navy)'
+const NAVY_LIGHT = 'var(--navy-light)'
+const TEAL       = 'var(--teal)'
 const TEAL_LIGHT = '#d1fae5'
-const BG_SEC     = '#f5f6f8'
-const DS_BORDER  = '#e3e5e9'
-const TEXT_1     = '#1a1a2e'
-const TEXT_2     = '#6c757d'
+const BG_SEC     = 'var(--bg-sec)'
+const DS_BORDER  = 'var(--ds-border)'
+const TEXT_1     = 'var(--text-1)'
+const TEXT_2     = 'var(--text-2)'
 const AMBER      = '#D97706'
 const R_MD       = '8px'
 const R_LG       = '12px'
@@ -148,7 +148,7 @@ const STATUS_CFG: Record<InvStatus, { label: string; style: React.CSSProperties 
   },
   revoked: {
     label: 'Revoked',
-    style: { background: BG_SEC, borderLeft: `3px solid #ef4444`, paddingLeft: '7px', color: '#9ca3af' },
+    style: { background: BG_SEC, borderLeft: `3px solid #ef4444`, paddingLeft: '7px', color: 'var(--text-2)' },
   },
 }
 
@@ -193,7 +193,7 @@ function InvAct({ label, icon, onClick, primary, danger }: {
   const [hov, setHov] = useState(false)
   let bg = '#fff', color = TEXT_2, border = `.5px solid ${DS_BORDER}`
   if (primary)      { bg = NAVY;     color = '#fff'; border = `none` }
-  else if (danger)  { bg = hov ? '#fef2f2' : '#fff'; color = hov ? '#991b1b' : '#9ca3af'; border = hov ? '.5px solid #fca5a5' : `.5px solid #f3f4f6` }
+  else if (danger)  { bg = hov ? '#fef2f2' : '#fff'; color = hov ? '#991b1b' : 'var(--text-2)'; border = hov ? '.5px solid #fca5a5' : `.5px solid #f3f4f6` }
   else if (hov)     { bg = NAVY_LIGHT; color = NAVY; border = `.5px solid ${NAVY}` }
   return (
     <button onClick={onClick}
@@ -298,10 +298,10 @@ function InvRow({ inv, onLogResp, onNotes, onToast, onUpdateStatus, expandedTl, 
             <span style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1 }}>{inv.name}</span>
             <StatusPill status={inv.status} />
           </div>
-          <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '5px' }}>{inv.email}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-2)', marginBottom: '5px' }}>{inv.email}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
             {inv.meta.map((m, i) => (
-              <span key={i} style={{ fontSize: '10px', color: m.warn ? AMBER : '#9ca3af', display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <span key={i} style={{ fontSize: '10px', color: m.warn ? AMBER : 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '3px' }}>
                 {m.text}
               </span>
             ))}
@@ -320,7 +320,7 @@ function InvRow({ inv, onLogResp, onNotes, onToast, onUpdateStatus, expandedTl, 
           )}
           {inv.note && (
             <div style={{
-              marginTop: '8px', padding: '7px 10px', background: '#f9fafb',
+              marginTop: '8px', padding: '7px 10px', background: 'var(--bg-sec)',
               borderLeft: `2px solid ${inv.note.variant === 'responded' ? TEAL : '#fca5a5'}`,
               borderRadius: '0 4px 4px 0', fontSize: '11px', color: TEXT_2,
               fontStyle: 'italic', lineHeight: 1.5,
@@ -354,7 +354,7 @@ function InvRow({ inv, onLogResp, onNotes, onToast, onUpdateStatus, expandedTl, 
                     return (
                       <div key={i} style={{
                         display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '5px 0',
-                        borderLeft: '1.5px solid #e5e7eb', marginLeft: '7px', paddingLeft: '12px',
+                        borderLeft: '1.5px solid var(--ds-border)', marginLeft: '7px', paddingLeft: '12px',
                         position: 'relative',
                       }}>
                         <div style={{
@@ -658,8 +658,8 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
           { num: investors.length, label: 'shared with', numClr: NAVY },
           { num: opened,    label: `opened · ${investors.length > 0 ? Math.round(opened / investors.length * 100) : 0}%`, numClr: NAVY },
           { num: interested, label: 'interested', numClr: TEAL },
-          { num: passed,    label: 'passed', numClr: '#9ca3af' },
-          { num: noResp,    label: 'no response', numClr: '#9ca3af' },
+          { num: passed,    label: 'passed', numClr: 'var(--text-2)' },
+          { num: noResp,    label: 'no response', numClr: 'var(--text-2)' },
         ].map((s, i, arr) => (
           <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: '5px', padding: '0 18px', borderRight: i < arr.length - 1 ? `.5px solid ${DS_BORDER}` : 'none', flex: 1, ...(i === 0 ? { paddingLeft: 0 } : {}) }}>
             <span style={{ fontSize: '18px', fontWeight: 700, color: s.numClr }}>{s.num}</span>
@@ -959,7 +959,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
                     </div>
                   ))}
                 </div>
-                <div style={{ fontSize: '10px', color: '#9ca3af', display: 'flex', alignItems: 'flex-start', gap: '5px', paddingTop: '10px', borderTop: `.5px solid ${DS_BORDER}`, marginTop: '8px', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-2)', display: 'flex', alignItems: 'flex-start', gap: '5px', paddingTop: '10px', borderTop: `.5px solid ${DS_BORDER}`, marginTop: '8px', lineHeight: 1.5 }}>
                   🔒 Upgrade to Pro+ for custom expiry, bulk share, and your own branded share page.
                 </div>
                 <button onClick={() => showToast('Upgrade to Pro+ for link controls')} style={{ marginTop: '8px', width: '100%', padding: '9px', borderRadius: '8px', border: `.5px solid ${DS_BORDER}`, background: '#fff', color: TEXT_2, fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>

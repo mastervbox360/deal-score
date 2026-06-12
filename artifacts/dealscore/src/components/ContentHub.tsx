@@ -17,11 +17,11 @@ import type { SerializedInputs } from '@/lib/inputsSerializer'
 import type { Deal } from '@/lib/database.types'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const DS_NAVY   = '#1B3A6B'
-const DS_TEAL   = '#1D9E75'
+const DS_NAVY   = 'var(--navy)'
+const DS_TEAL   = 'var(--teal)'
 const DS_AMBER  = '#D97706'
-const DS_BG     = '#f5f6f8'
-const DS_BORDER = '#e3e5e9'
+const DS_BG     = 'var(--bg-sec)'
+const DS_BORDER = 'var(--ds-border)'
 const DS_TEXT2  = '#5a6270'
 
 // ─── Types ────────────────────────────────────────────────────────────────────

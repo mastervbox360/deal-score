@@ -10,16 +10,16 @@ import { type SerializedInputs } from '@/lib/inputsSerializer'
 import { type Deal } from '@/lib/database.types'
 
 // ── Design tokens ────────────────────────────────────────────────────────────
-const NAVY       = '#1B3A6B'
-const NAVY_DARK  = '#152d55'
-const NAVY_LIGHT = '#eef3fb'
-const TEAL       = '#1D9E75'
+const NAVY       = 'var(--navy)'
+const NAVY_DARK  = 'var(--navy-dark)'
+const NAVY_LIGHT = 'var(--navy-light)'
+const TEAL       = 'var(--teal)'
 const TEAL_LIGHT = '#d1fae5'
 const AMBER      = '#D97706'
-const DS_BORDER  = '#e3e5e9'
-const BG_SEC     = '#f5f6f8'
-const TEXT_1     = '#1a1a2e'
-const TEXT_2     = '#6c757d'
+const DS_BORDER  = 'var(--ds-border)'
+const BG_SEC     = 'var(--bg-sec)'
+const TEXT_1     = 'var(--text-1)'
+const TEXT_2     = 'var(--text-2)'
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 function fc(v: number | null | undefined): string {
@@ -446,7 +446,7 @@ function Sec({ title, badge, children }: { title: string; badge?: string; childr
 function Met({ label, value, highlighted, green }: { label: string; value: string; highlighted?: boolean; green?: boolean }) {
   return (
     <div style={{ background: highlighted ? NAVY_LIGHT : BG_SEC, border: `.5px solid ${highlighted ? 'rgba(27,58,107,.18)' : DS_BORDER}`, borderRadius: '8px', padding: '10px 12px' }}>
-      <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '3px' }}>{label}</div>
+      <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '3px' }}>{label}</div>
       <div style={{ fontSize: '15px', fontWeight: 700, color: green ? '#065f46' : TEXT_1 }}>{value}</div>
     </div>
   )
@@ -504,7 +504,7 @@ function CalcStep({ label, how, value, plus }: { label: string; how: string; val
       </div>
       <div style={{ flex: 1 }}>
         <span style={{ fontWeight: 600, color: TEXT_1 }}>{label}</span>
-        <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>{how}</div>
+        <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '1px' }}>{how}</div>
       </div>
       <span style={{ fontWeight: 700, color: plus ? '#065f46' : '#b91c1c' }}>{value}</span>
     </div>
@@ -596,7 +596,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
     scenarios.push({ label: 'Combined', verdict: cb.v, colorKey: cb.c })
   }
 
-  const cColor: Record<string, string> = { ok: '#065f46', warn: '#92400e', bad: '#b91c1c', dim: '#9ca3af' }
+  const cColor: Record<string, string> = { ok: '#065f46', warn: '#92400e', bad: '#b91c1c', dim: 'var(--text-2)' }
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
@@ -613,7 +613,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
             <div style={{ display: 'flex', gap: '18px', background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px', marginBottom: '10px' }}>
               <div style={{ flexShrink: 0, textAlign: 'center', paddingRight: '18px', borderRight: `.5px solid ${DS_BORDER}`, minWidth: '90px' }}>
                 <div style={{ fontSize: '34px', fontWeight: 700, color: numScore !== null ? scaleColor(verdict) : TEXT_2, lineHeight: 1 }}>{numScore ?? '—'}</div>
-                <div style={{ fontSize: '11px', color: '#9ca3af', margin: '2px 0 8px' }}>/ 100</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-2)', margin: '2px 0 8px' }}>/ 100</div>
                 <VerdictPill v={verdict} />
               </div>
               <div style={{ flex: 1 }}>
@@ -631,7 +631,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 18px' }}>
                     {composite.dimensions.map(d => (
                       <div key={d.label}>
-                        <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '2px' }}>{d.label}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '2px' }}>{d.label}</div>
                         <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, marginBottom: '4px' }}>
                           {p.strategy === 'BTL' || p.strategy === 'HMO' || p.strategy === 'SA' || p.strategy === 'BRRR' || p.strategy === 'SOCIAL'
                             ? d.label.includes('Cash Flow') || d.label.includes('Profit') || d.label.includes('Cash Left')
@@ -641,7 +641,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
                               ? fc(d.value)
                               : fp(d.value)
                           }{' '}
-                          <span style={{ fontSize: '9px', color: '#9ca3af', fontWeight: 400 }}>{d.points} / {d.maxPoints} pts</span>
+                          <span style={{ fontSize: '9px', color: 'var(--text-2)', fontWeight: 400 }}>{d.points} / {d.maxPoints} pts</span>
                         </div>
                         <div style={{ height: '5px', background: '#f3f4f6', borderRadius: '3px', overflow: 'hidden' }}>
                           <div style={{ height: '100%', background: TEAL, borderRadius: '3px', width: `${(d.points / d.maxPoints) * 100}%` }} />
@@ -733,7 +733,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
                 <div style={{ display: 'flex' }}>
                   {scenarios.map(sc => (
                     <div key={sc.label} style={{ flex: 1, padding: '12px 16px', textAlign: 'center', borderRight: `.5px solid ${DS_BORDER}` }}>
-                      <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>{sc.label}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>{sc.label}</div>
                       <div style={{ fontSize: '13px', fontWeight: 700, color: cColor[sc.colorKey] }}>{sc.verdict}</div>
                     </div>
                   ))}
@@ -1014,24 +1014,24 @@ function ViewSensitivity({ p, base, stressRentDown, stressRateUp, stressCombined
       {/* Delta strip */}
       <div style={{ display: 'flex', background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: '10px' }}>
         <div style={{ flex: 1, padding: '14px 16px', borderRight: `.5px solid ${DS_BORDER}` }}>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>Base monthly CF</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>Base monthly CF</div>
           <div style={{ fontSize: '17px', fontWeight: 700, color: TEXT_1 }}>{signedFc(base.monthlyCashFlow)}</div>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>{fp(base.cashOnCashROI)} CoC ROI</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>{fp(base.cashOnCashROI)} CoC ROI</div>
         </div>
         <div style={{ flex: 1, padding: '14px 16px', borderRight: `.5px solid ${DS_BORDER}` }}>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>If rent falls 10%</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>If rent falls 10%</div>
           <div style={{ fontSize: '17px', fontWeight: 700 }}>{delta(rentDown)}</div>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>change vs base</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>change vs base</div>
         </div>
         <div style={{ flex: 1, padding: '14px 16px', borderRight: `.5px solid ${DS_BORDER}` }}>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>If rate rises 1.5%</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>If rate rises 1.5%</div>
           <div style={{ fontSize: '17px', fontWeight: 700 }}>{delta(rateUp)}</div>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>change vs base</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>change vs base</div>
         </div>
         <div style={{ flex: 1, padding: '14px 16px' }}>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '4px' }}>Combined stress</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>Combined stress</div>
           <div style={{ fontSize: '17px', fontWeight: 700 }}>{delta(combined)}</div>
-          <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>all pressures</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-2)', marginTop: '2px' }}>all pressures</div>
         </div>
       </div>
 
@@ -1040,7 +1040,7 @@ function ViewSensitivity({ p, base, stressRentDown, stressRateUp, stressCombined
         {/* Header */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr', background: BG_SEC, borderBottom: `.5px solid ${DS_BORDER}` }}>
           {['Scenario', 'Monthly CF', 'CoC ROI', 'Gross yield', 'Verdict'].map(h => (
-            <div key={h} style={{ padding: '9px 12px', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: '#9ca3af' }}>{h}</div>
+            <div key={h} style={{ padding: '9px 12px', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--text-2)' }}>{h}</div>
           ))}
         </div>
         {scenarios.map((sc) => {
@@ -1050,11 +1050,11 @@ function ViewSensitivity({ p, base, stressRentDown, stressRateUp, stressCombined
             <div key={sc.label} style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr', borderBottom: `.5px solid #f3f4f6`, background: sc.isBase ? NAVY_LIGHT : '#fff' }}>
               <div style={{ padding: '11px 12px', fontSize: '11px' }}>
                 <div style={{ fontWeight: 600, color: TEXT_1 }}>{sc.label}</div>
-                <div style={{ fontSize: '9px', color: '#9ca3af' }}>{sc.sub}</div>
+                <div style={{ fontSize: '9px', color: 'var(--text-2)' }}>{sc.sub}</div>
               </div>
               <div style={{ padding: '11px 12px', fontSize: '11px', fontWeight: 600, color: sc.result.monthlyCashFlow >= 0 ? '#065f46' : '#b91c1c' }}>
                 {signedFc(sc.result.monthlyCashFlow)}
-                {!sc.isBase && <div style={{ fontSize: '9px', color: cfDelta >= 0 ? '#9ca3af' : '#b91c1c', fontWeight: 400 }}>{cfDelta >= 0 ? '+' : ''}{signedFc(cfDelta)}</div>}
+                {!sc.isBase && <div style={{ fontSize: '9px', color: cfDelta >= 0 ? 'var(--text-2)' : '#b91c1c', fontWeight: 400 }}>{cfDelta >= 0 ? '+' : ''}{signedFc(cfDelta)}</div>}
               </div>
               <div style={{ padding: '11px 12px', fontSize: '11px', color: TEXT_1 }}>{fp(isFinite(sc.result.cashOnCashROI) ? sc.result.cashOnCashROI : 0)}</div>
               <div style={{ padding: '11px 12px', fontSize: '11px', color: TEXT_1 }}>{fp(sc.result.grossYield)}</div>
@@ -1106,7 +1106,7 @@ function ViewWorkings({ p, base, composite }: { p: ParsedInputs; base: CalcResul
       <div style={{ display: 'flex', background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflowX: 'auto', marginBottom: '10px' }}>
         {ctxItems.map((item, i) => (
           <div key={item.label} style={{ flex: 1, padding: '12px 16px', borderRight: i < ctxItems.length - 1 ? `.5px solid ${DS_BORDER}` : 'none', minWidth: '90px' }}>
-            <div style={{ fontSize: '9px', color: '#9ca3af', marginBottom: '3px' }}>{item.label}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-2)', marginBottom: '3px' }}>{item.label}</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1 }}>{item.value}</div>
           </div>
         ))}
@@ -1288,7 +1288,7 @@ function ViewWorkings({ p, base, composite }: { p: ParsedInputs; base: CalcResul
               <div style={{ height: '5px', background: '#f3f4f6', borderRadius: '3px', overflow: 'hidden', marginBottom: '2px' }}>
                 <div style={{ height: '100%', background: TEAL, borderRadius: '3px', width: `${(d.points / d.maxPoints) * 100}%` }} />
               </div>
-              <div style={{ fontSize: '9px', color: '#9ca3af' }}>
+              <div style={{ fontSize: '9px', color: 'var(--text-2)' }}>
                 Strong: {d.strongThreshold} · Average: {d.averageThreshold}
               </div>
             </div>
