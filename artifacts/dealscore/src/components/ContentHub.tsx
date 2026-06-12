@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import DealScorePDF from './DealScorePDF'
@@ -204,9 +204,10 @@ interface ContentHubProps {
   onTypeChange?: (t: string) => void
   deal: Deal
   onTabChange?: (tab: string) => void
+  initialView?: 'create' | 'progress'
 }
 
-export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentHubProps) {
+export default function ContentHub({ deal, onTabChange, onTypeChange, initialView }: ContentHubProps) {
   // ── State ─────────────────────────────────────────────────────────────────
   const navigate = useNavigate()
   const dealId   = deal.id
@@ -238,6 +239,9 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
     cf: 'Cash flow', coc: 'CoC ROI', yield: 'Gross yield', fee: 'Sourcing fee',
     price: 'Purchase price', equity: 'Day-1 equity', cashin: 'Cash invested', bmv: 'Below MV',
   })
+
+  const [hubView, setHubView] = useState<'create' | 'progress'>(initialView ?? 'create')
+  useEffect(() => { if (initialView) setHubView(initialView) }, [initialView])
 
   // ── Derived values from deal ──────────────────────────────────────────────
   const strategy  = deal.strategy ?? 'BTL'
@@ -1014,7 +1018,18 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
   return (
     <div className="ds-content">
 
-      {!expDismissed ? (
+      {/* Hub view switcher */}
+      <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', marginBottom: '12px', width: 'fit-content' }}>
+        {(['create', 'progress'] as const).map(v => (
+          <button key={v} onClick={() => setHubView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: hubView === v ? '#fff' : 'transparent', color: hubView === v ? 'var(--navy)' : 'var(--text-2)', boxShadow: hubView === v ? '0 1px 3px rgba(0,0,0,.1)' : 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
+            {v === 'create' ? <><i className="ti ti-files" style={{ fontSize: '11px' }} /> Create content</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal progress</>}
+          </button>
+        ))}
+      </div>
+
+      {hubView === 'create' && <>
+
+        {!expDismissed ? (
         <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
           <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
           <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="ti ti-files" /></div>
@@ -1186,6 +1201,45 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
           </div>
         </div>
       </div>
+      </>}
+
+      {hubView === 'progress' && (
+        <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '.5px solid var(--ds-border)', background: 'var(--bg-sec)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <i className="ti ti-chart-gantt" style={{ fontSize: '14px', color: 'var(--navy)' }} />
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>Deal progress</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-2)' }}>{deal.reference} · {deal.strategy}</div>
+            </div>
+          </div>
+          {[
+            { key: 'analysing',  label: 'Sourcing',  sub: 'Deal identified and being analysed',        icon: 'ti-search' },
+            { key: 'reviewing',  label: 'Ready',      sub: 'Analysis complete — pack ready to share',  icon: 'ti-check' },
+            { key: 'presenting', label: 'Pack sent',  sub: 'Investor pack shared with buyers',         icon: 'ti-send' },
+            { key: 'closed',     label: 'Complete',   sub: 'Deal closed and fee received',             icon: 'ti-circle-check' },
+          ].map((stage, idx) => {
+            const statuses = ['analysing', 'reviewing', 'presenting', 'closed']
+            const current  = statuses.indexOf(deal.status)
+            const mine     = statuses.indexOf(stage.key)
+            const isDone   = mine < current
+            const isActive = mine === current
+            const clr      = isDone || isActive ? 'var(--teal)' : 'var(--ds-border)'
+            return (
+              <div key={stage.key} style={{ display: 'flex', gap: '14px', padding: '14px 20px', borderBottom: idx < 3 ? '.5px solid var(--ds-border)' : 'none', alignItems: 'flex-start' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: `2px solid ${clr}`, background: isDone || isActive ? 'var(--teal)' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                  <i className={`ti ${stage.icon}`} style={{ fontSize: '12px', color: isDone || isActive ? '#fff' : 'var(--ds-border)' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, color: isActive ? 'var(--navy)' : isDone ? 'var(--teal)' : 'var(--text-2)', marginBottom: '2px' }}>
+                    {stage.label}{isActive && <span style={{ fontSize: '10px', fontWeight: 600, background: 'var(--navy-light)', color: 'var(--navy)', padding: '1px 7px', borderRadius: '20px', marginLeft: '6px' }}>Current</span>}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-2)' }}>{stage.sub}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
