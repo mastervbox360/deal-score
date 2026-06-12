@@ -529,17 +529,17 @@ function Insight({ text }: { text: string }) {
 export type SubView = 'results' | 'inputs' | 'sensitivity' | 'workings'
 
 function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) => void }) {
-  const items: { key: SubView; label: string }[] = [
-    { key: 'results', label: 'Results' },
-    { key: 'inputs', label: 'Inputs' },
-    { key: 'sensitivity', label: 'Sensitivity' },
-    { key: 'workings', label: 'Workings' },
+  const items: { key: SubView; label: string; icon: string }[] = [
+    { key: 'results',     label: 'Results',     icon: 'ti-chart-line' },
+    { key: 'inputs',      label: 'Inputs',      icon: 'ti-adjustments-horizontal' },
+    { key: 'sensitivity', label: 'Sensitivity', icon: 'ti-chart-bar' },
+    { key: 'workings',    label: 'Workings',    icon: 'ti-list-search' },
   ]
   return (
     <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '20px', padding: '4px', width: 'fit-content', boxShadow: '0 1px 3px rgba(0,0,0,.05)' }}>
-      {items.map(({ key, label }) => (
-        <button key={key} onClick={() => onChange(key)} style={{ fontSize: '12px', fontWeight: active === key ? 600 : 500, padding: '7px 16px', borderRadius: '16px', border: 'none', background: active === key ? NAVY : 'none', color: active === key ? '#fff' : TEXT_2, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
-          {label}
+      {items.map(({ key, label, icon }) => (
+        <button key={key} onClick={() => onChange(key)} style={{ fontSize: '12px', fontWeight: active === key ? 600 : 500, padding: '7px 16px', borderRadius: '16px', border: 'none', background: active === key ? NAVY : 'none', color: active === key ? '#fff' : TEXT_2, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <i className={`ti ${icon}`} style={{ fontSize: '11px' }} />{label}
         </button>
       ))}
     </div>
@@ -603,7 +603,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
       <div>
         {isIncomplete ? (
           <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', padding: '40px 24px', textAlign: 'center', marginBottom: '10px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', margin: '0 auto 14px' }}>📊</div>
+            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', margin: '0 auto 14px' }}><i className="ti ti-chart-line" /></div>
             <div style={{ fontSize: '15px', fontWeight: 700, color: TEXT_1, marginBottom: '6px' }}>No analysis yet</div>
             <div style={{ fontSize: '12px', color: TEXT_2, lineHeight: 1.6 }}>Add deal figures in the Inputs tab to calculate returns, yield, and cash flow.</div>
           </div>
@@ -748,7 +748,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
       <div style={{ position: 'sticky', top: `${56 + 48 + 44 + 42 + 20}px` }}>
         <div style={{ background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden' }}>
           <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
-            <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: NAVY, flexShrink: 0 }}>🤖</div>
+            <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: NAVY, flexShrink: 0 }}><i className="ti ti-robot" /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>DealScore Assistant</div>
               <div style={{ fontSize: '10px', color: TEXT_2 }}>

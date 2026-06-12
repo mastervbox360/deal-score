@@ -1,0 +1,89 @@
+Audit and fix icons across these files to exactly match the confirmed mockups:
+DealOverview.tsx, AnalysisHub.tsx, ContentHub.tsx, SellerTab.tsx, InvestorsTab.tsx
+
+All icons must use Tabler icon web font: <i className="ti ti-[name]" />
+Remove any lucide-react icon imports and replace with the equivalent ti-* class below.
+Do NOT change any layout, logic, state, or colours. Icon changes only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DealOverview.tsx — required icons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Explainer card icon:          ti ti-home-check
+Section "Next actions":       ti ti-bolt  (colour: var(--amber) or #D97706)
+Section "Tab status":         ti ti-layout-list
+Section "Recent activity":    ti ti-activity
+Sidebar "Cooling-off":        ti ti-hourglass  (icon colour: #92400e)
+Sidebar "Key metrics":        ti ti-calculator
+Sidebar "Investors":          ti ti-users
+Sidebar "Quick actions":      ti ti-bolt
+Tab-row icons (progress dots): check=ti-check  warn=ti-alert-triangle  user=ti-user  investors=ti-users  fees=ti-hourglass  notes=ti-notes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AnalysisHub.tsx — required icons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Explainer card icon:          ti ti-chart-line
+Sidebar "DealScore Assistant": ti ti-robot
+Sidebar "Input completion":   ti ti-checklist
+Sidebar "Scenario controls":  ti ti-adjustments-horizontal
+Sidebar "Jump to section":    ti ti-list-search
+Sub-tab buttons: Results=ti-chart-line  Inputs=ti-adjustments-horizontal  Sensitivity=ti-chart-bar  Workings=ti-list-search
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ContentHub.tsx — required icons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Explainer card icon:          ti ti-files
+Content type cards: advert=ti-speakerphone  onepager=ti-file-description  privacy=ti-shield-lock  full=ti-file-certificate
+Action buttons: Copy=ti-copy  Download=ti-download  Save=ti-device-floppy  Preview=ti-eye  External=ti-external-link
+WhatsApp share:               ti ti-brand-whatsapp
+Cover style:                  ti ti-palette
+Nearby locations:             ti ti-map-2
+Featured photo:               ti ti-photo
+Metrics/pick section:         ti ti-adjustments-horizontal
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SellerTab.tsx — required icons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Explainer card icon:          ti ti-user-check
+Section "Vendor" header:      (no leading icon — just clock ti-clock for "Updated" timestamp + ti-pencil Edit button)
+Section "Motivation":         ti ti-pencil Edit button only
+Section "Offer tracker":      ti ti-plus Log offer button
+Section "Sourcing fee":       ti ti-coin  (colour: var(--teal))
+Sidebar "Chase reminder":     ti ti-bell  (icon colour: #D97706, bg: #fffbeb)
+Sidebar "Negotiation":        ti ti-chart-bar
+Sidebar "Next action":        ti ti-arrow-right
+Sidebar "Sellers CRM":        ti ti-users
+Contact rows: phone=ti-phone  email=ti-mail  property=ti-home  agent=ti-user
+Tab-action buttons: Link seller=ti-user-plus  Notes=ti-notes  Log activity=ti-pencil (navy primary)
+Slide-over "Link seller" title: ti ti-user-check
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+InvestorsTab.tsx — required icons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Explainer card icon:          ti ti-users
+Sidebar "Share with investor": ti ti-send
+Sidebar "Deal share link":    ti ti-link
+Sidebar "Link controls":      ti ti-settings-2
+Investor picker title:        ti ti-user-plus
+Investor type — Committed:    ti ti-shield-check  (colour: #065F46)
+Investor type — Open market:  ti ti-world  (colour: #5B21B6)
+Empty state icon:             ti ti-users
+Tab-action buttons: Add investor=ti-user-plus  Notes=ti-notes  Share deal=ti-send (navy primary)
+Activity log rows: call=ti-phone  email=ti-mail  viewing=ti-home  message=ti-message-circle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GLOBAL rules for all files
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Dismiss (×) buttons: plain × character, not an icon
+- Close buttons in panels: ti ti-x
+- Chevrons: ti-chevron-down / ti-chevron-up / ti-chevron-right
+- Alert/warning: ti ti-alert-triangle
+- Info tooltip: ti ti-info-circle
+- Trash/delete: ti ti-trash
+- Search: ti ti-search
+- Add/plus: ti ti-plus
+- Check/tick: ti ti-check or ti ti-circle-check
+- Page guide restore button: ti ti-book-2
+- Notes panel: ti ti-notes
+- Settings dropdown: ti-settings (profile menu), ti-settings-2 (link controls only)
+
+After making changes, list every file and how many icon replacements were made.

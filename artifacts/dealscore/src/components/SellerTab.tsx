@@ -53,10 +53,10 @@ const SEED_CONTACTS: ContactEntry[] = [
 ]
 
 const ACT_META: Record<ActType, { label: string; dotCls: string; iconColor: string; icon: string }> = {
-  call:  { label: 'Phone call',      dotCls: 'call',  iconColor: NAVY,      icon: '📞' },
-  email: { label: 'Email',           dotCls: 'email', iconColor: TEAL,      icon: '✉️' },
-  visit: { label: 'Viewing / visit', dotCls: 'visit', iconColor: '#7C3AED', icon: '🏠' },
-  note:  { label: 'Note',            dotCls: 'note',  iconColor: AMBER,     icon: '📝' },
+  call:  { label: 'Phone call',      dotCls: 'call',  iconColor: NAVY,      icon: 'ti ti-phone' },
+  email: { label: 'Email',           dotCls: 'email', iconColor: TEAL,      icon: 'ti ti-mail' },
+  visit: { label: 'Viewing / visit', dotCls: 'visit', iconColor: '#7C3AED', icon: 'ti ti-home' },
+  note:  { label: 'Note',            dotCls: 'note',  iconColor: AMBER,     icon: 'ti ti-notes' },
 }
 
 const MOT_META: Record<MotLevel, { label: string; bg: string; border: string; color: string }> = {
@@ -458,7 +458,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                 border: `.5px solid rgba(27,58,107,.25)`, borderRadius: '6px',
                 padding: '3px 9px', cursor: 'pointer', fontFamily: 'inherit',
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
-              }}>✏️ Edit</button>
+              }}><i className="ti ti-pencil" style={{ fontSize: '11px' }} /> Edit</button>
             </SecHdr>
             <div style={{ padding: '14px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
@@ -476,10 +476,10 @@ export default function SellerTab({ deal }: SellerTabProps) {
                 </div>
               </div>
               {[
-                { icon: '📞', label: 'Mobile',   value: vendorMobile },
-                { icon: '✉️', label: 'Email',    value: vendorEmail },
-                { icon: '🏠', label: 'Property', value: deal.address ?? '—' },
-                { icon: '👤', label: 'Agent',    value: 'Mark Thornton · Purplebricks' },
+                { icon: 'ti ti-phone', label: 'Mobile',   value: vendorMobile },
+                { icon: 'ti ti-mail',  label: 'Email',    value: vendorEmail },
+                { icon: 'ti ti-home',  label: 'Property', value: deal.address ?? '—' },
+                { icon: 'ti ti-user',  label: 'Agent',    value: 'Mark Thornton · Purplebricks' },
               ].map((row, i, arr) => (
                 <div key={row.label} style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
@@ -487,7 +487,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                   borderBottom: i < arr.length - 1 ? `.5px solid #f3f4f6` : 'none',
                   fontSize: '12px', color: TEXT_1,
                 }}>
-                  <span style={{ fontSize: '13px', flexShrink: 0, width: '16px' }}>{row.icon}</span>
+                  <span style={{ fontSize: '13px', flexShrink: 0, width: '16px' }}><i className={row.icon} /></span>
                   <span style={{ fontSize: '10px', color: 'var(--text-2)', minWidth: '60px' }}>{row.label}</span>
                   <span>{row.value}</span>
                 </div>
@@ -504,7 +504,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                 border: `.5px solid rgba(27,58,107,.25)`, borderRadius: '6px',
                 padding: '3px 9px', cursor: 'pointer', fontFamily: 'inherit',
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
-              }}>✏️ Edit</button>
+              }}><i className="ti ti-pencil" style={{ fontSize: '11px' }} /> Edit</button>
             </SecHdr>
             <div style={{ padding: '14px 16px' }}>
               <div style={{ marginBottom: '12px' }}>
@@ -593,7 +593,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                       display: 'inline-flex', alignItems: 'center', gap: '4px',
                     }}
                   >
-                    {ACT_META[t].icon} {t === 'call' ? 'Log call' : t === 'email' ? 'Log email' : t === 'visit' ? 'Log visit' : 'Add note'}
+                    <i className={ACT_META[t].icon} style={{ fontSize: '11px' }} /> {t === 'call' ? 'Log call' : t === 'email' ? 'Log email' : t === 'visit' ? 'Log visit' : 'Add note'}
                   </button>
                 ))}
               </div>
@@ -639,7 +639,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
           {/* Sourcing fee */}
           <SecCard>
             <SecHdr>
-              <span style={{ fontSize: '14px', color: TEAL }}>💰</span>
+              <i className="ti ti-coin" style={{ fontSize: '14px', color: TEAL }} />
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Sourcing fee</span>
               <span style={{
                 fontSize: '11px', fontWeight: 600, padding: '4px 12px', borderRadius: '20px',
@@ -667,7 +667,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
 
           {/* Chase reminder */}
           <SbarCard>
-            <SbarHdr icon="🔔" title="Chase reminder" subtitle="Action needed today" badge="Today" badgeColor="amber" />
+            <SbarHdr icon={<i className="ti ti-bell" style={{ color: '#D97706' }} />} title="Chase reminder" subtitle="Action needed today" badge="Today" badgeColor="amber" />
             <div style={{ padding: '12px 14px' }}>
               <div style={{
                 background: '#fffbeb', border: '.5px solid #fde68a', borderRadius: R_MD,
@@ -689,7 +689,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
 
           {/* Negotiation summary */}
           <SbarCard>
-            <SbarHdr icon="📊" title="Negotiation" subtitle={`${fmtGBP(diff)} saved · ${(diff / (deal.market_value ?? askingPrice) * 100).toFixed(1)}% BMV*`} />
+            <SbarHdr icon={<i className="ti ti-chart-bar" />} title="Negotiation" subtitle={`${fmtGBP(diff)} saved · ${(diff / (deal.market_value ?? askingPrice) * 100).toFixed(1)}% BMV*`} />
             <div style={{ padding: '12px 14px' }}>
               <div>
                 <SbarMetric label="Asking price"  value={fmtGBP(askingPrice)} />
@@ -719,7 +719,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
 
           {/* Next action */}
           <SbarCard>
-            <SbarHdr icon="→" title="Next action" subtitle="Set by you" />
+            <SbarHdr icon={<i className="ti ti-arrow-right" />} title="Next action" subtitle="Set by you" />
             <div style={{ padding: '12px 14px' }}>
               {nextAction === null ? (
                 <>
@@ -771,7 +771,7 @@ export default function SellerTab({ deal }: SellerTabProps) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    <SmBtn onClick={() => setNextAction(null)}>✏️ Edit</SmBtn>
+                    <SmBtn onClick={() => setNextAction(null)}><i className="ti ti-pencil" style={{ fontSize: '11px' }} /> Edit</SmBtn>
                     <SmBtn onClick={() => { setNextAction(null); showToast('Next action cleared') }}>✕ Clear</SmBtn>
                   </div>
                 </>

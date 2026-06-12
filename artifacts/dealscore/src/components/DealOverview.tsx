@@ -564,7 +564,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
           {/* Next actions */}
           <div className="sec">
             <div className="sec-hdr">
-              <span style={{ fontSize: '14px', color: 'var(--amber)' }}>⚡</span>
+              <i className="ti ti-bolt" style={{ fontSize: '14px', color: 'var(--amber)' }} />
               <div className="sec-title">Next actions</div>
               <span className="sec-badge amber">
                 {deal.status === 'analysing' ? '1 item' : '2 items'}
@@ -657,13 +657,13 @@ export default function DealOverview({ deal, onTabChange }: Props) {
           {/* Tab status checklist */}
           <div className="sec">
             <div className="sec-hdr">
-              <span style={{ fontSize: '14px', color: 'var(--navy)' }}>📋</span>
+              <i className="ti ti-layout-list" style={{ fontSize: '14px', color: 'var(--navy)' }} />
               <div className="sec-title">Tab status</div>
             </div>
             <div>
               <div className="tab-row" onClick={() => onTabChange('analysis')}>
                 <div className={`tab-icon ${deal.deal_score ? 'done' : 'warn'}`}>
-                  {deal.deal_score ? '✓' : '⚠'}
+                  {deal.deal_score ? <i className="ti ti-check" /> : <i className="ti ti-alert-triangle" />}
                 </div>
                 <div className="tab-row-body">
                   <div className="tab-row-name">Analysis</div>
@@ -681,7 +681,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
 
               <div className="tab-row" onClick={() => onTabChange('content')}>
                 <div className={`tab-icon ${deal.packs_generated > 0 ? 'done' : 'warn'}`}>
-                  {deal.packs_generated > 0 ? '✓' : '⚠'}
+                  {deal.packs_generated > 0 ? <i className="ti ti-check" /> : <i className="ti ti-alert-triangle" />}
                 </div>
                 <div className="tab-row-body">
                   <div className="tab-row-name">Content</div>
@@ -698,7 +698,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
               </div>
 
               <div className="tab-row" onClick={() => onTabChange('seller')}>
-                <div className="tab-icon info">👤</div>
+                <div className="tab-icon info"><i className="ti ti-user" /></div>
                 <div className="tab-row-body">
                   <div className="tab-row-name">Seller</div>
                   <div className="tab-row-sub">View seller details</div>
@@ -709,7 +709,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
 
               <div className="tab-row" onClick={() => onTabChange('investors')}>
                 <div className={`tab-icon ${deal.status === 'closed' ? 'done' : deal.status === 'presenting' ? 'teal' : 'info'}`}>
-                  👥
+                  <i className="ti ti-users" />
                 </div>
                 <div className="tab-row-body">
                   <div className="tab-row-name">Investors</div>
@@ -730,7 +730,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
           {/* Recent activity */}
           <div className="sec">
             <div className="sec-hdr">
-              <span style={{ fontSize: '14px', color: 'var(--navy)' }}>📈</span>
+              <i className="ti ti-activity" style={{ fontSize: '14px', color: 'var(--navy)' }} />
               <div className="sec-title">Recent activity</div>
             </div>
             <div style={{ padding: '4px 16px' }}>
@@ -771,7 +771,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
               <div className="sbar-card">
                 <div className="sbar-hdr">
                   <div className="sbar-icon" style={{ background: '#fef3c7' }}>
-                    <span style={{ color: '#92400e' }}>⏳</span>
+                    <i className="ti ti-hourglass" style={{ color: '#92400e' }} />
                   </div>
                   <div className="sbar-hdr-text">
                     <div className="sbar-title">Cooling-off countdown</div>
@@ -823,7 +823,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
           {/* Key metrics */}
           <div className="sbar-card">
             <div className="sbar-hdr">
-              <div className="sbar-icon">🧮</div>
+              <div className="sbar-icon"><i className="ti ti-calculator" /></div>
               <div className="sbar-hdr-text">
                 <div className="sbar-title">Key metrics</div>
                 <div className="sbar-subtitle">From Results · read-only</div>
@@ -886,7 +886,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
           {/* Investor snapshot */}
           <div className="sbar-card">
             <div className="sbar-hdr">
-              <div className="sbar-icon">👥</div>
+              <div className="sbar-icon"><i className="ti ti-users" /></div>
               <div className="sbar-hdr-text">
                 <div className="sbar-title">Investors</div>
                 <div className="sbar-subtitle">Investor engagement snapshot</div>
@@ -912,7 +912,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
           {/* Quick actions */}
           <div className="sbar-card">
             <div className="sbar-hdr">
-              <div className="sbar-icon">⚡</div>
+              <div className="sbar-icon"><i className="ti ti-bolt" /></div>
               <div className="sbar-hdr-text">
                 <div className="sbar-title">Quick actions</div>
               </div>

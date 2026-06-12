@@ -421,7 +421,7 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
             {primaryIcon} {primaryLabel}
           </button>
           <button onClick={() => saveType(type, 'Draft saved')} style={{ flex: 0, padding: '9px 14px', borderRadius: '7px', border: `0.5px solid ${DS_BORDER}`, background: '#fff', color: '#374151', fontSize: '11px', fontWeight: 500, cursor: 'pointer' }}>
-            💾 Save
+            <i className="ti ti-device-floppy" style={{ fontSize: '11px' }} /> Save
           </button>
         </div>
       </div>
@@ -467,7 +467,7 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
 
           <div className="inp-card">
             <div className="inp-card-hdr">
-              <i className="ti ti-map-pin" style={{ fontSize: '13px', color: 'var(--teal)' }}></i>
+              <i className="ti ti-map-2" style={{ fontSize: '13px', color: 'var(--teal)' }}></i>
               <span className="inp-card-title">Nearby locations</span>
               <span className="inp-card-badge ai">Auto-populated</span>
             </div>
@@ -1007,7 +1007,7 @@ export default function ContentHub({ deal, onTabChange, onTypeChange }: ContentH
   // ─── Tabler icon map (for ctype-card icons) ──────────────────────────────
   const CTYPE_ICONS: Record<string, string> = {
     advert: 'ti-speakerphone', onepager: 'ti-file-description',
-    privacy: 'ti-shield-lock', full: 'ti-file-text', contracts: 'ti-file-certificate',
+    privacy: 'ti-shield-lock', full: 'ti-file-certificate', contracts: 'ti-file-certificate',
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────

@@ -787,11 +787,11 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
                 {committed.length === 0 ? (
                   <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: R_LG, marginBottom: '6px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center' }}>
-                      <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '14px' }}>👥</div>
+                      <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', marginBottom: '14px' }}><i className="ti ti-users" /></div>
                       <div style={{ fontSize: '14px', fontWeight: 700, color: TEXT_1, marginBottom: '5px' }}>No committed investors yet</div>
                       <div style={{ fontSize: '12px', color: TEXT_2, maxWidth: '280px', lineHeight: 1.6, marginBottom: '18px' }}>Add investors from your CRM or create a new one directly.</div>
                       <button onClick={openPickerReset} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, padding: '9px 20px', borderRadius: '8px', border: 'none', background: NAVY, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
-                        👤+ Add investor
+                        <i className="ti ti-user-plus" style={{ fontSize: '13px' }} /> Add investor
                       </button>
                     </div>
                   </div>
@@ -884,7 +884,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
 
           <div style={{ background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden', marginBottom: '10px' }}>
             <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>📤</div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}><i className="ti ti-send" /></div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>Share with investor</div>
                 <div style={{ fontSize: '10px', color: TEXT_2, marginTop: '1px' }}>Send deal link to an existing contact</div>
@@ -911,14 +911,14 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
               <div style={{ fontSize: '10px', color: TEXT_2, padding: '7px 10px', background: BG_SEC, borderRadius: '6px', lineHeight: 1.5 }}>
                 {shareType === 'committed' ? '🔒 Committed investor — full access including address.' : '🔕 Open market — address hidden until trust is established.'}
               </div>
-              <SbarCta teal onClick={sendShareLink}>📤 Send deal link</SbarCta>
+              <SbarCta teal onClick={sendShareLink}><i className="ti ti-send" style={{ fontSize: '11px' }} /> Send deal link</SbarCta>
               <SbarCta outline onClick={() => showToast('Questionnaire link sent')}>📋 Send questionnaire</SbarCta>
             </div>
           </div>
 
           <div style={{ background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden', marginBottom: '10px' }}>
             <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>🔗</div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}><i className="ti ti-link" /></div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>Deal share link</div>
                 <div style={{ fontSize: '10px', color: TEXT_2, marginTop: '1px' }}>DealScore hosted · Pro branded</div>
@@ -935,7 +935,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
                 </div>
               </div>
               <div style={{ background: '#f0fdf4', border: '.5px solid #6ee7b7', borderRadius: R_MD, padding: '9px 12px', fontSize: '11px', color: '#065f46', display: 'flex', gap: '7px', alignItems: 'flex-start', lineHeight: 1.6, marginBottom: '8px' }}>
-                <span style={{ flexShrink: 0 }}>🛡</span>
+                <i className="ti ti-shield-check" style={{ color: '#065f46', flexShrink: 0 }} />
                 Committed investors receive a separate full-access link with address shown.
               </div>
               <SbarCta outline onClick={() => showToast('Opening investor share page preview…')}>👁 View as investor →</SbarCta>
@@ -945,7 +945,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
           {tier === 'pro' && (
             <div style={{ background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden', marginBottom: '10px' }}>
               <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>⚙️</div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}><i className="ti ti-settings-2" /></div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>Link controls</div>
                   <div style={{ fontSize: '10px', color: TEXT_2, marginTop: '1px' }}>Standard · 14-day expiry</div>
@@ -972,7 +972,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
           {tier === 'proplus' && (
             <div style={{ background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden', marginBottom: '10px' }}>
               <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>⚙️</div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}><i className="ti ti-settings-2" /></div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>Link controls</div>
                   <div style={{ fontSize: '10px', color: TEXT_2, marginTop: '1px' }}>Pro+ · Custom settings active</div>
@@ -1020,7 +1020,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
       }}>
         <div style={{ background: NAVY, padding: '18px 22px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '7px' }}>👤+ Add investor to deal</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '7px' }}><i className="ti ti-user-plus" /> Add investor to deal</div>
             <div style={{ fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,.6)', marginTop: '3px' }}>{deal.address ?? '—'} · {deal.reference ?? 'DS-004'}</div>
           </div>
           <button onClick={() => setPickerOpen(false)} style={{ background: 'rgba(255,255,255,.1)', border: '.5px solid rgba(255,255,255,.2)', borderRadius: R_MD, color: '#fff', padding: '6px 12px', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit' }}>✕ Close</button>
@@ -1036,7 +1036,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
                 boxShadow: pickerMode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               }}>
-                {m === 'search' ? '🔍 Search CRM' : '➕ New investor'}
+                {m === 'search' ? <><i className="ti ti-search" style={{ fontSize: '11px' }} /> Search CRM</> : <><i className="ti ti-user-plus" style={{ fontSize: '11px' }} /> New investor</>}
               </button>
             ))}
           </div>
@@ -1044,7 +1044,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
           {pickerMode === 'search' && (
             <div>
               <div style={{ position: 'relative', marginBottom: '16px' }}>
-                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: TEXT_2 }}>🔍</span>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: TEXT_2 }}><i className="ti ti-search" /></span>
                 <input
                   value={pickerQ} onChange={e => setPickerQ(e.target.value)}
                   placeholder="Search by name, type or criteria…"
@@ -1066,13 +1066,13 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
                     <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1, display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap', marginBottom: '4px' }}>
                       {crm.name}
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 500, padding: '2px 8px 2px 7px', background: BG_SEC, borderRadius: '4px', borderLeft: `3px solid ${crm.type === 'committed' ? '#10b981' : '#8b5cf6'}`, color: TEXT_1 }}>
-                        {crm.type === 'committed' ? '🔒 Committed' : '🌐 Open market'}
+                        {crm.type === 'committed' ? <><i className="ti ti-shield-check" style={{ fontSize: '10px' }} /> Committed</> : <><i className="ti ti-world" style={{ fontSize: '10px' }} /> Open market</>}
                       </span>
                     </div>
                     <div style={{ fontSize: '11px', color: TEXT_2, lineHeight: 1.5 }}>{crm.criteria}<br />{crm.contact}</div>
                   </div>
                   <button onClick={() => addFromCrm(crm)} style={{ background: NAVY, color: '#fff', border: 'none', borderRadius: R_MD, padding: '7px 13px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    ➕ Add to deal
+                    <i className="ti ti-user-plus" style={{ fontSize: '11px' }} /> Add to deal
                   </button>
                 </div>
               ))}
@@ -1147,7 +1147,7 @@ export default function InvestorsTab({ deal }: InvestorsTabProps) {
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
               <button onClick={addNote} disabled={!noteInput.trim()} style={{ background: NAVY, color: '#fff', border: 'none', borderRadius: R_MD, padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: noteInput.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: noteInput.trim() ? 1 : .4 }}>
-                ➕ Add note
+                <i className="ti ti-notes" style={{ fontSize: '11px' }} /> Add note
               </button>
             </div>
           </div>
