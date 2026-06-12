@@ -282,22 +282,16 @@ export default function FeesTab({ deal }: FeesTabProps) {
     return () => document.removeEventListener('keydown', onKey)
   }, [invoiceOpen])
 
-  const feeDueLabel    = feeDue === 'completion' ? 'On completion' : feeDue === 'reservation' ? 'On reservation' : 'On exchange'
-  const feeTypeLabel   = feeType === 'fixed' ? 'Fixed' : '% of purchase'
-  const sbarBadgeColor = feeStatus === 'received' ? 'green' : 'amber'
-  const sbarBadgeLabel = feeStatus === 'received' ? 'Received' : feeStatus === 'waived' ? 'Waived' : 'Outstanding'
-
-  const [showInvoice, setShowInvoice] = useState(false)
-
-  function openInvoice()  { setInvoiceOpen(true);  setShowInvoice(true)  }
-  function closeInvoice() { setInvoiceOpen(false); setShowInvoice(false) }
+  const feeDueLabel     = feeDue === 'completion' ? 'On completion' : feeDue === 'reservation' ? 'On reservation' : 'On exchange'
+  const feeTypeLabel    = feeType === 'fixed' ? 'Fixed' : '% of purchase'
+  const sbarBadgeColor  = feeStatus === 'received' ? 'green' : 'amber'
+  const sbarBadgeLabel  = feeStatus === 'received' ? 'Received' : feeStatus === 'waived' ? 'Waived' : 'Outstanding'
 
   return (
     <div style={{ width: '100%', padding: '20px 24px 32px' }}>
       <Toast msg={toast} show={toastShow} />
 
-      {/* Explainer card */}
-      {!expDismissed ? (
+      {!expDismissed && (
         <div style={{
           background: '#fff', borderRadius: R_LG, border: `.5px solid ${DS_BORDER}`,
           boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '16px 18px',
@@ -312,9 +306,7 @@ export default function FeesTab({ deal }: FeesTabProps) {
             width: '36px', height: '36px', borderRadius: R_MD, background: NAVY_LIGHT,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '16px', color: NAVY, flexShrink: 0,
-          }}>
-            <i className="ti ti-coin" />
-          </div>
+          }}>💰</div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1, marginBottom: '4px' }}>Sourcing fee &amp; invoice for this deal</div>
             <div style={{ fontSize: '12px', color: TEXT_2, lineHeight: 1.7 }}>
@@ -322,21 +314,11 @@ export default function FeesTab({ deal }: FeesTabProps) {
             </div>
           </div>
         </div>
-      ) : (
-        <button onClick={() => setExpDismissed(false)} style={{
-          display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px',
-          color: TEXT_2, background: BG_SEC, border: `.5px solid ${DS_BORDER}`,
-          borderRadius: '20px', padding: '4px 12px', cursor: 'pointer',
-          fontFamily: 'inherit', marginBottom: '12px',
-        }}>
-          <i className="ti ti-book-2" style={{ fontSize: '11px' }} /> Page guide
-        </button>
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
 
         <div>
-          {/* Fee hero */}
           <div style={{
             background: NAVY_LIGHT, border: '.5px solid rgba(27,58,107,.15)',
             borderRadius: R_MD, padding: '14px 16px', marginBottom: '10px',
@@ -356,31 +338,30 @@ export default function FeesTab({ deal }: FeesTabProps) {
             </div>
           </div>
 
-          {/* Sourcing fee details */}
           <SecCard>
             <SecHdr>
-              <i className="ti ti-coin" style={{ fontSize: '14px', color: TEAL }} />
+              <span style={{ fontSize: '14px', color: TEAL }}>💰</span>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Sourcing fee details</span>
-              <button onClick={openInvoice} style={{
+              <button onClick={() => setInvoiceOpen(true)} style={{
                 fontSize: '11px', color: NAVY, background: 'none', border: 'none',
                 cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: '4px',
               }}>
-                <i className="ti ti-file-invoice" style={{ fontSize: '11px' }} /> View invoice
+                🧾 View invoice
               </button>
             </SecHdr>
             <div style={{ padding: '14px 16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, overflow: 'hidden', marginBottom: '12px' }}>
                 {[
-                  { lbl: 'Agreed fee',     val: feeAmountStr,                                                                                  clr: TEAL },
-                  { lbl: 'Fee type',       val: feeTypeLabel,                                                                                   clr: TEXT_1 },
-                  { lbl: 'Due date',       val: feeDueLabel,                                                                                    clr: TEXT_1 },
-                  { lbl: 'Payment status', val: feeStatus === 'received' ? 'Received' : feeStatus === 'waived' ? 'Waived' : 'Outstanding',      clr: feeStatus === 'received' ? TEAL : feeStatus === 'waived' ? '#6b7280' : AMBER },
+                  { lbl: 'Agreed fee',      val: feeAmountStr,    clr: TEAL },
+                  { lbl: 'Fee type',        val: feeTypeLabel,    clr: TEXT_1 },
+                  { lbl: 'Due date',        val: feeDueLabel,     clr: TEXT_1 },
+                  { lbl: 'Payment status',  val: feeStatus === 'received' ? 'Received' : feeStatus === 'waived' ? 'Waived' : 'Outstanding', clr: feeStatus === 'received' ? TEAL : feeStatus === 'waived' ? '#6b7280' : AMBER },
                 ].map((c, i) => (
                   <div key={c.lbl} style={{
                     padding: '10px 14px',
-                    borderRight:  i % 2 === 0 ? `.5px solid ${DS_BORDER}` : 'none',
-                    borderBottom: i < 2       ? `.5px solid ${DS_BORDER}` : 'none',
+                    borderRight: i % 2 === 0 ? `.5px solid ${DS_BORDER}` : 'none',
+                    borderBottom: i < 2 ? `.5px solid ${DS_BORDER}` : 'none',
                   }}>
                     <div style={{ fontSize: '9px', fontWeight: 600, color: TEXT_2, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: '3px' }}>{c.lbl}</div>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: c.clr }}>{c.val}</div>
@@ -395,16 +376,20 @@ export default function FeesTab({ deal }: FeesTabProps) {
                 </div>
                 <div>
                   <div style={{ fontSize: '9px', fontWeight: 600, color: TEXT_2, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: '5px' }}>Fee type</div>
-                  <select value={feeType} onChange={e => setFeeType(e.target.value as FeeType)}
-                    style={{ width: '100%', fontSize: '12px', padding: '7px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: '6px', fontFamily: 'inherit', color: TEXT_1, background: '#fff', boxSizing: 'border-box' as const }}>
+                  <select
+                    value={feeType} onChange={e => setFeeType(e.target.value as FeeType)}
+                    style={{ width: '100%', fontSize: '12px', padding: '7px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: '6px', fontFamily: 'inherit', color: TEXT_1, background: '#fff', boxSizing: 'border-box' as const }}
+                  >
                     <option value="fixed">Fixed</option>
                     <option value="percent">% of purchase</option>
                   </select>
                 </div>
                 <div>
                   <div style={{ fontSize: '9px', fontWeight: 600, color: TEXT_2, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: '5px' }}>Due date</div>
-                  <select value={feeDue} onChange={e => setFeeDue(e.target.value as FeeDue)}
-                    style={{ width: '100%', fontSize: '12px', padding: '7px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: '6px', fontFamily: 'inherit', color: TEXT_1, background: '#fff', boxSizing: 'border-box' as const }}>
+                  <select
+                    value={feeDue} onChange={e => setFeeDue(e.target.value as FeeDue)}
+                    style={{ width: '100%', fontSize: '12px', padding: '7px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: '6px', fontFamily: 'inherit', color: TEXT_1, background: '#fff', boxSizing: 'border-box' as const }}
+                  >
                     <option value="completion">On completion</option>
                     <option value="reservation">On reservation</option>
                     <option value="exchange">On exchange</option>
@@ -414,19 +399,18 @@ export default function FeesTab({ deal }: FeesTabProps) {
 
               <div style={{ display: 'flex', gap: '8px', borderTop: `.5px solid ${DS_BORDER}`, paddingTop: '12px' }}>
                 <LogBtn onClick={markReceived}>
-                  <i className="ti ti-circle-check" style={{ fontSize: '11px' }} /> {feeStatus === 'received' ? 'Received' : 'Mark as received'}
+                  {feeStatus === 'received' ? '✅ Received' : '✓ Mark as received'}
                 </LogBtn>
                 <LogBtn primary onClick={saveFeeDetails}>
-                  <i className="ti ti-device-floppy" style={{ fontSize: '11px' }} /> Save
+                  💾 Save
                 </LogBtn>
               </div>
             </div>
           </SecCard>
 
-          {/* Payment history */}
           <SecCard>
             <SecHdr>
-              <i className="ti ti-history" style={{ fontSize: '14px', color: NAVY }} />
+              <span style={{ fontSize: '14px', color: NAVY }}>🕐</span>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Payment history</span>
             </SecHdr>
             <div style={{ padding: 0 }}>
@@ -443,59 +427,40 @@ export default function FeesTab({ deal }: FeesTabProps) {
                   </div>
                 ))}
               </div>
-              <div style={{ padding: '10px 16px', borderTop: `.5px solid ${DS_BORDER}`, marginTop: '2px' }}>
-                <LogBtn onClick={addHistNote}>
-                  <i className="ti ti-plus" style={{ fontSize: '10px' }} /> Add note
-                </LogBtn>
+              <div style={{ padding: '10px 16px', borderTop: `.5px solid ${DS_BORDER}`, marginTop: '2px', display: 'flex', gap: '8px' }}>
+                <input
+                  value={histNote} onChange={e => setHistNote(e.target.value)}
+                  placeholder="Add a note to payment history..."
+                  style={{ flex: 1, fontSize: '11px', padding: '6px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: '6px', fontFamily: 'inherit', color: TEXT_1, outline: 'none' }}
+                  onKeyDown={e => { if (e.key === 'Enter') addHistNote() }}
+                />
+                <LogBtn onClick={addHistNote}>+ Add</LogBtn>
               </div>
             </div>
           </SecCard>
 
-          {/* Additional fees */}
           <SecCard>
             <SecHdr>
-              <i className="ti ti-plus-circle" style={{ fontSize: '14px', color: TEXT_2 }} />
+              <span style={{ fontSize: '14px', color: TEXT_2 }}>➕</span>
               <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>Additional fees</span>
               <button onClick={() => showToast('Add additional fee — coming soon')} style={{
                 fontSize: '11px', color: NAVY, background: 'none', border: 'none',
                 cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: '4px',
-              }}>
-                <i className="ti ti-plus" style={{ fontSize: '11px' }} /> Add fee
-              </button>
+              }}>+ Add fee</button>
             </SecHdr>
             <div style={{ padding: '28px 16px', textAlign: 'center' }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: TEXT_1, marginBottom: '4px' }}>No additional fees</div>
               <div style={{ fontSize: '11px', color: TEXT_2, marginBottom: '14px', lineHeight: 1.6 }}>Track finder's fees, referral costs, or legal disbursements for this deal here.</div>
-              <LogBtn onClick={() => showToast('Add additional fee — coming soon')}>
-                <i className="ti ti-plus" style={{ fontSize: '10px' }} /> Add additional fee
-              </LogBtn>
+              <LogBtn onClick={() => showToast('Add additional fee — coming soon')}>+ Add additional fee</LogBtn>
             </div>
           </SecCard>
         </div>
 
-        {/* Right sidebar */}
         <div style={{ position: 'sticky', top: `${STICKY_TOP}px` }}>
 
-          {/* Invoice status */}
           <SbarCard>
-            <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#fffbeb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>
-                <i className="ti ti-file-invoice" style={{ color: AMBER }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>Invoice status</div>
-                <div style={{ fontSize: '10px', color: TEXT_2, marginTop: '1px' }}>Sourcing fee invoice</div>
-              </div>
-              <span style={{
-                fontSize: '10px', fontWeight: 700,
-                background: sbarBadgeColor === 'green' ? TEAL_LIGHT : '#fef3c7',
-                color: sbarBadgeColor === 'green' ? '#065f46' : '#92400e',
-                padding: '2px 8px', borderRadius: '20px', flexShrink: 0, whiteSpace: 'nowrap',
-              }}>
-                {sbarBadgeLabel}
-              </span>
-            </div>
+            <SbarHdr icon="🧾" title="Invoice status" subtitle="Sourcing fee invoice" badge={sbarBadgeLabel} badgeColor={sbarBadgeColor} />
             <div style={{ padding: '12px 14px' }}>
               <div>
                 <SbarMetric label="Invoice ref" value={invRef} />
@@ -504,25 +469,22 @@ export default function FeesTab({ deal }: FeesTabProps) {
                 <SbarMetric label="Due"         value={feeDueLabel} />
               </div>
               <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <SbarCta outline onClick={openInvoice}>
-                  <i className="ti ti-file-invoice" style={{ fontSize: '11px' }} /> View &amp; print invoice
-                </SbarCta>
-                <SbarCta outline onClick={markReceived}>
-                  <i className="ti ti-circle-check" style={{ fontSize: '11px' }} /> Mark as received
-                </SbarCta>
+                <SbarCta outline onClick={() => setInvoiceOpen(true)}>🧾 View &amp; print invoice</SbarCta>
+                <SbarCta outline onClick={markReceived}>✓ Mark as received</SbarCta>
               </div>
             </div>
           </SbarCard>
 
-          {/* Send invoice */}
           <SbarCard>
-            <SbarHdr icon={<i className="ti ti-send" />} title="Send invoice" subtitle="Email directly to investor" />
+            <SbarHdr icon="📤" title="Send invoice" subtitle="Email directly to investor" />
             <div style={{ padding: '12px 14px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
                 <div>
                   <div style={{ fontSize: '10px', fontWeight: 600, color: '#bbb', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '4px' }}>To</div>
-                  <select value={sendTo} onChange={e => setSendTo(e.target.value)}
-                    style={{ width: '100%', fontSize: '11px', padding: '7px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, fontFamily: 'inherit', color: TEXT_1, background: '#fff' }}>
+                  <select
+                    value={sendTo} onChange={e => setSendTo(e.target.value)}
+                    style={{ width: '100%', fontSize: '11px', padding: '7px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: R_MD, fontFamily: 'inherit', color: TEXT_1, background: '#fff' }}
+                  >
                     <option value="0">James Brown — j.brown@brownpropinvest.co.uk</option>
                     <option value="1">Sarah Patel — sarah@propinvestors.com</option>
                   </select>
@@ -544,32 +506,35 @@ export default function FeesTab({ deal }: FeesTabProps) {
                   />
                 </div>
               </div>
-              <SbarCta teal onClick={sendInvoice}>
-                <i className="ti ti-send" style={{ fontSize: '11px' }} /> Send invoice
-              </SbarCta>
-              <SbarCta outline onClick={() => showToast('Downloading invoice as PDF…')}>
-                <i className="ti ti-download" style={{ fontSize: '11px' }} /> Download PDF
-              </SbarCta>
+              <SbarCta teal onClick={sendInvoice}>📤 Send invoice</SbarCta>
+              <SbarCta outline onClick={() => showToast('Downloading invoice as PDF…')}>⬇ Download PDF</SbarCta>
             </div>
           </SbarCard>
 
         </div>
       </div>
 
-      {/* Invoice modal */}
-      {(invoiceOpen || showInvoice) && (
+      {invoiceOpen && (
         <div
-          onClick={e => { if (e.target === e.currentTarget) closeInvoice() }}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={e => { if (e.target === e.currentTarget) setInvoiceOpen(false) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
+            zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
         >
-          <div style={{ background: '#fff', borderRadius: R_LG, width: '520px', maxWidth: 'calc(100vw - 32px)', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
+          <div style={{
+            background: '#fff', borderRadius: R_LG, width: '520px',
+            maxWidth: 'calc(100vw - 32px)', maxHeight: '90vh',
+            overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.2)',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 18px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC,
+            }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: TEXT_1 }}>Sourcing Fee Invoice</span>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={closeInvoice} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', cursor: 'pointer', fontFamily: 'inherit', border: `.5px solid ${DS_BORDER}`, background: '#fff', color: TEXT_2 }}>Close</button>
-                <button onClick={() => window.print()} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: NAVY, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <i className="ti ti-printer" style={{ fontSize: '11px' }} /> Print / Save PDF
-                </button>
+                <button onClick={() => setInvoiceOpen(false)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', cursor: 'pointer', fontFamily: 'inherit', border: `.5px solid ${DS_BORDER}`, background: '#fff', color: TEXT_2 }}>Close</button>
+                <button onClick={() => window.print()} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', cursor: 'pointer', fontFamily: 'inherit', border: 'none', background: NAVY, color: '#fff' }}>🖨️ Print / Save PDF</button>
               </div>
             </div>
             <div style={{ padding: '28px 32px', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
@@ -586,8 +551,8 @@ export default function FeesTab({ deal }: FeesTabProps) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px', padding: '14px', background: '#f9fafb', borderRadius: '8px' }}>
                 {[
-                  { lbl: 'From', name: 'Your Name',   detail: 'DealScore Property Sourcing\nyour@email.com' },
-                  { lbl: 'To',   name: 'James Brown', detail: 'Brown Property Investments\nj.brown@brownpropinvest.co.uk' },
+                  { lbl: 'From', name: 'Your Name', detail: 'DealScore Property Sourcing\nyour@email.com' },
+                  { lbl: 'To', name: 'James Brown', detail: 'Brown Property Investments\nj.brown@brownpropinvest.co.uk' },
                 ].map(p => (
                   <div key={p.lbl}>
                     <div style={{ fontSize: '9px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: '6px' }}>{p.lbl}</div>
