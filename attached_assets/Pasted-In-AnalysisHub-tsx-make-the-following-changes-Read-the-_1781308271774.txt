@@ -1,0 +1,54 @@
+In AnalysisHub.tsx make the following changes. Read the full file before touching anything.
+
+── 1. Sub-view pill order ──
+Find the row of sub-view pills (Results / Inputs / Sensitivity / Workings).
+Reorder them to: Inputs | Results | Sensitivity | Workings
+Keep the DEFAULT view as 'results' (do not change the initialisation logic).
+
+── 2. Inputs edit mode — state vars (above return, these are the ONLY exceptions to the no-touch rule) ──
+Add two state vars near the top of the component (with existing useState calls):
+  const [isEditingInputs, setIsEditingInputs] = useState(false);
+  const [isNewDeal, setIsNewDeal] = useState(false);
+
+Also read the URL search params near the top (using useSearchParams from react-router-dom, which is already imported, or URLSearchParams on window.location.search if not):
+  const isNewParam = new URLSearchParams(window.location.search).get('new') === '1';
+
+In a useEffect (add after existing useEffects), if isNewParam is true AND the active sub-view is 'inputs', call setIsEditingInputs(true) and setIsNewDeal(true).
+
+── 3. Inputs sub-view — viewing/edit toggle bar (inside return()) ──
+At the very top of the Inputs sub-view content (before the input fields/cards), add a full-width bar:
+
+  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,padding:'8px 14px',background:'var(--bg-sec)',borderRadius:8,border:'.5px solid var(--ds-border)'}}>
+    <span style={{fontSize:11,color:'var(--text-2)',flex:1}}>
+      {isEditingInputs ? 'Editing inputs' : 'Viewing — read-only'}
+    </span>
+    <button
+      onClick={() => setIsEditingInputs(v => !v)}
+      style={{
+        display:'inline-flex',alignItems:'center',gap:4,fontSize:10,fontWeight:600,
+        padding:'3px 10px',borderRadius:20,cursor:'pointer',fontFamily:'inherit',
+        border: isEditingInputs ? '.5px solid rgba(29,158,117,.3)' : '.5px solid rgba(27,58,107,.25)',
+        background: isEditingInputs ? 'var(--teal-light)' : 'var(--navy-light)',
+        color: isEditingInputs ? '#065f46' : 'var(--navy)',
+        transition:'all .12s'
+      }}
+    >
+      <i className={isEditingInputs ? 'ti ti-lock' : 'ti ti-edit'} style={{fontSize:10}} />
+      {isEditingInputs ? 'Lock inputs' : 'Edit inputs'}
+    </button>
+  </div>
+
+── 4. Make input fields respect edit mode ──
+In the Inputs sub-view, all <input>, <select>, and <textarea> elements should have:
+  readOnly={!isEditingInputs}   (for inputs/textareas)
+  disabled={!isEditingInputs}   (for selects)
+  style={{ ...existingStyle, background: isEditingInputs ? '#fff' : 'var(--bg-sec)', cursor: isEditingInputs ? 'text' : 'default' }}
+
+── 5. New deal mode ──
+If isNewDeal is true, when the Inputs sub-view first renders, all fields should be empty (not pre-filled with deal data). Achieve this by conditionally rendering field values: when isNewDeal, use empty string as the value instead of the deal data field.
+
+── Rules ──
+- Do NOT touch anything else above return() except the two useState additions and the useEffect
+- Do NOT touch Results, Sensitivity, or Workings sub-views
+- Preserve all existing handlers, state, and data wiring
+- Run npx tsc --noEmit after changes. Fix any TypeScript errors before confirming done.

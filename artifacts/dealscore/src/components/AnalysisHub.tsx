@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, createContext, useContext } from 'react'
 import {
   calculateBTL, calculateHMO, calculateFlip, calculateSA,
   calculateBRRR, calculateR2R, calculateSocialHousing,
@@ -452,16 +452,21 @@ function Met({ label, value, highlighted, green }: { label: string; value: strin
   )
 }
 
-// ── Input field (read-only display) ──────────────────────────────────────────
+// ── Input field ───────────────────────────────────────────────────────────────
+const InputsCtx = createContext({ isEditing: false, isNewDeal: false })
+
 function IField({ label, value, required }: { label: string; value: string; required?: boolean }) {
+  const { isEditing, isNewDeal } = useContext(InputsCtx)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em', color: '#5a6270' }}>
         {label}{required && <span style={{ color: AMBER }}> *</span>}
       </label>
-      <div style={{ border: `.5px solid #c8cbd2`, borderRadius: '8px', padding: '7px 10px', fontSize: '12px', color: TEXT_2, background: BG_SEC, minHeight: '33px' }}>
-        {value || '—'}
-      </div>
+      <input
+        readOnly={!isEditing}
+        defaultValue={isNewDeal ? '' : (value === '—' ? '' : value)}
+        style={{ border: `.5px solid #c8cbd2`, borderRadius: '8px', padding: '7px 10px', fontSize: '12px', color: TEXT_2, background: isEditing ? '#fff' : BG_SEC, minHeight: '33px', cursor: isEditing ? 'text' : 'default', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+      />
     </div>
   )
 }
@@ -530,8 +535,8 @@ export type SubView = 'results' | 'inputs' | 'sensitivity' | 'workings'
 
 function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) => void }) {
   const items: { key: SubView; label: string; icon: string }[] = [
-    { key: 'results',     label: 'Results',     icon: 'ti-chart-line' },
     { key: 'inputs',      label: 'Inputs',      icon: 'ti-adjustments-horizontal' },
+    { key: 'results',     label: 'Results',     icon: 'ti-chart-line' },
     { key: 'sensitivity', label: 'Sensitivity', icon: 'ti-chart-bar' },
     { key: 'workings',    label: 'Workings',    icon: 'ti-list-search' },
   ]
@@ -784,8 +789,13 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
   )
 }
 
-// ── VIEW: Inputs (read-only) ──────────────────────────────────────────────────
-function ViewInputs({ p }: { p: ParsedInputs }) {
+// ── VIEW: Inputs ──────────────────────────────────────────────────────────────
+function ViewInputs({ p, isEditingInputs, setIsEditingInputs, isNewDeal }: {
+  p: ParsedInputs
+  isEditingInputs: boolean
+  setIsEditingInputs: (v: boolean | ((prev: boolean) => boolean)) => void
+  isNewDeal: boolean
+}) {
   const taxLabel = TAX_LABEL[p.taxCountry] ?? 'Tax'
   const taxValue = p.taxOverrideActive
     ? p.manualTaxValue
@@ -797,11 +807,27 @@ function ViewInputs({ p }: { p: ParsedInputs }) {
   }
 
   return (
+    <InputsCtx.Provider value={{ isEditing: isEditingInputs, isNewDeal }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', margin: '0 2px 13px' }}>
-          <span style={{ fontSize: '11px', color: TEXT_2 }}>Viewing — read-only</span>
-          <span style={{ fontSize: '10px', color: '#bbb' }}>Edit inputs via the legacy analyser or re-import the deal</span>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,padding:'8px 14px',background:'var(--bg-sec)',borderRadius:8,border:'.5px solid var(--ds-border)'}}>
+          <span style={{fontSize:11,color:'var(--text-2)',flex:1}}>
+            {isEditingInputs ? 'Editing inputs' : 'Viewing — read-only'}
+          </span>
+          <button
+            onClick={() => setIsEditingInputs(v => !v)}
+            style={{
+              display:'inline-flex',alignItems:'center',gap:4,fontSize:10,fontWeight:600,
+              padding:'3px 10px',borderRadius:20,cursor:'pointer',fontFamily:'inherit',
+              border: isEditingInputs ? '.5px solid rgba(29,158,117,.3)' : '.5px solid rgba(27,58,107,.25)',
+              background: isEditingInputs ? 'var(--teal-light)' : 'var(--navy-light)',
+              color: isEditingInputs ? '#065f46' : 'var(--navy)',
+              transition:'all .12s'
+            }}
+          >
+            <i className={isEditingInputs ? 'ti ti-lock' : 'ti ti-edit'} style={{fontSize:10}} />
+            {isEditingInputs ? 'Lock inputs' : 'Edit inputs'}
+          </button>
         </div>
 
         {/* Property info */}
@@ -962,6 +988,7 @@ function ViewInputs({ p }: { p: ParsedInputs }) {
         </div>
       </div>
     </div>
+    </InputsCtx.Provider>
   )
 }
 
@@ -1315,6 +1342,9 @@ export default function AnalysisHub({
 }) {
   const [localView, setLocalView] = useState<SubView>('results')
   const activeView: SubView = externalView ?? localView
+  const [isEditingInputs, setIsEditingInputs] = useState(false)
+  const [isNewDeal, setIsNewDeal] = useState(false)
+  const isNewParam = new URLSearchParams(window.location.search).get('new') === '1'
 
   const p = useMemo(() => parseInputs(deal), [deal])
 
@@ -1344,6 +1374,13 @@ export default function AnalysisHub({
   const stressRateUp    = useMemo(() => runCalc(p, getRateKey()), [p])
   const stressCostsUp   = useMemo(() => runCalc(p, getCostsKey()), [p])
   const stressCombined  = useMemo(() => runCalc(p, { ...getIncomeKey(), ...getRateKey(), ...getCostsKey() }), [p])
+
+  useEffect(() => {
+    if (isNewParam && activeView === 'inputs') {
+      setIsEditingInputs(true)
+      setIsNewDeal(true)
+    }
+  }, [activeView])
 
   return (
     <div className="ds-content">
@@ -1405,7 +1442,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'inputs' && (
-        <ViewInputs p={p} />
+        <ViewInputs p={p} isEditingInputs={isEditingInputs} setIsEditingInputs={setIsEditingInputs} isNewDeal={isNewDeal} />
       )}
 
       {activeView === 'sensitivity' && (
