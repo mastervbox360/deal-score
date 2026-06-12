@@ -103,13 +103,16 @@
   /* DealScore design tokens */
   --navy: #1B3A6B;
   --navy-dark: #152d55;
-  --navy-light: #e8eef7;
+  --navy-deep: #0f2040;
+  --navy-light: #eef3fb;
   --teal: #1D9E75;
-  --teal-light: #e6f7f1;
+  --teal-mid: #10B981;
+  --teal-light: #d1fae5;
   --amber: #F59E0B;
-  --text-1: #1a2332;
-  --text-2: #5a6270;
+  --text-1: #1a1a2e;
+  --text-2: #6c757d;
   --text-3: #9ca3af;
+  --bg-body: #f5f6f8;
   --bg-sec: #f5f6f8;
   --ds-border: #e3e5e9;
   --r-sm: 6px;
@@ -182,6 +185,11 @@ body.privacy .pii { opacity: 0; pointer-events: none; }
   * {
     @apply border-border;
   }
+  html, body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   body {
     @apply font-sans antialiased bg-background text-foreground;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -196,7 +204,7 @@ body.privacy .pii { opacity: 0; pointer-events: none; }
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -669,7 +677,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#fff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#fff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -1096,7 +1104,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
   --amber:#D97706; --amber-bg:#fffbeb; --amber-border:#fde68a;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -1685,7 +1693,7 @@ body.tier-proplus .pp-gate{display:none!important;}
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
   --amber:#D97706; --amber-bg:#fffbeb; --amber-border:#fde68a;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -2169,7 +2177,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -2720,7 +2728,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:14px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -3006,7 +3014,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -3455,7 +3463,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 :root{
   --navy:#1B3A6B;--navy-dark:#152d55;--navy-deep:#0f2040;--navy-light:#eef3fb;
   --teal:#1D9E75;--teal-mid:#10B981;--teal-light:#d1fae5;
-  --bg-body:#eef0f4;--bg-white:#ffffff;--bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8;--bg-white:#ffffff;--bg-sec:#f5f6f8;
   --text-1:#1a1a2e;--text-2:#6c757d;--border:#e3e5e9;
   --r-sm:6px;--r-md:8px;--r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -3697,7 +3705,7 @@ body{background:var(--bg-body);min-height:100vh;font-size:13px;color:var(--text-
 :root{
   --navy:#1B3A6B;--navy-dark:#152d55;--navy-deep:#0f2040;--navy-light:#eef3fb;
   --teal:#1D9E75;--teal-mid:#10B981;--teal-light:#d1fae5;
-  --bg-body:#eef0f4;--bg-white:#ffffff;--bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8;--bg-white:#ffffff;--bg-sec:#f5f6f8;
   --text-1:#1a1a2e;--text-2:#6c757d;--border:#e3e5e9;
   --r-sm:6px;--r-md:8px;--r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -3928,7 +3936,7 @@ body{background:var(--bg-body);min-height:100vh;font-size:13px;color:var(--text-
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -4293,7 +4301,7 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 :root {
   --navy:#1B3A6B; --navy-dark:#152d55; --navy-deep:#0f2040; --navy-light:#eef3fb;
   --teal:#1D9E75; --teal-mid:#10B981; --teal-light:#d1fae5;
-  --bg-body:#eef0f4; --bg-white:#ffffff; --bg-sec:#f5f6f8;
+  --bg-body:#f5f6f8; --bg-white:#ffffff; --bg-sec:#f5f6f8;
   --text-1:#1a1a2e; --text-2:#6c757d; --border:#e3e5e9;
   --r-sm:6px; --r-md:8px; --r-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
