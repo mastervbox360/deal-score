@@ -58,6 +58,22 @@ const STATUS_CSS: Record<DealStatus, string> = {
 
 const VALID_TABS: TabKey[] = ['overview', 'analysis', 'content', 'seller', 'investors', 'fees']
 
+const STRATEGY_LABELS: Record<string, string> = {
+  BTL:      'Buy to Let',
+  HMO:      'House in Multiple Occupation',
+  FLIP:     'Flip',
+  SA:       'Serviced Accommodation',
+  BRRR:     'BRRR',
+  R2R:      'Rent to Rent',
+  R2HMO:   'Rent to HMO',
+  R2SA:    'Rent to SA',
+  SOCIAL:   'Social Housing',
+  BRRHMO:  'BRR to HMO',
+  BRRSA:   'BRR to SA',
+  LEASE:    'Lease Option',
+  ASSISTED: 'Assisted Sale',
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fCurrency(v: number | null): string {
   if (v === null) return '—'
@@ -391,7 +407,29 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
             <span className="pii">{deal.address ?? 'No address'}</span>
           </span>
           <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{deal.strategy}</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{STRATEGY_LABELS[deal.strategy] ?? deal.strategy}</span>
+          {(() => {
+            const sellerName = (deal as any).sellerName ?? null
+            return sellerName ? (
+              <>
+                <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+                <span className="pii" style={{ fontSize: '13px', color: 'var(--text-1)' }}>{sellerName}</span>
+              </>
+            ) : null
+          })()}
+          {(() => {
+            const interested = (deal as any).investorsInterested ?? 0
+            const shared     = (deal as any).investorsShared ?? 0
+            return (interested || shared) ? (
+              <>
+                <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <i className="ti ti-users" style={{ fontSize: 11, opacity: .5 }} />
+                  {interested} interested · {shared} shared
+                </span>
+              </>
+            ) : null
+          })()}
         </div>
         <div style={{ marginLeft: 'auto', paddingRight: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
