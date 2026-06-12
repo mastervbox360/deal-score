@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useId } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Deal, DealStatus } from '../lib/database.types'
 import { useAuth } from '../lib/AuthContext'
+import { supabase } from '../lib/supabase'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type TabKey = 'overview' | 'analysis' | 'content' | 'seller' | 'investors' | 'fees'
@@ -200,6 +201,20 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
       return next
     }, { replace: true })
   }
+
+  // seller name derived from inputs JSON
+  const sellerName = (deal.inputs?.sellerName ?? deal.inputs?.vendorName ?? deal.inputs?.vendor_name ?? null) as string | null
+
+  // investor count
+  const [investorCount, setInvestorCount] = useState(0)
+  useEffect(() => {
+    if (!deal.id) return
+    supabase
+      .from('deal_investors')
+      .select('id', { count: 'exact', head: true })
+      .eq('deal_id', deal.id)
+      .then(({ count }) => setInvestorCount(count ?? 0))
+  }, [deal.id])
 
   // chrome state
   const [livebarVisible, setLivebarVisible] = useState(true)
@@ -408,6 +423,21 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
           </span>
           <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{STRATEGY_LABELS[deal.strategy] ?? deal.strategy}</span>
+          {sellerName && (
+            <>
+              <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+              <span className="pii" style={{ fontSize: '13px', color: 'var(--text-1)' }}>{sellerName}</span>
+            </>
+          )}
+          {investorCount > 0 && (
+            <>
+              <span style={{ color: '#ddd', fontSize: '12px' }}>·</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <i className="ti ti-users" style={{ fontSize: 11, opacity: .5 }} />
+                {investorCount} investor{investorCount !== 1 ? 's' : ''}
+              </span>
+            </>
+          )}
         </div>
         <div style={{ marginLeft: 'auto', paddingRight: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '11px', color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
