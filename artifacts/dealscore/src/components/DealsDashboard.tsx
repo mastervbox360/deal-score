@@ -91,7 +91,7 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
   const goToDeal = () => navigate(`/deal/${deal.dbId}?tab=overview`);
   const photoUrl = photos?.[deal.dbId || deal.id] || deal.photoUrl || '';
   return (
-    <div className={`da${deal.incomplete ? ' da-incomplete' : ''}`}>
+    <div className={`da${deal.incomplete ? ' da-incomplete' : ''} da-${deal.scoreCls || 'inc'}`}>
       <div className="da-photo">
         {photoUrl
           ? <div className="da-photo-bg" style={{ backgroundImage: `url(${photoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
@@ -105,7 +105,7 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
       </div>
       <div className="da-body">
         <div className="da-price">
-          {deal.price && deal.price !== 'Price not set' ? `${deal.price}${deal.desc ? ` · ${deal.desc}` : ''}` : ''}
+          {deal.price && deal.price !== 'Price not set' && deal.price !== 'Incomplete' ? `${deal.price}${deal.desc ? ` · ${deal.desc}` : ''}` : ''}
         </div>
         <div className="da-addr-row">
           <div className={`da-addr${!deal.addr || deal.addr === 'No address' ? ' da-empty' : ''}`}>
