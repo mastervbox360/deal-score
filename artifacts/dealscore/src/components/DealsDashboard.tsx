@@ -45,10 +45,6 @@ function mapDealToProps(deal: any, calcResult: any): Deal {
 
 export { mapDealToProps };
 
-function handlePhotoUpload(_e: React.ChangeEvent<HTMLInputElement>, _dealId: string) {
-  alert('Photo upload — coming soon')
-}
-
 function getDoorSVG(dealId: string) {
   const configs: Record<string, any> = {
     'DS-001': { color: '#8B2635', num: '1' }, 'DS-002': { color: '#1B3A6B', num: '2' },
@@ -68,7 +64,11 @@ function getDoorSVG(dealId: string) {
   );
 }
 
-function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (id: string) => void }) {
+function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
+  deal: Deal; mode: string; onOpen?: (id: string) => void;
+  photos?: Record<string, string>;
+  onPhotoUpload?: (e: React.ChangeEvent<HTMLInputElement>, dealId: string) => void;
+}) {
   const navigate = useNavigate()
   if (mode === 'grid-compact') {
     return (
@@ -89,17 +89,18 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
   }
   const scoreClass = deal.scoreCls === 'avo' ? 'av' : deal.scoreCls;
   const goToDeal = () => navigate(`/deal/${deal.dbId}?tab=overview`);
+  const photoUrl = photos?.[deal.dbId || deal.id] || deal.photoUrl || '';
   return (
     <div className={`da${deal.incomplete ? ' da-incomplete' : ''}`}>
       <div className="da-photo">
-        {deal.photoUrl
-          ? <div className="da-photo-bg" style={{ backgroundImage: `url(${deal.photoUrl})` }} />
+        {photoUrl
+          ? <div className="da-photo-bg" style={{ backgroundImage: `url(${photoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
           : <div className="da-photo-placeholder">{getDoorSVG(deal.id)}</div>
         }
         <span className="da-strat-badge">{deal.strat}</span>
         <label className="da-photo-upload" title="Add photo" style={{ cursor: 'pointer' }}>
           <i className="ti ti-camera-plus" /> Photo
-          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhotoUpload(e, deal.dbId)} />
+          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => onPhotoUpload?.(e, deal.dbId || deal.id)} />
         </label>
       </div>
       <div className="da-body">
@@ -163,6 +164,17 @@ export default function DealsDashboard({
   const [scoreFilter, setScoreFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dealPhotos, setDealPhotos] = useState<Record<string, string>>({});
+  function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>, dealId: string) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) setDealPhotos(prev => ({ ...prev, [dealId]: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  }
   const unreadCount = notifs.filter(n => n.unread).length;
   const activeDeals = deals.filter(d => d.status !== 'archived' && d.status !== 'deleted');
   const archivedDeals = deals.filter(d => d.status === 'archived');
@@ -313,13 +325,13 @@ export default function DealsDashboard({
         {archivedVisible && archivedDeals.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
             <div className="arc-sub-hdr"><i className="ti ti-archive arc-sub-icon"></i><span className="arc-sub-label">Archived</span><span className="arc-sub-count">{archivedDeals.length}</span></div>
-            <div className="cgrid g3c">{archivedDeals.map(d => <DealCard key={d.id} deal={d} mode={viewMode} onOpen={onOpenDeal} />)}</div>
+            <div className="cgrid g3c">{archivedDeals.map(d => <DealCard key={d.id} deal={d} mode={viewMode} onOpen={onOpenDeal} photos={dealPhotos} onPhotoUpload={handlePhotoUpload} />)}</div>
           </div>
         )}
 
         {(viewMode === 'grid' || viewMode === 'grid-compact') && (
           <div className={`cgrid ${viewMode === 'grid-compact' ? 'g4c' : 'g3c'}`}>
-            {filtered.map(d => <DealCard key={d.id} deal={d} mode={viewMode} onOpen={onOpenDeal} />)}
+            {filtered.map(d => <DealCard key={d.id} deal={d} mode={viewMode} onOpen={onOpenDeal} photos={dealPhotos} onPhotoUpload={handlePhotoUpload} />)}
           </div>
         )}
 
