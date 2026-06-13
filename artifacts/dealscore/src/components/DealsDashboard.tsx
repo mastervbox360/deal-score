@@ -134,9 +134,6 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
             </button>
           ) : (
             <>
-              <button className="cbtn cbtn-ghost cbtn-icon" onClick={goToDeal}>
-                <i className="ti ti-edit" />
-              </button>
               <button className="cbtn cbtn-primary" onClick={goToDeal}>
                 Open <i className="ti ti-arrow-right" />
               </button>
@@ -153,7 +150,7 @@ export default function DealsDashboard({
   userName = 'User', userEmail = '', userInitials = 'U',
   onNewDeal, onOpenDeal, onPipeline, onCompare, onSellers, onInvestors, onSignOut
 }: DealsDashboardProps) {
-  const [viewMode, setViewMode] = useState<'grid'|'grid-compact'|'list'|'list-details'|'board'>('grid');
+  const [viewMode, setViewMode] = useState<'grid'|'grid-compact'|'list'|'board'>('grid');
   const [privacyMode, setPrivacyMode] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
@@ -323,7 +320,6 @@ export default function DealsDashboard({
             <button className={`vbtn vb-icon ${viewMode === 'grid-compact' ? 'on' : ''}`} onClick={() => setViewMode('grid-compact')}><i className="ti ti-layout-grid-add"></i></button>
             <div className="vgrp-sep"></div>
             <button className={`vbtn vb-icon ${viewMode === 'list' ? 'on' : ''}`} onClick={() => setViewMode('list')}><i className="ti ti-table"></i></button>
-            <button className={`vbtn vb-icon ${viewMode === 'list-details' ? 'on' : ''}`} onClick={() => setViewMode('list-details')}><i className="ti ti-list-details"></i></button>
           </div>
           <div className="vgrp">
             <button className={`vbtn ${viewMode === 'board' ? 'on' : ''}`} onClick={() => setViewMode('board')}><i className="ti ti-layout-kanban"></i> Deal Board</button>
