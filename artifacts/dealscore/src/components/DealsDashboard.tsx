@@ -111,7 +111,7 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
           <div className={`da-addr${!deal.addr || deal.addr === 'No address' ? ' da-empty' : ''}`}>
             {deal.addr && deal.addr !== 'No address' ? deal.addr : 'Address not set'}
           </div>
-          <span className={`da-score-badge ${scoreClass}`}>{deal.scoreLabel}</span>
+          {deal.scoreLabel && <span className={`da-score-badge ${scoreClass}`}>{deal.scoreLabel}</span>}
         </div>
         <div className="da-ref">{deal.id}</div>
         <div className="da-mrow">
