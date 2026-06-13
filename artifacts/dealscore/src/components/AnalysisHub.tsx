@@ -542,9 +542,9 @@ function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) 
     { key: 'workings',    label: 'Workings',    icon: 'ti-list-search' },
   ]
   return (
-    <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '20px', padding: '4px', width: 'fit-content', boxShadow: '0 1px 3px rgba(0,0,0,.05)' }}>
+    <div style={{ display: 'flex', gap: '4px', marginBottom: '12px', background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
       {items.map(({ key, label, icon }) => (
-        <button key={key} onClick={() => onChange(key)} style={{ fontSize: '12px', fontWeight: active === key ? 600 : 500, padding: '7px 16px', borderRadius: '16px', border: 'none', background: active === key ? NAVY : 'none', color: active === key ? '#fff' : TEXT_2, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+        <button key={key} onClick={() => onChange(key)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', background: active === key ? NAVY : 'transparent', color: active === key ? '#fff' : TEXT_2, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
           <i className={`ti ${icon}`} style={{ fontSize: '11px' }} />{label}
         </button>
       ))}
