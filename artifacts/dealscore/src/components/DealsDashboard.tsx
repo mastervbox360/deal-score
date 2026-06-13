@@ -386,7 +386,7 @@ export default function DealsDashboard({
         )}
 
         {viewMode === 'list' && (
-          <div className="dl" style={{padding:'0 24px'}}>
+          <div className="dl">
             <div className="dl-row dl-head"><span>Deal</span><span>Strategy / Score</span><span>Cash flow</span><span>ROI</span><span>Status</span><span></span></div>
             {filtered.map(d => (
               <div key={d.id} className="dl-row">
