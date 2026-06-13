@@ -1,0 +1,55 @@
+In DealsDashboard.tsx, replace the entire grid-view card render (the non-compact .da card) with a faithful JSX translation of this exact HTML structure from the confirmed mockup. Do not invent layout — follow this structure precisely:
+
+HTML STRUCTURE TO MATCH:
+─────────────────────────
+<div class="da {incCls}">                          <!-- da-incomplete added when deal has no analysis -->
+  <div class="da-photo">
+    <div class="da-photo-bg" style="background-image:url('{photoUrl}')..." />   <!-- hidden when no photo -->
+    <div class="da-photo-placeholder" ...>{doorSVG}</div>                        <!-- hidden when photo exists -->
+    <span class="da-strat-badge">{strategy}</span>                               <!-- top-left overlay -->
+    <label class="da-photo-upload" title="Add photo">                            <!-- bottom-right overlay -->
+      <i class="ti ti-camera-plus"></i> Photo
+      <input type="file" accept="image/*" style="display:none" />
+    </label>
+  </div>
+  <div class="da-body">
+    <div class="da-price">{price} · {desc}</div>               <!-- e.g. "£207,000 · 3 bed terraced" or empty string -->
+    <div class="da-addr-row">
+      <div class="da-addr {da-empty if no address}">{address}</div>
+      <span class="da-score-badge {scoreCls}">{scoreLabel}</span>   <!-- rec/rev/av/inc -->
+    </div>
+    <div class="da-ref">{dealRef}</div>                         <!-- e.g. DS-001 or short UUID -->
+    <div class="da-mrow">                                       <!-- 3 metric boxes -->
+      <div class="dam"><div class="dam-l">{label}</div><div class="dam-v {gr|re|dim}">{value}</div></div>
+      <!-- repeat × 3 -->
+    </div>
+  </div>
+  <div class="da-foot">
+    <span class="ds-status {statusClass}">
+      <i class="ti ti-circle-filled" style="font-size:6px"></i> {statusLabel}
+    </span>
+    <div class="da-acts">
+      <!-- IF incomplete: -->
+      <button class="cbtn cbtn-primary">Complete inputs <i class="ti ti-arrow-right"></i></button>
+      <!-- IF complete: -->
+      <button class="cbtn cbtn-ghost cbtn-icon"><i class="ti ti-edit"></i></button>
+      <button class="cbtn cbtn-primary">Open <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+─────────────────────────
+
+DATA WIRING (use existing mapDealToProps() output — do not change mapDealToProps):
+- incCls: deal.incomplete → add 'da-incomplete' class
+- photoUrl: deal.photoUrl (show da-photo-bg, hide da-photo-placeholder); if none, reverse
+- strategy: deal.strategy (BTL / HMO etc.)
+- priceLine: deal.price ? `£${deal.price.toLocaleString()} · ${deal.beds} bed ${deal.propType}` : ''
+- address: deal.address — if empty/null use da-empty class on da-addr div
+- scoreLabel / scoreCls: map deal.score → 'Recommended'/'rec', 'Review'/'rev', 'Avoid'/'av', 'Incomplete'/'inc'
+- dealRef: deal.ref or deal.id (short form)
+- 3 metrics: Monthly CF / Gross yield / CoC ROI (use '—' with dim class when null)
+- statusClass / statusLabel: map deal.status → existing ds-status classes (sourcing/analysing/live/reserved/complete etc.)
+- incomplete branch: deal.incomplete === true → show "Complete inputs →" only; else show edit icon + "Open →"
+- onClick for Open/Complete inputs buttons: navigate to `/deal/${deal.dbId}?tab=overview`
+
+Run npx tsc --noEmit after. Fix any errors. Do not touch compact, list, or board view renders.

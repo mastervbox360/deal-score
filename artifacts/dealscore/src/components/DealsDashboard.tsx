@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Metric { l: string; v: string; c?: string; }
 interface Deal {
@@ -68,6 +69,7 @@ function getDoorSVG(dealId: string) {
 }
 
 function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (id: string) => void }) {
+  const navigate = useNavigate()
   if (mode === 'grid-compact') {
     return (
       <div className={`bc bc-${deal.scoreCls}`}>
@@ -86,29 +88,31 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
     );
   }
   const scoreClass = deal.scoreCls === 'avo' ? 'av' : deal.scoreCls;
+  const goToDeal = () => navigate(`/deal/${deal.dbId}?tab=overview`);
   return (
-    <div className={`da da-${scoreClass}${deal.incomplete ? ' da-incomplete' : ''}`}>
+    <div className={`da${deal.incomplete ? ' da-incomplete' : ''}`}>
       <div className="da-photo">
         {deal.photoUrl
           ? <div className="da-photo-bg" style={{ backgroundImage: `url(${deal.photoUrl})` }} />
           : <div className="da-photo-placeholder">{getDoorSVG(deal.id)}</div>
         }
         <span className="da-strat-badge">{deal.strat}</span>
-        <label className="da-photo-upload" style={{ cursor: 'pointer' }}>
-          <i className="ti ti-camera" style={{ fontSize: 11 }} /> Add photo
+        <label className="da-photo-upload" title="Add photo" style={{ cursor: 'pointer' }}>
+          <i className="ti ti-camera-plus" /> Photo
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhotoUpload(e, deal.dbId)} />
         </label>
       </div>
       <div className="da-body">
         <div className="da-price">
-          {deal.price === 'Price not set' ? 'Price not set' : `${deal.price}${deal.desc ? ` · ${deal.desc}` : ''}`}
+          {deal.price && deal.price !== 'Price not set' ? `${deal.price}${deal.desc ? ` · ${deal.desc}` : ''}` : ''}
         </div>
         <div className="da-addr-row">
-          <span className={`da-addr${(!deal.addr || deal.addr === 'No address') ? ' da-empty' : ''}`}>
+          <div className={`da-addr${!deal.addr || deal.addr === 'No address' ? ' da-empty' : ''}`}>
             {deal.addr && deal.addr !== 'No address' ? deal.addr : 'Address not set'}
-          </span>
+          </div>
           <span className={`da-score-badge ${scoreClass}`}>{deal.scoreLabel}</span>
         </div>
+        <div className="da-ref">{deal.id}</div>
         <div className="da-mrow">
           {deal.metrics.map((m, idx) => (
             <div key={idx} className="dam">
@@ -118,13 +122,25 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
           ))}
         </div>
       </div>
-      <div className="cfoot">
-        <span className={`ds-status ${deal.status}`}>{deal.statusLabel}</span>
-        <div className="cacts">
-          <button className="cbtn cbtn-ghost cbtn-icon" onClick={() => onOpen?.(deal.dbId)}>
-            <i className="ti ti-edit" />
-          </button>
-          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.dbId)}>Open →</button>
+      <div className="da-foot">
+        <span className={`ds-status ${deal.status}`}>
+          <i className="ti ti-circle-filled" style={{ fontSize: '6px' }} /> {deal.statusLabel}
+        </span>
+        <div className="da-acts">
+          {deal.incomplete ? (
+            <button className="cbtn cbtn-primary" onClick={goToDeal}>
+              Complete inputs <i className="ti ti-arrow-right" />
+            </button>
+          ) : (
+            <>
+              <button className="cbtn cbtn-ghost cbtn-icon" onClick={goToDeal}>
+                <i className="ti ti-edit" />
+              </button>
+              <button className="cbtn cbtn-primary" onClick={goToDeal}>
+                Open <i className="ti ti-arrow-right" />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
