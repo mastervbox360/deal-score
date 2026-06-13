@@ -330,21 +330,21 @@ export default function DealsDashboard({
           </div>
         </div>
         <div className="tbar-right">
-          <select className="fsel" onChange={e => setStratFilter(e.target.value)}>
+          <select style={{padding:'5px 8px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', color:'#555', outline:'none', fontFamily:'inherit', cursor:'pointer'}} onChange={e => setStratFilter(e.target.value)}>
             <option value="">All strategies</option>
             <option value="BTL">BTL</option><option value="HMO">HMO</option><option value="FLIP">FLIP</option>
             <option value="SA">SA</option><option value="BRRR">BRRR</option><option value="R2R">R2R</option><option value="SOCIAL">Social</option>
           </select>
-          <select className="fsel" onChange={e => setScoreFilter(e.target.value)}>
+          <select style={{padding:'5px 8px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', color:'#555', outline:'none', fontFamily:'inherit', cursor:'pointer'}} onChange={e => setScoreFilter(e.target.value)}>
             <option value="">All scores</option>
             <option value="RECOMMENDED">Recommended</option><option value="REVIEW">Review</option><option value="AVOID">Avoid</option>
           </select>
-          <select className="fsel" onChange={e => setStatusFilter(e.target.value)}>
+          <select style={{padding:'5px 8px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', color:'#555', outline:'none', fontFamily:'inherit', cursor:'pointer'}} onChange={e => setStatusFilter(e.target.value)}>
             <option value="">All statuses</option>
             <option value="sourcing">Sourcing</option><option value="ready">Ready</option><option value="live">Live</option>
             <option value="reserved">Reserved</option><option value="pack-sent">Pack sent</option><option value="complete">Complete</option>
           </select>
-          <select style={{border:'1px solid #e3e5e9', borderRadius:6, padding:'5px 10px', fontSize:12, color:'var(--text-1)', background:'#fff', cursor:'pointer'}}>
+          <select style={{padding:'5px 8px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', color:'#555', outline:'none', fontFamily:'inherit', cursor:'pointer'}}>
             <option>Newest first</option>
             <option>Oldest first</option>
             <option>Price: low–high</option>
@@ -353,7 +353,7 @@ export default function DealsDashboard({
           <input
             type="text"
             placeholder="Search deals..."
-            style={{border:'1px solid #e3e5e9', borderRadius:6, padding:'5px 10px', fontSize:12, color:'var(--text-1)', background:'#fff', width:160, outline:'none'}}
+            style={{padding:'5px 10px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', outline:'none', width:140, fontFamily:'inherit'}}
           />
           <button className="fsel" onClick={() => setArchivedVisible(!archivedVisible)}><i className="ti ti-archive"></i> Archived &amp; rejected</button>
         </div>
