@@ -94,7 +94,6 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
           : <div className="da-photo-placeholder">{getDoorSVG(deal.id)}</div>
         }
         <span className="da-strat-badge">{deal.strat}</span>
-        <span className={`da-score-badge ${scoreClass}`}>{deal.scoreLabel}</span>
         <label className="da-photo-upload" style={{ cursor: 'pointer' }}>
           <i className="ti ti-camera" style={{ fontSize: 11 }} /> Add photo
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhotoUpload(e, deal.dbId)} />
@@ -108,7 +107,7 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
           <span className={`da-addr${(!deal.addr || deal.addr === 'No address') ? ' da-empty' : ''}`}>
             {deal.addr && deal.addr !== 'No address' ? deal.addr : 'Address not set'}
           </span>
-          <span className="da-ref">{deal.id}</span>
+          <span className={`da-score-badge ${scoreClass}`}>{deal.scoreLabel}</span>
         </div>
         <div className="da-mrow">
           {deal.metrics.map((m, idx) => (
