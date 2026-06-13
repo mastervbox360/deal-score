@@ -419,6 +419,11 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 .da-foot{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 10px;border-top:.5px solid var(--border);margin-top:auto;}
 .da-acts{display:flex;gap:4px;}
 .da-incomplete .da-photo{opacity:.55;}
+/* Score-driven top border accent on .da wrapper */
+.da-rec{border-top:2.5px solid var(--teal);}
+.da-rev{border-top:2.5px solid #D97706;}
+.da-av{border-top:2.5px solid #DC2626;}
+.da-inc{border-top:2.5px solid #e5e7eb;}
 
 /* ══════════════════════════════════════
    BUSINESS CARD (.bc) — grid-compact 4-col

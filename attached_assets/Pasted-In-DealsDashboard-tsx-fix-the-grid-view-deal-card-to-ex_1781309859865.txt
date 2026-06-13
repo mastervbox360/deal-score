@@ -1,0 +1,49 @@
+In DealsDashboard.tsx, fix the grid-view deal card to exactly match the .da card structure from the confirmed mockup. Read the full file first.
+
+── WHAT TO FIX (grid card only — do not touch compact/list/board views) ──
+
+Find the function or JSX block that renders a single card in the 3-column grid view (the .da card). Replace its return() / JSX with the following structure, keeping all existing onClick handlers, navigation calls, and data wiring:
+
+1. CARD WRAPPER
+   className="da" + score-class (da-rec / da-rev / da-av / da-inc based on deal score)
+   The da-incomplete class should be added when the deal has no analysis yet.
+
+2. PHOTO ZONE  className="da-photo"
+   a. If deal has a photoUrl: <div className="da-photo-bg" style={{backgroundImage:`url(${deal.photoUrl})`}} />
+   b. If no photo: render the existing placeholder SVG (the navy house illustration already in the component)
+   c. Strategy badge overlaid top-left:
+      <span className="da-strat-badge">{deal.strategy}</span>
+   d. Score badge overlaid top-right:
+      <span className={`da-score-badge ${scoreClass}`}>{scoreLabel}</span>
+      where scoreLabel = "Recommended" / "Review" / "Avoid" / "Incomplete"
+      and scoreClass = "rec" / "rev" / "av" / "inc"
+   e. Photo upload button overlaid bottom-right:
+      <label className="da-photo-upload" style={{cursor:'pointer'}}>
+        <i className="ti ti-camera" style={{fontSize:11}} /> Add photo
+        <input type="file" accept="image/*" style={{display:'none'}} onChange={e => handlePhotoUpload(e, deal.id)} />
+      </label>
+      Add a handlePhotoUpload stub function if it doesn't exist: just call showToast('Photo upload — coming soon') for now.
+
+3. CARD BODY  className="da-body"
+   a. Price line: <div className="da-price">{deal.price ? `£${deal.price.toLocaleString()} · ${deal.beds} bed ${deal.propType}` : 'Price not set'}</div>
+   b. Address row: className="da-addr-row"
+      - address: <span className={`da-addr${!deal.address ? ' da-empty' : ''}`}>{deal.address || 'Address not set'}</span>
+      - ref: <span className="da-ref">{deal.ref}</span>
+   c. Metrics: className="da-mrow" — 3 metric boxes (className="dam") with label (className="dam-l") and value (className="dam-v" + "gr"/"re"/"dim" class):
+      Show the 3 most relevant metrics for the deal's strategy. For BTL/BRRR/SA: Monthly CF · Gross yield · CoC ROI. For HMO: Monthly CF · Gross yield · Cash in. For FLIP: Profit · ROI · Monthly CF. For R2R: Monthly CF · CoC ROI · Gross yield. Fall back to Monthly CF · Gross yield · CoC ROI if strategy unknown. Use "—" with class "dim" when no value.
+
+4. FOOTER  className="cfoot"
+   Left: <span className={`ds-status ${statusClass}`}>{deal.statusLabel}</span>
+   Right: className="cacts"
+     - Edit icon button: className="cbtn cbtn-ghost cbtn-icon" → <i className="ti ti-edit" />
+     - Open button: className="cbtn cbtn-primary" → "Open →"
+
+── CSS ──
+Check index.css for the classes: da, da-photo, da-photo-bg, da-photo-placeholder, da-strat-badge, da-score-badge, da-photo-upload, da-body, da-price, da-addr, da-ref, da-mrow, dam, dam-l, dam-v, da-foot, da-acts, da-incomplete, da-rec, da-rev, da-av, da-inc.
+Add any that are missing under the /* === MOCKUP DESIGN SYSTEM === */ section, copying exactly from ds_deals.html's <style> block (the file is at mockups/ds_deals.html in the project root).
+
+── RULES ──
+- Do NOT touch compact, list, or board view card renders
+- Preserve all existing mapDealToProps() logic and data wiring
+- Do NOT touch anything above return() in the main component other than adding handlePhotoUpload if it doesn't exist
+- Run npx tsc --noEmit after. Fix any errors. Confirm what changed.

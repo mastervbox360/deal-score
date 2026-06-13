@@ -5,7 +5,7 @@ interface Deal {
   id: string; dbId: string; strat: string; score: string; scoreCls: string; scoreLabel: string;
   status: string; statusLabel: string; addr: string; price: string; desc: string;
   heroLabel?: string; heroVal?: string; heroCls?: string; incomplete?: boolean;
-  metrics: Metric[]; rejectReason?: string; archivedDate?: string;
+  metrics: Metric[]; rejectReason?: string; archivedDate?: string; photoUrl?: string;
 }
 interface Notification { id: string; unread: boolean; type: string; icon: string; deal: string; msg: string; time: string; }
 interface TodayTask { id: string; type: string; typeLabel: string; addr: string; detail: string; actionLabel: string; dateStr?: string; }
@@ -44,6 +44,10 @@ function mapDealToProps(deal: any, calcResult: any): Deal {
 
 export { mapDealToProps };
 
+function handlePhotoUpload(_e: React.ChangeEvent<HTMLInputElement>, _dealId: string) {
+  alert('Photo upload — coming soon')
+}
+
 function getDoorSVG(dealId: string) {
   const configs: Record<string, any> = {
     'DS-001': { color: '#8B2635', num: '1' }, 'DS-002': { color: '#1B3A6B', num: '2' },
@@ -81,29 +85,47 @@ function DealCard({ deal, mode, onOpen }: { deal: Deal; mode: string; onOpen?: (
       </div>
     );
   }
+  const scoreClass = deal.scoreCls === 'avo' ? 'av' : deal.scoreCls;
   return (
-    <div className="da">
+    <div className={`da da-${scoreClass}${deal.incomplete ? ' da-incomplete' : ''}`}>
       <div className="da-photo">
-        <div className="da-photo-placeholder">{getDoorSVG(deal.id)}</div>
+        {deal.photoUrl
+          ? <div className="da-photo-bg" style={{ backgroundImage: `url(${deal.photoUrl})` }} />
+          : <div className="da-photo-placeholder">{getDoorSVG(deal.id)}</div>
+        }
         <span className="da-strat-badge">{deal.strat}</span>
+        <span className={`da-score-badge ${scoreClass}`}>{deal.scoreLabel}</span>
+        <label className="da-photo-upload" style={{ cursor: 'pointer' }}>
+          <i className="ti ti-camera" style={{ fontSize: 11 }} /> Add photo
+          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhotoUpload(e, deal.dbId)} />
+        </label>
       </div>
       <div className="da-body">
-        <div className="da-price">{deal.price} · {deal.desc}</div>
-        <div className="da-addr-row">
-          <div className="da-addr pii">{deal.addr}</div>
-          <span className={`da-score-badge ${deal.scoreCls}`}>{deal.scoreLabel}</span>
+        <div className="da-price">
+          {deal.price === 'Price not set' ? 'Price not set' : `${deal.price}${deal.desc ? ` · ${deal.desc}` : ''}`}
         </div>
-        <div className="da-ref">{deal.id}</div>
+        <div className="da-addr-row">
+          <span className={`da-addr${(!deal.addr || deal.addr === 'No address') ? ' da-empty' : ''}`}>
+            {deal.addr && deal.addr !== 'No address' ? deal.addr : 'Address not set'}
+          </span>
+          <span className="da-ref">{deal.id}</span>
+        </div>
         <div className="da-mrow">
           {deal.metrics.map((m, idx) => (
-            <div key={idx} className="dam"><div className="dam-l">{m.l}</div><div className={`dam-v ${m.c}`}>{m.v}</div></div>
+            <div key={idx} className="dam">
+              <div className="dam-l">{m.l}</div>
+              <div className={`dam-v ${m.c || ''}`}>{m.v}</div>
+            </div>
           ))}
         </div>
       </div>
-      <div className="da-foot">
+      <div className="cfoot">
         <span className={`ds-status ${deal.status}`}>{deal.statusLabel}</span>
-        <div className="da-acts">
-          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.dbId)}>Open <i className="ti ti-arrow-right"></i></button>
+        <div className="cacts">
+          <button className="cbtn cbtn-ghost cbtn-icon" onClick={() => onOpen?.(deal.dbId)}>
+            <i className="ti ti-edit" />
+          </button>
+          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.dbId)}>Open →</button>
         </div>
       </div>
     </div>
