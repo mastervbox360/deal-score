@@ -292,7 +292,7 @@ export default function DealsDashboard({
 
       <div style={{
         background:'#fff', borderRadius:12, border:'.5px solid #e3e5e9',
-        padding:'16px 18px', margin:'0 24px 16px', display:'flex', alignItems:'flex-start', gap:14,
+        padding:'16px 18px', margin:'16px 28px', display:'flex', alignItems:'flex-start', gap:14,
         position:'relative', boxShadow:'0 1px 3px rgba(0,0,0,.06)'
       }}>
         <div style={{
