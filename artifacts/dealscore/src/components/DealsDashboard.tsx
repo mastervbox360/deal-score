@@ -292,7 +292,7 @@ export default function DealsDashboard({
 
       <div style={{
         background:'#fff', borderRadius:12, border:'.5px solid #e3e5e9',
-        padding:'16px 18px', margin:'16px 28px', display:'flex', alignItems:'flex-start', gap:14,
+        padding:'16px 18px', margin:'12px 24px', display:'flex', alignItems:'flex-start', gap:14,
         position:'relative', boxShadow:'0 1px 3px rgba(0,0,0,.06)'
       }}>
         <div style={{
@@ -347,7 +347,7 @@ export default function DealsDashboard({
         </div>
       </div>
 
-      <div className="content-wrap" style={{ padding: '20px 24px' }}>
+      <div className="content-wrap" style={{ padding: '20px 24px 40px' }}>
         {archivedVisible && archivedDeals.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
             <div className="arc-sub-hdr"><i className="ti ti-archive arc-sub-icon"></i><span className="arc-sub-label">Archived</span><span className="arc-sub-count">{archivedDeals.length}</span></div>
