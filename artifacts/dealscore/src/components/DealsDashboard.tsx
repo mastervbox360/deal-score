@@ -347,7 +347,7 @@ export default function DealsDashboard({
         </div>
       </div>
 
-      <div className="content-wrap" style={{ padding: '20px 24px 40px' }}>
+      <div className="content-wrap">
         {archivedVisible && archivedDeals.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
             <div className="arc-sub-hdr"><i className="ti ti-archive arc-sub-icon"></i><span className="arc-sub-label">Archived</span><span className="arc-sub-count">{archivedDeals.length}</span></div>
