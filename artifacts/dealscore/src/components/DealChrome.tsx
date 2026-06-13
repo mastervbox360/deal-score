@@ -550,15 +550,26 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                {analysisView === 'inputs' && (
-                  <button
-                    className="log-btn"
-                    style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
-                    onClick={() => toast({ description: 'Inputs confirmed' })}
-                  >
-                    <i className="ti ti-check" style={{ fontSize: 11 }}></i> Confirm inputs
-                  </button>
-                )}
+                {analysisView === 'inputs' && (() => {
+                  const isEditing = searchParams.get('editing') === 'true'
+                  return isEditing ? (
+                    <button
+                      className="log-btn"
+                      style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                      onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs`)}
+                    >
+                      <i className="ti ti-check" style={{ fontSize: 11 }}></i> Confirm inputs
+                    </button>
+                  ) : (
+                    <button
+                      className="log-btn"
+                      style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                      onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)}
+                    >
+                      <i className="ti ti-edit" style={{ fontSize: 11 }}></i> Edit inputs
+                    </button>
+                  )
+                })()}
                 {analysisView === 'results' && (
                   <button
                     className="log-btn"

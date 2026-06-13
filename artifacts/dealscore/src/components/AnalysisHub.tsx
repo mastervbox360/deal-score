@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, createContext, useContext } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   calculateBTL, calculateHMO, calculateFlip, calculateSA,
   calculateBRRR, calculateR2R, calculateSocialHousing,
@@ -790,12 +791,12 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 }
 
 // ── VIEW: Inputs ──────────────────────────────────────────────────────────────
-function ViewInputs({ p, isEditingInputs, setIsEditingInputs, isNewDeal }: {
+function ViewInputs({ p, isNewDeal }: {
   p: ParsedInputs
-  isEditingInputs: boolean
-  setIsEditingInputs: (v: boolean | ((prev: boolean) => boolean)) => void
   isNewDeal: boolean
 }) {
+  const [searchParams] = useSearchParams()
+  const isEditing = searchParams.get('editing') === 'true'
   const taxLabel = TAX_LABEL[p.taxCountry] ?? 'Tax'
   const taxValue = p.taxOverrideActive
     ? p.manualTaxValue
@@ -807,29 +808,9 @@ function ViewInputs({ p, isEditingInputs, setIsEditingInputs, isNewDeal }: {
   }
 
   return (
-    <InputsCtx.Provider value={{ isEditing: isEditingInputs, isNewDeal }}>
+    <InputsCtx.Provider value={{ isEditing: isEditing, isNewDeal }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
-        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,padding:'8px 14px',background:'var(--bg-sec)',borderRadius:8,border:'.5px solid var(--ds-border)'}}>
-          <span style={{fontSize:11,color:'var(--text-2)',flex:1}}>
-            {isEditingInputs ? 'Editing inputs' : 'Viewing — read-only'}
-          </span>
-          <button
-            onClick={() => setIsEditingInputs(v => !v)}
-            style={{
-              display:'inline-flex',alignItems:'center',gap:4,fontSize:10,fontWeight:600,
-              padding:'3px 10px',borderRadius:20,cursor:'pointer',fontFamily:'inherit',
-              border: isEditingInputs ? '.5px solid rgba(29,158,117,.3)' : '.5px solid rgba(27,58,107,.25)',
-              background: isEditingInputs ? 'var(--teal-light)' : 'var(--navy-light)',
-              color: isEditingInputs ? '#065f46' : 'var(--navy)',
-              transition:'all .12s'
-            }}
-          >
-            <i className={isEditingInputs ? 'ti ti-lock' : 'ti ti-edit'} style={{fontSize:10}} />
-            {isEditingInputs ? 'Lock inputs' : 'Edit inputs'}
-          </button>
-        </div>
-
         {/* Property info */}
         <Sec title="Property information" badge="Saved">
           <IGrid>
@@ -1442,7 +1423,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'inputs' && (
-        <ViewInputs p={p} isEditingInputs={isEditingInputs} setIsEditingInputs={setIsEditingInputs} isNewDeal={isNewDeal} />
+        <ViewInputs p={p} isNewDeal={isNewDeal} />
       )}
 
       {activeView === 'sensitivity' && (

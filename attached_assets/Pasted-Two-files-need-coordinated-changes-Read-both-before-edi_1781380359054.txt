@@ -1,0 +1,42 @@
+Two files need coordinated changes. Read both before editing either.
+
+## The problem
+- AnalysisHub has an `isEditingInputs` state for the Inputs sub-view edit mode
+- DealChrome's action bar needs to know this state to show the right button
+- Solution: use a URL param `editing=true` as shared state (same pattern as ?view=inputs)
+
+## AnalysisHub.tsx changes (return() only — do NOT touch above return())
+1. Find the inline "Viewing — read-only | Edit inputs" toggle row that renders inside the Inputs sub-view. REMOVE it entirely from JSX.
+2. Where isEditingInputs is currently set true (the Edit button onClick), instead call:
+   navigate(`/deal/${dealId}?tab=analysis&view=inputs&editing=true`)
+   (use whatever the deal ID and navigate are called in this file)
+3. Where isEditingInputs is set false (Confirm/cancel), navigate to remove the editing param:
+   navigate(`/deal/${dealId}?tab=analysis&view=inputs`)
+4. Derive edit state from URL instead of local state:
+   Replace usages of `isEditingInputs` with: `searchParams.get('editing') === 'true'`
+   Remove the isEditingInputs useState if it's now unused.
+
+## DealChrome.tsx changes (return() only — do NOT touch above return())
+Find the Analysis action bar section where analysisView === 'inputs' renders the "Confirm inputs" navy button. Replace with:
+
+{analysisView === 'inputs' && (() => {
+  const isEditing = new URLSearchParams(window.location.search).get('editing') === 'true'
+  return isEditing ? (
+    <button className="log-btn"
+      style={{ borderRadius:'7px', background:'var(--navy)', color:'#fff', borderColor:'var(--navy)' }}
+      onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs`)}>
+      <i className="ti ti-check" style={{ fontSize:11 }}></i> Confirm inputs
+    </button>
+  ) : (
+    <button className="log-btn"
+      style={{ borderRadius:'7px', background:'var(--navy)', color:'#fff', borderColor:'var(--navy)' }}
+      onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)}>
+      <i className="ti ti-edit" style={{ fontSize:11 }}></i> Edit inputs
+    </button>
+  )
+})()}
+
+Note: If DealChrome already has useSearchParams in scope, use that instead of new URLSearchParams(window.location.search). Check before writing.
+
+Do NOT touch anything above return() in either file except removing now-unused state vars.
+Run npx tsc --noEmit after all changes. Fix any TypeScript errors. Paste the diff for both files.
