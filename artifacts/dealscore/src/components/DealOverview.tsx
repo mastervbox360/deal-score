@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Deal, DealStatus } from '../lib/database.types'
@@ -392,6 +392,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
   const [overviewView, setOverviewView] = useState<'overview' | 'status'>(
     initialView === 'status' ? 'status' : 'overview'
   )
+  useEffect(() => { setOverviewView(initialView ?? 'overview') }, [initialView])
   const [closeDealOpen, setCloseDealOpen]     = useState(false)
   const [closedOutcome, setClosedOutcome]     = useState<string | null>(null)
   const [archivedBanner, setArchivedBanner]   = useState(false)
