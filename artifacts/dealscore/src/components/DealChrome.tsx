@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Deal, DealStatus } from '../lib/database.types'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../hooks/use-toast'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type TabKey = 'overview' | 'analysis' | 'content' | 'seller' | 'investors' | 'fees'
@@ -280,6 +281,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
   }
 
   const lbItems = getLbItems(deal, activeTab, contentType)
+  const { toast } = useToast()
 
   return (
     <div>
@@ -497,8 +499,12 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button className="log-btn" style={{ borderRadius: '7px' }} onClick={() => navigate(`/deal/${deal.id}?tab=overview&view=status`)}>
-                  <i className="ti ti-file-description" style={{ fontSize: '11px' }}></i> Deal Status
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => toast({ description: 'Activity logged' })}
+                >
+                  <i className="ti ti-pencil" style={{ fontSize: 11 }}></i> Log activity
                 </button>
                 <button
                   className="log-btn"
