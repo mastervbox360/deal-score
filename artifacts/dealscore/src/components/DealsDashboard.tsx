@@ -45,23 +45,55 @@ function mapDealToProps(deal: any, calcResult: any): Deal {
 
 export { mapDealToProps };
 
-function getDoorSVG(dealId: string) {
-  const configs: Record<string, any> = {
-    'DS-001': { color: '#8B2635', num: '1' }, 'DS-002': { color: '#1B3A6B', num: '2' },
-    'DS-003': { color: '#2D6A4F', num: '3' }, 'DS-004': { color: '#3D3D3D', num: '4' },
-    'DS-005': { color: '#1D7A6B', num: '5' }, 'DS-006': { color: '#C47D1A', num: '6' },
-  };
-  const dc = configs[dealId] || { color: '#253343', num: '?' };
+function PlaceholderHouse({ strategy, dealId }: { strategy: string; dealId: string }) {
+  const doors: Record<string, [string, string]> = {
+    BTL:  ['#C0392B','#8B1A0A'],
+    HMO:  ['#1D9E75','#0D6B4D'],
+    BRRR: ['#1B3A6B','#0D1F3C'],
+    SA:   ['#D97706','#92510A'],
+    FLIP: ['#1C1C1C','#111111'],
+    R2R:  ['#6B46A0','#3D1F72'],
+  }
+  const [door, shadow] = doors[strategy] ?? ['#D97706','#92510A']
+  const gid = `sky-${dealId}`
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 126" style={{ width: '100%', height: '100%', display: 'block' }}>
-      <rect width="240" height="126" fill="#152540" />
-      <rect x="0" y="107" width="240" height="19" fill="#0d1c2e" />
-      <rect x="52" y="60" width="136" height="49" fill="#cec9c0" />
-      <polygon points="36,63 120,18 204,63" fill="#253343" />
-      <rect x="106" y="77" width="28" height="34" fill={dc.color} rx="1.5" />
-      <text x="120" y="110.5" fontFamily="Georgia,serif" fontSize="6" fontWeight="bold" fill="#3d2600" textAnchor="middle">{dc.num}</text>
+    <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',display:'block'}}>
+      <defs>
+        <radialGradient id={gid} cx="50%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#1e3a5f"/>
+          <stop offset="100%" stopColor="#0d1f3c"/>
+        </radialGradient>
+      </defs>
+      <rect width="280" height="160" fill={`url(#${gid})`}/>
+      <circle cx="45" cy="22" r="1" fill="#fff" opacity=".7"/>
+      <circle cx="100" cy="14" r="1.2" fill="#fff" opacity=".6"/>
+      <circle cx="180" cy="18" r="1" fill="#fff" opacity=".8"/>
+      <circle cx="240" cy="28" r=".8" fill="#fff" opacity=".5"/>
+      <circle cx="260" cy="10" r="1.1" fill="#fff" opacity=".7"/>
+      <circle cx="30" cy="38" r=".7" fill="#fff" opacity=".5"/>
+      <circle cx="155" cy="32" r=".9" fill="#fff" opacity=".6"/>
+      <rect x="0" y="148" width="280" height="12" fill="#0d1a2e"/>
+      <rect x="195" y="52" width="8" height="28" fill="#2a2e35"/>
+      <circle cx="199" cy="50" r="3" fill="#3a3f47" opacity=".7"/>
+      <circle cx="199" cy="46" r="2" fill="#3a3f47" opacity=".4"/>
+      <polygon points="140,28 215,80 65,80" fill="#2a2e35"/>
+      <polygon points="140,28 215,80 200,80 140,36 80,80 65,80" fill="#32373f"/>
+      <rect x="72" y="80" width="136" height="68" fill="#E8E0D5"/>
+      <rect x="86" y="92" width="22" height="20" fill="#c8dde8" rx="1"/>
+      <line x1="97" y1="92" x2="97" y2="112" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <line x1="86" y1="102" x2="108" y2="102" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <rect x="172" y="92" width="22" height="20" fill="#c8dde8" rx="1"/>
+      <line x1="183" y1="92" x2="183" y2="112" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <line x1="172" y1="102" x2="194" y2="102" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <rect x="126" y="108" width="28" height="40" fill={door} rx="2"/>
+      <rect x="130" y="112" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <rect x="141" y="112" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <rect x="130" y="125" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <rect x="141" y="125" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <circle cx="151" cy="129" r="2" fill="#D4AF37"/>
+      <rect x="132" y="140" width="16" height="8" fill="#D4AF37" rx="1"/>
     </svg>
-  );
+  )
 }
 
 function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
@@ -98,7 +130,7 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
       <div className="da-photo">
         {photoUrl
           ? <div className="da-photo-bg" style={{ backgroundImage: `url(${photoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          : <div className="da-photo-placeholder">{getDoorSVG(deal.id)}</div>
+          : <div className="da-photo-placeholder"><PlaceholderHouse strategy={deal.strat ?? ''} dealId={deal.id ?? deal.dbId ?? ''} /></div>
         }
         <span className="da-strat-badge">{deal.strat}</span>
         <label className="da-photo-upload" title="Add photo" style={{ cursor: 'pointer' }}>
