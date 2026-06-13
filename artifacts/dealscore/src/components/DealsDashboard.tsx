@@ -21,7 +21,7 @@ interface DealsDashboardProps {
 function mapDealToProps(deal: any, calcResult: any): Deal {
   const verdict = deal.verdict ?? calcResult?.verdict ?? null;
   const scoreCls = verdict === 'RECOMMENDED' ? 'rec' : verdict === 'REVIEW' ? 'rev' : verdict === 'AVOID' ? 'avo' : 'inc';
-  const scoreLabel = verdict ? verdict.charAt(0) + verdict.slice(1).toLowerCase() : 'Incomplete';
+  const scoreLabel = verdict ? verdict.charAt(0) + verdict.slice(1).toLowerCase() : '';
   const cf = calcResult?.monthlyCashFlow;
   return {
     id: deal.deal_ref ?? deal.id?.slice(0,8).toUpperCase(),
