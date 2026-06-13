@@ -83,7 +83,7 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
         <div className="bc-foot">
           <span className={`ds-status ${deal.status}`}>{deal.statusLabel}</span>
           <div style={{display:'flex', gap:3}}>
-            <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${deal.dbId}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
+            <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
             <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid var(--navy)', fontFamily:'inherit', display:'flex', alignItems:'center', background:'var(--navy)', color:'#fff', whiteSpace:'nowrap'}} onClick={() => onOpen?.(deal.dbId)}>Open</button>
           </div>
         </div>
@@ -137,7 +137,7 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
             </button>
           ) : (
             <>
-              <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${deal.dbId}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
+              <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
               <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid var(--navy)', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'var(--navy)', color:'#fff', whiteSpace:'nowrap'}} onClick={goToDeal}>Open</button>
             </>
           )}
@@ -396,7 +396,7 @@ export default function DealsDashboard({
                 <div className="dl-val">{d.metrics.find(m => m.l.includes('ROI'))?.v || '—'}</div>
                 <div><span className={`ds-status ${d.status}`}>{d.statusLabel}</span></div>
                 <div className="dl-acts" style={{display:'flex', gap:3}}>
-                  <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${d.dbId}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
+                  <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${d.id}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
                   <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid var(--navy)', fontFamily:'inherit', display:'flex', alignItems:'center', background:'var(--navy)', color:'#fff', whiteSpace:'nowrap'}} onClick={() => onOpenDeal?.(d.dbId)}>Open</button>
                 </div>
               </div>
