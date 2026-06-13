@@ -1,0 +1,32 @@
+The "Deal Status" button on the Overview tab is not loading the Deal progress view. Diagnose and fix the full chain. Read each file before touching it.
+
+── STEP 1: DIAGNOSE ──
+Check these three things and report findings before making any edits:
+
+1. In DealChrome.tsx — find the "Deal Status" button (rendered when activeTab === 'overview'). What does its onClick currently do? Paste the exact JSX.
+
+2. In DealPage.tsx — find where URL search params are read. Does it read a 'view' param? Does it derive initialContentView from it? Does it pass initialView (or equivalent) to <ContentHub />? Paste the relevant lines.
+
+3. In ContentHub.tsx — does it accept an initialView prop? Does it have a hubView state? Does a useEffect or useState initialiser use initialView to set the active sub-view? Paste the relevant lines.
+
+── STEP 2: FIX ──
+Based on findings, fix the broken link(s). The correct behaviour is:
+
+a. DealChrome.tsx — "Deal Status" onClick must call:
+   navigate(`/deal/${deal.id}?tab=content&view=progress`)
+   (use the navigate hook already in scope — check that deal.id is the correct identifier used elsewhere in navigate calls in this file)
+
+b. DealPage.tsx — must read the 'view' search param independently of the 'tab' param:
+   const searchParams = new URLSearchParams(location.search)
+   const tabParam = searchParams.get('tab')
+   const viewParam = searchParams.get('view')
+   Then derive: const initialContentView: 'create' | 'progress' = viewParam === 'progress' ? 'progress' : 'create'
+   And pass: <ContentHub initialView={initialContentView} ... />
+
+c. ContentHub.tsx — must use initialView to set the starting sub-view:
+   - If hubView state exists, initialise it as: useState<'create'|'progress'>(initialView ?? 'create')
+   - Add a useEffect that updates hubView when initialView prop changes:
+     useEffect(() => { if (initialView) setHubView(initialView) }, [initialView])
+   - The prop must be in the ContentHub interface: initialView?: 'create' | 'progress'
+
+Run npx tsc --noEmit after fixing. Fix any TypeScript errors. Confirm exactly what was wrong and what was changed.
