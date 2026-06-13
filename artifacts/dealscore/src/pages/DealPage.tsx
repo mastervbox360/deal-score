@@ -76,7 +76,6 @@ export default function DealPage() {
 
   const activeTab = parseTab(searchParams.get('tab'))
   const viewParam = searchParams.get('view')
-  const initialContentView: 'create' | 'progress' = viewParam === 'progress' ? 'progress' : 'create'
 
   const [deal, setDeal]         = useState<Deal | null>(null)
   const [loading, setLoading]   = useState(true)
@@ -132,7 +131,7 @@ export default function DealPage() {
   // ── Render with chrome ─────────────────────────────────────────────────────
   return (
     <DealChrome deal={deal} analysisView={analysisView} contentType={contentType}>
-      {activeTab === 'overview'   && <DealOverview deal={deal} onTabChange={handleTabChange} />}
+      {activeTab === 'overview'   && <DealOverview deal={deal} onTabChange={handleTabChange} initialView={viewParam === 'status' ? 'status' : 'overview'} />}
       {activeTab === 'analysis'  && (
         <AnalysisHub
           deal={deal}
@@ -140,7 +139,7 @@ export default function DealPage() {
           onViewChange={setAnalysisView}
         />
       )}
-      {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} onTypeChange={setContentType} initialView={initialContentView} />}
+      {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} onTypeChange={setContentType} />}
       {activeTab === 'seller'    && <SellerTab deal={deal} />}
       {activeTab === 'investors' && <InvestorsTab deal={deal} />}
       {activeTab === 'fees'      && <FeesTab deal={deal} />}

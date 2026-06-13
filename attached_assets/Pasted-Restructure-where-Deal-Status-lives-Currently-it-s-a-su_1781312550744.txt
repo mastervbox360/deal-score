@@ -1,0 +1,42 @@
+Restructure where "Deal Status" lives. Currently it's a sub-view of ContentHub ("Deal progress"). Move it into the Overview tab instead, and fix all wiring.
+
+## Step 1 — ContentHub.tsx
+Remove the "Create content | Deal progress" pill switcher entirely.
+Remove the hubView state, the useEffect for initialView, and the hubView === 'progress' JSX block.
+Remove the initialView prop from the interface.
+ContentHub should go back to rendering only the create-content view — no switcher, no progress view.
+Preserve all existing content creation handlers, state, and data wiring.
+
+## Step 2 — DealOverview.tsx (or wherever the Overview tab renders)
+Add a pill switcher at the top of return(), identical in style to the one we removed from ContentHub:
+
+  [ Overview ]  [ Deal Status ]
+
+State: const [overviewView, setOverviewView] = useState<'overview'|'status'>('overview')
+
+Check if a viewParam is already being passed in from DealPage — if so, initialise state from it:
+  const [overviewView, setOverviewView] = useState<'overview'|'status'>(
+    initialView === 'status' ? 'status' : 'overview'
+  )
+Add prop: initialView?: 'overview' | 'status'
+
+Wrap the existing Overview JSX in {overviewView === 'overview' && <> … </>}
+
+Add {overviewView === 'status' && <> … </>} containing the Deal Status content currently living in ContentHub's hubView === 'progress' block — copy it wholesale into here. Keep all the same JSX, classNames, and any data references it already has.
+
+## Step 3 — DealPage.tsx
+Currently it reads viewParam and passes initialView to ContentHub. Change it to:
+- Still read: const viewParam = searchParams.get('view')
+- Pass initialView to DealOverview/OverviewHub instead of ContentHub:
+  initialView={activeTab === 'overview' && viewParam === 'status' ? 'status' : 'overview'}
+- Remove the initialView prop from the ContentHub render call
+
+## Step 4 — DealChrome.tsx
+Find the "Deal Status" button (activeTab === 'overview'). Change its navigate target from:
+  navigate(`/deal/${deal.id}?tab=content&view=progress`)
+to:
+  navigate(`/deal/${deal.id}?tab=overview&view=status`)
+
+Do NOT touch anything above return() in any file except the stated additions (new state var, new prop).
+Preserve all existing handlers, state variables, and data wiring in every file.
+Run npx tsc --noEmit after all changes. Fix any TypeScript errors. Paste the diff.

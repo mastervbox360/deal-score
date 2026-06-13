@@ -497,7 +497,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button className="log-btn" style={{ borderRadius: '7px' }} onClick={() => navigate(`/deal/${deal.id}?tab=content&view=progress`)}>
+                <button className="log-btn" style={{ borderRadius: '7px' }} onClick={() => navigate(`/deal/${deal.id}?tab=overview&view=status`)}>
                   <i className="ti ti-file-description" style={{ fontSize: '11px' }}></i> Deal Status
                 </button>
                 <button
