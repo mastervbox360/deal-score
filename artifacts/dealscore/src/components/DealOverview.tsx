@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Deal, DealStatus } from '../lib/database.types'
 import type { TabKey } from './DealChrome'
 
@@ -386,6 +387,7 @@ interface Props {
 }
 
 export default function DealOverview({ deal, onTabChange }: Props) {
+  const navigate = useNavigate()
   const [closeDealOpen, setCloseDealOpen]     = useState(false)
   const [closedOutcome, setClosedOutcome]     = useState<string | null>(null)
   const [archivedBanner, setArchivedBanner]   = useState(false)
@@ -812,7 +814,7 @@ export default function DealOverview({ deal, onTabChange }: Props) {
                   </div>
                 </div>
                 <div style={{ padding: '0 14px 12px' }}>
-                  <button className="sbar-cta" onClick={() => onTabChange('investors')}>
+                  <button className="sbar-cta" onClick={() => navigate(`/deal/${deal.id}?tab=content&view=progress`)}>
                     → View deal status
                   </button>
                 </div>
