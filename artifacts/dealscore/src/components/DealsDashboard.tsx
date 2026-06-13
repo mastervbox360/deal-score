@@ -290,6 +290,31 @@ export default function DealsDashboard({
         )}
       </div>
 
+      <div style={{
+        background:'#fff', borderRadius:12, border:'.5px solid var(--ds-border)',
+        padding:'14px 18px', marginBottom:16, display:'flex', alignItems:'flex-start', gap:14,
+        position:'relative'
+      }}>
+        <div style={{
+          width:36, height:36, borderRadius:9, background:'var(--navy-light)',
+          display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0
+        }}>
+          <i className="ti ti-layout-grid" style={{fontSize:16, color:'var(--navy)'}} />
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:13, fontWeight:700, color:'var(--text-1)', marginBottom:3}}>
+            Your deal pipeline at a glance
+          </div>
+          <div style={{fontSize:12, color:'var(--text-2)', lineHeight:1.5}}>
+            Track all active deals from sourcing to completion. Deal cards give instant access to any deal, and Compare puts deals side by side. Hit <strong>+ New deal</strong> to start sourcing.
+          </div>
+        </div>
+        <button style={{
+          background:'none', border:'none', color:'#ccc', cursor:'pointer',
+          fontSize:16, padding:4, lineHeight:1, position:'absolute', top:10, right:12
+        }}>×</button>
+      </div>
+
       <div className="tbar">
         <div className="tbar-left">
           <div className="vgrp">
