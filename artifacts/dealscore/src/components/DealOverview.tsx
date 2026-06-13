@@ -450,7 +450,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
       {/* Overview / Deal Status switcher */}
       <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', marginBottom: '12px', width: 'fit-content' }}>
         {(['overview', 'status'] as const).map(v => (
-          <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? '#fff' : 'transparent', color: overviewView === v ? 'var(--navy)' : 'var(--text-2)', boxShadow: overviewView === v ? '0 1px 3px rgba(0,0,0,.1)' : 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
+          <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
             {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
           </button>
         ))}
