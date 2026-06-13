@@ -82,8 +82,8 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
         </div>
         <div className="bc-foot">
           <span className={`ds-status ${deal.status}`}>{deal.statusLabel}</span>
-          <button style={{border:'.5px solid #e3e5e9', borderRadius:6, background:'#fff', color:'var(--text-1)', fontSize:12, padding:'5px 12px', cursor:'pointer', fontFamily:'inherit'}} onClick={() => navigate(`/deal/${deal.dbId}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
-          <button className="cbtn cbtn-primary" onClick={() => onOpen?.(deal.dbId)}>Open</button>
+          <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${deal.dbId}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
+          <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid var(--navy)', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'var(--navy)', color:'#fff', whiteSpace:'nowrap'}} onClick={() => onOpen?.(deal.dbId)}>Open</button>
         </div>
       </div>
     );
@@ -135,12 +135,8 @@ function DealCard({ deal, mode, onOpen, photos, onPhotoUpload }: {
             </button>
           ) : (
             <>
-              <button style={{border:'.5px solid #e3e5e9', borderRadius:6, background:'#fff', color:'var(--text-1)', fontSize:12, padding:'5px 12px', cursor:'pointer', fontFamily:'inherit'}} onClick={() => navigate(`/deal/${deal.dbId}?tab=analysis&view=inputs&editing=true`)}>
-                Edit
-              </button>
-              <button className="cbtn cbtn-primary" onClick={goToDeal}>
-                Open <i className="ti ti-arrow-right" />
-              </button>
+              <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid #e3e5e9', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'#f5f6f8', color:'#555', whiteSpace:'nowrap'}} onClick={() => navigate(`/deal/${deal.dbId}?tab=analysis&view=inputs&editing=true`)}>Edit</button>
+              <button style={{fontSize:11, fontWeight:500, padding:'5px 9px', borderRadius:6, cursor:'pointer', border:'.5px solid var(--navy)', fontFamily:'inherit', display:'flex', alignItems:'center', gap:3, background:'var(--navy)', color:'#fff', whiteSpace:'nowrap'}} onClick={goToDeal}>Open <i className="ti ti-arrow-right" /></button>
             </>
           )}
         </div>
