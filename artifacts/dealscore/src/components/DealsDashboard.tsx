@@ -291,13 +291,14 @@ export default function DealsDashboard({
       </div>
 
       <div style={{
-        background:'#fff', borderRadius:12, border:'.5px solid var(--ds-border)',
-        padding:'14px 18px', marginBottom:16, display:'flex', alignItems:'flex-start', gap:14,
-        position:'relative'
+        background:'#fff', borderRadius:12, border:'.5px solid #e3e5e9',
+        padding:'16px 18px', marginBottom:16, display:'flex', alignItems:'flex-start', gap:14,
+        position:'relative', boxShadow:'0 1px 3px rgba(0,0,0,.06)'
       }}>
         <div style={{
-          width:36, height:36, borderRadius:9, background:'var(--navy-light)',
-          display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0
+          width:36, height:36, borderRadius:9, background:'#eef3fb',
+          display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
+          border:'.5px solid rgba(27,58,107,.1)'
         }}>
           <i className="ti ti-layout-grid" style={{fontSize:16, color:'var(--navy)'}} />
         </div>
