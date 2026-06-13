@@ -341,14 +341,27 @@ export default function DealsDashboard({
           </select>
           <select style={{padding:'5px 8px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', color:'#555', outline:'none', fontFamily:'inherit', cursor:'pointer'}} onChange={e => setStatusFilter(e.target.value)}>
             <option value="">All statuses</option>
-            <option value="sourcing">Sourcing</option><option value="ready">Ready</option><option value="live">Live</option>
-            <option value="reserved">Reserved</option><option value="pack-sent">Pack sent</option><option value="complete">Complete</option>
+            <optgroup label="Active pipeline">
+              <option value="sourcing">Sourcing</option>
+              <option value="ready">Ready</option>
+              <option value="live">Live</option>
+              <option value="pack-sent">Pack sent</option>
+              <option value="reserved">Reserved</option>
+            </optgroup>
+            <optgroup label="Exits">
+              <option value="complete">Completed ✓</option>
+              <option value="withdrawn">Withdrawn — fell through</option>
+            </optgroup>
+            <optgroup label="Removed">
+              <option value="archived">Archived — paused</option>
+              <option value="deleted">Rejected — removed as weak</option>
+            </optgroup>
           </select>
           <select style={{padding:'5px 8px', border:'.5px solid #e3e5e9', borderRadius:7, fontSize:11, background:'#fff', color:'#555', outline:'none', fontFamily:'inherit', cursor:'pointer'}}>
             <option>Newest first</option>
-            <option>Oldest first</option>
-            <option>Price: low–high</option>
-            <option>Price: high–low</option>
+            <option>Score: best first</option>
+            <option>Cash flow: high–low</option>
+            <option>Viewings: soonest</option>
           </select>
           <input
             type="text"
