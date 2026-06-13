@@ -153,7 +153,7 @@ export default function DealsDashboard({
   userName = 'User', userEmail = '', userInitials = 'U',
   onNewDeal, onOpenDeal, onPipeline, onCompare, onSellers, onInvestors, onSignOut
 }: DealsDashboardProps) {
-  const [viewMode, setViewMode] = useState<'grid'|'grid-compact'|'list'|'board'>('grid');
+  const [viewMode, setViewMode] = useState<'grid'|'grid-compact'|'list'|'list-details'|'board'>('grid');
   const [privacyMode, setPrivacyMode] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
@@ -323,6 +323,7 @@ export default function DealsDashboard({
             <button className={`vbtn vb-icon ${viewMode === 'grid-compact' ? 'on' : ''}`} onClick={() => setViewMode('grid-compact')}><i className="ti ti-layout-grid-add"></i></button>
             <div className="vgrp-sep"></div>
             <button className={`vbtn vb-icon ${viewMode === 'list' ? 'on' : ''}`} onClick={() => setViewMode('list')}><i className="ti ti-table"></i></button>
+            <button className={`vbtn vb-icon ${viewMode === 'list-details' ? 'on' : ''}`} onClick={() => setViewMode('list-details')}><i className="ti ti-list-details"></i></button>
           </div>
           <div className="vgrp">
             <button className={`vbtn ${viewMode === 'board' ? 'on' : ''}`} onClick={() => setViewMode('board')}><i className="ti ti-layout-kanban"></i> Deal Board</button>
@@ -343,6 +344,17 @@ export default function DealsDashboard({
             <option value="sourcing">Sourcing</option><option value="ready">Ready</option><option value="live">Live</option>
             <option value="reserved">Reserved</option><option value="pack-sent">Pack sent</option><option value="complete">Complete</option>
           </select>
+          <select style={{border:'1px solid #e3e5e9', borderRadius:6, padding:'5px 10px', fontSize:12, color:'var(--text-1)', background:'#fff', cursor:'pointer'}}>
+            <option>Newest first</option>
+            <option>Oldest first</option>
+            <option>Price: low–high</option>
+            <option>Price: high–low</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Search deals..."
+            style={{border:'1px solid #e3e5e9', borderRadius:6, padding:'5px 10px', fontSize:12, color:'var(--text-1)', background:'#fff', width:160, outline:'none'}}
+          />
           <button className="fsel" onClick={() => setArchivedVisible(!archivedVisible)}><i className="ti ti-archive"></i> Archived &amp; rejected</button>
         </div>
       </div>
