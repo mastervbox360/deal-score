@@ -548,6 +548,42 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
+                {analysisView === 'inputs' && (
+                  <button
+                    className="log-btn"
+                    style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                    onClick={() => toast({ description: 'Inputs confirmed' })}
+                  >
+                    <i className="ti ti-check" style={{ fontSize: 11 }}></i> Confirm inputs
+                  </button>
+                )}
+                {analysisView === 'results' && (
+                  <button
+                    className="log-btn"
+                    style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                    onClick={() => toast({ description: 'Exporting results...' })}
+                  >
+                    <i className="ti ti-share" style={{ fontSize: 11 }}></i> Export results
+                  </button>
+                )}
+                {analysisView === 'sensitivity' && (
+                  <button
+                    className="log-btn"
+                    style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                    onClick={() => toast({ description: 'Exporting...' })}
+                  >
+                    <i className="ti ti-download" style={{ fontSize: 11 }}></i> Export
+                  </button>
+                )}
+                {analysisView === 'workings' && (
+                  <button
+                    className="log-btn"
+                    style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                    onClick={() => toast({ description: 'Exporting workings...' })}
+                  >
+                    <i className="ti ti-download" style={{ fontSize: 11 }}></i> Export workings
+                  </button>
+                )}
               </>
             ) : activeTab === 'content' ? (
               <>
