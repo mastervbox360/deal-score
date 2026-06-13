@@ -504,7 +504,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                   style={{ borderRadius: '7px' }}
                   onClick={() => toast({ description: 'Activity logged' })}
                 >
-                  <i className="ti ti-pencil" style={{ fontSize: 11 }}></i> Log activity
+                  <i className="ti ti-pencil" style={{ fontSize: '11px' }}></i> Log activity
                 </button>
                 <button
                   className="log-btn"
@@ -513,13 +513,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid var(--navy)',
-                  background: 'var(--navy)', color: '#fff',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }} onClick={() => handleTabChange('investors')}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                  onClick={() => navigate(`/deal/${deal.id}?tab=fees`)}
+                >
                   <i className="ti ti-send" style={{ fontSize: '11px' }}></i> Send invoice
                 </button>
               </>
@@ -534,35 +532,21 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                {(analysisView === 'inputs' || analysisView === 'results') && (
-                  <button style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '5px',
-                    fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                    borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
-                    background: 'var(--navy-light)', color: 'var(--navy)',
-                    cursor: 'pointer', fontFamily: 'inherit',
-                  }}>
-                    <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
-                  </button>
-                )}
+                <button style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                  borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
+                  background: 'var(--navy-light)', color: 'var(--navy)',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }} onClick={() => toast({ description: 'Optimiser coming soon' })}>
+                  <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
+                </button>
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
                   onClick={() => setNotesOpen(true)}
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
-                </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid var(--navy)',
-                  background: 'var(--navy)', color: '#fff',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  {analysisView === 'inputs' && <><i className="ti ti-checks" style={{ fontSize: '11px' }}></i> Confirm inputs</>}
-                  {analysisView === 'results' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export results</>}
-                  {analysisView === 'sensitivity' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export</>}
-                  {analysisView === 'workings' && <><i className="ti ti-download" style={{ fontSize: '11px' }}></i> Export workings</>}
                 </button>
               </>
             ) : activeTab === 'content' ? (
@@ -579,8 +563,9 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
+                  onClick={() => toast({ description: 'Preview coming soon' })}
                 >
-                  <i className="ti ti-eye" style={{ fontSize: 11 }}></i> Preview
+                  <i className="ti ti-eye" style={{ fontSize: '11px' }}></i> Preview
                 </button>
                 <button
                   className="log-btn"
@@ -589,13 +574,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid var(--navy)',
-                  background: 'var(--navy)', color: '#fff',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                  onClick={() => toast({ description: 'Pack downloading...' })}
+                >
                   <i className="ti ti-download" style={{ fontSize: '11px' }}></i> Download pack
                 </button>
               </>
@@ -610,7 +593,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => toast({ description: 'Link seller coming soon' })}
+                >
                   <i className="ti ti-user-plus" style={{ fontSize: '11px' }}></i> Link seller
                 </button>
                 <button
@@ -620,13 +607,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid var(--navy)',
-                  background: 'var(--navy)', color: '#fff',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                  onClick={() => toast({ description: 'Activity logged' })}
+                >
                   <i className="ti ti-pencil" style={{ fontSize: '11px' }}></i> Log activity
                 </button>
               </>
@@ -641,7 +626,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => toast({ description: 'Add investor coming soon' })}
+                >
                   <i className="ti ti-user-plus" style={{ fontSize: '11px' }}></i> Add investor
                 </button>
                 <button
@@ -651,13 +640,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid var(--navy)',
-                  background: 'var(--navy)', color: '#fff',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                  onClick={() => toast({ description: 'Deal link sent — investor notified' })}
+                >
                   <i className="ti ti-send" style={{ fontSize: '11px' }}></i> Share deal
                 </button>
               </>
@@ -672,7 +659,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button className="log-btn" style={{ borderRadius: '7px' }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
+                  onClick={() => toast({ description: 'Invoice coming soon' })}
+                >
                   <i className="ti ti-file-invoice" style={{ fontSize: '11px' }}></i> View invoice
                 </button>
                 <button
@@ -682,13 +673,11 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid var(--navy)',
-                  background: 'var(--navy)', color: '#fff',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+                  onClick={() => toast({ description: 'Invoice sent to investor' })}
+                >
                   <i className="ti ti-send" style={{ fontSize: '11px' }}></i> Send invoice
                 </button>
               </>

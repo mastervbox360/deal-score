@@ -1,0 +1,44 @@
+In DealChrome.tsx, update the tab action bar for all 6 tabs to match the confirmed mockups exactly. The action bar renders conditionally per activeTab. Do NOT touch anything above return() except: add navigate import if missing, and add any missing toast calls using the existing useToast hook already in the file.
+
+Here is the exact button spec per tab:
+
+── OVERVIEW (activeTab === 'overview') ──
+1. Warning pill: "2 inputs to confirm" (existing — keep as-is)
+2. Ghost btn: ti-pencil · "Log activity" · onClick={() => toast({ description: 'Activity logged' })}
+3. Ghost btn: ti-notes · "Notes" · onClick={openNotes} (or however notes are opened)
+4. Navy primary btn: ti-send · "Send invoice" · onClick={() => navigate(`/deal/${deal.id}?tab=fees`)}
+
+── ANALYSIS (activeTab === 'analysis') ──
+1. Warning pill: "2 inputs to confirm" (existing — keep)
+2. Navy-light btn: ti-bolt · "Optimise" · style has border-color:rgba(27,58,107,.25), color:var(--navy), background:var(--navy-light) · onClick={() => toast({ description: 'Optimiser coming soon' })}
+3. Ghost btn: ti-notes · "Notes" · onClick={openNotes}
+(No primary CTA on Analysis tab)
+
+── CONTENT (activeTab === 'content') ──
+1. Warning pill: "2 inputs to confirm" (existing — keep)
+2. Ghost btn: ti-eye · "Preview" · onClick={() => toast({ description: 'Preview coming soon' })}
+3. Ghost btn: ti-notes · "Notes" · onClick={openNotes}
+4. Navy primary btn: ti-download · "Download pack" · onClick={() => toast({ description: 'Pack downloading...' })}
+
+── SELLER (activeTab === 'seller') ──
+1. Warning pill: "2 inputs to confirm" (existing — keep)
+2. Ghost btn: ti-user-plus · "Link seller" · onClick={() => toast({ description: 'Link seller coming soon' })}
+3. Ghost btn: ti-notes · "Notes" · onClick={openNotes}
+4. Navy primary btn: ti-pencil · "Log activity" · onClick={() => toast({ description: 'Activity logged' })}
+
+── INVESTORS (activeTab === 'investors') ──
+1. Warning pill: "2 inputs to confirm" (existing — keep)
+2. Ghost btn: ti-user-plus · "Add investor" · onClick={() => toast({ description: 'Add investor coming soon' })}
+3. Ghost btn: ti-notes · "Notes" · onClick={openNotes}
+4. Navy primary btn: ti-send · "Share deal" · onClick={() => toast({ description: 'Deal link sent — investor notified' })}
+
+── FEES (activeTab === 'fees') ──
+1. Warning pill: "2 inputs to confirm" (existing — keep)
+2. Ghost btn: ti-file-invoice · "View invoice" · onClick={() => toast({ description: 'Invoice coming soon' })}
+3. Ghost btn: ti-notes · "Notes" · onClick={openNotes}
+4. Navy primary btn: ti-send · "Send invoice" · onClick={() => toast({ description: 'Invoice sent to investor' })}
+
+Ghost btn style (all non-primary): className="log-btn" style={{ borderRadius: '7px' }}
+Navy primary style: className="log-btn" style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
+
+For openNotes: use whatever function/handler is already used in the file for the existing Notes button. If none exists yet
