@@ -57,43 +57,42 @@ function PlaceholderHouse({ strategy, dealId }: { strategy: string; dealId: stri
   const [door, shadow] = doors[strategy] ?? ['#D97706','#92510A']
   const gid = `sky-${dealId}`
   return (
-    <svg viewBox="0 0 280 90" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',display:'block'}}>
+    <svg viewBox="0 0 240 126" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%',display:'block'}}>
         <defs>
           <radialGradient id={gid} cx="50%" cy="30%" r="70%">
             <stop offset="0%" stopColor="#1e3a5f"/>
             <stop offset="100%" stopColor="#0d1f3c"/>
           </radialGradient>
         </defs>
-        <rect width="280" height="90" fill={`url(#${gid})`}/>
-        <circle cx="30" cy="10" r="1" fill="#fff" opacity=".7"/>
-        <circle cx="80" cy="6" r=".9" fill="#fff" opacity=".6"/>
-        <circle cx="150" cy="12" r="1.1" fill="#fff" opacity=".8"/>
-        <circle cx="220" cy="7" r=".8" fill="#fff" opacity=".6"/>
-        <circle cx="260" cy="14" r="1" fill="#fff" opacity=".7"/>
-        <circle cx="55" cy="20" r=".6" fill="#fff" opacity=".5"/>
-        <circle cx="190" cy="18" r=".7" fill="#fff" opacity=".5"/>
-        <rect x="0" y="82" width="280" height="8" fill="#0d1a2e"/>
-        <rect x="192" y="12" width="7" height="20" fill="#2a2e35"/>
-        <circle cx="195" cy="11" r="2.5" fill="#3a3f47" opacity=".7"/>
-        <circle cx="195" cy="8" r="1.5" fill="#3a3f47" opacity=".4"/>
-        <polygon points="140,8 210,42 70,42" fill="#2a2e35"/>
-        <polygon points="140,8 210,42 198,42 140,14 82,42 70,42" fill="#32373f"/>
-        <rect x="74" y="42" width="132" height="42" fill="#E8E0D5"/>
-        <rect x="86" y="50" width="20" height="16" fill="#c8dde8" rx="1"/>
-        <line x1="96" y1="50" x2="96" y2="66" stroke="#E8E0D5" strokeWidth="1.5"/>
-        <line x1="86" y1="58" x2="106" y2="58" stroke="#E8E0D5" strokeWidth="1.5"/>
-        <rect x="174" y="50" width="20" height="16" fill="#c8dde8" rx="1"/>
-        <line x1="184" y1="50" x2="184" y2="66" stroke="#E8E0D5" strokeWidth="1.5"/>
-        <line x1="174" y1="58" x2="194" y2="58" stroke="#E8E0D5" strokeWidth="1.5"/>
-        <rect x="126" y="54" width="28" height="30" fill={door} rx="2"/>
-        <rect x="130" y="57" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
-        <rect x="141" y="57" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
-        <rect x="130" y="67" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
-        <rect x="141" y="67" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
-        <circle cx="151" cy="70" r="2" fill="#D4AF37"/>
-        <rect x="132" y="78" width="16" height="6" fill="#D4AF37" rx="1"/>
-        <ellipse cx="96" cy="84" rx="14" ry="6" fill="#1a4a2e"/>
-        <ellipse cx="184" cy="84" rx="14" ry="6" fill="#1a4a2e"/>
+        <rect width="240" height="126" fill={`url(#${gid})`}/>
+        <circle cx="25" cy="15" r="1" fill="#fff" opacity=".7"/>
+        <circle cx="70" cy="8" r=".9" fill="#fff" opacity=".6"/>
+        <circle cx="140" cy="14" r="1.1" fill="#fff" opacity=".8"/>
+        <circle cx="195" cy="9" r=".8" fill="#fff" opacity=".6"/>
+        <circle cx="225" cy="18" r="1" fill="#fff" opacity=".7"/>
+        <circle cx="45" cy="28" r=".6" fill="#fff" opacity=".5"/>
+        <rect x="0" y="107" width="240" height="19" fill="#0d1a2e"/>
+        <rect x="172" y="28" width="7" height="32" fill="#2a2e35"/>
+        <circle cx="175" cy="26" r="2.5" fill="#3a3f47" opacity=".6"/>
+        <circle cx="175" cy="22" r="1.5" fill="#3a3f47" opacity=".4"/>
+        <polygon points="120,18 200,63 40,63" fill="#2a2e35"/>
+        <polygon points="120,18 200,63 188,63 120,24 52,63 40,63" fill="#32373f"/>
+        <rect x="44" y="63" width="152" height="46" fill="#E8E0D5"/>
+        <rect x="58" y="72" width="20" height="16" fill="#c8dde8" rx="1"/>
+        <line x1="68" y1="72" x2="68" y2="88" stroke="#E8E0D5" strokeWidth="1.5"/>
+        <line x1="58" y1="80" x2="78" y2="80" stroke="#E8E0D5" strokeWidth="1.5"/>
+        <rect x="162" y="72" width="20" height="16" fill="#c8dde8" rx="1"/>
+        <line x1="172" y1="72" x2="172" y2="88" stroke="#E8E0D5" strokeWidth="1.5"/>
+        <line x1="162" y1="80" x2="182" y2="80" stroke="#E8E0D5" strokeWidth="1.5"/>
+        <rect x="106" y="77" width="28" height="32" fill={door} rx="2"/>
+        <rect x="110" y="80" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
+        <rect x="121" y="80" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
+        <rect x="110" y="91" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
+        <rect x="121" y="91" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
+        <circle cx="130" cy="95" r="2" fill="#D4AF37"/>
+        <rect x="112" y="103" width="16" height="6" fill="#D4AF37" rx="1"/>
+        <ellipse cx="72" cy="108" rx="18" ry="7" fill="#1a4a2e"/>
+        <ellipse cx="168" cy="108" rx="18" ry="7" fill="#1a4a2e"/>
       </svg>
   )
 }

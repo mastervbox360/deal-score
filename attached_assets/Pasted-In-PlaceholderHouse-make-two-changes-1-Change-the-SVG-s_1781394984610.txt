@@ -1,0 +1,28 @@
+In PlaceholderHouse, make two changes:
+
+1. Change the SVG style from:
+   style={{width:'100%',display:'block'}}
+   to:
+   style={{width:'100%',height:'100%',display:'block'}}
+
+2. Change viewBox from "0 0 280 90" to "0 0 240 126"
+
+3. Then rescale ALL element coordinates to fit the 240×126 canvas. 
+   Use these exact values (they match the original getDoorSVG proportions):
+
+   Sky: <rect width="240" height="126" fill={`url(#${gid})`}/>
+   Ground: <rect x="0" y="107" width="240" height="19" fill="#0d1a2e"/>
+   Chimney: <rect x="172" y="28" width="7" height="32" fill="#2a2e35"/>
+   Smoke: <circle cx="175" cy="26" r="2.5" fill="#3a3f47" opacity=".6"/> <circle cx="175" cy="22" r="1.5" fill="#3a3f47" opacity=".4"/>
+   Roof: <polygon points="120,18 200,63 40,63" fill="#2a2e35"/> <polygon points="120,18 200,63 188,63 120,24 52,63 40,63" fill="#32373f"/>
+   Walls: <rect x="44" y="63" width="152" height="46" fill="#E8E0D5"/>
+   Left window: <rect x="58" y="72" width="20" height="16" fill="#c8dde8" rx="1"/> <line x1="68" y1="72" x2="68" y2="88" stroke="#E8E0D5" strokeWidth="1.5"/> <line x1="58" y1="80" x2="78" y2="80" stroke="#E8E0D5" strokeWidth="1.5"/>
+   Right window: <rect x="162" y="72" width="20" height="16" fill="#c8dde8" rx="1"/> <line x1="172" y1="72" x2="172" y2="88" stroke="#E8E0D5" strokeWidth="1.5"/> <line x1="162" y1="80" x2="182" y2="80" stroke="#E8E0D5" strokeWidth="1.5"/>
+   Door: <rect x="106" y="77" width="28" height="32" fill={door} rx="2"/>
+   Door panels: <rect x="110" y="80" width="9" height="8" fill={shadow} opacity=".4" rx="1"/> <rect x="121" y="80" width="9" height="8" fill={shadow} opacity=".4" rx="1"/> <rect x="110" y="91" width="9" height="8" fill={shadow} opacity=".4" rx="1"/> <rect x="121" y="91" width="9" height="8" fill={shadow} opacity=".4" rx="1"/>
+   Knob: <circle cx="130" cy="95" r="2" fill="#D4AF37"/>
+   Number plate: <rect x="112" y="103" width="16" height="6" fill="#D4AF37" rx="1"/>
+   Stars: <circle cx="25" cy="15" r="1" fill="#fff" opacity=".7"/> <circle cx="70" cy="8" r=".9" fill="#fff" opacity=".6"/> <circle cx="140" cy="14" r="1.1" fill="#fff" opacity=".8"/> <circle cx="195" cy="9" r=".8" fill="#fff" opacity=".6"/> <circle cx="225" cy="18" r="1" fill="#fff" opacity=".7"/> <circle cx="45" cy="28" r=".6" fill="#fff" opacity=".5"/>
+   Bushes: <ellipse cx="72" cy="108" rx="18" ry="7" fill="#1a4a2e"/> <ellipse cx="168" cy="108" rx="18" ry="7" fill="#1a4a2e"/>
+
+Run npx tsc --noEmit. Paste diff only.
