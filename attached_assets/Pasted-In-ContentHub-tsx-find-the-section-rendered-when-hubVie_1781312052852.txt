@@ -1,0 +1,65 @@
+In ContentHub.tsx, find the section rendered when hubView === 'progress'. Replace its JSX with the structure below, matching ds_deal_status.html exactly.
+
+Preserve: hubView state, setHubView, initialView prop, all existing handlers above return().
+Only change: the JSX inside the hubView === 'progress' block.
+
+Target structure (translate from this HTML to JSX, className → className, style strings → style objects):
+
+LEFT COLUMN (flex:1):
+
+1. Key dates card (.sec)
+   - Header: ti-calendar icon (color #92400e), title "Key dates", amber badge "Cooling-off · Day 8/14"
+   - 3-cell grid (.key-dates-row): Reserved on / Cooling-off ends / Pack release due — each with .kd-lbl, .kd-val, .kd-sub
+   - Milestone card (.milestone-card): ti-flag icon, title "Day 15 — time to release the investor pack", body text, "Go to investor pack" button (primary)
+
+2. Reservation & fees card (.sec)
+   - Header: ti-receipt icon, title "Reservation & fees", Edit button
+   - 4 rows (.resv-row): Reserved by / Reservation fee / Sourcing fee / Agreement status — each with icon + .resv-lbl + .resv-val
+
+3. Deal stage timeline card (.sec)
+   - Header: ti-route icon, title "Deal stage", amber badge "Step 4 of 7"
+   - Vertical stepper: 7 steps with .stage-row / .stage-col / .stage-dot / .stage-line / .stage-body
+   - States: done (teal), active (navy, pulsing), pending (grey)
+   - Steps: Sourced & analysed → Pack prepared → Shared with investors → Reserved [ACTIVE] → Cooling-off complete → Legal completion → Deal closed
+
+4. Next actions card (.sec)
+   - Header: ti-bolt icon, title "Next actions", teal badge "3 actions"
+   - .action-item rows with .action-dot (urgent/warn/info) + .action-title + .action-sub + .action-btns
+
+5. Activity feed card (.sec)
+   - Header: ti-activity icon, title "Activity"
+   - .act-item rows with .act-dot colour + .act-text + .act-time
+
+RIGHT COLUMN (width 280px, position sticky):
+
+Sidebar cards (.sbar-card):
+- Cooling-off countdown: days remaining ring, date, warning text
+- Investors snapshot: count interested/shared/pledged, "View investors →" button
+- Quick links: go to Analysis / Content / Fees tabs
+
+Wrap both columns in: <div style={{display:'grid', gridTemplateColumns:'1fr 280px', gap:14, alignItems:'start'}}>
+
+CSS classes needed — add these to index.css if not present:
+.key-dates-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px;}
+.kd-cell{} .kd-lbl{font-size:10px;font-weight:600;color:var(--text-2);margin-bottom:3px;} .kd-val{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px;} .kd-sub{font-size:10px;color:var(--text-2);}
+.milestone-card{display:flex;gap:12px;padding:12px 16px;background:var(--navy-light);border-radius:var(--r-md);margin:0 16px 14px;}
+.milestone-icon{width:32px;height:32px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.stage-row{display:flex;gap:12px;padding-bottom:16px;} .stage-col{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0;}
+.stage-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;} .stage-dot.done{background:var(--teal);} .stage-dot.active{background:var(--navy);box-shadow:0 0 0 3px rgba(27,58,107,.2);} .stage-dot.pending{background:#e5e7eb;border:.5px solid #d1d5db;}
+.stage-line{width:2px;flex:1;margin-top:3px;} .stage-line.done{background:var(--teal);} .stage-line.partial{background:linear-gradient(var(--teal),#e5e7eb);} .stage-line{background:#e5e7eb;}
+.stage-title{font-size:12px;font-weight:600;color:var(--text-2);} .stage-title.done{color:var(--text-1);} .stage-title.active{color:var(--navy);}
+.stage-sub{font-size:10px;color:var(--text-2);margin:2px 0 6px;line-height:1.4;}
+.stage-pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;} .stage-pill.done{background:var(--teal-light);color:var(--teal);} .stage-pill.active{background:var(--navy-light);color:var(--navy);} .stage-pill.pending{background:#f3f4f6;color:#9ca3af;}
+.resv-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid #f3f4f6;font-size:12px;} .resv-row:last-child{border-bottom:none;} .resv-lbl{width:130px;color:var(--text-2);flex-shrink:0;} .resv-val{flex:1;font-weight:500;color:var(--text-1);}
+.resv-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;} .resv-tag.signed{background:var(--teal-light);color:var(--teal);}
+.sbar-countdown{display:flex;flex-direction:column;align-items:center;padding:16px 14px;}
+.countdown-ring{width:72px;height:72px;border-radius:50%;border:3px solid var(--amber);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:10px;}
+.countdown-num{font-size:22px;font-weight:800;color:var(--amber);line-height:1;}
+.countdown-lbl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);}
+
+Also: fix the Deal Status navigation bug at the same time.
+In DealChrome.tsx, search ALL files for any navigate() call, href, or onClick that could be causing "Deal Status" to navigate to the Investors tab. The navigate target must be:
+  navigate(`/deal/${deal.id}?tab=content&view=progress`)
+In DealPage.tsx confirm 'content' is in VALID_TABS. In DealOverview.tsx find any "View deal status" or "Deal Status" clickable element and ensure it uses navigate not window.location.href, pointing to ?tab=content&view=progress.
+
+Run npx tsc --noEmit after all changes. Fix any TypeScript errors.

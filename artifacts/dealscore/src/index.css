@@ -1012,6 +1012,49 @@ body.privacy .pii{opacity:0;pointer-events:none;user-select:none;}
 .countdown-text-main{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
 .countdown-text-sub{font-size:10px;color:var(--text-2);line-height:1.5;}
 
+/* ── Stage stepper ── */
+.stage-row{display:flex;gap:12px;padding-bottom:16px;}
+.stage-col{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0;}
+.stage-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.stage-dot.done{background:var(--teal);}
+.stage-dot.active{background:var(--navy);box-shadow:0 0 0 3px rgba(27,58,107,.2);}
+.stage-dot.pending{background:#e5e7eb;border:.5px solid #d1d5db;}
+.stage-line{width:2px;flex:1;margin-top:3px;background:#e5e7eb;}
+.stage-line.done{background:var(--teal);}
+.stage-line.partial{background:linear-gradient(var(--teal),#e5e7eb);}
+.stage-body{flex:1;padding-top:0;}
+.stage-title{font-size:12px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.stage-title.done{color:var(--text-1);}
+.stage-title.active{color:var(--navy);}
+.stage-sub{font-size:10px;color:var(--text-2);margin:2px 0 6px;line-height:1.4;}
+.stage-pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.stage-pill.done{background:var(--teal-light);color:var(--teal);}
+.stage-pill.active{background:var(--navy-light);color:var(--navy);}
+.stage-pill.pending{background:#f3f4f6;color:#9ca3af;}
+
+/* ── Next actions ── */
+.action-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid #f3f4f6;}
+.action-item:last-child{border-bottom:none;}
+.action-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.action-dot.urgent{background:#dc2626;}
+.action-dot.warn{background:#D97706;}
+.action-dot.info{background:var(--navy);}
+.action-title{font-size:12px;font-weight:600;color:var(--text-1);margin-bottom:2px;}
+.action-sub{font-size:10px;color:var(--text-2);line-height:1.4;}
+.action-btns{display:flex;gap:5px;flex-shrink:0;margin-top:2px;}
+
+/* ── Activity feed ── */
+.act-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:.5px solid #f3f4f6;}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.act-text{font-size:11px;color:var(--text-1);margin-bottom:2px;}
+.act-time{font-size:10px;color:var(--text-2);}
+
+/* ── Sidebar countdown ── */
+.sbar-countdown{display:flex;flex-direction:column;align-items:center;padding:12px 14px 14px;}
+.countdown-num{font-size:22px;font-weight:800;color:#D97706;line-height:1;}
+.countdown-lbl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#D97706;}
+
 
 /* ══ CLOSE DEAL MODAL ══ */
 .close-deal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:none;align-items:center;justify-content:center;}

@@ -1204,40 +1204,210 @@ export default function ContentHub({ deal, onTabChange, onTypeChange, initialVie
       </>}
 
       {hubView === 'progress' && (
-        <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '.5px solid var(--ds-border)', background: 'var(--bg-sec)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <i className="ti ti-chart-gantt" style={{ fontSize: '14px', color: 'var(--navy)' }} />
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>Deal progress</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-2)' }}>{deal.reference} · {deal.strategy}</div>
-            </div>
-          </div>
-          {[
-            { key: 'analysing',  label: 'Sourcing',  sub: 'Deal identified and being analysed',        icon: 'ti-search' },
-            { key: 'reviewing',  label: 'Ready',      sub: 'Analysis complete — pack ready to share',  icon: 'ti-check' },
-            { key: 'presenting', label: 'Pack sent',  sub: 'Investor pack shared with buyers',         icon: 'ti-send' },
-            { key: 'closed',     label: 'Complete',   sub: 'Deal closed and fee received',             icon: 'ti-circle-check' },
-          ].map((stage, idx) => {
-            const statuses = ['analysing', 'reviewing', 'presenting', 'closed']
-            const current  = statuses.indexOf(deal.status)
-            const mine     = statuses.indexOf(stage.key)
-            const isDone   = mine < current
-            const isActive = mine === current
-            const clr      = isDone || isActive ? 'var(--teal)' : 'var(--ds-border)'
-            return (
-              <div key={stage.key} style={{ display: 'flex', gap: '14px', padding: '14px 20px', borderBottom: idx < 3 ? '.5px solid var(--ds-border)' : 'none', alignItems: 'flex-start' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: `2px solid ${clr}`, background: isDone || isActive ? 'var(--teal)' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
-                  <i className={`ti ${stage.icon}`} style={{ fontSize: '12px', color: isDone || isActive ? '#fff' : 'var(--ds-border)' }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: isActive ? 700 : 600, color: isActive ? 'var(--navy)' : isDone ? 'var(--teal)' : 'var(--text-2)', marginBottom: '2px' }}>
-                    {stage.label}{isActive && <span style={{ fontSize: '10px', fontWeight: 600, background: 'var(--navy-light)', color: 'var(--navy)', padding: '1px 7px', borderRadius: '20px', marginLeft: '6px' }}>Current</span>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, alignItems: 'start' }}>
+
+          {/* ── Left column ─────────────────────────── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+            {/* 1. Key dates */}
+            <div className="sec">
+              <div className="sec-hdr">
+                <i className="ti ti-calendar" style={{ color: '#92400e' }} />
+                <div className="sec-hdr-text"><div className="sec-title">Key dates</div></div>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(217,119,6,.1)', color: '#92400e' }}>Cooling-off · Day 8/14</span>
+              </div>
+              <div className="key-dates-row" style={{ padding: '14px 16px' }}>
+                {[
+                  { lbl: 'Reserved on',      val: '14 Jun 2025', sub: 'Day 1' },
+                  { lbl: 'Cooling-off ends', val: '27 Jun 2025', sub: '13 days remaining' },
+                  { lbl: 'Pack release due', val: '28 Jun 2025', sub: 'Day 15' },
+                ].map(({ lbl, val, sub }) => (
+                  <div key={lbl} className="kd-cell">
+                    <div className="kd-lbl">{lbl}</div>
+                    <div className="kd-val">{val}</div>
+                    <div className="kd-sub">{sub}</div>
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-2)' }}>{stage.sub}</div>
+                ))}
+              </div>
+              <div className="milestone-card" style={{ margin: '0 16px 14px' }}>
+                <div className="milestone-icon"><i className="ti ti-flag" /></div>
+                <div>
+                  <div className="milestone-title">Day 15 — time to release the investor pack</div>
+                  <div className="milestone-body">The cooling-off period ends tomorrow. Release the pack to <strong>move the deal forward</strong> and keep your buyer engaged.</div>
+                  <button className="cbtn cbtn-primary" style={{ fontSize: 11 }} onClick={() => onTabChange?.('content')}>
+                    Go to investor pack <i className="ti ti-arrow-right" />
+                  </button>
                 </div>
               </div>
-            )
-          })}
+            </div>
+
+            {/* 2. Reservation & fees */}
+            <div className="sec">
+              <div className="sec-hdr">
+                <i className="ti ti-receipt" />
+                <div className="sec-hdr-text"><div className="sec-title">Reservation &amp; fees</div></div>
+                <button className="log-btn" style={{ borderRadius: 7 }}><i className="ti ti-edit" style={{ fontSize: 11 }} /> Edit</button>
+              </div>
+              <div style={{ padding: '4px 16px 12px' }}>
+                <div className="resv-row"><i className="ti ti-user" /><span className="resv-lbl">Reserved by</span><span className="resv-val">Mr James Thornton</span></div>
+                <div className="resv-row"><i className="ti ti-coin" /><span className="resv-lbl">Reservation fee</span><span className="resv-val">£2,500</span></div>
+                <div className="resv-row"><i className="ti ti-report-money" /><span className="resv-lbl">Sourcing fee</span><span className="resv-val">£5,000 (inc. VAT)</span></div>
+                <div className="resv-row"><i className="ti ti-file-check" /><span className="resv-lbl">Agreement status</span><span className="resv-val"><span className="resv-tag signed">✓ Signed</span></span></div>
+              </div>
+            </div>
+
+            {/* 3. Deal stage */}
+            <div className="sec">
+              <div className="sec-hdr">
+                <i className="ti ti-route" />
+                <div className="sec-hdr-text"><div className="sec-title">Deal stage</div></div>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(217,119,6,.1)', color: '#92400e' }}>Step 4 of 7</span>
+              </div>
+              <div style={{ padding: '12px 16px' }}>
+                {[
+                  { label: 'Sourced & analysed',    sub: 'Deal identified, numbers checked',            state: 'done'    },
+                  { label: 'Pack prepared',          sub: 'Investor pack built and reviewed',            state: 'done'    },
+                  { label: 'Shared with investors',  sub: 'Pack sent to buyer list',                     state: 'done'    },
+                  { label: 'Reserved',               sub: 'Buyer paid reservation, cooling-off active',  state: 'active'  },
+                  { label: 'Cooling-off complete',   sub: 'Cooling-off period passed',                   state: 'pending' },
+                  { label: 'Legal completion',       sub: 'Contracts exchanged',                         state: 'pending' },
+                  { label: 'Deal closed',            sub: 'Sourcing fee received',                       state: 'pending' },
+                ].map(({ label, sub, state }, idx, arr) => (
+                  <div key={label} className="stage-row">
+                    <div className="stage-col">
+                      <div className={`stage-dot ${state}`} />
+                      {idx < arr.length - 1 && <div className={`stage-line ${state === 'done' ? 'done' : state === 'active' ? 'partial' : ''}`} />}
+                    </div>
+                    <div className="stage-body">
+                      <div className={`stage-title ${state}`}>
+                        {label} <span className={`stage-pill ${state}`}>{state === 'done' ? 'Done' : state === 'active' ? 'Active' : 'Pending'}</span>
+                      </div>
+                      <div className="stage-sub">{sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 4. Next actions */}
+            <div className="sec">
+              <div className="sec-hdr">
+                <i className="ti ti-bolt" />
+                <div className="sec-hdr-text"><div className="sec-title">Next actions</div></div>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(29,158,117,.1)', color: 'var(--teal)' }}>3 actions</span>
+              </div>
+              <div style={{ padding: '4px 16px 12px' }}>
+                {[
+                  { dot: 'urgent', title: 'Release investor pack tomorrow', sub: 'Cooling-off ends 27 Jun — pack due on day 15',    btns: ['Release pack'] },
+                  { dot: 'warn',   title: 'Confirm solicitor details',      sub: 'Legal completion needs solicitor contact on file', btns: ['Add details'] },
+                  { dot: 'info',   title: 'Request proof of funds',         sub: 'Buyer has not submitted proof of funds document',  btns: ['Send reminder'] },
+                ].map(({ dot, title, sub, btns }) => (
+                  <div key={title} className="action-item">
+                    <div className={`action-dot ${dot}`} />
+                    <div style={{ flex: 1 }}>
+                      <div className="action-title">{title}</div>
+                      <div className="action-sub">{sub}</div>
+                    </div>
+                    <div className="action-btns">
+                      {btns.map(b => <button key={b} className="log-btn" style={{ borderRadius: 7, fontSize: 10 }}>{b}</button>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 5. Activity */}
+            <div className="sec">
+              <div className="sec-hdr">
+                <i className="ti ti-activity" />
+                <div className="sec-hdr-text"><div className="sec-title">Activity</div></div>
+              </div>
+              <div style={{ padding: '4px 16px 14px' }}>
+                {[
+                  { dot: '#10b981',     text: 'Reservation received from Mr James Thornton', time: '14 Jun 2025, 11:42' },
+                  { dot: 'var(--navy)', text: 'Deal marked as Reserved',                     time: '14 Jun 2025, 11:40' },
+                  { dot: 'var(--navy)', text: 'Investor pack shared with 6 buyers',          time: '10 Jun 2025, 09:15' },
+                  { dot: '#9ca3af',     text: 'Deal pack created',                           time: '7 Jun 2025, 14:22'  },
+                  { dot: '#9ca3af',     text: 'Analysis completed — score: Recommended',     time: '3 Jun 2025, 16:05'  },
+                ].map(({ dot, text, time }, i) => (
+                  <div key={i} className="act-item">
+                    <div className="act-dot" style={{ background: dot }} />
+                    <div style={{ flex: 1 }}>
+                      <div className="act-text">{text}</div>
+                      <div className="act-time">{time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── Right column (sticky sidebar) ────────── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'sticky', top: 0 }}>
+
+            {/* Cooling-off countdown */}
+            <div className="sbar-card">
+              <div className="sbar-hdr">
+                <div className="sbar-icon"><i className="ti ti-clock" /></div>
+                <div className="sbar-hdr-text">
+                  <div className="sbar-title">Cooling-off</div>
+                  <div className="sbar-subtitle">14-day buyer protection</div>
+                </div>
+                <span className="sbar-badge" style={{ background: 'rgba(217,119,6,.1)', color: '#92400e' }}>Day 8/14</span>
+              </div>
+              <div className="sbar-countdown">
+                <div style={{ width: 72, height: 72, borderRadius: '50%', border: '3px solid #D97706', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                  <div className="countdown-num">6</div>
+                  <div className="countdown-lbl">days left</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>Ends 27 Jun 2025</div>
+                  <div style={{ fontSize: 10, color: '#92400e', background: 'rgba(217,119,6,.08)', border: '.5px solid rgba(217,119,6,.25)', borderRadius: 6, padding: '4px 8px', lineHeight: 1.4 }}>Release pack on day 15 to keep deal moving</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Investors snapshot */}
+            <div className="sbar-card">
+              <div className="sbar-hdr">
+                <div className="sbar-icon"><i className="ti ti-users" /></div>
+                <div className="sbar-hdr-text">
+                  <div className="sbar-title">Investors</div>
+                  <div className="sbar-subtitle">Buyer engagement</div>
+                </div>
+              </div>
+              <div className="sbar-body">
+                {[
+                  { lbl: 'Interested',  val: '4' },
+                  { lbl: 'Pack shared', val: '6' },
+                  { lbl: 'Pledged',     val: '1' },
+                ].map(({ lbl, val }) => (
+                  <div key={lbl} className="sbar-metric">
+                    <span className="sbar-metric-lbl">{lbl}</span>
+                    <span className="sbar-metric-val navy">{val}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: '0 14px 12px' }}>
+                <button className="sbar-cta" onClick={() => onTabChange?.('investors')}>View investors →</button>
+              </div>
+            </div>
+
+            {/* Quick links */}
+            <div className="sbar-card">
+              <div className="sbar-hdr">
+                <div className="sbar-icon"><i className="ti ti-link" /></div>
+                <div className="sbar-hdr-text"><div className="sbar-title">Quick links</div></div>
+              </div>
+              <div style={{ padding: '4px 14px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <button className="sbar-cta outline" onClick={() => onTabChange?.('analysis')}>→ Analysis tab</button>
+                <button className="sbar-cta outline" onClick={() => onTabChange?.('content')}>→ Content tab</button>
+                <button className="sbar-cta outline" onClick={() => onTabChange?.('fees')}>→ Fees tab</button>
+              </div>
+            </div>
+
+          </div>
         </div>
       )}
     </div>
