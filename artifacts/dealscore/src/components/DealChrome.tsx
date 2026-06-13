@@ -573,6 +573,12 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
+                >
+                  <i className="ti ti-eye" style={{ fontSize: 11 }}></i> Preview
+                </button>
+                <button
+                  className="log-btn"
+                  style={{ borderRadius: '7px' }}
                   onClick={() => setNotesOpen(true)}
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
