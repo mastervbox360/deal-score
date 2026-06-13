@@ -532,15 +532,17 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 }}>
                   <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
                 </button>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
-                  background: 'var(--navy-light)', color: 'var(--navy)',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }} onClick={() => toast({ description: 'Optimiser coming soon' })}>
-                  <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
-                </button>
+                {(analysisView === 'inputs' || analysisView === 'results') && (
+                  <button style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    fontSize: '11px', fontWeight: 600, padding: '5px 12px',
+                    borderRadius: '7px', border: '.5px solid rgba(27,58,107,.25)',
+                    background: 'var(--navy-light)', color: 'var(--navy)',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }} onClick={() => toast({ description: 'Optimiser coming soon' })}>
+                    <i className="ti ti-bolt" style={{ fontSize: '11px' }}></i> Optimise
+                  </button>
+                )}
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
