@@ -1321,7 +1321,13 @@ export default function AnalysisHub({
   activeView?: SubView
   onViewChange?: (v: SubView) => void
 }) {
-  const [localView, setLocalView] = useState<SubView>('results')
+  const [searchParams] = useSearchParams()
+  const viewParam = searchParams.get('view')
+  const [localView, setLocalView] = useState<SubView>(
+    (viewParam === 'inputs' || viewParam === 'results' || viewParam === 'sensitivity' || viewParam === 'workings')
+      ? viewParam
+      : 'results'
+  )
   const activeView: SubView = externalView ?? localView
   const [isEditingInputs, setIsEditingInputs] = useState(false)
   const [isNewDeal, setIsNewDeal] = useState(false)
@@ -1355,6 +1361,12 @@ export default function AnalysisHub({
   const stressRateUp    = useMemo(() => runCalc(p, getRateKey()), [p])
   const stressCostsUp   = useMemo(() => runCalc(p, getCostsKey()), [p])
   const stressCombined  = useMemo(() => runCalc(p, { ...getIncomeKey(), ...getRateKey(), ...getCostsKey() }), [p])
+
+  useEffect(() => {
+    if (viewParam === 'inputs' || viewParam === 'results' || viewParam === 'sensitivity' || viewParam === 'workings') {
+      setLocalView(viewParam)
+    }
+  }, [viewParam])
 
   useEffect(() => {
     if (isNewParam && activeView === 'inputs') {
