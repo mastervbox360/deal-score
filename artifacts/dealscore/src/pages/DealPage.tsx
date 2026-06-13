@@ -80,8 +80,18 @@ export default function DealPage() {
   const [deal, setDeal]         = useState<Deal | null>(null)
   const [loading, setLoading]   = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [analysisView, setAnalysisView] = useState<SubView>('results')
+  const [analysisView, setAnalysisView] = useState<SubView>(
+    (viewParam === 'inputs' || viewParam === 'results' || viewParam === 'sensitivity' || viewParam === 'workings')
+      ? viewParam
+      : 'results'
+  )
   const [contentType, setContentType] = useState('advert')
+
+  useEffect(() => {
+    if (viewParam === 'inputs' || viewParam === 'results' || viewParam === 'sensitivity' || viewParam === 'workings') {
+      setAnalysisView(viewParam)
+    }
+  }, [viewParam])
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return }
