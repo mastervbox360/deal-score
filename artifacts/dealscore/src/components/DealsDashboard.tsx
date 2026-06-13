@@ -57,7 +57,7 @@ function PlaceholderHouse({ strategy, dealId }: { strategy: string; dealId: stri
   const [door, shadow] = doors[strategy] ?? ['#D97706','#92510A']
   const gid = `sky-${dealId}`
   return (
-    <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',display:'block'}}>
+    <svg viewBox="0 0 280 148" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',display:'block'}}>
       <defs>
         <radialGradient id={gid} cx="50%" cy="30%" r="70%">
           <stop offset="0%" stopColor="#1e3a5f"/>
@@ -72,26 +72,26 @@ function PlaceholderHouse({ strategy, dealId }: { strategy: string; dealId: stri
       <circle cx="260" cy="10" r="1.1" fill="#fff" opacity=".7"/>
       <circle cx="30" cy="38" r=".7" fill="#fff" opacity=".5"/>
       <circle cx="155" cy="32" r=".9" fill="#fff" opacity=".6"/>
-      <rect x="0" y="148" width="280" height="12" fill="#0d1a2e"/>
-      <rect x="195" y="52" width="8" height="28" fill="#2a2e35"/>
-      <circle cx="199" cy="50" r="3" fill="#3a3f47" opacity=".7"/>
-      <circle cx="199" cy="46" r="2" fill="#3a3f47" opacity=".4"/>
-      <polygon points="140,28 215,80 65,80" fill="#2a2e35"/>
-      <polygon points="140,28 215,80 200,80 140,36 80,80 65,80" fill="#32373f"/>
-      <rect x="72" y="80" width="136" height="68" fill="#E8E0D5"/>
-      <rect x="86" y="92" width="22" height="20" fill="#c8dde8" rx="1"/>
-      <line x1="97" y1="92" x2="97" y2="112" stroke="#E8E0D5" strokeWidth="1.5"/>
-      <line x1="86" y1="102" x2="108" y2="102" stroke="#E8E0D5" strokeWidth="1.5"/>
-      <rect x="172" y="92" width="22" height="20" fill="#c8dde8" rx="1"/>
-      <line x1="183" y1="92" x2="183" y2="112" stroke="#E8E0D5" strokeWidth="1.5"/>
-      <line x1="172" y1="102" x2="194" y2="102" stroke="#E8E0D5" strokeWidth="1.5"/>
-      <rect x="126" y="108" width="28" height="40" fill={door} rx="2"/>
-      <rect x="130" y="112" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
-      <rect x="141" y="112" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
-      <rect x="130" y="125" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
-      <rect x="141" y="125" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
-      <circle cx="151" cy="129" r="2" fill="#D4AF37"/>
-      <rect x="132" y="140" width="16" height="8" fill="#D4AF37" rx="1"/>
+      <rect x="0" y="133" width="280" height="12" fill="#0d1a2e"/>
+      <rect x="195" y="37" width="8" height="28" fill="#2a2e35"/>
+      <circle cx="199" cy="35" r="3" fill="#3a3f47" opacity=".7"/>
+      <circle cx="199" cy="31" r="2" fill="#3a3f47" opacity=".4"/>
+      <polygon points="140,13 215,65 65,65" fill="#2a2e35"/>
+      <polygon points="140,13 215,65 200,65 140,21 80,65 65,65" fill="#32373f"/>
+      <rect x="72" y="65" width="136" height="68" fill="#E8E0D5"/>
+      <rect x="86" y="77" width="22" height="20" fill="#c8dde8" rx="1"/>
+      <line x1="97" y1="77" x2="97" y2="97" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <line x1="86" y1="87" x2="108" y2="87" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <rect x="172" y="77" width="22" height="20" fill="#c8dde8" rx="1"/>
+      <line x1="183" y1="77" x2="183" y2="97" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <line x1="172" y1="87" x2="194" y2="87" stroke="#E8E0D5" strokeWidth="1.5"/>
+      <rect x="126" y="93" width="28" height="40" fill={door} rx="2"/>
+      <rect x="130" y="97" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <rect x="141" y="97" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <rect x="130" y="110" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <rect x="141" y="110" width="9" height="10" fill={shadow} opacity=".4" rx="1"/>
+      <circle cx="151" cy="114" r="2" fill="#D4AF37"/>
+      <rect x="132" y="125" width="16" height="8" fill="#D4AF37" rx="1"/>
     </svg>
   )
 }
