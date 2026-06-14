@@ -1206,6 +1206,40 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
         {/* 3. SELLER / LANDLORD */}
         <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} />
 
+        {/* 3b. OWNERSHIP & TAX */}
+        <Sec title="Ownership &amp; tax">
+          <IGrid>
+            <IField label="Ownership structure" value={String(form.ownershipStructure ?? 'Personal name')} onChange={v => setField('ownershipStructure', v)} />
+            <IField label="Income tax band" value={String(form.incomeTaxBand ?? '40%')} onChange={v => setField('incomeTaxBand', v)} />
+            <IField label="Joint ownership?" value={String(form.isJointOwnership ?? 'No')} onChange={v => setField('isJointOwnership', v)} />
+          </IGrid>
+
+          {/* Joint ownership split */}
+          {String(form.isJointOwnership ?? 'No') === 'Yes' && (
+            <IGrid style={{ marginTop: '10px' }}>
+              <IField label="Your ownership (%)" value={fp(Number(form.ownershipSplitPercent ?? 50))} onChange={v => setField('ownershipSplitPercent', parseFloat(v) || 50)} />
+              <IField label="Partner's tax band" value={String(form.partnerTaxBand ?? '20%')} onChange={v => setField('partnerTaxBand', v)} />
+            </IGrid>
+          )}
+
+          {/* JV investor split */}
+          {String(form.ownershipStructure ?? '').toLowerCase().includes('jv') && (
+            <IGrid style={{ marginTop: '10px' }}>
+              <IField label="JV investor split (%)" value={fp(Number(form.jvInvestorSplitPercent ?? 50))} onChange={v => setField('jvInvestorSplitPercent', parseFloat(v) || 50)} />
+            </IGrid>
+          )}
+
+          {/* Section 24 notice */}
+          {(String(form.ownershipStructure ?? 'Personal name') === 'Personal name' || !form.ownershipStructure) &&
+           String(form.isCashBuyer ?? 'No') !== 'Yes' &&
+           form.purchaseFinanceMethod !== 'Cash' && (
+            <div style={{ marginTop: '12px', padding: '10px 14px', background: '#eff6ff', border: '.5px solid #bfdbfe', borderRadius: '8px', fontSize: '11px', color: '#1e3a5f', lineHeight: 1.6 }}>
+              <i className="ti ti-info-circle" style={{ marginRight: '6px' }} />
+              <strong>Section 24:</strong> Personal name landlords cannot deduct mortgage interest from rental profit — only a 20% basic rate tax credit applies. Higher-rate taxpayers may pay tax on profit they haven't made. Consider Ltd company structure.
+            </div>
+          )}
+        </Sec>
+
         {/* 4. STEP 1 — Buy / Rent / Specialist */}
         <Step1ModePicker mode={mode} onSelect={setMode} />
 
@@ -1222,8 +1256,28 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Country" value={COUNTRY_LABEL[p.taxCountry] ?? p.taxCountry} />
               <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} />
-              <IField label="Refurb cost" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Other costs (legal, broker)" value={Number((form.sharedInputs as Record<string,unknown>)?.otherCosts) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).otherCosts)) : ''} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Refurb / works cost (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+            </IGrid>
+
+            {/* MDR toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 4px', padding: '10px 12px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
+              <i className="ti ti-receipt-tax" style={{ fontSize: '15px', color: 'var(--text-2)' }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>Multiple Dwellings Relief (MDR) applies?</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-2)', marginRight: '8px' }}>Buying 2+ units in one transaction can reduce stamp duty significantly</span>
+              <button onClick={() => isEditing && setField('mdrApplies', !form.mdrApplies)} style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: form.mdrApplies ? 'var(--navy)' : 'var(--bg-sec)', color: form.mdrApplies ? '#fff' : 'var(--text-2)' }}>
+                {form.mdrApplies ? 'Yes' : 'No'}
+              </button>
+            </div>
+
+            {/* Purchase costs breakdown */}
+            <div style={{ marginTop: '12px', marginBottom: '4px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: '#aaa' }}>Purchase costs breakdown</div>
+            <IGrid>
+              <IField label="Solicitor / conveyancing (£)" value={Number(form.solicitorFee) > 0 ? fc(Number(form.solicitorFee)) : ''} onChange={v => setField('solicitorFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Survey cost (£)" value={Number(form.surveyCost) > 0 ? fc(Number(form.surveyCost)) : ''} onChange={v => setField('surveyCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Broker fee (£)" value={Number(form.brokerFee) > 0 ? fc(Number(form.brokerFee)) : ''} onChange={v => setField('brokerFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Sourcing fee paid (£)" value={Number(form.sourcingFeePaid) > 0 ? fc(Number(form.sourcingFeePaid)) : ''} onChange={v => setField('sourcingFeePaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Mortgage arrangement fee (£)" value={Number(form.mortgageArrangementFee) > 0 ? fc(Number(form.mortgageArrangementFee)) : ''} onChange={v => setField('mortgageArrangementFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Other costs (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.otherCosts) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).otherCosts)) : ''} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -1231,12 +1285,79 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
         {/* Purchase financing — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
           <Sec title="Purchase financing">
-            <IGrid>
-              <IField label="Deposit %" value={fp(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
-              <IField label="Mortgage rate" value={Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0 ? fp(Number((form.sharedInputs as Record<string,unknown>).mortgageRate)) : ''} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
-              <IField label="Term (years)" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageTerm ?? 25)} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
-              <IField label="Type" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageType ?? 'IO') === 'IO' ? 'Interest only' : 'Repayment'} />
-            </IGrid>
+            {/* Method selector */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
+                <button key={method}
+                  onClick={() => isEditing && setField('purchaseFinanceMethod', method)}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                    border: `${form.purchaseFinanceMethod === method ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`,
+                    background: form.purchaseFinanceMethod === method ? 'var(--navy-light)' : 'var(--bg-sec)',
+                    color: form.purchaseFinanceMethod === method ? 'var(--navy)' : 'var(--text-2)',
+                    cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit',
+                  }}
+                >{method}</button>
+              ))}
+            </div>
+
+            {/* Mortgage fields */}
+            {(form.purchaseFinanceMethod === 'Mortgage' || !form.purchaseFinanceMethod) && String(form.isCashBuyer ?? 'No') !== 'Yes' && (
+              <IGrid>
+                <IField label="Deposit %" value={fp(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
+                <IField label="Mortgage rate (%)" value={Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0 ? fp(Number((form.sharedInputs as Record<string,unknown>).mortgageRate)) : ''} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
+                <IField label="Term (years)" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageTerm ?? 25)} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
+                <IField label="Type" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageType ?? 'IO') === 'IO' ? 'Interest only' : 'Repayment'} onChange={v => setField('sharedInputs.mortgageType', v === 'Interest only' ? 'IO' : 'Repayment')} />
+                <IField label="Fixed rate ends" value={String(form.fixedRateEndDate ?? '')} onChange={v => setField('fixedRateEndDate', v)} />
+                <IField label="Reversion / SVR rate (%)" value={Number(form.reversionRate) > 0 ? fp(Number(form.reversionRate)) : ''} onChange={v => setField('reversionRate', parseFloat(v) || 0)} />
+              </IGrid>
+            )}
+
+            {/* Bridging fields */}
+            {form.purchaseFinanceMethod === 'Bridging' && (
+              <IGrid>
+                <IField label="Bridging rate (% pm)" value={Number(form.bridgingRateMonthly) > 0 ? fp(Number(form.bridgingRateMonthly)) : ''} onChange={v => setField('bridgingRateMonthly', parseFloat(v) || 0)} />
+                <IField label="Bridging term (months)" value={String(form.bridgingTermMonths ?? '')} onChange={v => setField('bridgingTermMonths', parseInt(v) || 0)} />
+                <IField label="Bridging LTV (%)" value={fp(Number(form.bridgingLTV ?? 70))} onChange={v => setField('bridgingLTV', parseFloat(v) || 70)} />
+                <IField label="Arrangement fee (%)" value={fp(Number(form.bridgingArrangementFeePercent ?? 2))} onChange={v => setField('bridgingArrangementFeePercent', parseFloat(v) || 2)} />
+                <IField label="Exit fee (%)" value={fp(Number(form.bridgingExitFeePercent ?? 0))} onChange={v => setField('bridgingExitFeePercent', parseFloat(v) || 0)} />
+              </IGrid>
+            )}
+
+            {/* Cash buyer message */}
+            {String(form.isCashBuyer ?? 'No') === 'Yes' && (
+              <div style={{ padding: '12px', background: 'var(--bg-sec)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-2)' }}>
+                <i className="ti ti-check" style={{ color: 'var(--teal)', marginRight: '6px' }} />Cash purchase — no mortgage or bridging costs.
+              </div>
+            )}
+          </Sec>
+        )}
+
+        {/* Refurb financing — Buy strategies where refurb cost > 0 */}
+        {mode === 'buy' && Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 && (
+          <Sec title="Refurb financing">
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              {(['Cash', 'Bridging'] as const).map(method => (
+                <button key={method}
+                  onClick={() => isEditing && setField('refurbFinanceMethod', method)}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                    border: `${form.refurbFinanceMethod === method ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`,
+                    background: form.refurbFinanceMethod === method ? 'var(--navy-light)' : 'var(--bg-sec)',
+                    color: form.refurbFinanceMethod === method ? 'var(--navy)' : 'var(--text-2)',
+                    cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit',
+                  }}
+                >{method}</button>
+              ))}
+            </div>
+            {form.refurbFinanceMethod === 'Bridging' && (
+              <IGrid>
+                <IField label="Bridging rate (% pm)" value={Number(form.refurbBridgingRate) > 0 ? fp(Number(form.refurbBridgingRate)) : ''} onChange={v => setField('refurbBridgingRate', parseFloat(v) || 0)} />
+                <IField label="Bridging term (months)" value={String(form.refurbBridgingTermMonths ?? '')} onChange={v => setField('refurbBridgingTermMonths', parseInt(v) || 0)} />
+                <IField label="LTV (%)" value={fp(Number(form.refurbBridgingLTV ?? 70))} onChange={v => setField('refurbBridgingLTV', parseFloat(v) || 70)} />
+                <IField label="Arrangement fee (%)" value={fp(Number(form.refurbBridgingArrangementFee ?? 2))} onChange={v => setField('refurbBridgingArrangementFee', parseFloat(v) || 2)} />
+              </IGrid>
+            )}
           </Sec>
         )}
 
@@ -1289,17 +1410,50 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
 
         {/* FLIP */}
         {activeTile === 'flip' && (
-          <Sec title="FLIP — project details">
-            <IGrid>
-              <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Expected sale price" value={Number((form.flipInputs as Record<string,unknown>)?.expectedSalePrice) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).expectedSalePrice)) : ''} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Refurb cost" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Contingency %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.contingencyPercent ?? 10))} onChange={v => setField('flipInputs.contingencyPercent', parseFloat(v) || 10)} />
-              <IField label="Project length (months)" value={String((form.flipInputs as Record<string,unknown>)?.projectLengthMonths || '')} onChange={v => setField('flipInputs.projectLengthMonths', parseInt(v) || 0)} required />
-              <IField label="Holding costs / mo" value={Number((form.flipInputs as Record<string,unknown>)?.holdingCostsPerMonth) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).holdingCostsPerMonth)) : ''} onChange={v => setField('flipInputs.holdingCostsPerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Selling costs %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.sellingCostsPercent ?? 2))} onChange={v => setField('flipInputs.sellingCostsPercent', parseFloat(v) || 2)} />
-            </IGrid>
-          </Sec>
+          <>
+            <Sec title="FLIP — project details">
+              <IGrid>
+                <IField label="Expected sale price" value={Number((form.flipInputs as Record<string,unknown>)?.expectedSalePrice) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).expectedSalePrice)) : ''} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+                <IField label="Contingency %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.contingencyPercent ?? 10))} onChange={v => setField('flipInputs.contingencyPercent', parseFloat(v) || 10)} />
+                <IField label="Project length (months)" value={String((form.flipInputs as Record<string,unknown>)?.projectLengthMonths || '')} onChange={v => setField('flipInputs.projectLengthMonths', parseInt(v) || 0)} required />
+                <IField label="Holding costs / mo" value={Number((form.flipInputs as Record<string,unknown>)?.holdingCostsPerMonth) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).holdingCostsPerMonth)) : ''} onChange={v => setField('flipInputs.holdingCostsPerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                <IField label="Selling costs %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.sellingCostsPercent ?? 2))} onChange={v => setField('flipInputs.sellingCostsPercent', parseFloat(v) || 2)} />
+                <IField label="Planning permission?" value={String(form.flipPlanningRequired ?? 'No')} onChange={v => setField('flipPlanningRequired', v)} />
+              </IGrid>
+              {String(form.flipPlanningRequired ?? 'No') === 'Yes' && (
+                <IGrid style={{ marginTop: '10px' }}>
+                  <IField label="Planning / architect cost (£)" value={Number(form.flipPlanningCost) > 0 ? fc(Number(form.flipPlanningCost)) : ''} onChange={v => setField('flipPlanningCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                </IGrid>
+              )}
+            </Sec>
+
+            {/* FLIP purchase financing */}
+            <Sec title="FLIP — purchase financing">
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
+                  <button key={method}
+                    onClick={() => isEditing && setField('flipPurchaseFinanceMethod', method)}
+                    style={{
+                      flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                      border: `${form.flipPurchaseFinanceMethod === method ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`,
+                      background: form.flipPurchaseFinanceMethod === method ? 'var(--navy-light)' : 'var(--bg-sec)',
+                      color: form.flipPurchaseFinanceMethod === method ? 'var(--navy)' : 'var(--text-2)',
+                      cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit',
+                    }}
+                  >{method}</button>
+                ))}
+              </div>
+              {form.flipPurchaseFinanceMethod === 'Bridging' && (
+                <IGrid>
+                  <IField label="Bridging rate (% pm)" value={Number(form.flipBridgingRate) > 0 ? fp(Number(form.flipBridgingRate)) : ''} onChange={v => setField('flipBridgingRate', parseFloat(v) || 0)} />
+                  <IField label="Bridging term (months)" value={String(form.flipBridgingTermMonths ?? '')} onChange={v => setField('flipBridgingTermMonths', parseInt(v) || 0)} />
+                  <IField label="Bridging LTV (%)" value={fp(Number(form.flipBridgingLTV ?? 70))} onChange={v => setField('flipBridgingLTV', parseFloat(v) || 70)} />
+                  <IField label="Arrangement fee (%)" value={fp(Number(form.flipBridgingArrangementFee ?? 2))} onChange={v => setField('flipBridgingArrangementFee', parseFloat(v) || 2)} />
+                  <IField label="Exit fee (%)" value={fp(Number(form.flipBridgingExitFee ?? 0))} onChange={v => setField('flipBridgingExitFee', parseFloat(v) || 0)} />
+                </IGrid>
+              )}
+            </Sec>
+          </>
         )}
 
         {/* BRRR */}
