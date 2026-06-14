@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, createContext, useContext } from 'react'
+import { useMemo, useState, useEffect, useRef, createContext, useContext } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   calculateBTL, calculateHMO, calculateFlip, calculateSA,
@@ -9,6 +9,7 @@ import {
 } from '@/lib/calculations'
 import { type SerializedInputs } from '@/lib/inputsSerializer'
 import { type Deal } from '@/lib/database.types'
+import { updateDealInputs } from '@/lib/dealService'
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const NAVY       = 'var(--navy)'
@@ -456,16 +457,18 @@ function Met({ label, value, highlighted, green }: { label: string; value: strin
 // ── Input field ───────────────────────────────────────────────────────────────
 const InputsCtx = createContext({ isEditing: false, isNewDeal: false })
 
-function IField({ label, value, required }: { label: string; value: string; required?: boolean }) {
+function IField({ label, value, onChange, required }: { label: string; value: string; onChange?: (v: string) => void; required?: boolean }) {
   const { isEditing, isNewDeal } = useContext(InputsCtx)
+  const displayValue = isNewDeal ? '' : (value === '—' ? '' : value)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em', color: '#5a6270' }}>
         {label}{required && <span style={{ color: AMBER }}> *</span>}
       </label>
       <input
-        readOnly={!isEditing}
-        defaultValue={isNewDeal ? '' : (value === '—' ? '' : value)}
+        readOnly={!isEditing || !onChange}
+        value={displayValue}
+        onChange={isEditing && onChange ? (e) => onChange(e.target.value) : undefined}
         style={{ border: `.5px solid #c8cbd2`, borderRadius: '8px', padding: '7px 10px', fontSize: '12px', color: TEXT_2, background: isEditing ? '#fff' : BG_SEC, minHeight: '33px', cursor: isEditing ? 'text' : 'default', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
       />
     </div>
@@ -791,9 +794,11 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 }
 
 // ── VIEW: Inputs ──────────────────────────────────────────────────────────────
-function ViewInputs({ p, isNewDeal }: {
+function ViewInputs({ p, isNewDeal, dealId, onSave }: {
   p: ParsedInputs
   isNewDeal: boolean
+  dealId: string
+  onSave?: (updated: Deal) => void
 }) {
   const [searchParams] = useSearchParams()
   const isEditing = searchParams.get('editing') === 'true'
@@ -807,6 +812,87 @@ function ViewInputs({ p, isNewDeal }: {
     BRRR: 'BRRR', R2R: 'Rent to Rent', SOCIAL: 'Social Housing',
   }
 
+  // ── Form state ─────────────────────────────────────────────────────────────
+  const [form, setForm] = useState<Record<string, unknown>>(() => ({
+    address: p.address,
+    marketValue: p.marketValue,
+    taxRegion: p.taxCountry,
+    buyerType: p.buyerType,
+    propertyType: p.propertyType,
+    bedrooms: p.bedrooms,
+    bathrooms: p.bathrooms,
+    tenure: p.tenure,
+    managementFeePercent: p.managementFeePercent,
+    voidAllowancePercent: p.voidAllowancePercent,
+    maintenanceReserve: p.maintenanceReserve,
+    buildingsInsurance: p.buildingsInsurance,
+    serviceCharge: p.serviceCharge,
+    groundRentAnnual: p.groundRentAnnual,
+    btlPurchaseFinancingMethod: p.btlPurchaseFinancingMethod,
+    hmoPurchaseFinancingMethod: p.hmoPurchaseFinancingMethod,
+    saPurchaseFinancingMethod: p.saPurchaseFinancingMethod,
+    brrrPurchaseFinancingMethod: p.brrrPurchaseFinancingMethod,
+    socialPurchaseFinancingMethod: p.socialPurchaseFinancingMethod,
+    r2rLandlordDepositMonths: p.r2rLandlordDepositMonths,
+    sharedInputs: {
+      purchasePrice: p.purchasePrice,
+      refurbCost: p.refurbCost,
+      otherCosts: p.otherCosts,
+      depositPercent: p.depositPercent,
+      mortgageRate: p.mortgageRate,
+      mortgageTerm: p.mortgageTerm,
+      mortgageType: p.mortgageType,
+    },
+    btlInputs:    { monthlyRent: p.btlMonthlyRent },
+    hmoInputs:    { rooms: p.hmoRooms, rentPerRoom: p.hmoRentPerRoom, occupancyRate: p.hmoOccupancyRate, licenceCost: p.hmoLicenceCost, billsUtilities: p.hmoBillsUtilities },
+    saInputs:     { nightlyRate: p.saNightlyRate, occupancyPercent: p.saOccupancyPercent, platformFeesPercent: p.saPlatformFeesPercent, cleaningCostPerStay: p.saCleaningCostPerStay, billsUtilities: p.saBillsUtilities },
+    flipInputs:   { holdingCostsPerMonth: p.flipHoldingCostsPerMonth, projectLengthMonths: p.flipProjectLengthMonths, expectedSalePrice: p.flipExpectedSalePrice, sellingCostsPercent: p.flipSellingCostsPercent, contingencyPercent: p.flipContingencyPercent },
+    brrrInputs:   { postRefurbValue: p.brrrPostRefurbValue, refinancePercent: p.brrrRefinancePercent, newMortgageRate: p.brrrNewMortgageRate, monthlyRent: p.brrrMonthlyRent },
+    r2rInputs:    { monthlyRentPaid: p.r2rMonthlyRentPaid, rooms: p.r2rRooms, rentPerRoom: p.r2rRentPerRoom, occupancyRate: p.r2rOccupancyRate, managementFeesPercent: p.r2rManagementFeesPercent, monthlyRunningCosts: p.r2rMonthlyRunningCosts, setupCosts: p.r2rSetupCosts },
+    socialInputs: { leaseIncomePerMonth: p.socialLeaseIncomePerMonth, leaseLengthYears: p.socialLeaseLengthYears },
+  }))
+
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function scheduleAutosave(nextForm: Record<string, unknown>) {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(async () => {
+      setSaveStatus('saving')
+      const shared = (nextForm.sharedInputs as Record<string, unknown> | undefined) ?? {}
+      const updated = await updateDealInputs(dealId, nextForm, {
+        address: String(nextForm.address ?? ''),
+        purchase_price: Number(shared.purchasePrice) || null,
+        market_value: Number(nextForm.marketValue) || null,
+      })
+      if (updated) { setSaveStatus('saved'); onSave?.(updated) }
+      else { setSaveStatus('error') }
+    }, 800)
+  }
+
+  function setField(path: string, value: unknown) {
+    setForm(prev => {
+      const next = { ...prev }
+      const parts = path.split('.')
+      if (parts.length === 1) {
+        next[path] = value
+      } else {
+        next[parts[0]] = { ...(prev[parts[0]] as Record<string, unknown>), [parts[1]]: value }
+      }
+      scheduleAutosave(next)
+      return next
+    })
+  }
+
+  const sh     = (form.sharedInputs as Record<string, unknown>) ?? {}
+  const btl    = (form.btlInputs    as Record<string, unknown>) ?? {}
+  const hmo    = (form.hmoInputs    as Record<string, unknown>) ?? {}
+  const sa     = (form.saInputs     as Record<string, unknown>) ?? {}
+  const flip   = (form.flipInputs   as Record<string, unknown>) ?? {}
+  const brrr   = (form.brrrInputs   as Record<string, unknown>) ?? {}
+  const r2r    = (form.r2rInputs    as Record<string, unknown>) ?? {}
+  const social = (form.socialInputs as Record<string, unknown>) ?? {}
+
   return (
     <InputsCtx.Provider value={{ isEditing: isEditing, isNewDeal }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
@@ -814,11 +900,11 @@ function ViewInputs({ p, isNewDeal }: {
         {/* Property info */}
         <Sec title="Property information" badge="Saved">
           <IGrid>
-            <IField label="Address" value={p.address} required />
-            <IField label="Property type" value={p.propertyType} />
-            <IField label="Bedrooms" value={String(p.bedrooms || '—')} />
-            <IField label="Bathrooms" value={String(p.bathrooms || '—')} />
-            <IField label="Tenure" value={p.tenure} />
+            <IField label="Address" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
+            <IField label="Property type" value={String(form.propertyType ?? '')} onChange={v => setField('propertyType', v)} />
+            <IField label="Bedrooms" value={String(form.bedrooms ?? '')} onChange={v => setField('bedrooms', v)} />
+            <IField label="Bathrooms" value={String(form.bathrooms ?? '')} onChange={v => setField('bathrooms', v)} />
+            <IField label="Tenure" value={String(form.tenure ?? '')} onChange={v => setField('tenure', v)} />
             <IField label="Strategy" value={strategyLabel[p.strategy]} />
           </IGrid>
         </Sec>
@@ -827,12 +913,12 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy !== 'R2R' && (
           <Sec title="Property &amp; purchase">
             <IGrid>
-              <IField label="Purchase price" value={p.purchasePrice > 0 ? fc(p.purchasePrice) : '—'} required />
-              <IField label="Market value / GDV" value={p.marketValue > 0 ? fc(p.marketValue) : '—'} />
+              <IField label="Purchase price" value={Number(sh.purchasePrice) > 0 ? fc(Number(sh.purchasePrice)) : '—'} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : '—'} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Country" value={COUNTRY_LABEL[p.taxCountry] ?? p.taxCountry} />
               <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} />
-              <IField label="Refurb cost" value={p.refurbCost > 0 ? fc(p.refurbCost) : '—'} />
-              <IField label="Other costs (legal, broker)" value={p.otherCosts > 0 ? fc(p.otherCosts) : '—'} />
+              <IField label="Refurb cost" value={Number(sh.refurbCost) > 0 ? fc(Number(sh.refurbCost)) : '—'} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Other costs (legal, broker)" value={Number(sh.otherCosts) > 0 ? fc(Number(sh.otherCosts)) : '—'} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -848,10 +934,10 @@ function ViewInputs({ p, isNewDeal }: {
                 p.strategy === 'BRRR' ? p.brrrPurchaseFinancingMethod :
                 p.socialPurchaseFinancingMethod
               } />
-              <IField label="Deposit %" value={fp(p.depositPercent)} />
-              <IField label="Mortgage rate" value={p.mortgageRate > 0 ? fp(p.mortgageRate) : '—'} />
-              <IField label="Term (years)" value={String(p.mortgageTerm)} />
-              <IField label="Type" value={p.mortgageType === 'IO' ? 'Interest only' : 'Repayment'} />
+              <IField label="Deposit %" value={fp(Number(sh.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
+              <IField label="Mortgage rate" value={Number(sh.mortgageRate) > 0 ? fp(Number(sh.mortgageRate)) : '—'} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
+              <IField label="Term (years)" value={String(sh.mortgageTerm ?? '')} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
+              <IField label="Type" value={String(sh.mortgageType) === 'IO' ? 'Interest only' : 'Repayment'} />
             </IGrid>
           </Sec>
         )}
@@ -860,12 +946,12 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy !== 'R2R' && p.strategy !== 'FLIP' && (
           <Sec title="Monthly costs — all Buy strategies">
             <IGrid>
-              <IField label="Management fee %" value={fp(p.managementFeePercent)} />
-              <IField label="Buildings insurance / mo" value={fc(p.buildingsInsurance)} />
-              <IField label="Maintenance reserve / mo" value={fc(p.maintenanceReserve)} />
-              <IField label="Void allowance %" value={fp(p.voidAllowancePercent)} />
-              <IField label="Service charge / mo" value={p.serviceCharge > 0 ? fc(p.serviceCharge) : '—'} />
-              <IField label="Ground rent / yr" value={p.groundRentAnnual > 0 ? fc(p.groundRentAnnual) : '—'} />
+              <IField label="Management fee %" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 0)} />
+              <IField label="Buildings insurance / mo" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Maintenance reserve / mo" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Void allowance %" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 0)} />
+              <IField label="Service charge / mo" value={Number(form.serviceCharge) > 0 ? fc(Number(form.serviceCharge)) : '—'} onChange={v => setField('serviceCharge', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Ground rent / yr" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : '—'} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -874,7 +960,7 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'BTL' && (
           <Sec title="BTL — income">
             <IGrid>
-              <IField label="Monthly rent" value={p.btlMonthlyRent > 0 ? fc(p.btlMonthlyRent) : '—'} required />
+              <IField label="Monthly rent" value={Number(btl.monthlyRent) > 0 ? fc(Number(btl.monthlyRent)) : '—'} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
             </IGrid>
           </Sec>
         )}
@@ -882,11 +968,11 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'HMO' && (
           <Sec title="HMO — room breakdown">
             <IGrid>
-              <IField label="Rooms" value={String(p.hmoRooms || '—')} required />
-              <IField label="Rent per room / mo" value={p.hmoRentPerRoom > 0 ? fc(p.hmoRentPerRoom) : '—'} required />
-              <IField label="Occupancy rate" value={fp(p.hmoOccupancyRate)} />
-              <IField label="HMO licence cost" value={p.hmoLicenceCost > 0 ? fc(p.hmoLicenceCost) : '—'} />
-              {p.hmoBillsUtilities > 0 && <IField label="Bills & utilities / mo" value={fc(p.hmoBillsUtilities)} />}
+              <IField label="Rooms" value={String(hmo.rooms ?? '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
+              <IField label="Rent per room / mo" value={Number(hmo.rentPerRoom) > 0 ? fc(Number(hmo.rentPerRoom)) : '—'} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Occupancy rate" value={fp(Number(hmo.occupancyRate ?? 90))} onChange={v => setField('hmoInputs.occupancyRate', parseFloat(v) || 90)} />
+              <IField label="HMO licence cost" value={Number(hmo.licenceCost) > 0 ? fc(Number(hmo.licenceCost)) : '—'} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills & utilities / mo" value={Number(hmo.billsUtilities) > 0 ? fc(Number(hmo.billsUtilities)) : '—'} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -894,11 +980,11 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'SA' && (
           <Sec title="SA — nightly rate & occupancy">
             <IGrid>
-              <IField label="Avg nightly rate" value={p.saNightlyRate > 0 ? fc(p.saNightlyRate) : '—'} required />
-              <IField label="Target occupancy" value={fp(p.saOccupancyPercent)} required />
-              <IField label="Platform fee %" value={fp(p.saPlatformFeesPercent)} />
-              <IField label="Cleaning cost / stay" value={p.saCleaningCostPerStay > 0 ? fc(p.saCleaningCostPerStay) : '—'} />
-              <IField label="Bills & utilities / mo" value={p.saBillsUtilities > 0 ? fc(p.saBillsUtilities) : '—'} />
+              <IField label="Avg nightly rate" value={Number(sa.nightlyRate) > 0 ? fc(Number(sa.nightlyRate)) : '—'} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Target occupancy" value={fp(Number(sa.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
+              <IField label="Platform fee %" value={fp(Number(sa.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} />
+              <IField label="Cleaning cost / stay" value={Number(sa.cleaningCostPerStay) > 0 ? fc(Number(sa.cleaningCostPerStay)) : '—'} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills & utilities / mo" value={Number(sa.billsUtilities) > 0 ? fc(Number(sa.billsUtilities)) : '—'} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -906,13 +992,13 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'FLIP' && (
           <Sec title="FLIP — project details">
             <IGrid>
-              <IField label="Purchase price" value={p.purchasePrice > 0 ? fc(p.purchasePrice) : '—'} required />
-              <IField label="Expected sale price" value={p.flipExpectedSalePrice > 0 ? fc(p.flipExpectedSalePrice) : '—'} required />
-              <IField label="Refurb cost" value={p.refurbCost > 0 ? fc(p.refurbCost) : '—'} />
-              <IField label="Contingency %" value={fp(p.flipContingencyPercent)} />
-              <IField label="Project length (months)" value={String(p.flipProjectLengthMonths || '—')} required />
-              <IField label="Holding costs / mo" value={p.flipHoldingCostsPerMonth > 0 ? fc(p.flipHoldingCostsPerMonth) : '—'} />
-              <IField label="Selling costs %" value={fp(p.flipSellingCostsPercent)} />
+              <IField label="Purchase price" value={Number(sh.purchasePrice) > 0 ? fc(Number(sh.purchasePrice)) : '—'} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Expected sale price" value={Number(flip.expectedSalePrice) > 0 ? fc(Number(flip.expectedSalePrice)) : '—'} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Refurb cost" value={Number(sh.refurbCost) > 0 ? fc(Number(sh.refurbCost)) : '—'} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Contingency %" value={fp(Number(flip.contingencyPercent ?? 10))} onChange={v => setField('flipInputs.contingencyPercent', parseFloat(v) || 0)} />
+              <IField label="Project length (months)" value={String(flip.projectLengthMonths ?? '')} onChange={v => setField('flipInputs.projectLengthMonths', parseInt(v) || 0)} required />
+              <IField label="Holding costs / mo" value={Number(flip.holdingCostsPerMonth) > 0 ? fc(Number(flip.holdingCostsPerMonth)) : '—'} onChange={v => setField('flipInputs.holdingCostsPerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Selling costs %" value={fp(Number(flip.sellingCostsPercent ?? 2))} onChange={v => setField('flipInputs.sellingCostsPercent', parseFloat(v) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -920,10 +1006,10 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'BRRR' && (
           <Sec title="BRRR — refurb & refinance">
             <IGrid>
-              <IField label="Post-refurb value (GDV)" value={p.brrrPostRefurbValue > 0 ? fc(p.brrrPostRefurbValue) : '—'} required />
-              <IField label="Target refinance LTV" value={fp(p.brrrRefinancePercent)} />
-              <IField label="Refinance rate" value={p.brrrNewMortgageRate > 0 ? fp(p.brrrNewMortgageRate) : '—'} />
-              <IField label="Rent post-refurb" value={p.brrrMonthlyRent > 0 ? fc(p.brrrMonthlyRent) : '—'} required />
+              <IField label="Post-refurb value (GDV)" value={Number(brrr.postRefurbValue) > 0 ? fc(Number(brrr.postRefurbValue)) : '—'} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Target refinance LTV" value={fp(Number(brrr.refinancePercent ?? 75))} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} />
+              <IField label="Refinance rate" value={Number(brrr.newMortgageRate) > 0 ? fp(Number(brrr.newMortgageRate)) : '—'} onChange={v => setField('brrrInputs.newMortgageRate', parseFloat(v) || 0)} />
+              <IField label="Rent post-refurb" value={Number(brrr.monthlyRent) > 0 ? fc(Number(brrr.monthlyRent)) : '—'} onChange={v => setField('brrrInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
             </IGrid>
           </Sec>
         )}
@@ -931,14 +1017,14 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'R2R' && (
           <Sec title="R2R — lease details">
             <IGrid>
-              <IField label="Monthly rent paid to landlord" value={p.r2rMonthlyRentPaid > 0 ? fc(p.r2rMonthlyRentPaid) : '—'} required />
-              <IField label="Rooms" value={String(p.r2rRooms || '—')} required />
-              <IField label="Rent per room / mo" value={p.r2rRentPerRoom > 0 ? fc(p.r2rRentPerRoom) : '—'} required />
-              <IField label="Occupancy rate" value={fp(p.r2rOccupancyRate)} />
-              <IField label="Management fee %" value={fp(p.r2rManagementFeesPercent)} />
-              <IField label="Monthly running costs" value={p.r2rMonthlyRunningCosts > 0 ? fc(p.r2rMonthlyRunningCosts) : '—'} />
-              <IField label="Setup costs" value={p.r2rSetupCosts > 0 ? fc(p.r2rSetupCosts) : '—'} />
-              <IField label="Landlord deposit (months)" value={String(p.r2rLandlordDepositMonths || '0')} />
+              <IField label="Monthly rent paid to landlord" value={Number(r2r.monthlyRentPaid) > 0 ? fc(Number(r2r.monthlyRentPaid)) : '—'} onChange={v => setField('r2rInputs.monthlyRentPaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Rooms" value={String(r2r.rooms ?? '')} onChange={v => setField('r2rInputs.rooms', parseInt(v) || 0)} required />
+              <IField label="Rent per room / mo" value={Number(r2r.rentPerRoom) > 0 ? fc(Number(r2r.rentPerRoom)) : '—'} onChange={v => setField('r2rInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Occupancy rate" value={fp(Number(r2r.occupancyRate ?? 90))} onChange={v => setField('r2rInputs.occupancyRate', parseFloat(v) || 90)} />
+              <IField label="Management fee %" value={fp(Number(r2r.managementFeesPercent ?? 0))} onChange={v => setField('r2rInputs.managementFeesPercent', parseFloat(v) || 0)} />
+              <IField label="Monthly running costs" value={Number(r2r.monthlyRunningCosts) > 0 ? fc(Number(r2r.monthlyRunningCosts)) : '—'} onChange={v => setField('r2rInputs.monthlyRunningCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Setup costs" value={Number(r2r.setupCosts) > 0 ? fc(Number(r2r.setupCosts)) : '—'} onChange={v => setField('r2rInputs.setupCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Landlord deposit (months)" value={String(form.r2rLandlordDepositMonths ?? '0')} onChange={v => setField('r2rLandlordDepositMonths', parseInt(v) || 0)} />
             </IGrid>
           </Sec>
         )}
@@ -946,8 +1032,8 @@ function ViewInputs({ p, isNewDeal }: {
         {p.strategy === 'SOCIAL' && (
           <Sec title="Social Housing — guaranteed lease">
             <IGrid>
-              <IField label="Monthly lease income" value={p.socialLeaseIncomePerMonth > 0 ? fc(p.socialLeaseIncomePerMonth) : '—'} required />
-              <IField label="Lease term (years)" value={String(p.socialLeaseLengthYears || '—')} />
+              <IField label="Monthly lease income" value={Number(social.leaseIncomePerMonth) > 0 ? fc(Number(social.leaseIncomePerMonth)) : '—'} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Lease term (years)" value={String(social.leaseLengthYears ?? '')} onChange={v => setField('socialInputs.leaseLengthYears', parseInt(v) || 5)} />
             </IGrid>
           </Sec>
         )}
@@ -965,6 +1051,12 @@ function ViewInputs({ p, isNewDeal }: {
             {p.marketValue > 0 && <div><strong style={{ color: TEXT_1 }}>Market value:</strong> {fc(p.marketValue)}</div>}
             {p.mortgageRate > 0 && <div><strong style={{ color: TEXT_1 }}>Mortgage rate:</strong> {fp(p.mortgageRate)}</div>}
             <div><strong style={{ color: TEXT_1 }}>Tax region:</strong> {COUNTRY_LABEL[p.taxCountry]}</div>
+            {isEditing && (
+              <div style={{ paddingTop: '8px', borderTop: `.5px solid #f3f4f6`, marginTop: '4px', fontSize: '10px', color: saveStatus === 'saved' ? '#065f46' : saveStatus === 'error' ? '#b91c1c' : '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <i className={`ti ${saveStatus === 'saved' ? 'ti-check' : saveStatus === 'saving' ? 'ti-loader' : saveStatus === 'error' ? 'ti-alert-circle' : 'ti-cloud'}`} style={{ fontSize: '10px' }} />
+                {saveStatus === 'saved' ? 'Autosaved' : saveStatus === 'saving' ? 'Saving…' : saveStatus === 'error' ? 'Save failed' : 'Ready'}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1316,10 +1408,12 @@ export default function AnalysisHub({
   deal,
   activeView: externalView,
   onViewChange,
+  onSave,
 }: {
   deal: Deal
   activeView?: SubView
   onViewChange?: (v: SubView) => void
+  onSave?: (updated: Deal) => void
 }) {
   const [searchParams] = useSearchParams()
   const viewParam = searchParams.get('view')
@@ -1435,7 +1529,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'inputs' && (
-        <ViewInputs p={p} isNewDeal={isNewDeal} />
+        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} />
       )}
 
       {activeView === 'sensitivity' && (

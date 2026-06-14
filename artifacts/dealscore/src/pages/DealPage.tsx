@@ -147,6 +147,7 @@ export default function DealPage() {
           deal={deal}
           activeView={analysisView}
           onViewChange={setAnalysisView}
+          onSave={(updated) => setDeal(updated)}
         />
       )}
       {activeTab === 'content'   && <ContentHub deal={deal} onTabChange={handleTabChange} onTypeChange={setContentType} />}

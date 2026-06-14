@@ -107,3 +107,27 @@ export async function deleteDeal(dealId: string): Promise<boolean> {
   if (error) { console.error('deleteDeal error:', error); return false }
   return true
 }
+
+export async function updateDealInputs(
+  dealId: string,
+  inputs: Record<string, unknown>,
+  topLevel: {
+    address?: string
+    purchase_price?: number | null
+    market_value?: number | null
+    strategy?: string
+  }
+): Promise<Deal | null> {
+  const { data, error } = await supabase
+    .from('deals')
+    .update({
+      inputs,
+      ...topLevel,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', dealId)
+    .select()
+    .single()
+  if (error) { console.error('updateDealInputs error', error); return null }
+  return data as Deal
+}
