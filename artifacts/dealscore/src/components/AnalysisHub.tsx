@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, createContext, useContext } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
   calculateBTL, calculateHMO, calculateFlip, calculateSA,
   calculateBRRR, calculateR2R, calculateSocialHousing,
@@ -793,6 +793,168 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
   )
 }
 
+// ── SellerCard ────────────────────────────────────────────────────────────────
+const MOTIVATION_OPTS = [
+  { key: 'hot'   as const, label: 'Motivated', color: '#065f46', bg: '#d1fae5', border: '#6ee7b7' },
+  { key: 'warm'  as const, label: 'Flexible',  color: '#92400e', bg: '#fef3c7', border: '#fcd34d' },
+  { key: 'cool'  as const, label: 'Firm',      color: '#1e3a5f', bg: '#dbeafe', border: '#93c5fd' },
+  { key: 'other' as const, label: 'Other',     color: '#374151', bg: '#f3f4f6', border: '#d1d5db' },
+] as const
+
+type MotivationKey = typeof MOTIVATION_OPTS[number]['key']
+
+function SellerCard({ form, setField, isEditing, isR2R }: {
+  form: Record<string, unknown>
+  setField: (path: string, v: unknown) => void
+  isEditing: boolean
+  isR2R: boolean
+}) {
+  const label = isR2R ? 'Landlord' : 'Seller'
+  const sellerMotivation = form.sellerMotivation as MotivationKey | undefined
+  const hasData = !!(form.sellerName || form.sellerPhone)
+
+  return (
+    <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px 20px', marginBottom: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+        <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', color: 'var(--navy)' }}>
+          <i className="ti ti-user-circle" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{label}</div>
+          <div className="pii" style={{ fontSize: '11px', color: 'var(--text-2)' }}>
+            {hasData
+              ? `${String(form.sellerName ?? '')}${form.sellerPhone ? ` · ${String(form.sellerPhone)}` : ''}`
+              : `Add ${label.toLowerCase()} contact details`}
+          </div>
+        </div>
+        <span style={{ fontSize: '10px', color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: '20px' }}>Optional</span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <label style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb' }}>Full name</label>
+          <input
+            readOnly={!isEditing}
+            value={String(form.sellerName ?? '')}
+            onChange={isEditing ? e => { setField('sellerName', e.target.value); setField('sellerId', null) } : undefined}
+            placeholder={`${label} full name`}
+            className="pii"
+            style={{ padding: '7px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', fontFamily: 'inherit' }}
+          />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <label style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb' }}>Phone</label>
+          <input
+            readOnly={!isEditing}
+            value={String(form.sellerPhone ?? '')}
+            onChange={isEditing ? e => setField('sellerPhone', e.target.value) : undefined}
+            placeholder="e.g. 07700 900 123"
+            className="pii"
+            style={{ padding: '7px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', fontFamily: 'inherit' }}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb', marginBottom: '6px' }}>Motivation</div>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {MOTIVATION_OPTS.map(opt => {
+            const active = sellerMotivation === opt.key
+            return (
+              <button key={opt.key} onClick={() => isEditing && setField('sellerMotivation', opt.key)}
+                style={{ padding: '5px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 500, border: `1.5px solid ${active ? opt.border : 'var(--ds-border)'}`, background: active ? opt.bg : '#fff', color: active ? opt.color : 'var(--text-2)', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .15s' }}>
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+        {sellerMotivation === 'other' && (
+          <input readOnly={!isEditing} value={String(form.sellerMotivationOther ?? '')}
+            onChange={isEditing ? e => setField('sellerMotivationOther', e.target.value) : undefined}
+            placeholder="Describe the situation…"
+            style={{ marginTop: '8px', padding: '7px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', width: '100%', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <label style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb' }}>Situation notes</label>
+        <textarea readOnly={!isEditing} value={String(form.sellerNotes ?? '')}
+          onChange={isEditing ? e => setField('sellerNotes', e.target.value) : undefined}
+          placeholder="e.g. relocating to Scotland, needs to complete before end of month. Open to negotiation."
+          style={{ padding: '8px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', width: '100%', fontFamily: 'inherit', resize: 'none', height: '60px', lineHeight: 1.5, boxSizing: 'border-box' }} />
+      </div>
+    </div>
+  )
+}
+
+// ── Step1ModePicker ───────────────────────────────────────────────────────────
+function Step1ModePicker({ mode, onSelect }: { mode: string; onSelect: (m: 'buy' | 'rent' | 'specialist') => void }) {
+  const cards = [
+    { key: 'buy' as const, icon: 'ti-home', title: 'Buy', desc: 'Purchase and hold, flip, or refinance.', examples: 'BTL · HMO · SA · BRRR · FLIP · Social' },
+    { key: 'rent' as const, icon: 'ti-key', title: 'Rent', desc: 'Rent from landlord and sublet — no purchase.', examples: 'R2R' },
+    { key: 'specialist' as const, icon: 'ti-arrows-exchange', title: 'Specialist / Other', desc: 'Control without purchase, or fee-based structures.', examples: 'Lease Option · Assisted Sale' },
+  ]
+  return (
+    <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px 20px', marginBottom: '10px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: '#aaa', marginBottom: '3px' }}>Step 1 of 2</div>
+      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '12px' }}>How are you planning to control this property?</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+        {cards.map(c => (
+          <div key={c.key} onClick={() => onSelect(c.key)}
+            style={{ border: `${mode === c.key ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`, borderRadius: '12px', padding: '14px', cursor: 'pointer', background: mode === c.key ? 'var(--navy-light)' : '#fff', transition: 'all .18s' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: mode === c.key ? 'var(--navy)' : 'var(--bg-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px', color: mode === c.key ? '#fff' : 'var(--text-2)', marginBottom: '9px', border: mode === c.key ? 'none' : '.5px solid var(--ds-border)' }}>
+              <i className={`ti ${c.icon}`} />
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '3px' }}>{c.title}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-2)', lineHeight: 1.45, marginBottom: '5px' }}>{c.desc}</div>
+            <div style={{ fontSize: '10px', color: '#aaa' }}>{c.examples}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Step2StrategyPicker ───────────────────────────────────────────────────────
+const BUY_TILES = [
+  { key: 'btl', name: 'BTL', full: 'Buy to Let — single household', live: true },
+  { key: 'hmo', name: 'HMO', full: 'House in Multiple Occupation', live: true },
+  { key: 'sa',  name: 'SA',  full: 'Serviced Accommodation — short-let', live: true },
+  { key: 'social', name: 'Social Housing', full: 'Lease to council / housing provider', live: true },
+  { key: 'brrr', name: 'BRRR', full: 'Buy, Refurb, Refinance, Rent', live: true },
+  { key: 'flip', name: 'FLIP', full: 'Buy, Refurb, Sell — trade for profit', live: true },
+]
+const RENT_TILES = [
+  { key: 'r2r', name: 'R2R', full: 'Rent to Rent — sublet rooms', live: true },
+]
+
+function Step2StrategyPicker({ mode, activeTile, onSelect, isEditing }: { mode: string; activeTile: string; onSelect: (k: string) => void; isEditing: boolean }) {
+  const tiles = mode === 'rent' ? RENT_TILES : BUY_TILES
+  const modeLabel = mode === 'rent' ? 'Rent strategies' : mode === 'specialist' ? 'Specialist strategies' : 'Buy strategies'
+  return (
+    <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px 20px', marginBottom: '10px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: '#aaa', marginBottom: '3px' }}>Step 2 of 2 — {modeLabel}</div>
+      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '12px' }}>Select your strategy</div>
+      {mode === 'specialist' ? (
+        <div style={{ fontSize: '12px', color: 'var(--text-2)', padding: '16px', background: 'var(--bg-sec)', borderRadius: '8px' }}>Lease Option and Assisted Sale coming soon.</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+          {tiles.map(t => (
+            <div key={t.key} onClick={() => isEditing && t.live && onSelect(t.key)}
+              style={{ border: `${activeTile === t.key ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`, borderRadius: '8px', padding: '11px', cursor: isEditing && t.live ? 'pointer' : 'default', background: activeTile === t.key ? 'var(--navy-light)' : 'var(--bg-sec)', transition: 'all .18s', opacity: t.live ? 1 : 0.55 }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '2px' }}>{t.name}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-2)', lineHeight: 1.4, marginBottom: '5px' }}>{t.full}</div>
+              <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '20px', background: t.live ? 'var(--teal-light)' : '#fef3c7', color: t.live ? '#065f46' : '#92400e', display: 'inline-block' }}>
+                {t.live ? '✓ Live' : 'Coming soon'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── VIEW: Inputs ──────────────────────────────────────────────────────────────
 function ViewInputs({ p, isNewDeal, dealId, onSave }: {
   p: ParsedInputs
@@ -854,6 +1016,28 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const navigate = useNavigate()
+
+  const initialMode: 'buy' | 'rent' | 'specialist' = p.strategy === 'R2R' ? 'rent' : 'buy'
+  const [mode, setMode] = useState<'buy' | 'rent' | 'specialist'>(initialMode)
+  const [activeTile, setActiveTile] = useState<string>(p.strategy.toLowerCase())
+
+  async function selectStrategy(stratKey: string) {
+    setActiveTile(stratKey)
+    const stratMap: Record<string, string> = {
+      btl: 'BTL', hmo: 'HMO', sa: 'SA', brrr: 'BRRR', flip: 'FLIP', r2r: 'R2R', social: 'SOCIAL',
+    }
+    const supaStrategy = stratMap[stratKey]
+    if (supaStrategy) {
+      const updated = await updateDealInputs(dealId, { ...form, strategy: supaStrategy }, {
+        strategy: supaStrategy,
+        address: String(form.address ?? ''),
+        purchase_price: Number((form.sharedInputs as Record<string, unknown>)?.purchasePrice) || null,
+        market_value: Number(form.marketValue) || null,
+      })
+      if (updated) { setSaveStatus('saved'); onSave?.(updated) }
+    }
+  }
 
   function scheduleAutosave(nextForm: Record<string, unknown>) {
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -897,146 +1081,167 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
     <InputsCtx.Provider value={{ isEditing: isEditing, isNewDeal }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
-        {/* Property info */}
-        <Sec title="Property information" badge="Saved">
+
+        {/* 1. LOCKED BANNER */}
+        {!isEditing && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', padding: '14px 18px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+            <i className="ti ti-lock" style={{ fontSize: '16px', color: TEXT_2, flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: '12px', color: TEXT_2 }}>Viewing deal — all inputs are read-only. Click Edit to make changes.</div>
+            <button onClick={() => navigate('?tab=analysis&view=inputs&editing=true')} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 14px', borderRadius: '8px', border: 'none', background: NAVY, color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+              <i className="ti ti-pencil" style={{ fontSize: '11px' }} /> Edit
+            </button>
+          </div>
+        )}
+
+        {/* 2. PROPERTY INFORMATION */}
+        <Sec title="Property information">
           <IGrid>
             <IField label="Address" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
             <IField label="Property type" value={String(form.propertyType ?? '')} onChange={v => setField('propertyType', v)} />
             <IField label="Bedrooms" value={String(form.bedrooms ?? '')} onChange={v => setField('bedrooms', v)} />
             <IField label="Bathrooms" value={String(form.bathrooms ?? '')} onChange={v => setField('bathrooms', v)} />
-            <IField label="Tenure" value={String(form.tenure ?? '')} onChange={v => setField('tenure', v)} />
-            <IField label="Strategy" value={strategyLabel[p.strategy]} />
+            <IField label="Tenure" value={String(form.tenure ?? 'Freehold')} onChange={v => setField('tenure', v)} />
+            <IField label="EPC rating" value={String(form.epcRating ?? '')} onChange={v => setField('epcRating', v)} />
           </IGrid>
         </Sec>
 
-        {/* Purchase & tax */}
-        {p.strategy !== 'R2R' && (
+        {/* 3. SELLER / LANDLORD */}
+        <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} />
+
+        {/* 4. STEP 1 — Buy / Rent / Specialist */}
+        <Step1ModePicker mode={mode} onSelect={setMode} />
+
+        {/* 5. STEP 2 — Strategy tiles */}
+        <Step2StrategyPicker mode={mode} activeTile={activeTile} onSelect={selectStrategy} isEditing={isEditing} />
+
+        {/* 6. STRATEGY-SPECIFIC INPUT SECTIONS */}
+
+        {/* Property & purchase — Buy strategies */}
+        {mode === 'buy' && (
           <Sec title="Property &amp; purchase">
             <IGrid>
-              <IField label="Purchase price" value={Number(sh.purchasePrice) > 0 ? fc(Number(sh.purchasePrice)) : '—'} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : '—'} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Country" value={COUNTRY_LABEL[p.taxCountry] ?? p.taxCountry} />
               <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} />
-              <IField label="Refurb cost" value={Number(sh.refurbCost) > 0 ? fc(Number(sh.refurbCost)) : '—'} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Other costs (legal, broker)" value={Number(sh.otherCosts) > 0 ? fc(Number(sh.otherCosts)) : '—'} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Refurb cost" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Other costs (legal, broker)" value={Number((form.sharedInputs as Record<string,unknown>)?.otherCosts) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).otherCosts)) : ''} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
 
-        {/* Financing */}
-        {p.strategy !== 'R2R' && p.strategy !== 'FLIP' && (
+        {/* Purchase financing — Buy only, not FLIP */}
+        {mode === 'buy' && activeTile !== 'flip' && (
           <Sec title="Purchase financing">
             <IGrid>
-              <IField label="Method" value={
-                p.strategy === 'BTL' ? p.btlPurchaseFinancingMethod :
-                p.strategy === 'HMO' ? p.hmoPurchaseFinancingMethod :
-                p.strategy === 'SA'  ? p.saPurchaseFinancingMethod :
-                p.strategy === 'BRRR' ? p.brrrPurchaseFinancingMethod :
-                p.socialPurchaseFinancingMethod
-              } />
-              <IField label="Deposit %" value={fp(Number(sh.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
-              <IField label="Mortgage rate" value={Number(sh.mortgageRate) > 0 ? fp(Number(sh.mortgageRate)) : '—'} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
-              <IField label="Term (years)" value={String(sh.mortgageTerm ?? '')} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
-              <IField label="Type" value={String(sh.mortgageType) === 'IO' ? 'Interest only' : 'Repayment'} />
+              <IField label="Deposit %" value={fp(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
+              <IField label="Mortgage rate" value={Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0 ? fp(Number((form.sharedInputs as Record<string,unknown>).mortgageRate)) : ''} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
+              <IField label="Term (years)" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageTerm ?? 25)} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
+              <IField label="Type" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageType ?? 'IO') === 'IO' ? 'Interest only' : 'Repayment'} />
             </IGrid>
           </Sec>
         )}
 
-        {/* Monthly costs */}
-        {p.strategy !== 'R2R' && p.strategy !== 'FLIP' && (
-          <Sec title="Monthly costs — all Buy strategies">
+        {/* Monthly costs — Buy only, not FLIP */}
+        {mode === 'buy' && activeTile !== 'flip' && (
+          <Sec title="Monthly costs">
             <IGrid>
-              <IField label="Management fee %" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 0)} />
-              <IField label="Buildings insurance / mo" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Maintenance reserve / mo" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Void allowance %" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 0)} />
-              <IField label="Service charge / mo" value={Number(form.serviceCharge) > 0 ? fc(Number(form.serviceCharge)) : '—'} onChange={v => setField('serviceCharge', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Ground rent / yr" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : '—'} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Management fee %" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
+              <IField label="Buildings insurance / mo" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 30)} />
+              <IField label="Maintenance reserve / mo" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 75)} />
+              <IField label="Void allowance %" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 5)} />
             </IGrid>
           </Sec>
         )}
 
-        {/* Strategy-specific */}
-        {p.strategy === 'BTL' && (
+        {/* BTL */}
+        {activeTile === 'btl' && (
           <Sec title="BTL — income">
             <IGrid>
-              <IField label="Monthly rent" value={Number(btl.monthlyRent) > 0 ? fc(Number(btl.monthlyRent)) : '—'} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Monthly rent" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
             </IGrid>
           </Sec>
         )}
 
-        {p.strategy === 'HMO' && (
+        {/* HMO */}
+        {activeTile === 'hmo' && (
           <Sec title="HMO — room breakdown">
             <IGrid>
-              <IField label="Rooms" value={String(hmo.rooms ?? '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
-              <IField label="Rent per room / mo" value={Number(hmo.rentPerRoom) > 0 ? fc(Number(hmo.rentPerRoom)) : '—'} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Occupancy rate" value={fp(Number(hmo.occupancyRate ?? 90))} onChange={v => setField('hmoInputs.occupancyRate', parseFloat(v) || 90)} />
-              <IField label="HMO licence cost" value={Number(hmo.licenceCost) > 0 ? fc(Number(hmo.licenceCost)) : '—'} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Bills & utilities / mo" value={Number(hmo.billsUtilities) > 0 ? fc(Number(hmo.billsUtilities)) : '—'} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Rooms" value={String((form.hmoInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
+              <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Occupancy rate" value={fp(Number((form.hmoInputs as Record<string,unknown>)?.occupancyRate ?? 90))} onChange={v => setField('hmoInputs.occupancyRate', parseFloat(v) || 90)} />
+              <IField label="HMO licence cost" value={Number((form.hmoInputs as Record<string,unknown>)?.licenceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).licenceCost)) : ''} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills &amp; utilities / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
 
-        {p.strategy === 'SA' && (
-          <Sec title="SA — nightly rate & occupancy">
+        {/* SA */}
+        {activeTile === 'sa' && (
+          <Sec title="SA — nightly rate &amp; occupancy">
             <IGrid>
-              <IField label="Avg nightly rate" value={Number(sa.nightlyRate) > 0 ? fc(Number(sa.nightlyRate)) : '—'} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Target occupancy" value={fp(Number(sa.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
-              <IField label="Platform fee %" value={fp(Number(sa.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} />
-              <IField label="Cleaning cost / stay" value={Number(sa.cleaningCostPerStay) > 0 ? fc(Number(sa.cleaningCostPerStay)) : '—'} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Bills & utilities / mo" value={Number(sa.billsUtilities) > 0 ? fc(Number(sa.billsUtilities)) : '—'} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Avg nightly rate" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Target occupancy" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
+              <IField label="Platform fee %" value={fp(Number((form.saInputs as Record<string,unknown>)?.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} />
+              <IField label="Cleaning cost / stay" value={Number((form.saInputs as Record<string,unknown>)?.cleaningCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).cleaningCostPerStay)) : ''} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills &amp; utilities / mo" value={Number((form.saInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
           </Sec>
         )}
 
-        {p.strategy === 'FLIP' && (
+        {/* FLIP */}
+        {activeTile === 'flip' && (
           <Sec title="FLIP — project details">
             <IGrid>
-              <IField label="Purchase price" value={Number(sh.purchasePrice) > 0 ? fc(Number(sh.purchasePrice)) : '—'} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Expected sale price" value={Number(flip.expectedSalePrice) > 0 ? fc(Number(flip.expectedSalePrice)) : '—'} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Refurb cost" value={Number(sh.refurbCost) > 0 ? fc(Number(sh.refurbCost)) : '—'} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Contingency %" value={fp(Number(flip.contingencyPercent ?? 10))} onChange={v => setField('flipInputs.contingencyPercent', parseFloat(v) || 0)} />
-              <IField label="Project length (months)" value={String(flip.projectLengthMonths ?? '')} onChange={v => setField('flipInputs.projectLengthMonths', parseInt(v) || 0)} required />
-              <IField label="Holding costs / mo" value={Number(flip.holdingCostsPerMonth) > 0 ? fc(Number(flip.holdingCostsPerMonth)) : '—'} onChange={v => setField('flipInputs.holdingCostsPerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Selling costs %" value={fp(Number(flip.sellingCostsPercent ?? 2))} onChange={v => setField('flipInputs.sellingCostsPercent', parseFloat(v) || 0)} />
+              <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Expected sale price" value={Number((form.flipInputs as Record<string,unknown>)?.expectedSalePrice) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).expectedSalePrice)) : ''} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Refurb cost" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Contingency %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.contingencyPercent ?? 10))} onChange={v => setField('flipInputs.contingencyPercent', parseFloat(v) || 10)} />
+              <IField label="Project length (months)" value={String((form.flipInputs as Record<string,unknown>)?.projectLengthMonths || '')} onChange={v => setField('flipInputs.projectLengthMonths', parseInt(v) || 0)} required />
+              <IField label="Holding costs / mo" value={Number((form.flipInputs as Record<string,unknown>)?.holdingCostsPerMonth) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).holdingCostsPerMonth)) : ''} onChange={v => setField('flipInputs.holdingCostsPerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Selling costs %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.sellingCostsPercent ?? 2))} onChange={v => setField('flipInputs.sellingCostsPercent', parseFloat(v) || 2)} />
             </IGrid>
           </Sec>
         )}
 
-        {p.strategy === 'BRRR' && (
-          <Sec title="BRRR — refurb & refinance">
+        {/* BRRR */}
+        {activeTile === 'brrr' && (
+          <Sec title="BRRR — refurb &amp; refinance">
             <IGrid>
-              <IField label="Post-refurb value (GDV)" value={Number(brrr.postRefurbValue) > 0 ? fc(Number(brrr.postRefurbValue)) : '—'} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Target refinance LTV" value={fp(Number(brrr.refinancePercent ?? 75))} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} />
-              <IField label="Refinance rate" value={Number(brrr.newMortgageRate) > 0 ? fp(Number(brrr.newMortgageRate)) : '—'} onChange={v => setField('brrrInputs.newMortgageRate', parseFloat(v) || 0)} />
-              <IField label="Rent post-refurb" value={Number(brrr.monthlyRent) > 0 ? fc(Number(brrr.monthlyRent)) : '—'} onChange={v => setField('brrrInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Post-refurb value (GDV)" value={Number((form.brrrInputs as Record<string,unknown>)?.postRefurbValue) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).postRefurbValue)) : ''} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Target refinance LTV" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.refinancePercent ?? 75))} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} />
+              <IField label="Refinance rate" value={Number((form.brrrInputs as Record<string,unknown>)?.newMortgageRate) > 0 ? fp(Number((form.brrrInputs as Record<string,unknown>).newMortgageRate)) : ''} onChange={v => setField('brrrInputs.newMortgageRate', parseFloat(v) || 0)} />
+              <IField label="Rent post-refurb" value={Number((form.brrrInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('brrrInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
             </IGrid>
           </Sec>
         )}
 
-        {p.strategy === 'R2R' && (
+        {/* R2R */}
+        {activeTile === 'r2r' && (
           <Sec title="R2R — lease details">
             <IGrid>
-              <IField label="Monthly rent paid to landlord" value={Number(r2r.monthlyRentPaid) > 0 ? fc(Number(r2r.monthlyRentPaid)) : '—'} onChange={v => setField('r2rInputs.monthlyRentPaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Rooms" value={String(r2r.rooms ?? '')} onChange={v => setField('r2rInputs.rooms', parseInt(v) || 0)} required />
-              <IField label="Rent per room / mo" value={Number(r2r.rentPerRoom) > 0 ? fc(Number(r2r.rentPerRoom)) : '—'} onChange={v => setField('r2rInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Occupancy rate" value={fp(Number(r2r.occupancyRate ?? 90))} onChange={v => setField('r2rInputs.occupancyRate', parseFloat(v) || 90)} />
-              <IField label="Management fee %" value={fp(Number(r2r.managementFeesPercent ?? 0))} onChange={v => setField('r2rInputs.managementFeesPercent', parseFloat(v) || 0)} />
-              <IField label="Monthly running costs" value={Number(r2r.monthlyRunningCosts) > 0 ? fc(Number(r2r.monthlyRunningCosts)) : '—'} onChange={v => setField('r2rInputs.monthlyRunningCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Setup costs" value={Number(r2r.setupCosts) > 0 ? fc(Number(r2r.setupCosts)) : '—'} onChange={v => setField('r2rInputs.setupCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Monthly rent paid to landlord" value={Number((form.r2rInputs as Record<string,unknown>)?.monthlyRentPaid) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).monthlyRentPaid)) : ''} onChange={v => setField('r2rInputs.monthlyRentPaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Rooms" value={String((form.r2rInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('r2rInputs.rooms', parseInt(v) || 0)} required />
+              <IField label="Rent per room / mo" value={Number((form.r2rInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('r2rInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Occupancy rate" value={fp(Number((form.r2rInputs as Record<string,unknown>)?.occupancyRate ?? 90))} onChange={v => setField('r2rInputs.occupancyRate', parseFloat(v) || 90)} />
+              <IField label="Management fee %" value={fp(Number((form.r2rInputs as Record<string,unknown>)?.managementFeesPercent ?? 0))} onChange={v => setField('r2rInputs.managementFeesPercent', parseFloat(v) || 0)} />
+              <IField label="Monthly running costs" value={Number((form.r2rInputs as Record<string,unknown>)?.monthlyRunningCosts) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).monthlyRunningCosts)) : ''} onChange={v => setField('r2rInputs.monthlyRunningCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Setup costs" value={Number((form.r2rInputs as Record<string,unknown>)?.setupCosts) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).setupCosts)) : ''} onChange={v => setField('r2rInputs.setupCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Landlord deposit (months)" value={String(form.r2rLandlordDepositMonths ?? '0')} onChange={v => setField('r2rLandlordDepositMonths', parseInt(v) || 0)} />
             </IGrid>
           </Sec>
         )}
 
-        {p.strategy === 'SOCIAL' && (
+        {/* SOCIAL */}
+        {activeTile === 'social' && (
           <Sec title="Social Housing — guaranteed lease">
             <IGrid>
-              <IField label="Monthly lease income" value={Number(social.leaseIncomePerMonth) > 0 ? fc(Number(social.leaseIncomePerMonth)) : '—'} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Lease term (years)" value={String(social.leaseLengthYears ?? '')} onChange={v => setField('socialInputs.leaseLengthYears', parseInt(v) || 5)} />
+              <IField label="Monthly lease income" value={Number((form.socialInputs as Record<string,unknown>)?.leaseIncomePerMonth) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).leaseIncomePerMonth)) : ''} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Lease term (years)" value={String((form.socialInputs as Record<string,unknown>)?.leaseLengthYears || 5)} onChange={v => setField('socialInputs.leaseLengthYears', parseInt(v) || 5)} />
             </IGrid>
           </Sec>
         )}
+
       </div>
 
       {/* Sidebar */}
