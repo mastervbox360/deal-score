@@ -303,9 +303,9 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
           <nav className="hdr-nav">
             <button className="hn on" onClick={() => navigate('/dashboard')}>Deals</button>
             <div className="hn-sep"></div>
-            <button className="hn">Pipeline</button>
+            <button className="hn" onClick={() => navigate('/pipeline')}>Pipeline</button>
             <div className="hn-sep"></div>
-            <button className="hn">Compare</button>
+            <button className="hn" onClick={() => navigate('/compare')}>Compare</button>
           </nav>
         </div>
 
@@ -319,9 +319,9 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
 
         <div className="hdr-right">
           <nav className="hdr-right-nav">
-            <button className="hn">Sellers</button>
+            <button className="hn" onClick={() => navigate('/sellers-crm')}>Sellers</button>
             <div className="hn-sep"></div>
-            <button className="hn">Investors</button>
+            <button className="hn" onClick={() => navigate('/investors-crm')}>Investors</button>
           </nav>
           <div className="logo-sep"></div>
           <button className="btn-new" onClick={() => navigate('/dashboard')}>
