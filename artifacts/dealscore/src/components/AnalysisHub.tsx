@@ -128,14 +128,14 @@ function parseInputs(deal: Deal): ParsedInputs {
 
   return {
     strategy: (deal.strategy ?? inp.strategy ?? 'BTL') as DealType,
-    address: s(inp.address),
-    marketValue: n(inp.marketValue),
+    address: s(inp.address) || deal.address || '',
+    marketValue: n(inp.marketValue || deal.market_value),
     taxCountry: (s(inp.taxRegion, 'ENGLAND') as Country) || 'ENGLAND',
     buyerType: (s(inp.buyerType, 'ADDITIONAL') as BuyerType) || 'ADDITIONAL',
     taxOverrideActive: !!inp.taxOverrideActive,
     manualTaxValue: n(inp.manualTaxValue),
     // shared
-    purchasePrice: n(shared.purchasePrice ?? inp.purchasePrice),
+    purchasePrice: n(shared.purchasePrice ?? inp.purchasePrice ?? deal.purchase_price),
     refurbCost:    n(shared.refurbCost),
     otherCosts:    n(shared.otherCosts),
     depositPercent: n(shared.depositPercent, 25),

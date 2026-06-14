@@ -428,7 +428,7 @@ export default function DashboardPage() {
     setTimeout(() => {
       closeNd()
       void fetchDeals()
-      navigate(`/deal/${deal.id}`)
+      navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)
     }, 1900)
   }
 
