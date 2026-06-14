@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Deal } from '../lib/database.types'
+import { updateDealInputs } from '../lib/dealService'
 
 const NAVY       = '#1B3A6B'
 const NAVY_LIGHT = '#eef3fb'
@@ -234,32 +235,74 @@ export default function FeesTab({ deal }: FeesTabProps) {
   const [toastShow, setToastShow] = useState(false)
   const [expDismissed, setExpDismissed] = useState(false)
 
-  const [feeAmountStr, setFeeAmountStr] = useState('£2,500')
-  const [feeType,      setFeeType]      = useState<FeeType>('fixed')
-  const [feeDue,       setFeeDue]       = useState<FeeDue>('completion')
-  const [feeStatus,    setFeeStatus]    = useState<FeeStatus>('outstanding')
+  const saved = (deal.inputs as Record<string, unknown> | null)?.feeDetails as Record<string, unknown> | undefined
 
-  const [history,  setHistory]  = useState<HistEntry[]>(SEED_HISTORY)
+  const [feeAmountStr, setFeeAmountStr] = useState<string>(
+    saved?.feeAmountStr != null ? String(saved.feeAmountStr) : '£2,500'
+  )
+  const [feeType,      setFeeType]      = useState<FeeType>(
+    saved?.feeType != null ? (saved.feeType as FeeType) : 'fixed'
+  )
+  const [feeDue,       setFeeDue]       = useState<FeeDue>(
+    saved?.feeDue != null ? (saved.feeDue as FeeDue) : 'completion'
+  )
+  const [feeStatus,    setFeeStatus]    = useState<FeeStatus>(
+    saved?.feeStatus != null ? (saved.feeStatus as FeeStatus) : 'outstanding'
+  )
+
+  const [history,  setHistory]  = useState<HistEntry[]>(
+    Array.isArray(saved?.history) ? (saved.history as HistEntry[]) : SEED_HISTORY
+  )
   const [histNote, setHistNote] = useState('')
 
   const [sendTo,   setSendTo]   = useState('0')
   const [sendNote, setSendNote] = useState('')
 
   const [invoiceOpen, setInvoiceOpen] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+
+  async function saveFee(overrides?: {
+    feeAmountStr?: string
+    feeType?: FeeType
+    feeDue?: FeeDue
+    feeStatus?: FeeStatus
+    history?: HistEntry[]
+  }) {
+    setSaveStatus('saving')
+    const feeDetails = {
+      feeAmountStr:  overrides?.feeAmountStr  ?? feeAmountStr,
+      feeType:       overrides?.feeType       ?? feeType,
+      feeDue:        overrides?.feeDue        ?? feeDue,
+      feeStatus:     overrides?.feeStatus     ?? feeStatus,
+      history:       overrides?.history       ?? history,
+    }
+    const currentInputs = (deal.inputs as Record<string, unknown> | null) ?? {}
+    const updated = await updateDealInputs(
+      deal.id,
+      { ...currentInputs, feeDetails },
+      {}
+    )
+    setSaveStatus(updated ? 'saved' : 'error')
+  }
 
   const showToast = useCallback((msg: string) => {
     setToast(msg); setToastShow(true)
     setTimeout(() => setToastShow(false), 2200)
   }, [])
 
-  function saveFeeDetails() {
-    showToast('Fee details saved')
+  async function saveFeeDetails() {
+    await saveFee()
+    showToast(saveStatus === 'error' ? 'Save failed' : 'Fee details saved')
   }
 
   function markReceived() {
-    setFeeStatus('received')
-    setHistory(prev => [{ date: `Today · ${nowTime()}`, evt: `Fee marked as received — ${feeAmountStr}.`, tag: 'received' }, ...prev])
+    const newStatus: FeeStatus = 'received'
+    const newEntry: HistEntry = { date: new Date().toLocaleDateString('en-GB'), evt: 'Payment received', tag: 'received' }
+    const newHistory = [newEntry, ...history]
+    setFeeStatus(newStatus)
+    setHistory(newHistory)
     showToast('Fee marked as received — invoice updated')
+    saveFee({ feeStatus: newStatus, history: newHistory })
   }
 
   function addHistNote() {
@@ -412,13 +455,18 @@ export default function FeesTab({ deal }: FeesTabProps) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', borderTop: `.5px solid ${DS_BORDER}`, paddingTop: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderTop: `.5px solid ${DS_BORDER}`, paddingTop: '12px' }}>
                 <LogBtn onClick={markReceived}>
                   <i className="ti ti-circle-check" style={{ fontSize: '11px' }} /> {feeStatus === 'received' ? 'Received' : 'Mark as received'}
                 </LogBtn>
                 <LogBtn primary onClick={saveFeeDetails}>
                   <i className="ti ti-device-floppy" style={{ fontSize: '11px' }} /> Save
                 </LogBtn>
+                {saveStatus !== 'idle' && (
+                  <span style={{ fontSize: '11px', color: saveStatus === 'saved' ? '#065f46' : saveStatus === 'error' ? '#b91c1c' : '#9ca3af', marginLeft: '8px' }}>
+                    {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved ✓' : 'Save failed'}
+                  </span>
+                )}
               </div>
             </div>
           </SecCard>
