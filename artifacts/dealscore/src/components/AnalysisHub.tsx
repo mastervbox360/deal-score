@@ -1365,46 +1365,95 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
         {mode === 'buy' && activeTile !== 'flip' && (
           <Sec title="Monthly costs">
             <IGrid>
-              <IField label="Management fee %" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
-              <IField label="Buildings insurance / mo" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 30)} />
-              <IField label="Maintenance reserve / mo" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 75)} />
-              <IField label="Void allowance %" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 5)} />
+              <IField label="Management fee (%)" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
+              <IField label="Void allowance (%)" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 5)} />
+              <IField label="Buildings insurance (£/mo)" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 30)} />
+              <IField label="Maintenance reserve (£/mo)" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 75)} />
+              <IField label="Landlord insurance (£/mo)" value={Number(form.landlordInsuranceMonthly) > 0 ? fc(Number(form.landlordInsuranceMonthly)) : ''} onChange={v => setField('landlordInsuranceMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Letting agent re-let fee (£)" value={Number(form.reletFee) > 0 ? fc(Number(form.reletFee)) : ''} onChange={v => setField('reletFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Annual compliance costs (£/yr)" value={Number(form.annualComplianceCosts) > 0 ? fc(Number(form.annualComplianceCosts)) : ''} onChange={v => setField('annualComplianceCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Rent guarantee insurance (£/mo)" value={Number(form.rentGuaranteeInsurance) > 0 ? fc(Number(form.rentGuaranteeInsurance)) : ''} onChange={v => setField('rentGuaranteeInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Legal expenses insurance (£/yr)" value={Number(form.legalExpensesInsurance) > 0 ? fc(Number(form.legalExpensesInsurance)) : ''} onChange={v => setField('legalExpensesInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Council tax during voids (£/mo)" value={Number(form.councilTaxVoids) > 0 ? fc(Number(form.councilTaxVoids)) : ''} onChange={v => setField('councilTaxVoids', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              {String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
+                <>
+                  <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                  <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                </>
+              )}
             </IGrid>
+            <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-2)', padding: '6px 10px', background: 'var(--bg-sec)', borderRadius: '6px' }}>
+              Annual compliance costs — gas safety cert (~£80/yr), EICR (~£150 every 5yr), EPC renewal (~£60 every 10yr)
+            </div>
           </Sec>
         )}
 
         {/* BTL */}
         {activeTile === 'btl' && (
-          <Sec title="BTL — income">
+          <Sec title="BTL — income &amp; setup">
             <IGrid>
-              <IField label="Monthly rent" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} />
+              <IField label="Tenant find / inventory fee (£)" value={Number((form.btlInputs as Record<string,unknown>)?.tenantFindFee) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).tenantFindFee)) : ''} onChange={v => setField('btlInputs.tenantFindFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Furnished?" value={String((form.btlInputs as Record<string,unknown>)?.furnished ?? 'Unfurnished')} onChange={v => setField('btlInputs.furnished', v)} />
             </IGrid>
           </Sec>
         )}
 
         {/* HMO */}
         {activeTile === 'hmo' && (
-          <Sec title="HMO — room breakdown">
+          <Sec title="HMO — room breakdown &amp; compliance">
             <IGrid>
               <IField label="Rooms" value={String((form.hmoInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
               <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Occupancy rate" value={fp(Number((form.hmoInputs as Record<string,unknown>)?.occupancyRate ?? 90))} onChange={v => setField('hmoInputs.occupancyRate', parseFloat(v) || 90)} />
-              <IField label="HMO licence cost" value={Number((form.hmoInputs as Record<string,unknown>)?.licenceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).licenceCost)) : ''} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Bills &amp; utilities / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="HMO licence cost (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.licenceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).licenceCost)) : ''} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills &amp; utilities / mo (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="HMO licence type" value={String((form.hmoInputs as Record<string,unknown>)?.licenceType ?? 'Mandatory')} onChange={v => setField('hmoInputs.licenceType', v)} />
+              <IField label="Are rooms ensuite?" value={String((form.hmoInputs as Record<string,unknown>)?.roomsEnsuite ?? 'No')} onChange={v => setField('hmoInputs.roomsEnsuite', v)} />
+              <IField label="Council tax / mo (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.councilTaxMonthly) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).councilTaxMonthly)) : ''} onChange={v => setField('hmoInputs.councilTaxMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Fire compliance one-off (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.fireComplianceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).fireComplianceCost)) : ''} onChange={v => setField('hmoInputs.fireComplianceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Room re-let fee (£/room)" value={Number((form.hmoInputs as Record<string,unknown>)?.roomReletFee) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).roomReletFee)) : ''} onChange={v => setField('hmoInputs.roomReletFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
+              <i className="ti ti-alert-triangle" style={{ fontSize: '15px', color: 'var(--text-2)' }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>Article 4 direction area?</span>
+              <button
+                onClick={() => isEditing && setField('hmoInputs.article4Area', !(form.hmoInputs as Record<string,unknown>)?.article4Area)}
+                style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: (form.hmoInputs as Record<string,unknown>)?.article4Area ? '#fee2e2' : 'var(--bg-sec)', color: (form.hmoInputs as Record<string,unknown>)?.article4Area ? '#991b1b' : 'var(--text-2)' }}
+              >
+                {(form.hmoInputs as Record<string,unknown>)?.article4Area ? '⚠️ Yes — planning required' : 'No'}
+              </button>
+            </div>
           </Sec>
         )}
 
         {/* SA */}
         {activeTile === 'sa' && (
-          <Sec title="SA — nightly rate &amp; occupancy">
+          <Sec title="SA — nightly rate, occupancy &amp; costs">
             <IGrid>
-              <IField label="Avg nightly rate" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Target occupancy" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
-              <IField label="Platform fee %" value={fp(Number((form.saInputs as Record<string,unknown>)?.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} />
-              <IField label="Cleaning cost / stay" value={Number((form.saInputs as Record<string,unknown>)?.cleaningCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).cleaningCostPerStay)) : ''} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Bills &amp; utilities / mo" value={Number((form.saInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Avg nightly rate (£)" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Target occupancy (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
+              <IField label="Platform fee (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} />
+              <IField label="Cleaning cost / stay (£)" value={Number((form.saInputs as Record<string,unknown>)?.cleaningCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).cleaningCostPerStay)) : ''} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills &amp; utilities / mo (£)" value={Number((form.saInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Avg stay length (nights)" value={String((form.saInputs as Record<string,unknown>)?.avgStayLengthNights ?? 3)} onChange={v => setField('saInputs.avgStayLengthNights', parseInt(v) || 3)} />
+              <IField label="Linen / laundry / stay (£)" value={Number((form.saInputs as Record<string,unknown>)?.linenCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).linenCostPerStay)) : ''} onChange={v => setField('saInputs.linenCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Welcome pack / consumables (£/mo)" value={Number((form.saInputs as Record<string,unknown>)?.consumablesMonthly) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).consumablesMonthly)) : ''} onChange={v => setField('saInputs.consumablesMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Council tax (£/mo)" value={Number((form.saInputs as Record<string,unknown>)?.councilTaxMonthly) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).councilTaxMonthly)) : ''} onChange={v => setField('saInputs.councilTaxMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Channel manager (£/mo)" value={Number((form.saInputs as Record<string,unknown>)?.channelManagerMonthly) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).channelManagerMonthly)) : ''} onChange={v => setField('saInputs.channelManagerMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="SA furnishing / setup (£ one-off)" value={Number((form.saInputs as Record<string,unknown>)?.furnishingSetupCost) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).furnishingSetupCost)) : ''} onChange={v => setField('saInputs.furnishingSetupCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
+              <i className="ti ti-license" style={{ fontSize: '15px', color: 'var(--text-2)' }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>Short-term let licence required by council?</span>
+              <button
+                onClick={() => isEditing && setField('saInputs.licenceRequired', !(form.saInputs as Record<string,unknown>)?.licenceRequired)}
+                style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: (form.saInputs as Record<string,unknown>)?.licenceRequired ? '#fef3c7' : 'var(--bg-sec)', color: (form.saInputs as Record<string,unknown>)?.licenceRequired ? '#92400e' : 'var(--text-2)' }}
+              >
+                {(form.saInputs as Record<string,unknown>)?.licenceRequired ? '⚠️ Yes — check local rules' : 'No / Unknown'}
+              </button>
+            </div>
           </Sec>
         )}
 
@@ -1458,19 +1507,40 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
 
         {/* BRRR */}
         {activeTile === 'brrr' && (
-          <Sec title="BRRR — refurb &amp; refinance">
-            <IGrid>
-              <IField label="Post-refurb value (GDV)" value={Number((form.brrrInputs as Record<string,unknown>)?.postRefurbValue) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).postRefurbValue)) : ''} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Target refinance LTV" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.refinancePercent ?? 75))} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} />
-              <IField label="Refinance rate" value={Number((form.brrrInputs as Record<string,unknown>)?.newMortgageRate) > 0 ? fp(Number((form.brrrInputs as Record<string,unknown>).newMortgageRate)) : ''} onChange={v => setField('brrrInputs.newMortgageRate', parseFloat(v) || 0)} />
-              <IField label="Rent post-refurb" value={Number((form.brrrInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('brrrInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-            </IGrid>
-          </Sec>
+          <>
+            <Sec title="BRRR — purchase &amp; refurb financing">
+              <div style={{ fontSize: '11px', color: 'var(--text-2)', marginBottom: '10px' }}>BRRR purchases are typically bridged. Enter the bridging details for the purchase below.</div>
+              <IGrid>
+                <IField label="Bridging rate (% pm)" value={Number((form.brrrInputs as Record<string,unknown>)?.purchaseBridgingRate) > 0 ? fp(Number((form.brrrInputs as Record<string,unknown>).purchaseBridgingRate)) : ''} onChange={v => setField('brrrInputs.purchaseBridgingRate', parseFloat(v) || 0)} />
+                <IField label="Bridging term (months)" value={String((form.brrrInputs as Record<string,unknown>)?.purchaseBridgingTermMonths ?? '')} onChange={v => setField('brrrInputs.purchaseBridgingTermMonths', parseInt(v) || 0)} />
+                <IField label="Bridging LTV (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.purchaseBridgingLTV ?? 70))} onChange={v => setField('brrrInputs.purchaseBridgingLTV', parseFloat(v) || 70)} />
+                <IField label="Arrangement fee (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.purchaseBridgingArrangementFee ?? 2))} onChange={v => setField('brrrInputs.purchaseBridgingArrangementFee', parseFloat(v) || 2)} />
+                <IField label="Exit fee (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.purchaseBridgingExitFee ?? 0))} onChange={v => setField('brrrInputs.purchaseBridgingExitFee', parseFloat(v) || 0)} />
+              </IGrid>
+            </Sec>
+
+            <Sec title="BRRR — refinance">
+              <IGrid>
+                <IField label="Post-refurb value (GDV)" value={Number((form.brrrInputs as Record<string,unknown>)?.postRefurbValue) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).postRefurbValue)) : ''} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+                <IField label="Target refinance LTV (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.refinancePercent ?? 75))} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} />
+                <IField label="Refinance rate (%)" value={Number((form.brrrInputs as Record<string,unknown>)?.newMortgageRate) > 0 ? fp(Number((form.brrrInputs as Record<string,unknown>).newMortgageRate)) : ''} onChange={v => setField('brrrInputs.newMortgageRate', parseFloat(v) || 0)} />
+                <IField label="Refinance type" value={String((form.brrrInputs as Record<string,unknown>)?.refinanceMortgageType ?? 'IO')} onChange={v => setField('brrrInputs.refinanceMortgageType', v)} />
+                <IField label="Refinance term (years)" value={String((form.brrrInputs as Record<string,unknown>)?.refinanceMortgageTerm ?? 25)} onChange={v => setField('brrrInputs.refinanceMortgageTerm', parseInt(v) || 25)} />
+                <IField label="Refinance arrangement fee (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.refinanceArrangementFeePercent ?? 1))} onChange={v => setField('brrrInputs.refinanceArrangementFeePercent', parseFloat(v) || 1)} />
+              </IGrid>
+            </Sec>
+
+            <Sec title="BRRR — post-refurb income (hold phase)">
+              <IGrid>
+                <IField label="Monthly rent post-refurb (£)" value={Number((form.brrrInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('brrrInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              </IGrid>
+            </Sec>
+          </>
         )}
 
         {/* R2R */}
         {activeTile === 'r2r' && (
-          <Sec title="R2R — lease details">
+          <Sec title="R2R — lease &amp; sublet details">
             <IGrid>
               <IField label="Monthly rent paid to landlord" value={Number((form.r2rInputs as Record<string,unknown>)?.monthlyRentPaid) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).monthlyRentPaid)) : ''} onChange={v => setField('r2rInputs.monthlyRentPaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Rooms" value={String((form.r2rInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('r2rInputs.rooms', parseInt(v) || 0)} required />
@@ -1480,7 +1550,27 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Monthly running costs" value={Number((form.r2rInputs as Record<string,unknown>)?.monthlyRunningCosts) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).monthlyRunningCosts)) : ''} onChange={v => setField('r2rInputs.monthlyRunningCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Setup costs" value={Number((form.r2rInputs as Record<string,unknown>)?.setupCosts) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).setupCosts)) : ''} onChange={v => setField('r2rInputs.setupCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Landlord deposit (months)" value={String(form.r2rLandlordDepositMonths ?? '0')} onChange={v => setField('r2rLandlordDepositMonths', parseInt(v) || 0)} />
+              <IField label="Lease length (months)" value={String((form.r2rInputs as Record<string,unknown>)?.leaseLengthMonths ?? '')} onChange={v => setField('r2rInputs.leaseLengthMonths', parseInt(v) || 0)} required />
+              <IField label="R2R sublet type" value={String((form.r2rInputs as Record<string,unknown>)?.subletType ?? 'HMO')} onChange={v => setField('r2rInputs.subletType', v)} />
+              <IField label="Break clause notice (months)" value={String((form.r2rInputs as Record<string,unknown>)?.breakClauseMonths ?? '')} onChange={v => setField('r2rInputs.breakClauseMonths', parseInt(v) || 0)} />
+              <IField label="Annual rent increase in lease (%)" value={Number((form.r2rInputs as Record<string,unknown>)?.annualRentIncrease) >= 0 ? fp(Number((form.r2rInputs as Record<string,unknown>).annualRentIncrease)) : ''} onChange={v => setField('r2rInputs.annualRentIncrease', parseFloat(v) || 0)} />
             </IGrid>
+            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {([
+                { key: 'rightToSubletConfirmed', label: 'Right to sublet confirmed in lease?' },
+                { key: 'landlordMortgageConsentObtained', label: 'Landlord mortgage consent obtained?' },
+              ] as { key: string; label: string }[]).map(({ key, label }) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 14px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>{label}</span>
+                  <button
+                    onClick={() => isEditing && setField(`r2rInputs.${key}`, !(form.r2rInputs as Record<string,unknown>)?.[key])}
+                    style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: (form.r2rInputs as Record<string,unknown>)?.[key] ? '#d1fae5' : '#fef2f2', color: (form.r2rInputs as Record<string,unknown>)?.[key] ? '#065f46' : '#991b1b' }}
+                  >
+                    {(form.r2rInputs as Record<string,unknown>)?.[key] ? '✓ Yes' : '✗ Not yet'}
+                  </button>
+                </div>
+              ))}
+            </div>
           </Sec>
         )}
 
@@ -1488,9 +1578,16 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
         {activeTile === 'social' && (
           <Sec title="Social Housing — guaranteed lease">
             <IGrid>
-              <IField label="Monthly lease income" value={Number((form.socialInputs as Record<string,unknown>)?.leaseIncomePerMonth) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).leaseIncomePerMonth)) : ''} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Monthly lease income (£)" value={Number((form.socialInputs as Record<string,unknown>)?.leaseIncomePerMonth) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).leaseIncomePerMonth)) : ''} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Lease term (years)" value={String((form.socialInputs as Record<string,unknown>)?.leaseLengthYears || 5)} onChange={v => setField('socialInputs.leaseLengthYears', parseInt(v) || 5)} />
+              <IField label="Provider / council name" value={String((form.socialInputs as Record<string,unknown>)?.providerName ?? '')} onChange={v => setField('socialInputs.providerName', v)} />
+              <IField label="Contract type" value={String((form.socialInputs as Record<string,unknown>)?.contractType ?? 'Direct lease')} onChange={v => setField('socialInputs.contractType', v)} />
+              <IField label="Rent review mechanism" value={String((form.socialInputs as Record<string,unknown>)?.rentReviewMechanism ?? 'Fixed')} onChange={v => setField('socialInputs.rentReviewMechanism', v)} />
+              <IField label="End-of-lease refurb obligation (£)" value={Number((form.socialInputs as Record<string,unknown>)?.endOfLeaseRefurbCost) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).endOfLeaseRefurbCost)) : ''} onChange={v => setField('socialInputs.endOfLeaseRefurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
+            <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-2)', padding: '6px 10px', background: 'var(--bg-sec)', borderRadius: '6px' }}>
+              Social / guaranteed leases typically have 0% void risk and 0% management fee — adjust the Monthly costs section accordingly.
+            </div>
           </Sec>
         )}
 
