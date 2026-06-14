@@ -475,8 +475,8 @@ function IField({ label, value, onChange, required }: { label: string; value: st
   )
 }
 
-function IGrid({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>{children}</div>
+function IGrid({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', ...style }}>{children}</div>
 }
 
 function MgLabel({ label }: { label: string }) {
@@ -1096,14 +1096,112 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
         {/* 2. PROPERTY INFORMATION */}
         <Sec title="Property information">
           <IGrid>
+            {/* Row 1 */}
             <IField label="Address" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
             <IField label="Property type" value={String(form.propertyType ?? '')} onChange={v => setField('propertyType', v)} />
             <IField label="Bedrooms" value={String(form.bedrooms ?? '')} onChange={v => setField('bedrooms', v)} />
+            {/* Row 2 */}
             <IField label="Bathrooms" value={String(form.bathrooms ?? '')} onChange={v => setField('bathrooms', v)} />
+            <IField label="Floor area (sqm)" value={String(form.floorAreaSqm ?? '')} onChange={v => setField('floorAreaSqm', parseFloat(v) || 0)} />
+            <IField label="Year built" value={String(form.yearBuilt ?? '')} onChange={v => setField('yearBuilt', parseInt(v) || 0)} />
+            {/* Row 3 */}
             <IField label="Tenure" value={String(form.tenure ?? 'Freehold')} onChange={v => setField('tenure', v)} />
             <IField label="EPC rating" value={String(form.epcRating ?? '')} onChange={v => setField('epcRating', v)} />
+            <div>
+              <IField label="Construction type" value={String(form.constructionType ?? 'Standard (brick/block)')} onChange={v => setField('constructionType', v)} />
+              {!String(form.constructionType ?? 'Standard (brick/block)').toLowerCase().includes('standard') && (
+                <div style={{ fontSize: '10px', color: '#92400e', marginTop: '4px', lineHeight: 1.4 }}>
+                  ⚠️ Non-standard construction — some lenders will not lend on this property type. Confirm mortgage eligibility early.
+                </div>
+              )}
+            </div>
+            {/* Row 4 */}
+            <IField label="Asking price (£)" value={Number(form.askingPrice) > 0 ? fc(Number(form.askingPrice)) : ''} onChange={v => setField('askingPrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+            <IField label="Buyer type" value={String(form.buyerType ?? 'Standard')} onChange={v => setField('buyerType', v)} />
+            <IField label="Source of deal" value={String(form.sourceOfDeal ?? '')} onChange={v => setField('sourceOfDeal', v)} />
+            {/* Row 5 */}
+            <IField label="Flood risk" value={String(form.floodRisk ?? 'Low')} onChange={v => setField('floodRisk', v)} />
+            <IField label="Gas supply" value={String(form.hasGasSupply ?? 'Yes')} onChange={v => setField('hasGasSupply', v)} />
+            <IField label="Council tax band" value={String(form.councilTaxBand ?? '')} onChange={v => setField('councilTaxBand', v)} />
+            {/* Row 6 */}
+            <IField label="Currently tenanted?" value={String(form.isCurrentlyTenanted ?? 'No')} onChange={v => setField('isCurrentlyTenanted', v)} />
+            <IField label="Uninhabitable?" value={String(form.isUninhabitable ?? 'No')} onChange={v => setField('isUninhabitable', v)} />
+            <IField label="Listed building" value={String(form.listedStatus ?? 'None')} onChange={v => setField('listedStatus', v)} />
+            {/* Row 7 */}
+            <IField label="Conservation area?" value={String(form.isConservationArea ?? 'No')} onChange={v => setField('isConservationArea', v)} />
+            <IField label="PD rights available?" value={String(form.pdRightsAvailable ?? 'Unknown')} onChange={v => setField('pdRightsAvailable', v)} />
+            <IField label="Cash buyer?" value={String(form.isCashBuyer ?? 'No')} onChange={v => setField('isCashBuyer', v)} />
           </IGrid>
         </Sec>
+
+        {/* MEES warning — shown when EPC is D or below */}
+        {['D','E','F','G'].includes(String(form.epcRating ?? '').toUpperCase()) && (
+          <div style={{
+            background: '#fef3c7', border: '.5px solid #fcd34d', borderRadius: '10px',
+            padding: '12px 16px', marginBottom: '10px', display: 'flex', gap: '10px', alignItems: 'flex-start',
+          }}>
+            <i className="ti ti-alert-triangle" style={{ fontSize: '16px', color: '#92400e', flexShrink: 0, marginTop: '1px' }} />
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#92400e', marginBottom: '4px' }}>
+                EPC {String(form.epcRating).toUpperCase()} — MEES compliance required
+              </div>
+              <div style={{ fontSize: '11px', color: '#78350f', lineHeight: 1.5, marginBottom: '10px' }}>
+                From 2025, new tenancies in England require a minimum EPC C rating. This property may need improvement works before it can be legally let.
+              </div>
+              <IField
+                label="Estimated EPC improvement cost (£)"
+                value={Number(form.epcImprovementCost) > 0 ? fc(Number(form.epcImprovementCost)) : ''}
+                onChange={v => setField('epcImprovementCost', parseFloat(v.replace(/[£,]/g, '')) || 0)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Auction purchase — conditional */}
+        <div style={{
+          background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)',
+          boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '14px 18px', marginBottom: '10px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <i className="ti ti-gavel" style={{ fontSize: '16px', color: 'var(--text-2)' }} />
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Auction purchase?</span>
+            <button
+              onClick={() => isEditing && setField('isAuctionPurchase', !(!!form.isAuctionPurchase))}
+              style={{
+                padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
+                border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default',
+                background: !!form.isAuctionPurchase ? 'var(--navy)' : 'var(--bg-sec)',
+                color: !!form.isAuctionPurchase ? '#fff' : 'var(--text-2)',
+              }}
+            >{!!form.isAuctionPurchase ? 'Yes' : 'No'}</button>
+          </div>
+          {!!form.isAuctionPurchase && (
+            <IGrid style={{ marginTop: '12px' }}>
+              <IField label="Buyer's premium (%)" value={fp(Number(form.auctionBuyersPremiumPercent ?? 0))} onChange={v => setField('auctionBuyersPremiumPercent', parseFloat(v) || 0)} />
+              <IField label="Reservation fee (£)" value={Number(form.auctionReservationFee) > 0 ? fc(Number(form.auctionReservationFee)) : ''} onChange={v => setField('auctionReservationFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+            </IGrid>
+          )}
+        </div>
+
+        {/* Leasehold details — shown only when Tenure = Leasehold */}
+        {String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
+          <Sec title="Leasehold details">
+            <IGrid>
+              <IField label="Remaining lease (years)" value={String(form.remainingLeaseYears ?? '')} onChange={v => setField('remainingLeaseYears', parseInt(v) || 0)} required />
+              <IField label="Lease extension cost (£)" value={Number(form.leaseExtensionCost) > 0 ? fc(Number(form.leaseExtensionCost)) : ''} onChange={v => setField('leaseExtensionCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Ground rent review" value={String(form.groundRentReviewClause ?? 'None')} onChange={v => setField('groundRentReviewClause', v)} />
+              <IField label="Share of freehold?" value={String(form.shareOfFreehold ?? 'No')} onChange={v => setField('shareOfFreehold', v)} />
+              <IField label="Sinking fund balance (£)" value={Number(form.sinkingFundBalance) > 0 ? fc(Number(form.sinkingFundBalance)) : ''} onChange={v => setField('sinkingFundBalance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+            </IGrid>
+            {String(form.groundRentReviewClause ?? '').toLowerCase().includes('doubl') && (
+              <div style={{ marginTop: '10px', padding: '10px 14px', background: '#fef2f2', border: '.5px solid #fca5a5', borderRadius: '8px', fontSize: '11px', color: '#991b1b' }}>
+                ⚠️ <strong>Doubling ground rent</strong> — this lease structure may make the property unmortgageable. Confirm with solicitor before proceeding.
+              </div>
+            )}
+          </Sec>
+        )}
 
         {/* 3. SELLER / LANDLORD */}
         <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} />
