@@ -770,10 +770,9 @@ function Sec({ title, badge, children }: { title: string; badge?: string; childr
   return (
     <div style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10 }}>
       <div style={{ padding: '16px 18px' }}>
-        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {title}
-          {badge && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: NAVY_LIGHT, color: NAVY, textTransform: 'none' as const }}>{badge}</span>}
-          <span style={{ flex: 1, height: 0.5, background: DS_BORDER, display: 'block' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
+          {badge && <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>{badge}</span>}
         </div>
         {children}
       </div>
@@ -1537,11 +1536,13 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 
 // ── SellerCard ────────────────────────────────────────────────────────────────
 const MOTIVATION_OPTS = [
-  'Motivated seller', 'Below market value', 'Probate / estate',
-  'Repossession', 'Divorce', 'Relocated abroad', 'Developer exit', 'Other',
+  { key: 'hot'   as const, label: 'Motivated', color: '#065f46', bg: '#d1fae5', border: '#6ee7b7' },
+  { key: 'warm'  as const, label: 'Flexible',  color: '#92400e', bg: '#fef3c7', border: '#fcd34d' },
+  { key: 'cool'  as const, label: 'Firm',      color: '#1e3a5f', bg: '#dbeafe', border: '#93c5fd' },
+  { key: 'other' as const, label: 'Other',     color: '#374151', bg: '#f3f4f6', border: '#d1d5db' },
 ] as const
 
-type MotivationKey = typeof MOTIVATION_OPTS[number]
+type MotivationKey = typeof MOTIVATION_OPTS[number]['key']
 
 function SellerCard({ form, setField, isEditing, isR2R }: {
   form: Record<string, unknown>
@@ -1550,7 +1551,7 @@ function SellerCard({ form, setField, isEditing, isR2R }: {
   isR2R: boolean
 }) {
   const label = isR2R ? 'Landlord' : 'Seller'
-  const sellerMotivation = form.sellerMotivation as string | undefined
+  const sellerMotivation = form.sellerMotivation as MotivationKey | undefined
   const hasData = !!(form.sellerName || form.sellerPhone)
 
   return (
@@ -1596,23 +1597,19 @@ function SellerCard({ form, setField, isEditing, isR2R }: {
       </div>
 
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          Motivation
-          <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#bbb', marginBottom: '6px' }}>Motivation</div>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
           {MOTIVATION_OPTS.map(opt => {
-            const active = sellerMotivation === opt
+            const active = sellerMotivation === opt.key
             return (
-              <button key={opt} onClick={() => isEditing && setField('sellerMotivation', opt)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 11px', borderRadius: 7, border: `.5px solid ${active ? 'var(--navy)' : 'var(--ds-border)'}`, background: active ? 'var(--navy-light)' : '#fff', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', fontSize: 12, fontWeight: active ? 600 : 400, color: active ? 'var(--navy)' : '#444', transition: 'all .15s', textAlign: 'left' as const, width: '100%' }}>
-                {opt}
-                {active && <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3.5 3.5 5.5-7" stroke="var(--navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              <button key={opt.key} onClick={() => isEditing && setField('sellerMotivation', opt.key)}
+                style={{ padding: '5px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 500, border: `1.5px solid ${active ? opt.border : 'var(--ds-border)'}`, background: active ? opt.bg : '#fff', color: active ? opt.color : 'var(--text-2)', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .15s' }}>
+                {opt.label}
               </button>
             )
           })}
         </div>
-        {sellerMotivation === 'Other' && (
+        {sellerMotivation === 'other' && (
           <input readOnly={!isEditing} value={String(form.sellerMotivationOther ?? '')}
             onChange={isEditing ? e => setField('sellerMotivationOther', e.target.value) : undefined}
             placeholder="Describe the situation…"
@@ -1909,24 +1906,34 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
     )
   }
 
+  const propInfoComplete = !!(form.address && form.propertyType && form.bedrooms && form.tenure)
+
   return (
     <InputsCtx.Provider value={{ isEditing: isEditing, isNewDeal }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
 
-        {/* 1. LOCKED BANNER */}
+        {/* 1. READ-ONLY NOTICE — subtle inline row (FIX N) */}
         {!isEditing && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', padding: '14px 18px', marginBottom: '10px', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-            <i className="ti ti-lock" style={{ fontSize: '16px', color: TEXT_2, flexShrink: 0 }} />
-            <div style={{ flex: 1, fontSize: '12px', color: TEXT_2 }}>Viewing deal — all inputs are read-only. Click Edit to make changes.</div>
-            <button onClick={() => navigate('?tab=analysis&view=inputs&editing=true')} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 14px', borderRadius: '8px', border: 'none', background: NAVY, color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
-              <i className="ti ti-pencil" style={{ fontSize: '11px' }} /> Edit
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <rect x="1" y="5" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                <path d="M4 5V3.5a2 2 0 014 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              Viewing — read-only
+            </span>
+            <button
+              onClick={() => navigate('?tab=analysis&view=inputs&editing=true')}
+              style={{ fontSize: 12, fontWeight: 500, color: 'var(--navy)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4, padding: 0 }}
+            >
+              ✏ Edit inputs
             </button>
           </div>
         )}
 
         {/* 2. PROPERTY INFORMATION */}
-        <Sec title="Property information">
+        <Sec title="Property information" badge={propInfoComplete ? 'Complete' : undefined}>
           {/* ── Mandatory fields ── */}
           <IGrid>
             <div>
@@ -1986,18 +1993,49 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               <ScBadge source={scSource} />
             </div>
             <IField label="Source of deal" value={String(form.sourceOfDeal ?? '')} onChange={v => setField('sourceOfDeal', v)} />
+            {/* EPC + Flood Risk — mandatory visible fields (FIX O) */}
+            <div style={{ position: 'relative' }}>
+              <ISelect
+                label="EPC rating"
+                value={String(form.epcRating ?? '')}
+                onChange={v => setField('epcRating', v)}
+                options={[
+                  { value: 'A', label: 'A' }, { value: 'B', label: 'B' },
+                  { value: 'C', label: 'C' }, { value: 'D', label: 'D' },
+                  { value: 'E', label: 'E' }, { value: 'F', label: 'F' },
+                  { value: 'G', label: 'G' }, { value: 'Unknown', label: 'Unknown' },
+                ]}
+              />
+              <ScBadge source={scSource} />
+              <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
+            </div>
+            <div style={{ position: 'relative' }}>
+              <ISelect
+                label="Flood risk"
+                value={String(form.floodRisk ?? 'Low')}
+                onChange={v => setField('floodRisk', v)}
+                options={[
+                  { value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' },
+                  { value: 'High', label: 'High' }, { value: 'Very high', label: 'Very high' },
+                  { value: 'Unknown', label: 'Unknown' },
+                ]}
+              />
+              <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
+            </div>
           </IGrid>
 
-          {/* ── Optional details toggle ── */}
+          {/* ── Optional details — compact strip (FIX P) */}
           <button
             onClick={() => setShowOptional(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 8, fontFamily: 'inherit' }}>
-            <i className={`ti ti-chevron-${showOptional ? 'up' : 'down'}`} style={{ fontSize: 12 }} />
-            {showOptional ? 'Hide optional details' : 'Optional details'}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', background: 'none', border: 'none', borderTop: '.5px solid var(--ds-border)', cursor: 'pointer', fontFamily: 'inherit', marginTop: 12 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 500 }}>
+              {showOptional ? '↑ Hide optional details' : '↓ Optional details'}
+            </span>
+            <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)' }} />
           </button>
 
           {showOptional && (
-            <div style={{ marginTop: 10, paddingTop: 10, borderTop: '.5px solid var(--ds-border)' }}>
+            <div style={{ marginTop: 12 }}>
               <IGrid>
                 <ISelect
                   label="Bathrooms"
@@ -2014,25 +2052,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                 />
                 <IField label="Floor area (sqm)" value={String(form.floorAreaSqm ?? '')} onChange={v => setField('floorAreaSqm', parseFloat(v) || 0)} />
                 <IField label="Year built" value={String(form.yearBuilt ?? '')} onChange={v => setField('yearBuilt', parseInt(v) || 0)} />
-                <div style={{ position: 'relative' }}>
-                  <ISelect
-                    label="EPC rating"
-                    value={String(form.epcRating ?? '')}
-                    onChange={v => setField('epcRating', v)}
-                    options={[
-                      { value: 'A', label: 'A' },
-                      { value: 'B', label: 'B' },
-                      { value: 'C', label: 'C' },
-                      { value: 'D', label: 'D' },
-                      { value: 'E', label: 'E' },
-                      { value: 'F', label: 'F' },
-                      { value: 'G', label: 'G' },
-                      { value: 'Unknown', label: 'Unknown' },
-                    ]}
-                  />
-                  <ScBadge source={scSource} />
-                  <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
-                </div>
+                
                 <div>
                   <ISelectOther
                     label="Construction type"
@@ -2067,21 +2087,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                     { value: 'Non-UK resident', label: 'Non-UK resident' },
                   ]}
                 />
-                <div style={{ position: 'relative' }}>
-                  <ISelect
-                    label="Flood risk"
-                    value={String(form.floodRisk ?? 'Low')}
-                    onChange={v => setField('floodRisk', v)}
-                    options={[
-                      { value: 'Low', label: 'Low' },
-                      { value: 'Medium', label: 'Medium' },
-                      { value: 'High', label: 'High' },
-                      { value: 'Very high', label: 'Very high' },
-                      { value: 'Unknown', label: 'Unknown' },
-                    ]}
-                  />
-                  <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
-                </div>
+                
                 <ISelect
                   label="Gas supply"
                   value={String(form.hasGasSupply ?? 'Yes')}
@@ -2213,17 +2219,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <i className="ti ti-gavel" style={{ fontSize: 15, color: 'var(--text-2)' }} />
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Auction purchase?</span>
-            <div style={{ display: 'flex', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2, gap: 1 }}>
-              {(['No', 'Yes'] as const).map(opt => {
-                const active = opt === 'Yes' ? !!form.isAuctionPurchase : !form.isAuctionPurchase
-                return (
-                  <button key={opt} onClick={() => isEditing && setField('isAuctionPurchase', opt === 'Yes')}
-                    style={{ padding: '5px 14px', fontSize: 12, border: 'none', borderRadius: 6, cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .12s', background: active ? '#fff' : 'transparent', color: active ? 'var(--navy)' : 'var(--text-2)', fontWeight: active ? 600 : 400, boxShadow: active ? '0 0 0 0.5px rgba(27,58,107,.15)' : 'none' }}>
-                    {opt}
-                  </button>
-                )
-              })}
-            </div>
+            <button onClick={() => isEditing && setField('isAuctionPurchase', !(!!form.isAuctionPurchase))}
+              style={{ padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: !!form.isAuctionPurchase ? 'var(--navy)' : 'var(--bg-sec)', color: !!form.isAuctionPurchase ? '#fff' : 'var(--text-2)' }}>
+              {!!form.isAuctionPurchase ? 'Yes' : 'No'}
+            </button>
           </div>
           {!!form.isAuctionPurchase && (
             <IGrid style={{ marginTop: '12px' }}>
@@ -2453,24 +2452,14 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               </div>
             )}
 
-            {/* MDR toggle — Seg2 (FIX A) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0 4px', padding: '10px 12px', background: 'var(--bg-sec)', borderRadius: 8, border: '.5px solid var(--ds-border)' }}>
-              <i className="ti ti-receipt-tax" style={{ fontSize: 14, color: 'var(--text-2)' }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, color: 'var(--text-1)', fontWeight: 500 }}>Multiple Dwellings Relief (MDR) applies?</div>
-                <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 1 }}>Buying 2+ units in one transaction can reduce stamp duty significantly</div>
-              </div>
-              <div style={{ display: 'flex', background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2, gap: 1, flexShrink: 0 }}>
-                {(['No', 'Yes'] as const).map(opt => {
-                  const active = opt === 'Yes' ? !!form.mdrApplies : !form.mdrApplies
-                  return (
-                    <button key={opt} onClick={() => isEditing && setField('mdrApplies', opt === 'Yes')}
-                      style={{ padding: '4px 12px', fontSize: 11, border: 'none', borderRadius: 6, cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .12s', background: active ? 'var(--navy)' : 'transparent', color: active ? '#fff' : 'var(--text-2)', fontWeight: active ? 600 : 400 }}>
-                      {opt}
-                    </button>
-                  )
-                })}
-              </div>
+            {/* MDR toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 4px', padding: '10px 12px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
+              <i className="ti ti-receipt-tax" style={{ fontSize: '15px', color: 'var(--text-2)' }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>Multiple Dwellings Relief (MDR) applies?</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-2)', marginRight: '8px' }}>Buying 2+ units in one transaction can reduce stamp duty significantly</span>
+              <button onClick={() => isEditing && setField('mdrApplies', !form.mdrApplies)} style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: form.mdrApplies ? 'var(--navy)' : 'var(--bg-sec)', color: form.mdrApplies ? '#fff' : 'var(--text-2)' }}>
+                {form.mdrApplies ? 'Yes' : 'No'}
+              </button>
             </div>
 
             {/* Purchase costs breakdown (FIX I) */}
@@ -3813,17 +3802,6 @@ export default function AnalysisHub({
       {/* ── Sub-nav ────────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0 }}>
         <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
-        <button
-          onClick={() => setShowOptimiser(true)}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '5px 14px', fontSize: 11, fontWeight: 600, borderRadius: 7,
-            border: 'none', background: '#152d55', color: '#93c5fd',
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-          <i className="ti ti-adjustments-alt" style={{ fontSize: 11 }} />
-          Optimise
-        </button>
       </div>
 
       {/* ── Views ─────────────────────────────────────────────────────────── */}
