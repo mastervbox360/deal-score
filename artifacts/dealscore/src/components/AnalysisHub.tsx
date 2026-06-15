@@ -807,6 +807,139 @@ function IField({ label, value, onChange, required }: { label: string; value: st
   )
 }
 
+// ── ISelect ─────────────────────────────────────────────────────────────────
+const selectStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '7px 28px 7px 10px',
+  fontSize: '12px',
+  fontFamily: 'inherit',
+  color: 'var(--text-1)',
+  background: 'var(--bg-input, #fff)',
+  border: '.5px solid var(--ds-border)',
+  borderRadius: '7px',
+  outline: 'none',
+  appearance: 'none' as const,
+  WebkitAppearance: 'none' as const,
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 9px center',
+  backgroundSize: '11px',
+  cursor: 'pointer',
+  transition: 'border-color .15s',
+  minHeight: '32px',
+}
+
+function ISelect({
+  label,
+  value,
+  onChange,
+  options,
+  required,
+  disabled,
+  hint,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+  required?: boolean
+  disabled?: boolean
+  hint?: string
+}) {
+  const { isEditing } = useContext(InputsCtx)
+  const id = label.toLowerCase().replace(/\s+/g, '-')
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+      <label htmlFor={id} style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+        {label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}
+      </label>
+      <div style={{ position: 'relative' }}>
+        <select
+          id={id}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          disabled={!isEditing || disabled}
+          style={{
+            ...selectStyle,
+            opacity: (!isEditing || disabled) ? 0.6 : 1,
+            cursor: (!isEditing || disabled) ? 'default' : 'pointer',
+          }}
+        >
+          {!options.find(o => o.value === '') && <option value="">— select —</option>}
+          {options.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+      {hint && <span style={{ fontSize: '10px', color: 'var(--text-3, #aaa)', marginTop: '2px' }}>{hint}</span>}
+    </div>
+  )
+}
+
+// ── ISelectOther ─────────────────────────────────────────────────────────────
+function ISelectOther({
+  label,
+  value,
+  onChange,
+  options,
+  required,
+  otherPlaceholder,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+  required?: boolean
+  otherPlaceholder?: string
+}) {
+  const knownValues = options.map(o => o.value)
+  const isOther = value !== '' && !knownValues.includes(value)
+  const [selectVal, setSelectVal] = useState(isOther ? '__other__' : value)
+  const [otherVal, setOtherVal] = useState(isOther ? value : '')
+  const { isEditing } = useContext(InputsCtx)
+
+  useEffect(() => {
+    const isExtOther = value !== '' && !knownValues.includes(value)
+    if (isExtOther) { setSelectVal('__other__'); setOtherVal(value) }
+    else { setSelectVal(value); setOtherVal('') }
+  }, [value])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+      <label style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+        {label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}
+      </label>
+      <select
+        value={selectVal}
+        onChange={e => {
+          setSelectVal(e.target.value)
+          if (e.target.value !== '__other__') { setOtherVal(''); onChange(e.target.value) }
+        }}
+        disabled={!isEditing}
+        style={{ ...selectStyle, opacity: !isEditing ? 0.6 : 1, cursor: !isEditing ? 'default' : 'pointer' }}
+      >
+        {<option value="">— select —</option>}
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        <option value="__other__">Other (enter manually)</option>
+      </select>
+      {selectVal === '__other__' && (
+        <input
+          type="text"
+          value={otherVal}
+          onChange={e => { setOtherVal(e.target.value); onChange(e.target.value) }}
+          placeholder={otherPlaceholder ?? 'Enter value...'}
+          disabled={!isEditing}
+          style={{
+            padding: '7px 10px', fontSize: '12px', fontFamily: 'inherit',
+            border: '.5px solid var(--teal)', borderRadius: '7px', outline: 'none',
+            color: 'var(--text-1)', background: '#fff', marginTop: '4px',
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
 function IGrid({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', ...style }}>{children}</div>
 }
@@ -1430,17 +1563,105 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
           <IGrid>
             {/* Row 1 */}
             <IField label="Address" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
-            <IField label="Property type" value={String(form.propertyType ?? '')} onChange={v => setField('propertyType', v)} />
-            <IField label="Bedrooms" value={String(form.bedrooms ?? '')} onChange={v => setField('bedrooms', v)} />
+            <ISelectOther
+              label="Property type"
+              value={String(form.propertyType ?? '')}
+              onChange={v => setField('propertyType', v)}
+              options={[
+                { value: 'Terraced house', label: 'Terraced house' },
+                { value: 'End-of-terrace house', label: 'End-of-terrace house' },
+                { value: 'Semi-detached house', label: 'Semi-detached house' },
+                { value: 'Detached house', label: 'Detached house' },
+                { value: 'Flat / Apartment', label: 'Flat / Apartment' },
+                { value: 'Studio flat', label: 'Studio flat' },
+                { value: 'Maisonette', label: 'Maisonette' },
+                { value: 'Bungalow (detached)', label: 'Bungalow (detached)' },
+                { value: 'Bungalow (semi-detached)', label: 'Bungalow (semi-detached)' },
+                { value: 'Converted flat', label: 'Converted flat' },
+                { value: 'Purpose-built flat', label: 'Purpose-built flat' },
+                { value: 'HMO', label: 'HMO' },
+                { value: 'Block of flats', label: 'Block of flats' },
+                { value: 'Commercial / mixed use', label: 'Commercial / mixed use' },
+                { value: 'Land', label: 'Land' },
+              ]}
+              otherPlaceholder="Describe property type..."
+            />
+            <ISelect
+              label="Bedrooms"
+              value={String(form.bedrooms ?? '')}
+              onChange={v => setField('bedrooms', parseInt(v) || v)}
+              options={[
+                { value: '1', label: '1' },
+                { value: '2', label: '2' },
+                { value: '3', label: '3' },
+                { value: '4', label: '4' },
+                { value: '5', label: '5' },
+                { value: '6', label: '6' },
+                { value: '7', label: '7' },
+                { value: '8', label: '8' },
+                { value: '9', label: '9' },
+                { value: '10', label: '10+' },
+              ]}
+            />
             {/* Row 2 */}
-            <IField label="Bathrooms" value={String(form.bathrooms ?? '')} onChange={v => setField('bathrooms', v)} />
+            <ISelect
+              label="Bathrooms"
+              value={String(form.bathrooms ?? '')}
+              onChange={v => setField('bathrooms', parseInt(v) || v)}
+              options={[
+                { value: '1', label: '1' },
+                { value: '2', label: '2' },
+                { value: '3', label: '3' },
+                { value: '4', label: '4' },
+                { value: '5', label: '5' },
+                { value: '6', label: '6+' },
+              ]}
+            />
             <IField label="Floor area (sqm)" value={String(form.floorAreaSqm ?? '')} onChange={v => setField('floorAreaSqm', parseFloat(v) || 0)} />
             <IField label="Year built" value={String(form.yearBuilt ?? '')} onChange={v => setField('yearBuilt', parseInt(v) || 0)} />
             {/* Row 3 */}
-            <IField label="Tenure" value={String(form.tenure ?? 'Freehold')} onChange={v => setField('tenure', v)} />
-            <IField label="EPC rating" value={String(form.epcRating ?? '')} onChange={v => setField('epcRating', v)} />
+            <ISelect
+              label="Tenure"
+              value={String(form.tenure ?? 'Freehold')}
+              onChange={v => setField('tenure', v)}
+              options={[
+                { value: 'Freehold', label: 'Freehold' },
+                { value: 'Leasehold', label: 'Leasehold' },
+                { value: 'Share of freehold', label: 'Share of freehold' },
+                { value: 'Commonhold', label: 'Commonhold' },
+              ]}
+            />
+            <ISelect
+              label="EPC rating"
+              value={String(form.epcRating ?? '')}
+              onChange={v => setField('epcRating', v)}
+              options={[
+                { value: 'A', label: 'A' },
+                { value: 'B', label: 'B' },
+                { value: 'C', label: 'C' },
+                { value: 'D', label: 'D' },
+                { value: 'E', label: 'E' },
+                { value: 'F', label: 'F' },
+                { value: 'G', label: 'G' },
+                { value: 'Unknown', label: 'Unknown' },
+              ]}
+            />
             <div>
-              <IField label="Construction type" value={String(form.constructionType ?? 'Standard (brick/block)')} onChange={v => setField('constructionType', v)} />
+              <ISelectOther
+                label="Construction type"
+                value={String(form.constructionType ?? 'Standard (brick/block)')}
+                onChange={v => setField('constructionType', v)}
+                options={[
+                  { value: 'Standard (brick/block)', label: 'Standard (brick/block)' },
+                  { value: 'Steel frame', label: 'Steel frame' },
+                  { value: 'Timber frame', label: 'Timber frame' },
+                  { value: 'Concrete (prefab/BISF)', label: 'Concrete (prefab/BISF)' },
+                  { value: 'Stone', label: 'Stone' },
+                  { value: 'Wimpey no-fines', label: 'Wimpey no-fines' },
+                  { value: 'Airey / PRC', label: 'Airey / PRC' },
+                ]}
+                otherPlaceholder="Describe construction type..."
+              />
               {!String(form.constructionType ?? 'Standard (brick/block)').toLowerCase().includes('standard') && (
                 <div style={{ fontSize: '10px', color: '#92400e', marginTop: '4px', lineHeight: 1.4 }}>
                   ⚠️ Non-standard construction — some lenders will not lend on this property type. Confirm mortgage eligibility early.
@@ -1449,20 +1670,107 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
             </div>
             {/* Row 4 */}
             <IField label="Asking price (£)" value={Number(form.askingPrice) > 0 ? fc(Number(form.askingPrice)) : ''} onChange={v => setField('askingPrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-            <IField label="Buyer type" value={String(form.buyerType ?? 'Standard')} onChange={v => setField('buyerType', v)} />
+            <ISelect
+              label="Buyer type"
+              value={String(form.buyerType ?? 'Standard')}
+              onChange={v => setField('buyerType', v)}
+              options={[
+                { value: 'Standard', label: 'Standard' },
+                { value: 'First-time buyer', label: 'First-time buyer' },
+                { value: 'Ltd company', label: 'Ltd company' },
+                { value: 'Non-UK resident', label: 'Non-UK resident' },
+              ]}
+            />
             <IField label="Source of deal" value={String(form.sourceOfDeal ?? '')} onChange={v => setField('sourceOfDeal', v)} />
             {/* Row 5 */}
-            <IField label="Flood risk" value={String(form.floodRisk ?? 'Low')} onChange={v => setField('floodRisk', v)} />
-            <IField label="Gas supply" value={String(form.hasGasSupply ?? 'Yes')} onChange={v => setField('hasGasSupply', v)} />
-            <IField label="Council tax band" value={String(form.councilTaxBand ?? '')} onChange={v => setField('councilTaxBand', v)} />
+            <ISelect
+              label="Flood risk"
+              value={String(form.floodRisk ?? 'Low')}
+              onChange={v => setField('floodRisk', v)}
+              options={[
+                { value: 'Low', label: 'Low' },
+                { value: 'Medium', label: 'Medium' },
+                { value: 'High', label: 'High' },
+                { value: 'Very high', label: 'Very high' },
+                { value: 'Unknown', label: 'Unknown' },
+              ]}
+            />
+            <ISelect
+              label="Gas supply"
+              value={String(form.hasGasSupply ?? 'Yes')}
+              onChange={v => setField('hasGasSupply', v)}
+              options={[
+                { value: 'Yes', label: 'Yes' },
+                { value: 'No', label: 'No — electric only' },
+                { value: 'Unknown', label: 'Unknown' },
+              ]}
+            />
+            <ISelect
+              label="Council tax band"
+              value={String(form.councilTaxBand ?? '')}
+              onChange={v => setField('councilTaxBand', v)}
+              options={[
+                { value: 'A', label: 'A' },
+                { value: 'B', label: 'B' },
+                { value: 'C', label: 'C' },
+                { value: 'D', label: 'D' },
+                { value: 'E', label: 'E' },
+                { value: 'F', label: 'F' },
+                { value: 'G', label: 'G' },
+                { value: 'H', label: 'H' },
+                { value: 'Unknown', label: 'Unknown' },
+              ]}
+            />
             {/* Row 6 */}
-            <IField label="Currently tenanted?" value={String(form.isCurrentlyTenanted ?? 'No')} onChange={v => setField('isCurrentlyTenanted', v)} />
-            <IField label="Uninhabitable?" value={String(form.isUninhabitable ?? 'No')} onChange={v => setField('isUninhabitable', v)} />
-            <IField label="Listed building" value={String(form.listedStatus ?? 'None')} onChange={v => setField('listedStatus', v)} />
+            <ISelect
+              label="Currently tenanted?"
+              value={String(form.isCurrentlyTenanted ?? 'No')}
+              onChange={v => setField('isCurrentlyTenanted', v)}
+              options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+            />
+            <ISelect
+              label="Uninhabitable?"
+              value={String(form.isUninhabitable ?? 'No')}
+              onChange={v => setField('isUninhabitable', v)}
+              options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+            />
+            <ISelect
+              label="Listed building"
+              value={String(form.listedStatus ?? 'None')}
+              onChange={v => setField('listedStatus', v)}
+              options={[
+                { value: 'None', label: 'None' },
+                { value: 'Grade II', label: 'Grade II' },
+                { value: 'Grade II*', label: 'Grade II*' },
+                { value: 'Grade I', label: 'Grade I' },
+                { value: 'Grade A (Scotland)', label: 'Grade A (Scotland)' },
+                { value: 'Grade B (Scotland)', label: 'Grade B (Scotland)' },
+                { value: 'Grade C (Scotland)', label: 'Grade C (Scotland)' },
+              ]}
+            />
             {/* Row 7 */}
-            <IField label="Conservation area?" value={String(form.isConservationArea ?? 'No')} onChange={v => setField('isConservationArea', v)} />
-            <IField label="PD rights available?" value={String(form.pdRightsAvailable ?? 'Unknown')} onChange={v => setField('pdRightsAvailable', v)} />
-            <IField label="Cash buyer?" value={String(form.isCashBuyer ?? 'No')} onChange={v => setField('isCashBuyer', v)} />
+            <ISelect
+              label="Conservation area?"
+              value={String(form.isConservationArea ?? 'No')}
+              onChange={v => setField('isConservationArea', v)}
+              options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }, { value: 'Unknown', label: 'Unknown' }]}
+            />
+            <ISelect
+              label="PD rights available?"
+              value={String(form.pdRightsAvailable ?? 'Unknown')}
+              onChange={v => setField('pdRightsAvailable', v)}
+              options={[
+                { value: 'Yes', label: 'Yes' },
+                { value: 'No', label: 'No — Article 4 or restricted' },
+                { value: 'Unknown', label: 'Unknown' },
+              ]}
+            />
+            <ISelect
+              label="Cash buyer?"
+              value={String(form.isCashBuyer ?? 'No')}
+              onChange={v => setField('isCashBuyer', v)}
+              options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+            />
           </IGrid>
         </Sec>
 
@@ -1523,8 +1831,25 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Lease extension cost (£)" value={Number(form.leaseExtensionCost) > 0 ? fc(Number(form.leaseExtensionCost)) : ''} onChange={v => setField('leaseExtensionCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Ground rent review" value={String(form.groundRentReviewClause ?? 'None')} onChange={v => setField('groundRentReviewClause', v)} />
-              <IField label="Share of freehold?" value={String(form.shareOfFreehold ?? 'No')} onChange={v => setField('shareOfFreehold', v)} />
+              <ISelect
+                label="Ground rent review"
+                value={String(form.groundRentReviewClause ?? 'None')}
+                onChange={v => setField('groundRentReviewClause', v)}
+                options={[
+                  { value: 'None', label: 'None / fixed' },
+                  { value: 'RPI', label: 'RPI linked' },
+                  { value: 'CPI', label: 'CPI linked' },
+                  { value: 'Doubling', label: 'Doubling (⚠️ unmortgageable risk)' },
+                  { value: 'Fixed amount', label: 'Fixed amount increase' },
+                  { value: 'Unknown', label: 'Unknown' },
+                ]}
+              />
+              <ISelect
+                label="Share of freehold?"
+                value={String(form.shareOfFreehold ?? 'No')}
+                onChange={v => setField('shareOfFreehold', v)}
+                options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+              />
               <IField label="Sinking fund balance (£)" value={Number(form.sinkingFundBalance) > 0 ? fc(Number(form.sinkingFundBalance)) : ''} onChange={v => setField('sinkingFundBalance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
             {String(form.groundRentReviewClause ?? '').toLowerCase().includes('doubl') && (
@@ -1541,16 +1866,49 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
         {/* 3b. OWNERSHIP & TAX */}
         <Sec title="Ownership &amp; tax">
           <IGrid>
-            <IField label="Ownership structure" value={String(form.ownershipStructure ?? 'Personal name')} onChange={v => setField('ownershipStructure', v)} />
-            <IField label="Income tax band" value={String(form.incomeTaxBand ?? '40%')} onChange={v => setField('incomeTaxBand', v)} />
-            <IField label="Joint ownership?" value={String(form.isJointOwnership ?? 'No')} onChange={v => setField('isJointOwnership', v)} />
+            <ISelect
+              label="Ownership structure"
+              value={String(form.ownershipStructure ?? 'Personal name')}
+              onChange={v => setField('ownershipStructure', v)}
+              options={[
+                { value: 'Personal name', label: 'Personal name' },
+                { value: 'Ltd company', label: 'Ltd company (SPV)' },
+                { value: 'LLP', label: 'LLP' },
+                { value: 'Trust', label: 'Trust' },
+              ]}
+            />
+            <ISelect
+              label="Income tax band"
+              value={String(form.incomeTaxBand ?? '20%')}
+              onChange={v => setField('incomeTaxBand', v)}
+              options={[
+                { value: '20%', label: '20% (Basic rate)' },
+                { value: '40%', label: '40% (Higher rate)' },
+                { value: '45%', label: '45% (Additional rate)' },
+              ]}
+            />
+            <ISelect
+              label="Joint ownership?"
+              value={String(form.isJointOwnership ?? 'No')}
+              onChange={v => setField('isJointOwnership', v)}
+              options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+            />
           </IGrid>
 
           {/* Joint ownership split */}
           {String(form.isJointOwnership ?? 'No') === 'Yes' && (
             <IGrid style={{ marginTop: '10px' }}>
               <IField label="Your ownership (%)" value={fp(Number(form.ownershipSplitPercent ?? 50))} onChange={v => setField('ownershipSplitPercent', parseFloat(v) || 50)} />
-              <IField label="Partner's tax band" value={String(form.partnerTaxBand ?? '20%')} onChange={v => setField('partnerTaxBand', v)} />
+              <ISelect
+                label="Partner's tax band"
+                value={String(form.partnerTaxBand ?? '20%')}
+                onChange={v => setField('partnerTaxBand', v)}
+                options={[
+                  { value: '20%', label: '20% (Basic rate)' },
+                  { value: '40%', label: '40% (Higher rate)' },
+                  { value: '45%', label: '45% (Additional rate)' },
+                ]}
+              />
             </IGrid>
           )}
 
@@ -1639,7 +1997,15 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
                 <IField label="Deposit %" value={fp(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
                 <IField label="Mortgage rate (%)" value={Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0 ? fp(Number((form.sharedInputs as Record<string,unknown>).mortgageRate)) : ''} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
                 <IField label="Term (years)" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageTerm ?? 25)} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
-                <IField label="Type" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageType ?? 'IO') === 'IO' ? 'Interest only' : 'Repayment'} onChange={v => setField('sharedInputs.mortgageType', v === 'Interest only' ? 'IO' : 'Repayment')} />
+                <ISelect
+                  label="Mortgage type"
+                  value={String((form.sharedInputs as Record<string,unknown>)?.mortgageType ?? 'IO') === 'IO' ? 'Interest only' : 'Repayment'}
+                  onChange={v => setField('sharedInputs.mortgageType', v === 'Interest only' ? 'IO' : 'Repayment')}
+                  options={[
+                    { value: 'Interest only', label: 'Interest only' },
+                    { value: 'Repayment', label: 'Repayment' },
+                  ]}
+                />
                 <IField label="Fixed rate ends" value={String(form.fixedRateEndDate ?? '')} onChange={v => setField('fixedRateEndDate', v)} />
                 <IField label="Reversion / SVR rate (%)" value={Number(form.reversionRate) > 0 ? fp(Number(form.reversionRate)) : ''} onChange={v => setField('reversionRate', parseFloat(v) || 0)} />
               </IGrid>
@@ -1727,7 +2093,16 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} />
               <IField label="Tenant find / inventory fee (£)" value={Number((form.btlInputs as Record<string,unknown>)?.tenantFindFee) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).tenantFindFee)) : ''} onChange={v => setField('btlInputs.tenantFindFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Furnished?" value={String((form.btlInputs as Record<string,unknown>)?.furnished ?? 'Unfurnished')} onChange={v => setField('btlInputs.furnished', v)} />
+              <ISelect
+                label="Furnished?"
+                value={String((form.btlInputs as Record<string,unknown>)?.furnished ?? 'Unfurnished')}
+                onChange={v => setField('btlInputs.furnished', v)}
+                options={[
+                  { value: 'Unfurnished', label: 'Unfurnished' },
+                  { value: 'Part-furnished', label: 'Part-furnished' },
+                  { value: 'Fully furnished', label: 'Fully furnished' },
+                ]}
+              />
             </IGrid>
           </Sec>
         )}
@@ -1741,8 +2116,28 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Occupancy rate" value={fp(Number((form.hmoInputs as Record<string,unknown>)?.occupancyRate ?? 90))} onChange={v => setField('hmoInputs.occupancyRate', parseFloat(v) || 90)} />
               <IField label="HMO licence cost (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.licenceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).licenceCost)) : ''} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Bills &amp; utilities / mo (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="HMO licence type" value={String((form.hmoInputs as Record<string,unknown>)?.licenceType ?? 'Mandatory')} onChange={v => setField('hmoInputs.licenceType', v)} />
-              <IField label="Are rooms ensuite?" value={String((form.hmoInputs as Record<string,unknown>)?.roomsEnsuite ?? 'No')} onChange={v => setField('hmoInputs.roomsEnsuite', v)} />
+              <ISelect
+                label="HMO licence type"
+                value={String((form.hmoInputs as Record<string,unknown>)?.licenceType ?? '')}
+                onChange={v => setField('hmoInputs.licenceType', v)}
+                options={[
+                  { value: 'Mandatory', label: 'Mandatory (5+ people, 3+ storeys)' },
+                  { value: 'Additional', label: 'Additional (local authority scheme)' },
+                  { value: 'Selective', label: 'Selective (single tenancy)' },
+                  { value: 'None', label: 'No licence required' },
+                  { value: 'Unknown', label: 'Unknown — check with council' },
+                ]}
+              />
+              <ISelect
+                label="Rooms ensuite?"
+                value={String((form.hmoInputs as Record<string,unknown>)?.roomsEnsuite ?? 'No')}
+                onChange={v => setField('hmoInputs.roomsEnsuite', v)}
+                options={[
+                  { value: 'No', label: 'No — shared bathrooms' },
+                  { value: 'Some', label: 'Some rooms ensuite' },
+                  { value: 'All', label: 'All rooms ensuite' },
+                ]}
+              />
               <IField label="Council tax / mo (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.councilTaxMonthly) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).councilTaxMonthly)) : ''} onChange={v => setField('hmoInputs.councilTaxMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Fire compliance one-off (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.fireComplianceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).fireComplianceCost)) : ''} onChange={v => setField('hmoInputs.fireComplianceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Room re-let fee (£/room)" value={Number((form.hmoInputs as Record<string,unknown>)?.roomReletFee) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).roomReletFee)) : ''} onChange={v => setField('hmoInputs.roomReletFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -1856,7 +2251,15 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
                 <IField label="Post-refurb value (GDV)" value={Number((form.brrrInputs as Record<string,unknown>)?.postRefurbValue) > 0 ? fc(Number((form.brrrInputs as Record<string,unknown>).postRefurbValue)) : ''} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
                 <IField label="Target refinance LTV (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.refinancePercent ?? 75))} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} />
                 <IField label="Refinance rate (%)" value={Number((form.brrrInputs as Record<string,unknown>)?.newMortgageRate) > 0 ? fp(Number((form.brrrInputs as Record<string,unknown>).newMortgageRate)) : ''} onChange={v => setField('brrrInputs.newMortgageRate', parseFloat(v) || 0)} />
-                <IField label="Refinance type" value={String((form.brrrInputs as Record<string,unknown>)?.refinanceMortgageType ?? 'IO')} onChange={v => setField('brrrInputs.refinanceMortgageType', v)} />
+                <ISelect
+                  label="Refinance type"
+                  value={String((form.brrrInputs as Record<string,unknown>)?.refinanceMortgageType ?? 'Interest only')}
+                  onChange={v => setField('brrrInputs.refinanceMortgageType', v)}
+                  options={[
+                    { value: 'Interest only', label: 'Interest only' },
+                    { value: 'Repayment', label: 'Repayment' },
+                  ]}
+                />
                 <IField label="Refinance term (years)" value={String((form.brrrInputs as Record<string,unknown>)?.refinanceMortgageTerm ?? 25)} onChange={v => setField('brrrInputs.refinanceMortgageTerm', parseInt(v) || 25)} />
                 <IField label="Refinance arrangement fee (%)" value={fp(Number((form.brrrInputs as Record<string,unknown>)?.refinanceArrangementFeePercent ?? 1))} onChange={v => setField('brrrInputs.refinanceArrangementFeePercent', parseFloat(v) || 1)} />
               </IGrid>
@@ -1883,7 +2286,17 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Setup costs" value={Number((form.r2rInputs as Record<string,unknown>)?.setupCosts) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).setupCosts)) : ''} onChange={v => setField('r2rInputs.setupCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Landlord deposit (months)" value={String(form.r2rLandlordDepositMonths ?? '0')} onChange={v => setField('r2rLandlordDepositMonths', parseInt(v) || 0)} />
               <IField label="Lease length (months)" value={String((form.r2rInputs as Record<string,unknown>)?.leaseLengthMonths ?? '')} onChange={v => setField('r2rInputs.leaseLengthMonths', parseInt(v) || 0)} required />
-              <IField label="R2R sublet type" value={String((form.r2rInputs as Record<string,unknown>)?.subletType ?? 'HMO')} onChange={v => setField('r2rInputs.subletType', v)} />
+              <ISelect
+                label="Sublet type"
+                value={String((form.r2rInputs as Record<string,unknown>)?.subletType ?? '')}
+                onChange={v => setField('r2rInputs.subletType', v)}
+                options={[
+                  { value: 'AST', label: 'AST (single tenancy)' },
+                  { value: 'HMO', label: 'HMO (multi-tenant)' },
+                  { value: 'SA', label: 'Short-term / serviced accommodation' },
+                  { value: 'Mixed', label: 'Mixed' },
+                ]}
+              />
               <IField label="Break clause notice (months)" value={String((form.r2rInputs as Record<string,unknown>)?.breakClauseMonths ?? '')} onChange={v => setField('r2rInputs.breakClauseMonths', parseInt(v) || 0)} />
               <IField label="Annual rent increase in lease (%)" value={Number((form.r2rInputs as Record<string,unknown>)?.annualRentIncrease) >= 0 ? fp(Number((form.r2rInputs as Record<string,unknown>).annualRentIncrease)) : ''} onChange={v => setField('r2rInputs.annualRentIncrease', parseFloat(v) || 0)} />
             </IGrid>
@@ -1913,8 +2326,29 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
               <IField label="Monthly lease income (£)" value={Number((form.socialInputs as Record<string,unknown>)?.leaseIncomePerMonth) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).leaseIncomePerMonth)) : ''} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Lease term (years)" value={String((form.socialInputs as Record<string,unknown>)?.leaseLengthYears || 5)} onChange={v => setField('socialInputs.leaseLengthYears', parseInt(v) || 5)} />
               <IField label="Provider / council name" value={String((form.socialInputs as Record<string,unknown>)?.providerName ?? '')} onChange={v => setField('socialInputs.providerName', v)} />
-              <IField label="Contract type" value={String((form.socialInputs as Record<string,unknown>)?.contractType ?? 'Direct lease')} onChange={v => setField('socialInputs.contractType', v)} />
-              <IField label="Rent review mechanism" value={String((form.socialInputs as Record<string,unknown>)?.rentReviewMechanism ?? 'Fixed')} onChange={v => setField('socialInputs.rentReviewMechanism', v)} />
+              <ISelect
+                label="Contract type"
+                value={String((form.socialInputs as Record<string,unknown>)?.contractType ?? '')}
+                onChange={v => setField('socialInputs.contractType', v)}
+                options={[
+                  { value: 'Guaranteed rent', label: 'Guaranteed rent' },
+                  { value: 'Management agreement', label: 'Management agreement' },
+                  { value: 'Nomination agreement', label: 'Nomination agreement' },
+                  { value: 'Lease agreement', label: 'Lease agreement' },
+                ]}
+              />
+              <ISelect
+                label="Rent review mechanism"
+                value={String((form.socialInputs as Record<string,unknown>)?.rentReviewMechanism ?? 'Fixed')}
+                onChange={v => setField('socialInputs.rentReviewMechanism', v)}
+                options={[
+                  { value: 'Fixed', label: 'Fixed (no review)' },
+                  { value: 'RPI', label: 'RPI linked' },
+                  { value: 'CPI', label: 'CPI linked' },
+                  { value: 'Annual % increase', label: 'Annual % increase' },
+                  { value: 'Market rate review', label: 'Market rate review' },
+                ]}
+              />
               <IField label="End-of-lease refurb obligation (£)" value={Number((form.socialInputs as Record<string,unknown>)?.endOfLeaseRefurbCost) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).endOfLeaseRefurbCost)) : ''} onChange={v => setField('socialInputs.endOfLeaseRefurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
             <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-2)', padding: '6px 10px', background: 'var(--bg-sec)', borderRadius: '6px' }}>
