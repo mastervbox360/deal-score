@@ -2509,18 +2509,22 @@ function ViewWorkings({ p, base, composite, postcode }: { p: ParsedInputs; base:
   const [compsError, setCompsError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (postcode && !compsPostcode) setCompsPostcode(postcode)
+    if (postcode) {
+      setCompsPostcode(postcode)
+      void fetchComps(postcode)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postcode])
 
-  async function fetchComps() {
-    if (!compsPostcode.trim()) return
+  async function fetchComps(postcodeOverride?: string) {
+    const pc = (postcodeOverride ?? compsPostcode).trim()
+    if (!pc) return
     setCompsLoading(true)
     setCompsData(null)
     setCompsError(null)
     try {
       const { data, error } = await supabase.functions.invoke('land-registry-comps', {
-        body: { postcode: compsPostcode.trim() },
+        body: { postcode: pc },
       })
       if (error || !data?.success) {
         setCompsError(data?.error || 'Could not load comparables. Check the postcode and try again.')
