@@ -1,0 +1,303 @@
+# REPLIT PROMPT A — Scrape Property Edge Function
+## Paste this entire block into Replit Agent
+
+---
+
+You are working on the DealScore app on branch `stage-6`. File paths are `artifacts/dealscore/...`
+
+DO NOT change any existing component logic, TypeScript, routing, Supabase auth, or deal state.
+
+## TASK: Create a new Supabase Edge Function called `scrape-property`
+
+Create this file at: `supabase/functions/scrape-property/index.ts`
+
+Paste the content below **exactly** — do not modify it:
+
+```typescript
+// supabase/functions/scrape-property/index.ts
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// ── Canonical value reference ─────────────────────────────────────────────────
+// Values returned by this function MUST exactly match the ISelect option values
+// in AnalysisHub.tsx so that setField() auto-populates dropdowns correctly.
+//
+// propertyType:
+//   'Terraced house' | 'End-of-terrace house' | 'Semi-detached house' | 'Detached house'
+//   'Flat / Apartment' | 'Studio flat' | 'Maisonette' | 'Bungalow (detached)'
+//   'Bungalow (semi-detached)' | 'Converted flat' | 'Purpose-built flat'
+//   'HMO' | 'Block of flats' | 'Commercial / mixed use' | 'Land'
+//   (any other value → ISelectOther renders it as free text)
+//
+// tenure:
+//   'Freehold' | 'Leasehold' | 'Share of freehold' | 'Commonhold'
+//
+// epcRating:
+//   'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'Unknown'
+//
+// beds: '1' – '10' (string — ISelect uses string values)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface PropertyData {
+  address?: string
+  price?: number
+  beds?: string
+  propertyType?: string
+  description?: string
+  postcode?: string
+  images?: string[]
+  tenure?: string
+  epcRating?: string
+  source: string
+  sourceUrl: string
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+  try {
+    const { url } = await req.json()
+    if (!url || typeof url !== 'string') {
+      return new Response(JSON.stringify({ error: 'URL required' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400,
+      })
+    }
+    const source = detectSource(url)
+    if (!source) {
+      return new Response(JSON.stringify({ error: 'Only Rightmove, Zoopla and OnTheMarket URLs are supported' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400,
+      })
+    }
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-GB,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Referer': 'https://www.google.com/',
+      },
+      redirect: 'follow',
+    })
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: `Could not fetch listing (HTTP ${response.status}). The site may be blocking automated requests.` }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 422,
+      })
+    }
+    const html = await response.text()
+    if (html.includes('captcha') || html.includes('Access Denied') || html.length < 5000) {
+      return new Response(JSON.stringify({ error: 'The listing site returned a bot-detection page. Please enter details manually.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 422,
+      })
+    }
+    let data: PropertyData
+    if (source === 'rightmove') data = parseRightmove(html, url)
+    else if (source === 'zoopla') data = parseZoopla(html, url)
+    else data = parseOTM(html, url)
+
+    if (!data.address && !data.price && !data.beds) {
+      return new Response(JSON.stringify({ error: 'Could not extract data from this listing. Please enter details manually.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 422,
+      })
+    }
+    return new Response(JSON.stringify({ success: true, source, data }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  } catch (err) {
+    return new Response(JSON.stringify({ error: (err as Error)?.message || 'Scraping failed — please enter details manually.' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500,
+    })
+  }
+})
+
+function detectSource(url: string): 'rightmove' | 'zoopla' | 'otm' | null {
+  if (url.includes('rightmove.co.uk')) return 'rightmove'
+  if (url.includes('zoopla.co.uk')) return 'zoopla'
+  if (url.includes('onthemarket.com')) return 'otm'
+  return null
+}
+
+function parseRightmove(html: string, url: string): PropertyData {
+  const data: PropertyData = { source: 'Rightmove', sourceUrl: url }
+  const nextMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
+  if (nextMatch) {
+    try {
+      const json = JSON.parse(nextMatch[1])
+      const prop = json?.props?.pageProps?.propertyData || json?.props?.pageProps?.property || {}
+      if (prop.address?.displayAddress) data.address = prop.address.displayAddress
+      if (prop.address?.outcode || prop.address?.incode) {
+        data.postcode = [prop.address.outcode, prop.address.incode].filter(Boolean).join(' ')
+      }
+      if (prop.prices?.primaryPrice) data.price = parseInt(String(prop.prices.primaryPrice).replace(/[£,\s]/g, '')) || undefined
+      if (prop.bedrooms != null) data.beds = normaliseBeds(String(prop.bedrooms))
+      if (prop.propertySubType) data.propertyType = normaliseType(prop.propertySubType)
+      if (prop.text?.description) data.description = stripHtml(prop.text.description).substring(0, 600)
+      if (prop.tenure?.tenureType) data.tenure = normaliseTenure(prop.tenure.tenureType)
+      if (prop.keyFeatures) {
+        const epc = extractEpcFromFeatures(prop.keyFeatures)
+        if (epc) data.epcRating = epc
+      }
+      if (Array.isArray(prop.images)) {
+        data.images = prop.images.slice(0, 6).map((img: { url?: string; srcUrl?: string }) => img.url || img.srcUrl).filter(Boolean)
+      }
+      return data
+    } catch (_) {}
+  }
+  const modelMatch = html.match(/window\.PAGE_MODEL\s*=\s*(\{[\s\S]*?\});\s*[\n\r]/)
+  if (modelMatch) {
+    try {
+      const json = JSON.parse(modelMatch[1])
+      const prop = json?.propertyData || {}
+      if (prop.address?.displayAddress) data.address = prop.address.displayAddress
+      if (prop.prices?.primaryPrice) data.price = parseInt(String(prop.prices.primaryPrice).replace(/[£,\s]/g, ''))
+      if (prop.bedrooms != null) data.beds = normaliseBeds(String(prop.bedrooms))
+      if (prop.propertySubType) data.propertyType = normaliseType(prop.propertySubType)
+      if (prop.tenure?.tenureType) data.tenure = normaliseTenure(prop.tenure.tenureType)
+      return data
+    } catch (_) {}
+  }
+  const ogTitle = html.match(/<meta property="og:title" content="([^"]+)"/)
+  if (ogTitle) {
+    const title = ogTitle[1]
+    const bedsM = title.match(/(\d+)\s+bed/); if (bedsM) data.beds = normaliseBeds(bedsM[1])
+    const typeM = title.match(/\d+\s+bed(?:room)?\s+([\w\s-]+?)\s+(?:for sale|to rent)/i)
+    if (typeM) data.propertyType = normaliseType(typeM[1].trim())
+  }
+  const priceM = html.match(/"price"\s*:\s*"(£[\d,]+)"/)
+  if (priceM) data.price = parseInt(priceM[1].replace(/[£,]/g, ''))
+  return data
+}
+
+function parseZoopla(html: string, url: string): PropertyData {
+  const data: PropertyData = { source: 'Zoopla', sourceUrl: url }
+  const nextMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
+  if (nextMatch) {
+    try {
+      const json = JSON.parse(nextMatch[1])
+      const listing = json?.props?.pageProps?.listingDetails || json?.props?.pageProps?.property || json?.props?.pageProps?.data?.listing || {}
+      data.address = listing.displayAddress || listing.address?.displayAddress
+      const rawPrice = listing.price || listing.pricing?.askingPrice?.value
+      if (rawPrice) data.price = typeof rawPrice === 'number' ? rawPrice : parseInt(String(rawPrice).replace(/[£,\s]/g, ''))
+      const beds = listing.numBedrooms ?? listing.beds ?? listing.bedroomsCount
+      if (beds != null) data.beds = normaliseBeds(String(beds))
+      data.propertyType = normaliseType(listing.propertyType || listing.type || '')
+      if (listing.shortDescription || listing.description) data.description = stripHtml(listing.shortDescription || listing.description).substring(0, 600)
+      data.postcode = listing.postcode || listing.address?.postcode
+      if (listing.tenure) data.tenure = normaliseTenure(listing.tenure)
+      if (listing.epcRating || listing.energyRating) data.epcRating = normaliseEpc(listing.epcRating || listing.energyRating)
+      if (listing.keyFeatures) {
+        const epc = extractEpcFromFeatures(listing.keyFeatures)
+        if (epc && !data.epcRating) data.epcRating = epc
+      }
+      if (Array.isArray(listing.images)) {
+        data.images = listing.images.slice(0, 6).map((img: { url?: string; src?: string } | string) =>
+          typeof img === 'string' ? img : img.url || img.src).filter(Boolean)
+      }
+      return data
+    } catch (_) {}
+  }
+  return data
+}
+
+function parseOTM(html: string, url: string): PropertyData {
+  const data: PropertyData = { source: 'OnTheMarket', sourceUrl: url }
+  const nextMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
+  if (nextMatch) {
+    try {
+      const json = JSON.parse(nextMatch[1])
+      const listing = json?.props?.pageProps?.listing?.data || json?.props?.pageProps?.propertyDetails || json?.props?.pageProps?.property || {}
+      data.address = listing.address?.displayAddress || listing.displayAddress || listing.address
+      if (listing.price?.amount) data.price = listing.price.amount
+      else if (listing.pricing?.price) data.price = listing.pricing.price
+      if (listing.bedrooms != null) data.beds = normaliseBeds(String(listing.bedrooms))
+      data.propertyType = normaliseType(listing.propertyType || listing.type || '')
+      data.postcode = listing.address?.postcode || listing.postcode
+      if (listing.tenure) data.tenure = normaliseTenure(listing.tenure)
+      return data
+    } catch (_) {}
+  }
+  return data
+}
+
+// ── Normalisation helpers ─────────────────────────────────────────────────────
+// Each function maps portal-specific strings to the exact ISelect canonical values
+// defined in AnalysisHub.tsx. Unknown values pass through as-is so ISelectOther
+// can render them as free text rather than silently dropping them.
+
+function normaliseType(raw: string): string {
+  if (!raw) return ''
+  const t = raw.toLowerCase().trim()
+  // Check most-specific patterns first to avoid mis-matching substrings
+  if (t.includes('end of terrace') || t.includes('end-of-terrace') || t === 'end terrace') return 'End-of-terrace house'
+  if (t.includes('studio')) return 'Studio flat'
+  if (t.includes('maisonette')) return 'Maisonette'
+  if (t.includes('converted flat') || t.includes('converted apartment')) return 'Converted flat'
+  if (t.includes('purpose-built flat') || t.includes('purpose built flat') || t.includes('purpose built apartment')) return 'Purpose-built flat'
+  if (t.includes('block of flat') || t.includes('block of apartment')) return 'Block of flats'
+  // Bungalow variants — check semi before falling through to generic bungalow
+  if (t.includes('bungalow') && (t.includes('semi') || t.includes('semi-detached'))) return 'Bungalow (semi-detached)'
+  if (t.includes('bungalow')) return 'Bungalow (detached)'
+  // House types
+  if (t.includes('semi')) return 'Semi-detached house'
+  if (t.includes('detached')) return 'Detached house'
+  if (t.includes('terraced') || t.includes('terrace')) return 'Terraced house'
+  // Flat/apartment (after maisonette/studio/converted/purpose-built checks)
+  if (t.includes('flat') || t.includes('apartment')) return 'Flat / Apartment'
+  // Other
+  if (t.includes('hmo')) return 'HMO'
+  if (t.includes('commercial') || t.includes('mixed use') || t.includes('mixed-use')) return 'Commercial / mixed use'
+  if (t === 'land' || t.includes('building plot') || t.includes('development site')) return 'Land'
+  // Return raw value — ISelectOther will display as "Other (entered manually)"
+  return raw.trim()
+}
+
+function normaliseTenure(raw: string): string {
+  if (!raw) return ''
+  const t = raw.toLowerCase().trim()
+  if (t.includes('share') && t.includes('freehold')) return 'Share of freehold'
+  if (t.includes('freehold')) return 'Freehold'
+  if (t.includes('leasehold')) return 'Leasehold'
+  if (t.includes('commonhold')) return 'Commonhold'
+  return raw.trim()
+}
+
+function normaliseEpc(raw: string): string {
+  if (!raw) return ''
+  const letter = raw.trim().toUpperCase().charAt(0)
+  if (['A', 'B', 'C', 'D', 'E', 'F', 'G'].includes(letter)) return letter
+  return 'Unknown'
+}
+
+function normaliseBeds(raw: string): string {
+  const n = parseInt(raw)
+  if (isNaN(n) || n < 1) return raw
+  if (n >= 10) return '10'
+  return String(n)
+}
+
+function extractEpcFromFeatures(features: unknown): string | null {
+  // Portals sometimes include EPC band in key features list — extract it
+  if (!Array.isArray(features)) return null
+  for (const f of features) {
+    const s = typeof f === 'string' ? f : (f?.content ?? f?.text ?? '')
+    const m = String(s).match(/\bEPC\s*[Rr]ating[:\s]+([A-G])\b|\bEPC\s*([A-G])\b|\bEnergy\s+[Rr]ating[:\s]+([A-G])\b/i)
+    if (m) return normaliseEpc(m[1] || m[2] || m[3])
+  }
+  return null
+}
+
+function stripHtml(str: string): string {
+  return str.replace(/<[^>]+>/g, ' ').replace(/\s{2,}/g, ' ').trim()
+}
+```
+
+After creating the file, deploy the function by running in the Replit shell:
+```
+supabase functions deploy scrape-property
+```
+
+Then run `npx tsc --noEmit`. Confirm zero TypeScript errors. Tell me what was created.
