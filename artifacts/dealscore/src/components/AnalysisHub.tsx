@@ -10,6 +10,7 @@ import {
 import { type SerializedInputs } from '@/lib/inputsSerializer'
 import { type Deal } from '@/lib/database.types'
 import { updateDealInputs } from '@/lib/dealService'
+import { supabase } from '../lib/supabase'
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const NAVY       = 'var(--navy)'
@@ -2498,7 +2499,41 @@ function ViewSensitivity({ p, base, stressRentDown, stressRateUp, stressCombined
 }
 
 // ── VIEW: Workings ────────────────────────────────────────────────────────────
-function ViewWorkings({ p, base, composite }: { p: ParsedInputs; base: CalcResult; composite: DealScoreResult | null }) {
+function ViewWorkings({ p, base, composite, postcode }: { p: ParsedInputs; base: CalcResult; composite: DealScoreResult | null; postcode?: string | null }) {
+  // ── Comparables state ──────────────────────────────────────────────────────
+  const [compsPostcode, setCompsPostcode] = useState('')
+  const [compsLoading, setCompsLoading]   = useState(false)
+  const [compsData, setCompsData]         = useState<Array<{
+    date: string; price: number; address: string; type: string; tenure: string
+  }> | null>(null)
+  const [compsError, setCompsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (postcode && !compsPostcode) setCompsPostcode(postcode)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postcode])
+
+  async function fetchComps() {
+    if (!compsPostcode.trim()) return
+    setCompsLoading(true)
+    setCompsData(null)
+    setCompsError(null)
+    try {
+      const { data, error } = await supabase.functions.invoke('land-registry-comps', {
+        body: { postcode: compsPostcode.trim() },
+      })
+      if (error || !data?.success) {
+        setCompsError(data?.error || 'Could not load comparables. Check the postcode and try again.')
+      } else {
+        setCompsData(data.comps || [])
+      }
+    } catch (_err) {
+      setCompsError('Failed to load comparables.')
+    } finally {
+      setCompsLoading(false)
+    }
+  }
+
   const tax = p.taxOverrideActive
     ? p.manualTaxValue
     : calculatePropertyTax(p.purchasePrice, p.taxCountry, p.buyerType)
@@ -2719,6 +2754,164 @@ function ViewWorkings({ p, base, composite }: { p: ParsedInputs; base: CalcResul
           <Insight text={`Scores ≥ 65 = RECOMMENDED · 40–64 = REVIEW · < 40 = AVOID. Your score of ${composite.score} puts this deal in the ${composite.verdict} zone.`} />
         </AccSection>
       )}
+
+      {/* ── Sold prices nearby (Land Registry) ── */}
+      <div style={{
+        background: '#fff',
+        border: '.5px solid #e3e5e9',
+        borderRadius: 10,
+        overflow: 'hidden',
+        marginTop: 16,
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: '.5px solid #e3e5e9',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1a2332' }}>
+              <i className="ti ti-building-estate" style={{ marginRight: 5, fontSize: 12, color: '#1D9E75' }} />
+              Sold prices nearby
+            </div>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>
+              Land Registry Price Paid Data · updated monthly
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <input
+              type="text"
+              value={compsPostcode}
+              onChange={e => setCompsPostcode(e.target.value.toUpperCase())}
+              placeholder="e.g. CF24 3BJ"
+              style={{
+                fontSize: 11,
+                padding: '5px 9px',
+                border: '.5px solid #e3e5e9',
+                borderRadius: 6,
+                fontFamily: 'inherit',
+                width: 110,
+                color: '#1a2332',
+                outline: 'none',
+              }}
+              onKeyDown={e => { if (e.key === 'Enter') void fetchComps() }}
+            />
+            <button
+              onClick={() => void fetchComps()}
+              disabled={!compsPostcode.trim() || compsLoading}
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '5px 11px',
+                borderRadius: 6,
+                border: 'none',
+                background: compsLoading ? '#9ca3af' : '#1B3A6B',
+                color: '#fff',
+                cursor: compsLoading ? 'default' : 'pointer',
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {compsLoading
+                ? <><i className="ti ti-loader-2 ti-spin" style={{ fontSize: 11 }} /> Loading</>
+                : <><i className="ti ti-search" style={{ fontSize: 11 }} /> Search</>
+              }
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        {!compsData && !compsError && !compsLoading && (
+          <div style={{ padding: '20px 16px', textAlign: 'center', fontSize: 11, color: '#9ca3af' }}>
+            Enter a postcode above to load recent sold prices from Land Registry
+          </div>
+        )}
+
+        {compsError && (
+          <div style={{ padding: '14px 16px', fontSize: 11, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <i className="ti ti-alert-circle" style={{ fontSize: 12 }} />
+            {compsError}
+          </div>
+        )}
+
+        {compsData && compsData.length === 0 && (
+          <div style={{ padding: '14px 16px', fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
+            No sold prices found for {compsPostcode} — try a nearby postcode
+          </div>
+        )}
+
+        {compsData && compsData.length > 0 && (
+          <div style={{ overflowX: 'auto' }}>
+            {/* Summary row */}
+            <div style={{
+              padding: '8px 16px',
+              background: '#f5f6f8',
+              borderBottom: '.5px solid #e3e5e9',
+              display: 'flex',
+              gap: 20,
+              fontSize: 11,
+              color: '#5a6270',
+            }}>
+              <span><strong style={{ color: '#1a2332' }}>{compsData.length}</strong> sales found</span>
+              <span>Avg: <strong style={{ color: '#1B3A6B' }}>
+                £{Math.round(compsData.reduce((s, c) => s + c.price, 0) / compsData.length).toLocaleString('en-GB')}
+              </strong></span>
+              <span>Range: <strong style={{ color: '#1B3A6B' }}>
+                £{Math.min(...compsData.map(c => c.price)).toLocaleString('en-GB')} – £{Math.max(...compsData.map(c => c.price)).toLocaleString('en-GB')}
+              </strong></span>
+              <span style={{ marginLeft: 'auto', color: '#9ca3af', fontSize: 10 }}>
+                Data © HM Land Registry
+              </span>
+            </div>
+
+            {/* Table */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead>
+                <tr style={{ background: '#f5f6f8' }}>
+                  {['Date', 'Price', 'Address', 'Type', 'Tenure'].map(h => (
+                    <th key={h} style={{
+                      padding: '7px 12px',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                      color: '#5a6270',
+                      fontSize: 10,
+                      borderBottom: '.5px solid #e3e5e9',
+                      whiteSpace: 'nowrap',
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {compsData.slice(0, 20).map((comp, i) => (
+                  <tr key={i} style={{ borderBottom: '.5px solid #f0f1f3' }}>
+                    <td style={{ padding: '7px 12px', color: '#5a6270', whiteSpace: 'nowrap' }}>
+                      {comp.date ? new Date(comp.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}
+                    </td>
+                    <td style={{ padding: '7px 12px', fontWeight: 600, color: '#1B3A6B', whiteSpace: 'nowrap' }}>
+                      £{comp.price?.toLocaleString('en-GB') ?? '—'}
+                    </td>
+                    <td style={{ padding: '7px 12px', color: '#1a2332', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {comp.address}
+                    </td>
+                    <td style={{ padding: '7px 12px', color: '#5a6270', whiteSpace: 'nowrap' }}>{comp.type || '—'}</td>
+                    <td style={{ padding: '7px 12px', color: '#5a6270', whiteSpace: 'nowrap' }}>{comp.tenure || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {compsData.length > 20 && (
+              <div style={{ padding: '8px 16px', fontSize: 10, color: '#9ca3af', borderTop: '.5px solid #f0f1f3', textAlign: 'center' }}>
+                Showing 20 of {compsData.length} results — refine your postcode to narrow results
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -2864,7 +3057,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'workings' && (
-        <ViewWorkings p={p} base={base} composite={composite} />
+        <ViewWorkings p={p} base={base} composite={composite} postcode={deal.postcode} />
       )}
 
     </div>
