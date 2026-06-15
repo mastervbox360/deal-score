@@ -4,6 +4,7 @@ import { Deal, DealStatus } from '../lib/database.types'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/use-toast'
+import { useTier, type Tier } from '../contexts/TierContext'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type TabKey = 'overview' | 'analysis' | 'content' | 'seller' | 'investors' | 'fees'
@@ -189,6 +190,8 @@ function getLbItems(deal: Deal, tab: TabKey, contentType: string): LbItem[] {
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function DealChrome({ deal, children, analysisView = 'results', contentType = 'advert' }: DealChromeProps) {
   const { user, profile, signOut } = useAuth()
+  const { tier, setDevTier, isDevOverride } = useTier()
+  const isDev = import.meta.env.DEV
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const noteInputId = useId()
@@ -328,6 +331,53 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
             <i className="ti ti-plus"></i> New deal
           </button>
           <div className="logo-sep"></div>
+          {isDev && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0,
+              border: '.5px solid rgba(255,255,255,.25)',
+              borderRadius: 20,
+              overflow: 'hidden',
+              marginRight: 8,
+              flexShrink: 0,
+            }}>
+              {(['free', 'pro', 'proplus'] as Tier[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setDevTier(t)}
+                  title={`Switch to ${t} tier`}
+                  style={{
+                    padding: '3px 9px',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '.03em',
+                    textTransform: 'uppercase',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all .15s',
+                    background: tier === t ? 'rgba(255,255,255,.22)' : 'transparent',
+                    color: tier === t ? '#fff' : 'rgba(255,255,255,.45)',
+                    borderRight: t !== 'proplus' ? '.5px solid rgba(255,255,255,.15)' : 'none',
+                  }}
+                >
+                  {t === 'proplus' ? 'Pro+' : t === 'pro' ? 'Pro' : 'Free'}
+                </button>
+              ))}
+              {isDevOverride && (
+                <span style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  letterSpacing: '.06em',
+                  color: '#fbbf24',
+                  padding: '0 6px',
+                  borderLeft: '.5px solid rgba(255,255,255,.15)',
+                  textTransform: 'uppercase',
+                }}>DEV</span>
+              )}
+            </div>
+          )}
           <div ref={avatarRef} className="avt-wrap">
             <div className="avt-wrap-inner" onClick={() => setAvatarOpen(p => !p)}>
               <div className="avt">

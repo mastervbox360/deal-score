@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/toaster'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from './lib/AuthContext'
+import { TierProvider } from './contexts/TierContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from '@/pages/Home'
 import DashboardPage from './pages/DashboardPage'
@@ -27,6 +28,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <TierProvider>
           <Routes>
             <Route path="/" element={<Navigate to="/app" replace />} />
             <Route path="/app" element={<Home />} />
@@ -49,6 +51,7 @@ export default function App() {
             <Route path="/recommendation-engine" element={<ProtectedRoute><RecommendationEnginePage /></ProtectedRoute>} />
           </Routes>
           <Toaster />
+          </TierProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
