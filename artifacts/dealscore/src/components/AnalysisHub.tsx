@@ -1561,7 +1561,7 @@ function SellerCard({ form, setField, isEditing, isR2R }: {
           <i className="ti ti-user-circle" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{label}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{label}</div>
           <div className="pii" style={{ fontSize: '11px', color: 'var(--text-2)' }}>
             {hasData
               ? `${String(form.sellerName ?? '')}${form.sellerPhone ? ` · ${String(form.sellerPhone)}` : ''}`
@@ -2193,7 +2193,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-sec)')}
             onMouseLeave={e => (e.currentTarget.style.background = '')}>
             <i className="ti ti-photo" style={{ fontSize: 16, color: 'var(--navy)', opacity: .7 }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Property photos</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Property photos</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: 20 }}>Optional</span>
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--navy)', background: 'var(--navy-light)', border: '.5px solid rgba(27,58,107,.15)', padding: '2px 8px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}>
               <i className="ti ti-file-text" style={{ fontSize: 10 }} /> Used in investor pack
