@@ -316,6 +316,10 @@ export default function DashboardPage() {
     epcRating?: string
     floorAreaSqm?: number
     images?: string[]
+    leaseYears?: number
+    serviceCharge?: number
+    groundRent?: number
+    councilTaxBand?: string
   }>({})
 
   // Escape key closes slide-over
@@ -482,11 +486,15 @@ export default function DashboardPage() {
         }
       }
 
-      const extra: { tenure?: string; epcRating?: string; floorAreaSqm?: number; images?: string[] } = {}
-      if (d.tenure)       extra.tenure = d.tenure
-      if (d.epcRating)    extra.epcRating = d.epcRating
-      if (d.floorAreaSqm) extra.floorAreaSqm = d.floorAreaSqm
+      const extra: { tenure?: string; epcRating?: string; floorAreaSqm?: number; images?: string[]; leaseYears?: number; serviceCharge?: number; groundRent?: number; councilTaxBand?: string } = {}
+      if (d.tenure)         extra.tenure = d.tenure
+      if (d.epcRating)      extra.epcRating = d.epcRating
+      if (d.floorAreaSqm)   extra.floorAreaSqm = d.floorAreaSqm
       if (d.images?.length) extra.images = d.images
+      if (d.leaseYears)     extra.leaseYears = d.leaseYears
+      if (d.serviceCharge)  extra.serviceCharge = d.serviceCharge
+      if (d.groundRent)     extra.groundRent = d.groundRent
+      if (d.councilTaxBand) extra.councilTaxBand = d.councilTaxBand
       setScrapeExtra(extra)
 
       const populated = [
@@ -497,6 +505,10 @@ export default function DashboardPage() {
         d.tenure && 'tenure',
         d.epcRating && `EPC ${d.epcRating}`,
         d.floorAreaSqm && `${d.floorAreaSqm}m²`,
+        d.leaseYears && `${d.leaseYears}yr lease`,
+        d.serviceCharge && `SC £${d.serviceCharge.toLocaleString('en-GB')}pa`,
+        d.groundRent && `GR £${d.groundRent.toLocaleString('en-GB')}pa`,
+        d.councilTaxBand && `CT band ${d.councilTaxBand}`,
       ].filter(Boolean)
       setScrapeResult(`success:${populated.join(', ')}`)
     } catch (_err) {

@@ -36,6 +36,10 @@ interface PropertyData {
   images?: string[]
   tenure?: string
   epcRating?: string
+  leaseYears?: number
+  serviceCharge?: number
+  groundRent?: number
+  councilTaxBand?: string
   source: string
   sourceUrl: string
 }
@@ -128,6 +132,16 @@ function parseRightmove(html: string, url: string): PropertyData {
       if (Array.isArray(prop.images)) {
         data.images = prop.images.slice(0, 6).map((img: { url?: string; srcUrl?: string }) => img.url || img.srcUrl).filter(Boolean)
       }
+      // Leasehold details from key features + description
+      const rmText = [
+        ...(Array.isArray(prop.keyFeatures) ? prop.keyFeatures.map((f: unknown) => typeof f === 'string' ? f : (f as Record<string,string>)?.content ?? '') : []),
+        stripHtml(prop.text?.description || ''),
+      ].join(' ')
+      const rmLh = extractLeasehold(rmText)
+      if (rmLh.leaseYears) data.leaseYears = rmLh.leaseYears
+      if (rmLh.serviceCharge) data.serviceCharge = rmLh.serviceCharge
+      if (rmLh.groundRent) data.groundRent = rmLh.groundRent
+      if (rmLh.councilTaxBand) data.councilTaxBand = rmLh.councilTaxBand
       return data
     } catch (_) {}
   }
@@ -153,6 +167,13 @@ function parseRightmove(html: string, url: string): PropertyData {
   }
   const priceM = html.match(/"price"\s*:\s*"(£[\d,]+)"/)
   if (priceM) data.price = parseInt(priceM[1].replace(/[£,]/g, ''))
+  // Leasehold details from full page text
+  const htmlText = stripHtml(html).substring(0, 8000)
+  const htmlLh = extractLeasehold(htmlText)
+  if (htmlLh.leaseYears && !data.leaseYears) data.leaseYears = htmlLh.leaseYears
+  if (htmlLh.serviceCharge && !data.serviceCharge) data.serviceCharge = htmlLh.serviceCharge
+  if (htmlLh.groundRent && !data.groundRent) data.groundRent = htmlLh.groundRent
+  if (htmlLh.councilTaxBand && !data.councilTaxBand) data.councilTaxBand = htmlLh.councilTaxBand
   return data
 }
 
@@ -181,6 +202,15 @@ function parseZoopla(html: string, url: string): PropertyData {
         data.images = listing.images.slice(0, 6).map((img: { url?: string; src?: string } | string) =>
           typeof img === 'string' ? img : img.url || img.src).filter(Boolean)
       }
+      const zText = [
+        ...(Array.isArray(listing.keyFeatures) ? listing.keyFeatures.map((f: unknown) => typeof f === 'string' ? f : '') : []),
+        stripHtml(listing.description || listing.shortDescription || ''),
+      ].join(' ')
+      const zLh = extractLeasehold(zText)
+      if (zLh.leaseYears) data.leaseYears = zLh.leaseYears
+      if (zLh.serviceCharge) data.serviceCharge = zLh.serviceCharge
+      if (zLh.groundRent) data.groundRent = zLh.groundRent
+      if (zLh.councilTaxBand) data.councilTaxBand = zLh.councilTaxBand
       return data
     } catch (_) {}
   }
@@ -201,6 +231,12 @@ function parseOTM(html: string, url: string): PropertyData {
       data.propertyType = normaliseType(listing.propertyType || listing.type || '')
       data.postcode = listing.address?.postcode || listing.postcode
       if (listing.tenure) data.tenure = normaliseTenure(listing.tenure)
+      const otmText = stripHtml(listing.description || '').substring(0, 8000)
+      const otmLh = extractLeasehold(otmText)
+      if (otmLh.leaseYears) data.leaseYears = otmLh.leaseYears
+      if (otmLh.serviceCharge) data.serviceCharge = otmLh.serviceCharge
+      if (otmLh.groundRent) data.groundRent = otmLh.groundRent
+      if (otmLh.councilTaxBand) data.councilTaxBand = otmLh.councilTaxBand
       return data
     } catch (_) {}
   }
@@ -261,6 +297,37 @@ function normaliseBeds(raw: string): string {
   if (isNaN(n) || n < 1) return raw
   if (n >= 10) return '10'
   return String(n)
+}
+
+function extractLeasehold(text: string): {
+  leaseYears?: number
+  serviceCharge?: number
+  groundRent?: number
+  councilTaxBand?: string
+} {
+  const result: { leaseYears?: number; serviceCharge?: number; groundRent?: number; councilTaxBand?: string } = {}
+
+  // Lease length: "123 years remaining", "LEASEHOLD (123 years)", "123 year lease"
+  const leaseM = text.match(/(\d{2,4})\s+years?\s+(?:remaining|left|unexpired)/i)
+    || text.match(/leasehold\s*\(?(\d{2,4})\s+years?\)?/i)
+    || text.match(/(\d{2,4})\s+year\s+(?:lease|leasehold)/i)
+  if (leaseM) result.leaseYears = parseInt(leaseM[1])
+
+  // Service charge — per annum or per month (convert monthly → annual)
+  const scAnnual = text.match(/service\s+charge[:\s£]+([\d,]+)\s*(?:per\s+(?:annum|year)|p\.?a\.?)\b/i)
+  const scMonthly = text.match(/service\s+charge[:\s£]+([\d,]+)\s*(?:per\s+month|p\.?c\.?m\.?|p\.?m\.?)\b/i)
+  if (scAnnual) result.serviceCharge = parseInt(scAnnual[1].replace(/,/g, ''))
+  else if (scMonthly) result.serviceCharge = parseInt(scMonthly[1].replace(/,/g, '')) * 12
+
+  // Ground rent
+  const grM = text.match(/ground\s+rent[:\s£]+([\d,]+)/i)
+  if (grM) result.groundRent = parseInt(grM[1].replace(/,/g, ''))
+
+  // Council tax band A–H
+  const ctM = text.match(/council\s+tax\s+(?:band\s*)?:?\s*([A-H])\b/i)
+  if (ctM) result.councilTaxBand = ctM[1].toUpperCase()
+
+  return result
 }
 
 function extractEpcFromFeatures(features: unknown): string | null {
