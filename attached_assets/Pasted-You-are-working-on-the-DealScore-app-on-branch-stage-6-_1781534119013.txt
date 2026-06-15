@@ -1,0 +1,364 @@
+You are working on the DealScore app on branch `stage-6`. The target file is `artifacts/dealscore/src/components/AnalysisHub.tsx`.
+
+Standing rules:
+- Read the file in full before making any changes
+- Do NOT touch anything above return() in each sub-component — preserve all state, handlers, hooks, and calc wiring
+- Do NOT touch ViewInputs, ViewSensitivity, ViewWorkings, or any logic outside ViewResults
+- Only rewrite the JSX inside ViewResults's return()
+- npx tsc --noEmit must pass with zero errors before you finish
+
+---
+
+CONTEXT — what already exists in CalcResult
+
+Prompt 9 extended CalcResult with these fields that are computed but NOT yet surfaced in ViewResults:
+
+  bmvPercent           // (askingPrice - purchasePrice) / askingPrice * 100
+  icrMultiplier        // actual ICR: monthlyRent / (mortgagePayment * stressRate / 12)
+  icrRequirement       // 125 (Ltd co) or 145 (personal)
+  passesICR            // boolean
+  netProfitAfterTax    // monthly CF after estimated income tax (Section 24 model)
+  effectiveTaxRate     // 20 or 40
+  riskFlags            // string[] — up to 10 flags
+  totalBridgingCost    // total bridging interest + fees
+  extraUpfrontCosts    // solicitor + survey + broker + arrangement + other
+
+The 10 possible riskFlags values (exact strings):
+  "Doubling ground rent clause"             — severity: red
+  "Non-standard construction"               — severity: amber
+  "EPC below C — MEES risk"                 — severity: amber
+  "Article 4 direction applies"             — severity: amber
+  "Flood risk zone 2 or 3"                  — severity: red
+  "Listed building"                         — severity: amber
+  "R2R — no confirmed right to sublet"      — severity: red
+  "R2R — no mortgage consent confirmed"     — severity: red
+  "SA licence may be required"              — severity: amber
+  "ICR stress test fail"                    — severity: red
+
+---
+
+TASK — rewrite ViewResults JSX to match the confirmed mockup layout
+
+Implement these 9 sections in this exact order.
+
+---
+
+SECTION 1 — Strategy ranking row
+
+A 7-card horizontal grid (grid-template-columns: repeat(7,1fr), gap:7px).
+Cards: BTL · HMO · BRRR · SA · Flip · R2R · Social
+
+Each card shows: strategy acronym · score number · verdict pill · rank.
+
+Active strategy card: border:1.5px solid var(--navy), background:#eef3fb, borderTop:2.5px solid var(--navy)
+Unscoreable (no required inputs): opacity:0.5, show italic note e.g. "Needs nightly rate" / "Needs GDV"
+Verdict pill colours:
+  RECOMMENDED: background:#d1fae5, color:#065f46
+  REVIEW:      background:#fef3c7, color:#92400e
+  AVOID:       background:#fee2e2, color:#7f1d1d
+
+Subtitle below grid (italic, 11px, var(--text-2)):
+"Viewing [STRATEGY] results — click any ranked card to preview that strategy"
+
+Card click sets local previewStrategy state — does NOT change the deal's active strategy.
+Show active strategy's data only; other strategy cards show their existing stored scores or N/A.
+
+---
+
+SECTION 2 — Verdict card
+
+Flex row: left column (min-width:72px) + right column (flex:1).
+
+Left: score number (44px, var(--navy)) · "/100" · verdict pill
+Right: verdict title (16px, #065f46 for RECOMMENDED) · narrative sentence · 3×2 component grid
+
+Each component tile in the 3×2 grid:
+  label · "value  X/Y pts" on same line · thin 3px bar (navy fill on #f5f6f8 track)
+  bar width = (pointsEarned / pointsMax) * 100 + '%'
+
+6 components (BTL):
+  Cash-on-cash ROI   → cashOnCashROI%       max 25 pts
+  Gross yield        → grossYield%          max 20 pts
+  Monthly cash flow  → £monthlyCashFlow     max 20 pts
+  BMV discount       → bmvPercent%          max 15 pts  ← NEW field
+  Net yield          → netYield%            max 10 pts
+  Rent buffer        → £(monthlyRent - breakEvenRent)  max 10 pts
+
+Points earned: derive proportionally from the total score (score * componentMaxPts / 100) as an approximation, or interpolate linearly using the same thresholds in calculateDealScore.
+
+---
+
+SECTION 3 — Key metrics with Monthly / Annual toggle
+
+Section header row: "KEY METRICS" label (11px uppercase) + Monthly | Annual segmented toggle (right-aligned).
+Local useState: const [metricsView, setMetricsView] = useState<'monthly'|'annual'>('monthly')
+
+Three groups, each with a heading+rule:
+
+Returns group (4 tiles, grid-template-columns:repeat(4,1fr)):
+  Cash-on-cash ROI  | Monthly CF       | Gross yield  | Net yield
+  cashOnCashROI%    | £monthlyCashFlow | grossYield%  | netYield%
+  CoC + CF tiles: background:#eef3fb, border:.5px solid #b8cde8 (highlighted)
+  Annual: CF × 12, label "Annual cash flow", sub "£X / month"
+
+Capital group (4 tiles):
+  Cash invested      | Purchase price     | BMV discount          | Refurb cost
+  £totalCashInvested | £purchasePrice     | bmvPercent% · £X below MV | £refurbCost
+  Sub-labels: "Deposit + costs" · "£X market value" · "£X below market value" · "Inc. X% contingency"
+
+Income & costs group (4 tiles):
+  Monthly rent | Mortgage payment | Monthly costs          | Net monthly income
+  £monthlyRent | £monthlyMortgage | £totalOperatingCosts   | £monthlyCashFlow
+  Sub-labels show annual equivalents: "£X / year"
+  Annual toggle: multiply all monthly values × 12
+
+---
+
+SECTION 4 — Break-even, payback & resilience
+
+<hr> divider then section label "BREAK-EVEN, PAYBACK & RESILIENCE"
+
+4 tiles (grid-template-columns:repeat(4,1fr), plain white border tiles):
+
+Break-even rent:
+  value: £breakEvenRent/mo
+  sub: buffer = monthlyRent - breakEvenRent
+  colour: green (#059669) if positive, red if negative
+  "Covers ~X weeks void"
+
+Void resilience:
+  value: Math.round((monthlyCashFlow / monthlyRent) * 52) weeks
+  sub: amber warning "Below 13-week benchmark" if < 13 weeks, else "Above 13-week benchmark" green
+
+Cash payback period:
+  value: (totalCashInvested / (monthlyCashFlow * 12)).toFixed(1) years
+  sub: "Based on £X/mo net CF · £X per year returned"
+
+Total return at year 5:
+  value: £(monthlyCashFlow * 60 + (marketValue - purchasePrice))
+  sub: "Cash flow + £X equity · X% of cash invested back"
+  percentage green if >= 50%
+
+---
+
+SECTION 5 — ICR stress test + Section 24 panel
+
+Show only for BTL, HMO, SA, Social strategies.
+Show only if icrMultiplier is defined.
+
+Two tiles side by side (display:grid, grid-template-columns:1fr 1fr, gap:12px):
+
+LEFT — ICR Stress Test:
+  background: passesICR ? '#f0fdf4' : '#fff1f2'
+  border: passesICR ? '.5px solid #6ee7b7' : '.5px solid #fca5a5'
+  title: "ICR Stress Test" (12px 500) + "At 5.5% stressed rate" (11px text-2)
+  rows:
+    Multiplier:  icrMultiplier.toFixed(2)×
+    Required:    icrRequirement× (personal / Ltd company)
+    Result:      ✅ PASS (color:#059669) OR ❌ FAIL (color:#dc2626)
+  note below: "Lenders stress-test at 5.5% to check rent covers mortgage" (11px text-2)
+
+RIGHT — Section 24 (show only when ownershipStructure !== 'ltd'):
+  background: '#fffbeb', border: '.5px solid #fcd34d'
+  title: "Section 24 — After Tax" + "Personal name only"
+  rows:
+    Pre-tax CF:      £monthlyCashFlow/mo
+    Tax rate:        effectiveTaxRate%
+    Est. after-tax:  £netProfitAfterTax/mo
+    Net yield (post-tax): (netProfitAfterTax * 12 / purchasePrice * 100).toFixed(1)%
+  note: "Mortgage interest not deductible for personal-name landlords since April 2020" (11px)
+
+If ownershipStructure === 'ltd': replace right tile with Ltd company CT note:
+  background: '#f5f6f8'
+  "Ltd Company — Corporation Tax" · "Est. after-CT profit: £netProfitAfterTax/mo (25% CT applied)"
+
+---
+
+SECTION 6 — Risk flags panel
+
+Hide entirely if riskFlags is undefined or riskFlags.length === 0.
+
+When shown: section label "RISK FLAGS (N)" where N = riskFlags.length
+
+Card wrapper: background:#fff, border:.5px solid var(--ds-border), borderRadius:8, padding:8px 14px
+
+Each flag as a row (display:flex, alignItems:center, gap:8, padding:8px 0, borderBottom:.5px solid var(--ds-border), last row no border):
+  [dot 8px circle] [flag text 13px var(--text-1)] [pill right-aligned]
+
+Red flags (dot #dc2626, pill "HIGH RISK" background:#fee2e2 color:#7f1d1d):
+  "Doubling ground rent clause"
+  "Flood risk zone 2 or 3"
+  "R2R — no confirmed right to sublet"
+  "R2R — no mortgage consent confirmed"
+  "ICR stress test fail"
+
+Amber flags (dot #d97706, pill "REVIEW" background:#fef3c7 color:#92400e):
+  all others
+
+If flags include "ICR stress test fail": add note below panel:
+  "ICR failure means this deal may not pass lender stress tests at standard BTL rates." (12px amber)
+
+---
+
+SECTION 7 — Financing breakdown
+
+<hr> divider then section label "FINANCING BREAKDOWN"
+
+One card per financing facility. Card style:
+  border:.5px solid var(--ds-border), borderRadius:8, marginBottom:10, overflow:hidden
+
+Card header (background:var(--bg-sec), padding:9px 14px, display:flex, gap:8, borderBottom):
+  <i className="ti ti-building-bank" /> · title string · loan amount right-aligned (text-2 11px)
+
+Card body (padding:12px 14px):
+  3-column grid of label/value pairs (fi pattern: fl=label 11px text-2, fv=value 13px 500)
+
+Purchase mortgage card:
+  Title: "Purchase — [IO/Repayment] mortgage · [LTV]% LTV"
+  Sub: "£X borrowed"
+  Fields: Deposit (X%) · Loan amount · Monthly payment · Interest rate · Mortgage term · Arrangement fee
+
+Bridging card (show only if totalBridgingCost > 0):
+  Title: "Refurb — bridging loan"
+  Sub: "£X facility"
+  Fields: Facility amount · Monthly interest (£X/mo at X%) · Term · Total interest · Arrangement fee · Exit fee
+  Footer line: "Total bridging cost: £totalBridgingCost (interest + fees)" (12px text-2)
+
+---
+
+SECTION 8 — Deal Optimiser (navy dark box)
+
+background:#152d55, borderRadius:8, padding:14px 16px, marginBottom:4
+
+Local state: const [optimiserTarget, setOptimiserTarget] = useState<'coc'|'cf'|'yield'|'netyield'|'cashmax'>('coc')
+
+Target selector row:
+  <span style={{fontSize:11,color:'#93c5fd',marginRight:8}}>Target:</span>
+  Pills: [CoC ROI] [Cash flow] [Gross yield] [Net yield] [Max cash in]
+  Active: background:#1B3A6B, color:#e0eaff, border:.5px solid #93c5fd, borderRadius:20
+  Inactive: background:transparent, color:#93c5fd, border:.5px solid rgba(147,197,253,.35), borderRadius:20
+  padding:4px 10px, fontSize:11, fontWeight:500
+
+3×2 metrics grid (gap:8, marginBottom:12):
+  labels: color:#93c5fd opacity:.75, fontSize:10
+  values: color:#e0eaff, fontSize:14, fontWeight:500
+  good values: color:#6ee7b7
+  warn values: color:#fca5a5
+
+Grid items (CoC target):
+  Current CoC ROI   | Max purchase price          | Price headroom
+  cashOnCashROI%    | back-solve for 8% CoC       | +£X or −£X (good/warn)
+
+  Min rent needed   | Rent buffer                 | Verdict
+  back-solve £X/mo  | £X/mo · tight/comfortable   | ✓ Target met / ✗ Not met
+
+Back-solve for max price (simplified):
+  const targetCoCRatio = 0.08
+  const annualCF = monthlyCashFlow * 12
+  const maxPrice = purchasePrice + (annualCF / targetCoCRatio - totalCashInvested) * (depositPercent/100)
+  // simplified — show as approximation
+
+Min rent: breakEvenRent + (totalCashInvested * targetCoCRatio / 12)
+
+Two scenario mini-grids (display:grid, gridTemplateColumns:'1fr 1fr', gap:10):
+
+Left — "If purchase price changes":
+  scen label: fontSize:11, color:'#93c5fd', opacity:.8, fontWeight:500, marginBottom:6
+  3 cells: purchasePrice−10000, purchasePrice, purchasePrice+10000
+  show recalculated cashOnCashROI for each (use simple approximation: delta price → delta deposit → delta CoC)
+  Current cell: background:rgba(255,255,255,.12), border:.5px solid rgba(147,197,253,.4)
+  Other cells: background:rgba(255,255,255,.06)
+  top label 10px #93c5fd 70% · value 12px 500 colour-coded
+
+Right — "If rent changes":
+  3 cells: monthlyRent*0.9, monthlyRent, monthlyRent*1.1
+  show recalculated monthlyCashFlow for each
+  colour: lower=warn, current=neutral, higher=good
+
+Bottom link (text-align:right, marginTop:10, paddingTop:8, borderTop:.5px solid rgba(147,197,253,.2)):
+  <span style={{fontSize:12,color:'#93c5fd',cursor:'pointer'}}>
+    Open full optimiser with negotiation tips →
+  </span>
+
+---
+
+SECTION 9 — Sold price comparables card
+
+<hr> divider then section header row:
+  "SOLD PRICE COMPARABLES" label (left) + small ghost button [↺ Refresh] (right)
+
+State:
+  interface CompsRow { address:string; date:string; price:number; type:string; tenure:string; kept:boolean }
+  const [localComps, setLocalComps] = useState<CompsRow[]>(() => {
+    try { return JSON.parse((deal?.comps as string) ?? '[]') } catch { return [] }
+  })
+
+On any change to localComps:
+  setField('comps', JSON.stringify(updatedComps))
+  scheduleAutosave()
+
+Empty state (localComps.length === 0 AND compsData is empty/null):
+  Placeholder card: "No sold price data yet. Open Show Workings to fetch comparables for this postcode."
+
+If comps exist but none kept:
+  Amber notice: "No comparables marked for pack — click Keep on the rows you want to include."
+
+Table (when localComps.length > 0):
+  border:.5px solid var(--ds-border), borderRadius:8, overflow:hidden
+
+  Header row: background:var(--bg-sec), fontSize:11, fontWeight:500, color:var(--text-2)
+  Columns: Address | Sold | Price | Type | Tenure | (actions)
+  Column widths: 1fr 90px 100px 110px 100px 120px
+
+  Each row: padding:9px 14px, borderBottom:.5px solid var(--ds-border), fontSize:12
+    Address: var(--text-1) · Date: text-2 · Price: fontWeight:500 var(--navy) · Type/Tenure: text-2
+    Actions (right-aligned, display:flex, gap:6):
+      Keep button:
+        kept=true:  background:#e6f7f1, color:#1D9E75, border:.5px solid #1D9E75, "✓ Keep"
+        kept=false: background:var(--bg-sec), color:var(--text-2), border:.5px solid var(--ds-border), "Keep"
+        onClick: toggle kept, update localComps, call setField+scheduleAutosave
+      Remove button (−):
+        background:none, border:.5px solid var(--ds-border), color:var(--text-2), width:28, height:28
+        onClick: filter out this row, update localComps, call setField+scheduleAutosave
+
+Refresh button (top right of section):
+  onClick: call fetchComps(deal?.postcode ?? '') — ensure fetchComps is accessible in scope
+  If not in scope: add it as a prop passed down to ViewResults, or hoist compsData/fetchComps to AnalysisHub component level
+
+Summary line below table (when kept comps > 0):
+  const keptComps = localComps.filter(c => c.kept)
+  const avgPrice = keptComps.reduce((s,c)=>s+c.price,0) / keptComps.length
+  "X comparable(s) selected for investor pack · Avg price: £X"
+  fontSize:12, color:var(--text-2), marginTop:8
+
+---
+
+CSS patterns to use (inline styles only — do NOT add classes to index.css):
+
+const tileStyle = { background:'var(--bg-sec)', borderRadius:8, padding:'10px 12px' }
+const tilePrimStyle = { background:'#eef3fb', border:'.5px solid #b8cde8', borderRadius:8, padding:'10px 12px' }
+const secLabel = { fontSize:11, fontWeight:500 as const, letterSpacing:'.06em', textTransform:'uppercase' as const, color:'var(--text-2)', margin:'0 0 8px' }
+// Group heading with horizontal rule:
+// <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:7}}>
+//   <span style={{fontSize:11,color:'var(--text-2)',fontWeight:500}}>{label}</span>
+//   <div style={{flex:1,height:.5,background:'var(--ds-border)'}} />
+// </div>
+
+---
+
+TypeScript guards:
+- All new CalcResult fields may be undefined — always guard: results?.bmvPercent != null
+- riskFlags: guard with results?.riskFlags?.length > 0
+- localComps array: handle empty array in all operations
+
+---
+
+After completing:
+1. Run npx tsc --noEmit — zero errors required
+2. Push: git add -A && git commit -m "Stage 10 — Prompt 11: Results page — mockup layout, ICR/Section24/risk flags/comps" && git push origin stage-6
+
+Tell me:
+1. Which sections implemented vs stubbed
+2. Whether fetchComps/compsData needed hoisting to AnalysisHub scope
+3. Whether deal.comps column exists in Supabase types — if not, note it and use local state only
+4. Any TypeScript errors resolved and how

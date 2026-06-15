@@ -1022,13 +1022,32 @@ function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) 
 }
 
 // ── VIEW: Results ─────────────────────────────────────────────────────────────
-function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressCombined }: {
+const RISK_FLAG_META: Record<string, { label: string; severity: 'red' | 'amber' }> = {
+  doubling_ground_rent:      { label: 'Doubling ground rent clause',         severity: 'red'   },
+  flood_risk_high:           { label: 'Flood risk zone 2 or 3',              severity: 'red'   },
+  r2r_no_sublet_right:       { label: 'R2R — no confirmed right to sublet',  severity: 'red'   },
+  r2r_no_mortgage_consent:   { label: 'R2R — no mortgage consent confirmed', severity: 'red'   },
+  fails_icr:                 { label: 'ICR stress test fail',                severity: 'red'   },
+  non_standard_construction: { label: 'Non-standard construction',           severity: 'amber' },
+  epc_below_c:               { label: 'EPC below C — MEES risk',             severity: 'amber' },
+  article_4_area:            { label: 'Article 4 direction applies',         severity: 'amber' },
+  listed_building:           { label: 'Listed building',                     severity: 'amber' },
+  sa_licence_required:       { label: 'SA licence may be required',          severity: 'amber' },
+}
+
+interface CompsRow { address: string; date: string; price: number; type: string; tenure: string; kept: boolean }
+
+const STRATEGY_ORDER: DealType[] = ['BTL', 'HMO', 'BRRR', 'SA', 'FLIP', 'R2R', 'SOCIAL']
+
+function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressCombined, deal, onSave }: {
   p: ParsedInputs
   base: CalcResult
   composite: DealScoreResult | null
   stressRentDown: CalcResult
   stressRateUp: CalcResult
   stressCombined: CalcResult
+  deal: Deal
+  onSave?: (updated: Deal) => void
 }) {
   const strategyLabel: Record<DealType, string> = {
     BTL: 'Buy to Let', HMO: 'HMO', FLIP: 'Flip / Refurb', SA: 'Serviced Accommodation',
@@ -1053,7 +1072,6 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
     return '#dc2626'
   }
 
-  // Sensitivity scenarios for teaser
   const scenarios: { label: string; verdict: string; colorKey: string }[] = []
   if (!isIncomplete) {
     const mapV = (cf: CalcResult) => {
@@ -1073,53 +1091,192 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 
   const cColor: Record<string, string> = { ok: '#065f46', warn: '#92400e', bad: '#b91c1c', dim: 'var(--text-2)' }
 
+  // ── New state ────────────────────────────────────────────────────────────────
+  const [metricsView, setMetricsView] = useState<'monthly' | 'annual'>('monthly')
+  const [optimiserTarget, setOptimiserTarget] = useState<'coc' | 'cf' | 'yield' | 'netyield' | 'cashmax'>('coc')
+  const [previewStrategy, setPreviewStrategy] = useState<DealType>(p.strategy)
+  const [localComps, setLocalComps] = useState<CompsRow[]>(() => {
+    try { return JSON.parse(((deal as unknown as Record<string, unknown>).comps as string) ?? '[]') as CompsRow[] }
+    catch { return [] }
+  })
+  const [compsLoading, setCompsLoading] = useState(false)
+  const [localCompsError, setLocalCompsError] = useState<string | null>(null)
+
+  // ── Derived ──────────────────────────────────────────────────────────────────
+  const monthlyRent =
+    p.strategy === 'HMO'    ? p.hmoRooms * p.hmoRentPerRoom :
+    p.strategy === 'SA'     ? p.saNightlyRate * (p.saOccupancyPercent / 100) * 30.4 :
+    p.strategy === 'BRRR'   ? p.brrrMonthlyRent :
+    p.strategy === 'SOCIAL' ? p.socialLeaseIncomePerMonth :
+    p.strategy === 'R2R'    ? p.r2rRooms * p.r2rRentPerRoom * (p.r2rOccupancyRate / 100) :
+    p.btlMonthlyRent
+
+  const monthlyMortgage = base.monthlyMortgagePayment ?? 0
+  const isCash = p.isCashBuyer || p.purchaseFinanceMethod === 'Cash'
+
+  const activeFlags = Object.entries(base.riskFlags ?? {})
+    .filter(([, v]) => v)
+    .map(([k]) => RISK_FLAG_META[k])
+    .filter((x): x is { label: string; severity: 'red' | 'amber' } => !!x)
+
+  const strategyNeedsInput: Partial<Record<DealType, string>> = {
+    SA:     p.saNightlyRate <= 0           ? 'Needs nightly rate'     : undefined,
+    FLIP:   p.flipExpectedSalePrice <= 0   ? 'Needs GDV'             : undefined,
+    BRRR:   p.brrrPostRefurbValue <= 0     ? 'Needs post-refurb val' : undefined,
+    HMO:    p.hmoRooms <= 0               ? 'Needs room count'       : undefined,
+    R2R:    p.r2rMonthlyRentPaid <= 0      ? 'Needs rent paid'        : undefined,
+    SOCIAL: p.socialLeaseIncomePerMonth<=0 ? 'Needs lease income'     : undefined,
+    BTL:    p.btlMonthlyRent <= 0          ? 'Needs monthly rent'     : undefined,
+  }
+
+  // Section 4 derived
+  const rentBuffer   = monthlyRent > 0 ? monthlyRent - base.breakEvenRent : 0
+  const voidWeeks    = monthlyRent > 0 ? Math.round((base.monthlyCashFlow / monthlyRent) * 52) : 0
+  const paybackYears = base.totalCashInvested > 0 && base.monthlyCashFlow > 0
+    ? base.totalCashInvested / (base.monthlyCashFlow * 12) : null
+  const yr5Return    = base.monthlyCashFlow * 60 + Math.max(0, p.marketValue > 0 ? p.marketValue - p.purchasePrice : 0)
+
+  // Section 7 financing
+  const depositAmt      = p.purchasePrice * (p.depositPercent / 100)
+  const loanAmt         = p.purchasePrice - depositAmt
+  const hasBridging     = (base.totalBridgingCost ?? 0) > 0
+  const bridgingLoanAmt = p.purchasePrice * (p.bridgingLTV / 100)
+  const bridgingMonthlyInt = bridgingLoanAmt * (p.bridgingRateMonthly / 100)
+
+  // Section 8 optimiser
+  const targetCoCRatio  = 0.08
+  const cashInvested    = base.totalCashInvested
+  const maxPrice        = cashInvested > 0
+    ? p.purchasePrice + (base.monthlyCashFlow * 12 / targetCoCRatio - cashInvested) * (p.depositPercent / 100)
+    : p.purchasePrice
+  const priceHeadroom   = maxPrice - p.purchasePrice
+  const minRent         = base.breakEvenRent + (cashInvested > 0 ? cashInvested * targetCoCRatio / 12 : 0)
+  const targetMet       = base.cashOnCashROI >= 8
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  async function doRefreshComps() {
+    const pc = (deal.postcode ?? '').trim()
+    if (!pc) return
+    setCompsLoading(true)
+    setLocalCompsError(null)
+    try {
+      const { data, error } = await supabase.functions.invoke('land-registry-comps', { body: { postcode: pc } })
+      if (error || !data?.success) {
+        setLocalCompsError(data?.error ?? 'Could not load comparables.')
+      } else {
+        const fetched: CompsRow[] = ((data.comps ?? []) as Array<{ date: string; price: number; address: string; type: string; tenure: string }>).map(c => ({
+          ...c,
+          kept: localComps.find(lc => lc.address === c.address && lc.date === c.date)?.kept ?? false,
+        }))
+        updateLocalComps(fetched)
+      }
+    } catch { setLocalCompsError('Failed to load comparables.') }
+    finally   { setCompsLoading(false) }
+  }
+
+  function updateLocalComps(updated: CompsRow[]) {
+    setLocalComps(updated)
+    onSave?.({ ...deal, comps: JSON.stringify(updated) } as unknown as Deal)
+  }
+
+  // ── Shared style shortcuts ────────────────────────────────────────────────────
+  const secLabel: React.CSSProperties = { fontSize: 11, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-2)', margin: 0 }
+  const tileS: React.CSSProperties    = { background: 'var(--bg-sec)', borderRadius: 8, padding: '10px 12px' }
+  const tilePrim: React.CSSProperties = { background: '#eef3fb', border: '.5px solid #b8cde8', borderRadius: 8, padding: '10px 12px' }
+
+  function GrpHead({ label }: { label: string }) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+        <span style={{ fontSize: 11, color: TEXT_2, fontWeight: 500 }}>{label}</span>
+        <div style={{ flex: 1, height: .5, background: DS_BORDER }} />
+      </div>
+    )
+  }
+
+  const mul     = metricsView === 'annual' ? 12 : 1
+  const cfLabel = metricsView === 'annual' ? 'Annual cash flow' : 'Monthly cash flow'
+  const cfValue = metricsView === 'annual' ? fc(base.monthlyCashFlow * 12) : signedFc(base.monthlyCashFlow)
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
+
+        {/* ── S1: Strategy ranking ─────────────────────────────────────────── */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 7, marginBottom: 6 }}>
+            {STRATEGY_ORDER.map(st => {
+              const isActive  = st === p.strategy
+              const missing   = strategyNeedsInput[st]
+              const stScore   = isActive ? numScore : null
+              const stVerdict = isActive ? verdict  : null
+              return (
+                <div key={st} onClick={() => setPreviewStrategy(st)} style={{
+                  background:  isActive ? '#eef3fb' : BG_SEC,
+                  border:      isActive ? '1.5px solid var(--navy)' : previewStrategy === st ? '.5px solid var(--navy)' : `.5px solid ${DS_BORDER}`,
+                  borderTop:   isActive ? '2.5px solid var(--navy)' : undefined,
+                  borderRadius: 8, padding: '8px 6px', textAlign: 'center',
+                  cursor: 'pointer', opacity: !isActive && !!missing ? 0.5 : 1, transition: 'all .15s',
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: TEXT_1, marginBottom: 2 }}>{st}</div>
+                  {isActive && stScore !== null ? (
+                    <>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: scaleColor(stVerdict), lineHeight: 1.1, marginBottom: 2 }}>{stScore}</div>
+                      <VerdictPill v={stVerdict} />
+                    </>
+                  ) : !!missing ? (
+                    <div style={{ fontSize: 9, color: TEXT_2, fontStyle: 'italic', marginTop: 2 }}>{missing}</div>
+                  ) : (
+                    <div style={{ fontSize: 11, fontWeight: 600, color: TEXT_2 }}>—</div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <div style={{ fontSize: 11, fontStyle: 'italic', color: TEXT_2 }}>
+            Viewing {strategyLabel[p.strategy]} results — click any card to preview that strategy
+          </div>
+        </div>
+
         {isIncomplete ? (
-          <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', padding: '40px 24px', textAlign: 'center', marginBottom: '10px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', margin: '0 auto 14px' }}><i className="ti ti-chart-line" /></div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: TEXT_1, marginBottom: '6px' }}>No analysis yet</div>
-            <div style={{ fontSize: '12px', color: TEXT_2, lineHeight: 1.6 }}>Add deal figures in the Inputs tab to calculate returns, yield, and cash flow.</div>
+          <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: 12, padding: '40px 24px', textAlign: 'center', marginBottom: 10 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, margin: '0 auto 14px' }}><i className="ti ti-chart-line" /></div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1, marginBottom: 6 }}>No analysis yet</div>
+            <div style={{ fontSize: 12, color: TEXT_2, lineHeight: 1.6 }}>Add deal figures in the Inputs tab to calculate returns, yield, and cash flow.</div>
           </div>
         ) : (
           <>
-            {/* Verdict card */}
-            <div style={{ display: 'flex', gap: '18px', background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px', marginBottom: '10px' }}>
-              <div style={{ flexShrink: 0, textAlign: 'center', paddingRight: '18px', borderRight: `.5px solid ${DS_BORDER}`, minWidth: '90px' }}>
-                <div style={{ fontSize: '34px', fontWeight: 700, color: numScore !== null ? scaleColor(verdict) : TEXT_2, lineHeight: 1 }}>{numScore ?? '—'}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-2)', margin: '2px 0 8px' }}>/ 100</div>
+            {/* ── S2: Verdict card ─────────────────────────────────────────── */}
+            <div style={{ display: 'flex', gap: 18, background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: 18, marginBottom: 10 }}>
+              <div style={{ flexShrink: 0, textAlign: 'center', paddingRight: 18, borderRight: `.5px solid ${DS_BORDER}`, minWidth: 72 }}>
+                <div style={{ fontSize: 44, fontWeight: 700, color: numScore !== null ? scaleColor(verdict) : TEXT_2, lineHeight: 1 }}>{numScore ?? '—'}</div>
+                <div style={{ fontSize: 11, color: TEXT_2, margin: '2px 0 8px' }}>/100</div>
                 <VerdictPill v={verdict} />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: TEXT_1, marginBottom: '5px' }}>{verdictTitle[verdict ?? 'AVOID'] ?? `${strategyLabel[p.strategy]} result`}</div>
-                <div style={{ fontSize: '12px', color: TEXT_2, lineHeight: 1.6, marginBottom: '12px' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: verdict === 'RECOMMENDED' ? '#065f46' : TEXT_1, marginBottom: 5 }}>
+                  {verdictTitle[verdict ?? 'AVOID'] ?? `${strategyLabel[p.strategy]} result`}
+                </div>
+                <div style={{ fontSize: 12, color: TEXT_2, lineHeight: 1.6, marginBottom: 10 }}>
                   {p.strategy === 'FLIP'
                     ? `Net profit of ${fc(base.netProfit)} on a ${fp(base.roi)} total ROI (${fp(base.annualisedROI)} annualised).`
                     : p.strategy === 'R2R'
                       ? `Monthly profit of ${signedFc(base.monthlyProfit ?? 0)} with ${fp(base.cashOnCashROI)} ROI on setup costs.`
-                      : `Cash flow ${signedFc(base.monthlyCashFlow)}/mo · ${fp(base.cashOnCashROI)} CoC ROI · ${fp(base.grossYield)} gross yield.`
-                  }
-                  {p.marketValue > 0 && p.purchasePrice > 0 && p.strategy !== 'FLIP' && p.strategy !== 'R2R' && equityDayOne > 0 && ` ${fp(bmvPct, 0)} below market value adds ${fc(equityDayOne)} day-one equity.`}
+                      : `Cash flow ${signedFc(base.monthlyCashFlow)}/mo · ${fp(base.cashOnCashROI)} CoC ROI · ${fp(base.grossYield)} gross yield.`}
+                  {p.marketValue > 0 && equityDayOne > 0 && p.strategy !== 'FLIP' && p.strategy !== 'R2R' && ` ${fp(bmvPct, 0)} below MV — ${fc(equityDayOne)} day-one equity.`}
                 </div>
                 {composite && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 18px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px 18px' }}>
                     {composite.dimensions.map(d => (
                       <div key={d.label}>
-                        <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '2px' }}>{d.label}</div>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, marginBottom: '4px' }}>
-                          {p.strategy === 'BTL' || p.strategy === 'HMO' || p.strategy === 'SA' || p.strategy === 'BRRR' || p.strategy === 'SOCIAL'
-                            ? d.label.includes('Cash Flow') || d.label.includes('Profit') || d.label.includes('Cash Left')
-                              ? fc(d.value)
-                              : fp(d.value)
-                            : d.label.includes('Profit')
-                              ? fc(d.value)
-                              : fp(d.value)
-                          }{' '}
-                          <span style={{ fontSize: '9px', color: 'var(--text-2)', fontWeight: 400 }}>{d.points} / {d.maxPoints} pts</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: TEXT_2, marginBottom: 2 }}>
+                          <span>{d.label}</span><span>{d.points} / {d.maxPoints} pts</span>
                         </div>
-                        <div style={{ height: '5px', background: '#f3f4f6', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', background: TEAL, borderRadius: '3px', width: `${(d.points / d.maxPoints) * 100}%` }} />
+                        <div style={{ fontSize: 12, fontWeight: 600, color: TEXT_1, marginBottom: 3 }}>
+                          {d.label.toLowerCase().includes('cash flow') || d.label.toLowerCase().includes('profit') || d.label.toLowerCase().includes('cash left')
+                            ? fc(d.value) : fp(d.value)}
+                        </div>
+                        <div style={{ height: 3, background: '#f5f6f8', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', background: NAVY, borderRadius: 2, width: `${Math.min(100, d.maxPoints > 0 ? (d.points / d.maxPoints) * 100 : 0)}%` }} />
                         </div>
                       </div>
                     ))}
@@ -1128,107 +1285,409 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
               </div>
             </div>
 
-            {/* Key metrics */}
-            <Sec title="Key metrics" badge="Monthly view">
-              {p.strategy === 'FLIP' ? (
-                <>
-                  <MgLabel label="Returns" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '10px' }}>
-                    <Met label="Total ROI" value={fp(base.roi)} highlighted />
-                    <Met label="Annualised ROI" value={fp(base.annualisedROI)} />
-                    <Met label="Net profit" value={fc(base.netProfit)} green />
-                  </div>
-                  <MgLabel label="Project" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
-                    <Met label="Total cost in" value={fc(base.totalCost)} />
-                    <Met label="Expected sale" value={fc(p.flipExpectedSalePrice)} />
-                    <Met label="Selling costs" value={fc(base.sellingCosts)} />
-                  </div>
-                </>
-              ) : p.strategy === 'R2R' ? (
-                <>
-                  <MgLabel label="Returns" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '10px' }}>
-                    <Met label="Monthly profit" value={signedFc(base.monthlyProfit ?? 0)} highlighted green={(base.monthlyProfit ?? 0) > 0} />
-                    <Met label="ROI on setup" value={fp(base.cashOnCashROI)} />
-                    <Met label="Spread/room" value={fc(base.spreadPerRoom)} />
-                  </div>
-                  <MgLabel label="Setup" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
-                    <Met label="Setup costs" value={fc(p.r2rSetupCosts)} />
-                    <Met label="Rent paid/mo" value={fc(p.r2rMonthlyRentPaid)} />
-                    <Met label="Occ. break-even" value={fp(base.occupancyBreakEven)} />
-                  </div>
-                </>
-              ) : p.strategy === 'BRRR' ? (
-                <>
-                  <MgLabel label="BRRR cycle" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '10px' }}>
-                    <Met label="Refinance loan" value={fc(base.refinanceLoan)} highlighted />
-                    <Met label="Cash left in deal" value={base.moneyOut ? 'Money out!' : fc(base.cashLeftInDeal)} green={base.moneyOut} />
-                    <Met label="Equity created" value={fc(base.equityCreated)} green />
-                  </div>
-                  <MgLabel label="Post-refinance returns" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
-                    <Met label="Monthly CF" value={signedFc(base.monthlyCashFlow)} green={base.monthlyCashFlow > 0} />
-                    <Met label="CoC ROI" value={fp(isFinite(base.cashOnCashROI) ? base.cashOnCashROI : 0)} />
-                    <Met label="Break-even rent" value={fc(base.breakEvenRent)} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <MgLabel label="Returns" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '10px' }}>
-                    <Met label="CoC ROI" value={fp(base.cashOnCashROI)} highlighted />
-                    <Met label="Gross yield" value={fp(base.grossYield)} />
-                    <Met label="Net yield" value={fp(base.netYield)} />
-                  </div>
-                  <MgLabel label="Capital" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '10px' }}>
-                    <Met label="Cash invested" value={fc(base.totalCashInvested)} />
-                    <Met label="Day-one equity" value={p.marketValue > 0 ? fc(equityDayOne) : '—'} green={equityDayOne > 0} />
-                    <Met label="Below market" value={p.marketValue > 0 ? fp(bmvPct, 0) : '—'} />
-                  </div>
-                  <MgLabel label="Income & costs" />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
-                    <Met label={p.strategy === 'SA' ? 'Nightly rate' : 'Monthly rent'} value={p.strategy === 'SA' ? fc(p.saNightlyRate) : p.strategy === 'SOCIAL' ? fc(p.socialLeaseIncomePerMonth) : p.strategy === 'HMO' ? `${p.hmoRooms} × ${fc(p.hmoRentPerRoom)}` : fc(p.btlMonthlyRent)} />
-                    <Met label="Monthly CF" value={signedFc(base.monthlyCashFlow)} green={base.monthlyCashFlow > 0} />
-                    <Met label="Break-even rent" value={base.breakEvenRent > 0 ? fc(base.breakEvenRent) : '—'} />
-                  </div>
-                </>
-              )}
-            </Sec>
-
-            {/* Sensitivity teaser */}
-            {scenarios.length > 0 && (p.strategy === 'BTL' || p.strategy === 'HMO' || p.strategy === 'SA' || p.strategy === 'SOCIAL' || p.strategy === 'BRRR') && (
-              <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '10px' }}>
-                <div style={{ padding: '12px 16px', background: BG_SEC, borderBottom: `.5px solid ${DS_BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>How this deal holds up under stress</span>
-                </div>
-                <div style={{ display: 'flex' }}>
-                  {scenarios.map(sc => (
-                    <div key={sc.label} style={{ flex: 1, padding: '12px 16px', textAlign: 'center', borderRight: `.5px solid ${DS_BORDER}` }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-2)', marginBottom: '4px' }}>{sc.label}</div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: cColor[sc.colorKey] }}>{sc.verdict}</div>
-                    </div>
+            {/* ── S3: Key metrics with toggle ──────────────────────────────── */}
+            <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
+              <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, display: 'flex', alignItems: 'center', background: BG_SEC }}>
+                <span style={{ ...secLabel, flex: 1 }}>KEY METRICS</span>
+                <div style={{ display: 'flex', border: `.5px solid ${DS_BORDER}`, borderRadius: 20, overflow: 'hidden' }}>
+                  {(['monthly', 'annual'] as const).map(v => (
+                    <button key={v} onClick={() => setMetricsView(v)} style={{ padding: '3px 10px', background: metricsView === v ? NAVY : 'transparent', color: metricsView === v ? '#fff' : TEXT_2, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, fontSize: 10, textTransform: 'capitalize' }}>{v}</button>
                   ))}
                 </div>
               </div>
+              <div style={{ padding: '14px 16px' }}>
+                {p.strategy === 'FLIP' ? (
+                  <>
+                    <GrpHead label="Returns" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                      <div style={tilePrim}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Total ROI</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.roi)}</div></div>
+                      <div style={tilePrim}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Annualised ROI</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.annualisedROI)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Net profit</div><div style={{ fontSize: 15, fontWeight: 700, color: '#065f46' }}>{fc(base.netProfit)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Total cost in</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(base.totalCost)}</div></div>
+                    </div>
+                  </>
+                ) : p.strategy === 'R2R' ? (
+                  <>
+                    <GrpHead label="Returns" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                      <div style={tilePrim}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Monthly profit</div><div style={{ fontSize: 15, fontWeight: 700, color: (base.monthlyProfit ?? 0) > 0 ? '#065f46' : '#dc2626' }}>{signedFc(base.monthlyProfit ?? 0)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>ROI on setup</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.cashOnCashROI)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Spread / room</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(base.spreadPerRoom)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Occ. break-even</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.occupancyBreakEven)}</div></div>
+                    </div>
+                  </>
+                ) : p.strategy === 'BRRR' ? (
+                  <>
+                    <GrpHead label="BRRR cycle" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                      <div style={tilePrim}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Refinance loan</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(base.refinanceLoan)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Cash left in deal</div><div style={{ fontSize: 15, fontWeight: 700, color: base.moneyOut ? '#065f46' : TEXT_1 }}>{base.moneyOut ? 'Money out!' : fc(base.cashLeftInDeal)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Equity created</div><div style={{ fontSize: 15, fontWeight: 700, color: '#065f46' }}>{fc(base.equityCreated)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>{cfLabel}</div><div style={{ fontSize: 15, fontWeight: 700, color: base.monthlyCashFlow > 0 ? '#065f46' : '#dc2626' }}>{cfValue}</div></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <GrpHead label="Returns" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
+                      <div style={tilePrim}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Cash-on-cash ROI</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.cashOnCashROI)}</div></div>
+                      <div style={tilePrim}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>{cfLabel}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: base.monthlyCashFlow > 0 ? '#065f46' : '#dc2626' }}>
+                          {cfValue}{metricsView === 'annual' && <span style={{ fontSize: 10, fontWeight: 400, color: TEXT_2 }}> ({signedFc(base.monthlyCashFlow)}/mo)</span>}
+                        </div>
+                      </div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Gross yield</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.grossYield)}</div></div>
+                      <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Net yield</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.netYield)}</div></div>
+                    </div>
+                    <GrpHead label="Capital" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Cash invested</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(base.totalCashInvested)}</div>
+                        <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>Deposit + costs</div>
+                      </div>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Purchase price</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(p.purchasePrice)}</div>
+                        {p.marketValue > 0 && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>{fc(p.marketValue)} market value</div>}
+                      </div>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>BMV discount</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: (base.bmvPercent ?? 0) > 0 ? '#065f46' : TEXT_1 }}>
+                          {(base.bmvPercent ?? 0) > 0 ? fp(base.bmvPercent ?? 0, 0) : '—'}
+                        </div>
+                        {(base.bmvPercent ?? 0) > 0 && p.marketValue > 0 && <div style={{ fontSize: 9, color: '#065f46', marginTop: 2 }}>{fc(p.marketValue - p.purchasePrice)} below MV</div>}
+                      </div>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Refurb cost</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{p.refurbCost > 0 ? fc(p.refurbCost) : '—'}</div>
+                        {p.refurbCost > 0 && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>Inc. {fp(p.flipContingencyPercent, 0)} contingency</div>}
+                      </div>
+                    </div>
+                    <GrpHead label="Income & costs" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Monthly rent</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(monthlyRent * mul)}</div>
+                        <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>{metricsView === 'monthly' ? fc(monthlyRent * 12) + ' / year' : fc(monthlyRent) + ' / month'}</div>
+                      </div>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Mortgage payment</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{isCash ? '—' : fc(monthlyMortgage * mul)}</div>
+                        {!isCash && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>{metricsView === 'monthly' ? fc(monthlyMortgage * 12) + ' / year' : fc(monthlyMortgage) + ' / month'}</div>}
+                      </div>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Operating costs</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc((base.totalOperatingCosts ?? 0) * mul)}</div>
+                        <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>{metricsView === 'monthly' ? fc((base.totalOperatingCosts ?? 0) * 12) + ' / year' : fc(base.totalOperatingCosts ?? 0) + ' / month'}</div>
+                      </div>
+                      <div style={tileS}>
+                        <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Net {metricsView === 'annual' ? 'annual' : 'monthly'} income</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: base.monthlyCashFlow > 0 ? '#065f46' : '#dc2626' }}>{fc(base.monthlyCashFlow * mul)}</div>
+                        <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>{metricsView === 'monthly' ? fc(base.monthlyCashFlow * 12) + ' / year' : fc(base.monthlyCashFlow) + ' / month'}</div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* ── S4: Break-even, payback & resilience ─────────────────────── */}
+            {p.strategy !== 'FLIP' && p.strategy !== 'R2R' && (
+              <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
+                <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
+                  <span style={secLabel}>BREAK-EVEN, PAYBACK & RESILIENCE</span>
+                </div>
+                <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                  <div style={tileS}>
+                    <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Break-even rent</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(base.breakEvenRent)}<span style={{ fontSize: 10, fontWeight: 400 }}>/mo</span></div>
+                    <div style={{ fontSize: 9, color: rentBuffer >= 0 ? '#059669' : '#dc2626', marginTop: 2 }}>Buffer {rentBuffer >= 0 ? '+' : ''}{fc(rentBuffer)}/mo</div>
+                  </div>
+                  <div style={tileS}>
+                    <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Void resilience</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{voidWeeks > 0 ? `${voidWeeks} weeks` : '—'}</div>
+                    {voidWeeks > 0 && <div style={{ fontSize: 9, color: voidWeeks >= 13 ? '#059669' : AMBER, marginTop: 2 }}>{voidWeeks >= 13 ? '✓ Above' : '⚠ Below'} 13-wk benchmark</div>}
+                  </div>
+                  <div style={tileS}>
+                    <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Cash payback</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{paybackYears !== null ? `${paybackYears.toFixed(1)} yrs` : '—'}</div>
+                    {paybackYears !== null && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>Based on {signedFc(base.monthlyCashFlow)}/mo</div>}
+                  </div>
+                  <div style={tileS}>
+                    <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Total return yr 5</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#065f46' }}>{yr5Return > 0 ? fc(yr5Return) : '—'}</div>
+                    {yr5Return > 0 && p.purchasePrice > 0 && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>CF + {fc(Math.max(0, p.marketValue - p.purchasePrice))} equity</div>}
+                  </div>
+                </div>
+              </div>
             )}
+
+            {/* ── S5: ICR stress test + Section 24 ─────────────────────────── */}
+            {(p.strategy === 'BTL' || p.strategy === 'HMO' || p.strategy === 'SA' || p.strategy === 'SOCIAL') && base.icrMultiplier != null && (
+              <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
+                <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
+                  <span style={secLabel}>ICR STRESS TEST & SECTION 24</span>
+                </div>
+                <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ background: base.passesICR ? '#f0fdf4' : '#fff1f2', border: `.5px solid ${base.passesICR ? '#6ee7b7' : '#fca5a5'}`, borderRadius: 8, padding: '12px 14px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: TEXT_1, marginBottom: 2 }}>ICR Stress Test</div>
+                    <div style={{ fontSize: 11, color: TEXT_2, marginBottom: 10 }}>At 5.5% stressed rate</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Multiplier</span><span style={{ fontWeight: 600 }}>{base.icrMultiplier.toFixed(2)}×</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Required</span><span style={{ fontWeight: 600 }}>{(base.icrRequirement ?? 1.45).toFixed(2)}× ({p.ownershipStructure === 'Ltd company' ? 'Ltd co' : 'personal'})</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Result</span><span style={{ fontWeight: 700, color: base.passesICR ? '#059669' : '#dc2626' }}>{base.passesICR ? '✅ PASS' : '❌ FAIL'}</span></div>
+                    </div>
+                    <div style={{ fontSize: 11, color: TEXT_2, marginTop: 10, lineHeight: 1.5 }}>Lenders stress-test at 5.5% to check rent covers mortgage</div>
+                  </div>
+                  {p.ownershipStructure === 'Ltd company' ? (
+                    <div style={{ background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: 8, padding: '12px 14px' }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: TEXT_1, marginBottom: 2 }}>Ltd Company — Corporation Tax</div>
+                      <div style={{ fontSize: 11, color: TEXT_2, marginBottom: 10 }}>25% CT on rental profit</div>
+                      <div style={{ fontSize: 11, color: TEXT_2, lineHeight: 1.6 }}>
+                        Est. after-CT profit: <strong style={{ color: TEXT_1 }}>{fc(base.netProfitAfterTax ?? 0)}/mo</strong> (25% CT applied).<br />Mortgage interest remains fully deductible for Ltd companies.
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ background: '#fffbeb', border: '.5px solid #fcd34d', borderRadius: 8, padding: '12px 14px' }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: TEXT_1, marginBottom: 2 }}>Section 24 — After Tax</div>
+                      <div style={{ fontSize: 11, color: TEXT_2, marginBottom: 10 }}>Personal name only</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Pre-tax CF</span><span style={{ fontWeight: 600 }}>{signedFc(base.monthlyCashFlow)}/mo</span></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Tax rate</span><span style={{ fontWeight: 600 }}>{(base.effectiveTaxRate ?? 0).toFixed(0)}%</span></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Est. after-tax</span><span style={{ fontWeight: 700, color: (base.netProfitAfterTax ?? 0) > 0 ? '#059669' : '#dc2626' }}>{fc(base.netProfitAfterTax ?? base.monthlyCashFlow)}/mo</span></div>
+                        {p.purchasePrice > 0 && base.netProfitAfterTax != null && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Net yield post-tax</span><span style={{ fontWeight: 600 }}>{fp((base.netProfitAfterTax * 12 / p.purchasePrice) * 100)}</span></div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 10, color: '#92400e', marginTop: 10, lineHeight: 1.5 }}>Mortgage interest not deductible for personal-name landlords since April 2020</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── S6: Risk flags ────────────────────────────────────────────── */}
+            {activeFlags.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
+                <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
+                  <span style={secLabel}>RISK FLAGS ({activeFlags.length})</span>
+                </div>
+                <div style={{ padding: '4px 14px' }}>
+                  {activeFlags.map((flag, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: i < activeFlags.length - 1 ? `.5px solid ${DS_BORDER}` : 'none' }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: flag.severity === 'red' ? '#dc2626' : '#d97706', flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: TEXT_1, flex: 1 }}>{flag.label}</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: flag.severity === 'red' ? '#fee2e2' : '#fef3c7', color: flag.severity === 'red' ? '#7f1d1d' : '#92400e' }}>
+                        {flag.severity === 'red' ? 'HIGH RISK' : 'REVIEW'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {activeFlags.some(f => f.label === 'ICR stress test fail') && (
+                  <div style={{ margin: '0 14px 12px', padding: '8px 12px', background: '#fffbeb', border: '.5px solid #fcd34d', borderRadius: 6, fontSize: 12, color: '#92400e' }}>
+                    ICR failure means this deal may not pass lender stress tests at standard BTL rates.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── S7: Financing breakdown ───────────────────────────────────── */}
+            {p.purchasePrice > 0 && (
+              <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
+                <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
+                  <span style={secLabel}>FINANCING BREAKDOWN</span>
+                </div>
+                <div style={{ padding: '14px 16px' }}>
+                  <div style={{ border: `.5px solid ${DS_BORDER}`, borderRadius: 8, marginBottom: hasBridging ? 10 : 0, overflow: 'hidden' }}>
+                    <div style={{ background: BG_SEC, padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: `.5px solid ${DS_BORDER}` }}>
+                      <i className="ti ti-building-bank" style={{ color: NAVY }} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: TEXT_1, flex: 1 }}>
+                        {isCash ? 'Cash purchase' : `Purchase — ${p.mortgageType === 'IO' ? 'Interest only' : 'Repayment'} mortgage · ${(100 - p.depositPercent).toFixed(0)}% LTV`}
+                      </span>
+                      {!isCash && <span style={{ fontSize: 11, color: TEXT_2 }}>{fc(loanAmt)} borrowed</span>}
+                    </div>
+                    <div style={{ padding: '12px 14px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px 14px' }}>
+                      {isCash ? (
+                        <>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Purchase price</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(p.purchasePrice)}</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Extra upfront costs</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(base.extraUpfrontCosts)}</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Total cash in</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(base.totalCashInvested)}</div></div>
+                        </>
+                      ) : (
+                        <>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Deposit ({fp(p.depositPercent, 0)})</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(depositAmt)}</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Loan amount</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(loanAmt)}</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Monthly payment</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(monthlyMortgage)}</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Interest rate</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fp(p.mortgageRate)}</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Mortgage term</div><div style={{ fontSize: 13, fontWeight: 500 }}>{p.mortgageTerm} yrs</div></div>
+                          <div><div style={{ fontSize: 10, color: TEXT_2 }}>Arrangement fee</div><div style={{ fontSize: 13, fontWeight: 500 }}>{p.mortgageArrangementFee > 0 ? fc(p.mortgageArrangementFee) : '—'}</div></div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {hasBridging && (
+                    <div style={{ border: `.5px solid ${DS_BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+                      <div style={{ background: BG_SEC, padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: `.5px solid ${DS_BORDER}` }}>
+                        <i className="ti ti-building-bank" style={{ color: NAVY }} />
+                        <span style={{ fontSize: 12, fontWeight: 600, color: TEXT_1, flex: 1 }}>Refurb — bridging loan</span>
+                        <span style={{ fontSize: 11, color: TEXT_2 }}>{fc(bridgingLoanAmt)} facility</span>
+                      </div>
+                      <div style={{ padding: '12px 14px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px 14px' }}>
+                        <div><div style={{ fontSize: 10, color: TEXT_2 }}>Facility amount</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(bridgingLoanAmt)}</div></div>
+                        <div><div style={{ fontSize: 10, color: TEXT_2 }}>Monthly interest</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(bridgingMonthlyInt)}/mo at {fp(p.bridgingRateMonthly)}</div></div>
+                        <div><div style={{ fontSize: 10, color: TEXT_2 }}>Term</div><div style={{ fontSize: 13, fontWeight: 500 }}>{p.bridgingTermMonths} months</div></div>
+                        <div style={{ gridColumn: '1 / -1' }}><div style={{ fontSize: 10, color: TEXT_2 }}>Total bridging cost (interest + fees)</div><div style={{ fontSize: 13, fontWeight: 500 }}>{fc(base.totalBridgingCost)}</div></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── S8: Deal Optimiser ────────────────────────────────────────── */}
+            {p.purchasePrice > 0 && (
+              <div style={{ background: '#152d55', borderRadius: 8, padding: '14px 16px', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#93c5fd', marginRight: 4 }}>DEAL OPTIMISER</span>
+                  <span style={{ fontSize: 10, color: '#93c5fd', opacity: .7, marginRight: 4 }}>Target:</span>
+                  {(['coc', 'cf', 'yield', 'netyield', 'cashmax'] as const).map(t => (
+                    <button key={t} onClick={() => setOptimiserTarget(t)}
+                      style={{ padding: '4px 10px', fontSize: 11, fontWeight: 500, borderRadius: 20, background: optimiserTarget === t ? '#1B3A6B' : 'transparent', color: optimiserTarget === t ? '#e0eaff' : '#93c5fd', border: `.5px solid ${optimiserTarget === t ? '#93c5fd' : 'rgba(147,197,253,.35)'}`, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {t === 'coc' ? 'CoC ROI' : t === 'cf' ? 'Cash flow' : t === 'yield' ? 'Gross yield' : t === 'netyield' ? 'Net yield' : 'Max cash in'}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
+                  {[
+                    { label: 'Current CoC ROI',    value: fp(base.cashOnCashROI),                                           good: base.cashOnCashROI >= 8 },
+                    { label: 'Max purchase price',  value: isFinite(maxPrice) && maxPrice > 0 ? fc(maxPrice) : '—',          good: maxPrice >= p.purchasePrice },
+                    { label: 'Price headroom',      value: isFinite(priceHeadroom) ? (priceHeadroom >= 0 ? `+${fc(priceHeadroom)}` : `−${fc(-priceHeadroom)}`) : '—', good: priceHeadroom >= 0 },
+                    { label: 'Min rent needed',     value: fc(minRent) + '/mo',                                              good: monthlyRent >= minRent },
+                    { label: 'Rent buffer',         value: signedFc(monthlyRent - minRent) + '/mo',                          good: monthlyRent >= minRent },
+                    { label: 'Verdict',             value: targetMet ? '✓ Target met' : '✗ Not met',                        good: targetMet },
+                  ].map(item => (
+                    <div key={item.label} style={{ background: 'rgba(255,255,255,.07)', borderRadius: 6, padding: '8px 10px' }}>
+                      <div style={{ fontSize: 10, color: '#93c5fd', opacity: .75, marginBottom: 3 }}>{item.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: item.good ? '#6ee7b7' : '#fca5a5' }}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#93c5fd', opacity: .8, fontWeight: 500, marginBottom: 6 }}>If purchase price changes</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4 }}>
+                      {[-10000, 0, 10000].map(delta => {
+                        const adjPrice = p.purchasePrice + delta
+                        const adjCash  = cashInvested + delta * (p.depositPercent / 100)
+                        const adjCF    = base.monthlyCashFlow - (delta * (1 - p.depositPercent / 100) * (p.mortgageRate / 100) / 12)
+                        const adjCoC   = adjCash > 0 ? (adjCF * 12 / adjCash) * 100 : 0
+                        const isCur    = delta === 0
+                        return (
+                          <div key={delta} style={{ background: isCur ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.06)', border: `.5px solid ${isCur ? 'rgba(147,197,253,.4)' : 'transparent'}`, borderRadius: 5, padding: '6px 7px', textAlign: 'center' }}>
+                            <div style={{ fontSize: 10, color: '#93c5fd', opacity: .7 }}>{fc(adjPrice)}</div>
+                            <div style={{ fontSize: 12, fontWeight: 500, color: adjCoC >= 8 ? '#6ee7b7' : adjCoC >= 5 ? '#e0eaff' : '#fca5a5' }}>{fp(adjCoC)}</div>
+                            {!isCur && <div style={{ fontSize: 9, color: '#93c5fd', opacity: .5 }}>CoC</div>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#93c5fd', opacity: .8, fontWeight: 500, marginBottom: 6 }}>If rent changes</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4 }}>
+                      {[0.9, 1.0, 1.1].map(mult => {
+                        const adjRent = monthlyRent * mult
+                        const adjCF   = base.monthlyCashFlow + (adjRent - monthlyRent) * (1 - (p.managementFeePercent) / 100)
+                        const isCur   = mult === 1.0
+                        return (
+                          <div key={mult} style={{ background: isCur ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.06)', border: `.5px solid ${isCur ? 'rgba(147,197,253,.4)' : 'transparent'}`, borderRadius: 5, padding: '6px 7px', textAlign: 'center' }}>
+                            <div style={{ fontSize: 10, color: '#93c5fd', opacity: .7 }}>{fc(adjRent)}/mo</div>
+                            <div style={{ fontSize: 12, fontWeight: 500, color: adjCF > 200 ? '#6ee7b7' : adjCF > 0 ? '#e0eaff' : '#fca5a5' }}>{signedFc(adjCF)}</div>
+                            {!isCur && <div style={{ fontSize: 9, color: '#93c5fd', opacity: .5 }}>CF</div>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', marginTop: 10, paddingTop: 8, borderTop: '.5px solid rgba(147,197,253,.2)' }}>
+                  <span style={{ fontSize: 12, color: '#93c5fd', cursor: 'pointer' }}>Open full optimiser with negotiation tips →</span>
+                </div>
+              </div>
+            )}
+
+            {/* ── S9: Sold price comparables ────────────────────────────────── */}
+            <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
+              <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center' }}>
+                <span style={{ ...secLabel, flex: 1 }}>SOLD PRICE COMPARABLES</span>
+                <button onClick={() => { void doRefreshComps() }} disabled={compsLoading}
+                  style={{ fontSize: 11, padding: '3px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: 20, background: '#fff', color: TEXT_2, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 11 }} />{compsLoading ? 'Loading…' : '↺ Refresh'}
+                </button>
+              </div>
+              <div style={{ padding: '14px 16px' }}>
+                {localCompsError && <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{localCompsError}</div>}
+                {localComps.length === 0 ? (
+                  <div style={{ fontSize: 12, color: TEXT_2, padding: '16px', background: BG_SEC, borderRadius: 8, textAlign: 'center' }}>
+                    No sold price data yet. Open Show Workings to fetch comparables for this postcode.
+                  </div>
+                ) : (
+                  <>
+                    {localComps.filter(c => c.kept).length === 0 && (
+                      <div style={{ fontSize: 12, color: '#92400e', background: '#fef3c7', border: '.5px solid #fcd34d', borderRadius: 6, padding: '8px 12px', marginBottom: 8 }}>
+                        No comparables marked for pack — click Keep on the rows you want to include.
+                      </div>
+                    )}
+                    <div style={{ border: `.5px solid ${DS_BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 100px 110px 100px 120px', background: BG_SEC, borderBottom: `.5px solid ${DS_BORDER}` }}>
+                        {['Address', 'Sold', 'Price', 'Type', 'Tenure', ''].map(h => (
+                          <div key={h} style={{ padding: '7px 12px', fontSize: 11, fontWeight: 500, color: TEXT_2 }}>{h}</div>
+                        ))}
+                      </div>
+                      {localComps.map((comp, i) => (
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 100px 110px 100px 120px', borderBottom: i < localComps.length - 1 ? `.5px solid ${DS_BORDER}` : 'none', fontSize: 12 }}>
+                          <div style={{ padding: '9px 12px', color: TEXT_1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{comp.address}</div>
+                          <div style={{ padding: '9px 12px', color: TEXT_2 }}>{comp.date ? new Date(comp.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</div>
+                          <div style={{ padding: '9px 12px', fontWeight: 500, color: NAVY }}>£{comp.price?.toLocaleString('en-GB') ?? '—'}</div>
+                          <div style={{ padding: '9px 12px', color: TEXT_2 }}>{comp.type || '—'}</div>
+                          <div style={{ padding: '9px 12px', color: TEXT_2 }}>{comp.tenure || '—'}</div>
+                          <div style={{ padding: '6px 10px', display: 'flex', gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
+                            <button onClick={() => { const u = localComps.map((c, j) => j === i ? { ...c, kept: !c.kept } : c); updateLocalComps(u) }}
+                              style={{ padding: '3px 8px', borderRadius: 20, fontSize: 10, fontWeight: 600, border: `.5px solid ${comp.kept ? '#1D9E75' : DS_BORDER}`, background: comp.kept ? '#e6f7f1' : BG_SEC, color: comp.kept ? '#1D9E75' : TEXT_2, cursor: 'pointer', fontFamily: 'inherit' }}>
+                              {comp.kept ? '✓ Keep' : 'Keep'}
+                            </button>
+                            <button onClick={() => { const u = localComps.filter((_, j) => j !== i); updateLocalComps(u) }}
+                              style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `.5px solid ${DS_BORDER}`, background: 'none', color: TEXT_2, borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>
+                              −
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {(() => {
+                      const kc = localComps.filter(c => c.kept)
+                      if (kc.length === 0) return null
+                      const avg = kc.reduce((s, c) => s + c.price, 0) / kc.length
+                      return <div style={{ fontSize: 12, color: TEXT_2, marginTop: 8 }}>{kc.length} comparable(s) selected for investor pack · Avg price: {fc(avg)}</div>
+                    })()}
+                  </>
+                )}
+              </div>
+            </div>
           </>
         )}
       </div>
 
-      {/* Sidebar */}
+      {/* ── Sidebar ──────────────────────────────────────────────────────────── */}
       <div style={{ position: 'sticky', top: `${56 + 48 + 44 + 42 + 20}px` }}>
         <div style={{ background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden' }}>
           <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center', gap: '9px' }}>
             <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: NAVY_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: NAVY, flexShrink: 0 }}><i className="ti ti-robot" /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>DealScore Assistant</div>
-              <div style={{ fontSize: '10px', color: TEXT_2 }}>
-                {isIncomplete ? 'Awaiting inputs' : composite ? 'Analysis complete' : 'No data yet'}
-              </div>
+              <div style={{ fontSize: '10px', color: TEXT_2 }}>{isIncomplete ? 'Awaiting inputs' : composite ? 'Analysis complete' : 'No data yet'}</div>
             </div>
           </div>
           <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1238,9 +1697,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
               <>
                 <div>
                   <div style={{ fontSize: '11px', fontWeight: 600, color: TEXT_1, marginBottom: '2px' }}>Score breakdown</div>
-                  <div style={{ fontSize: '10px', color: TEXT_2, lineHeight: 1.5 }}>
-                    {composite.dimensions.map(d => `${d.label}: ${d.points}/${d.maxPoints} pts`).join(' · ')}
-                  </div>
+                  <div style={{ fontSize: '10px', color: TEXT_2, lineHeight: 1.5 }}>{composite.dimensions.map(d => `${d.label}: ${d.points}/${d.maxPoints} pts`).join(' · ')}</div>
                 </div>
                 <div style={{ borderTop: `.5px solid #f3f4f6`, paddingTop: '10px' }}>
                   <div style={{ fontSize: '11px', fontWeight: 600, color: TEXT_1, marginBottom: '2px' }}>Improve your score</div>
@@ -1254,6 +1711,19 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
             )}
           </div>
         </div>
+        {scenarios.length > 0 && (p.strategy === 'BTL' || p.strategy === 'HMO' || p.strategy === 'SA' || p.strategy === 'SOCIAL' || p.strategy === 'BRRR') && (
+          <div style={{ background: '#fff', border: `.5px solid ${DS_BORDER}`, borderRadius: 10, overflow: 'hidden', marginTop: 10 }}>
+            <div style={{ padding: '9px 14px', background: BG_SEC, borderBottom: `.5px solid ${DS_BORDER}` }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: TEXT_1 }}>Stress test snapshot</span>
+            </div>
+            {scenarios.map(sc => (
+              <div key={sc.label} style={{ padding: '8px 14px', borderBottom: `.5px solid ${DS_BORDER}`, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 10, color: TEXT_2 }}>{sc.label}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: cColor[sc.colorKey] }}>{sc.verdict}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -3042,6 +3512,8 @@ export default function AnalysisHub({
           stressRentDown={stressRentDown}
           stressRateUp={stressRateUp}
           stressCombined={stressCombined}
+          deal={deal}
+          onSave={onSave}
         />
       )}
 
