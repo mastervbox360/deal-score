@@ -1535,23 +1535,14 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 }
 
 // ── SellerCard ────────────────────────────────────────────────────────────────
-const MOTIVATION_OPTS = [
-  { key: 'hot'   as const, label: 'Motivated', color: '#065f46', bg: '#d1fae5', border: '#6ee7b7' },
-  { key: 'warm'  as const, label: 'Flexible',  color: '#92400e', bg: '#fef3c7', border: '#fcd34d' },
-  { key: 'cool'  as const, label: 'Firm',      color: '#1e3a5f', bg: '#dbeafe', border: '#93c5fd' },
-  { key: 'other' as const, label: 'Other',     color: '#374151', bg: '#f3f4f6', border: '#d1d5db' },
-] as const
-
-type MotivationKey = typeof MOTIVATION_OPTS[number]['key']
-
-function SellerCard({ form, setField, isEditing, isR2R }: {
+function SellerCard({ form, setField, isEditing, isR2R, sellerComplete = false }: {
   form: Record<string, unknown>
   setField: (path: string, v: unknown) => void
   isEditing: boolean
   isR2R: boolean
+  sellerComplete?: boolean
 }) {
   const label = isR2R ? 'Landlord' : 'Seller'
-  const sellerMotivation = form.sellerMotivation as MotivationKey | undefined
   const hasData = !!(form.sellerName || form.sellerPhone)
 
   return (
@@ -1561,69 +1552,105 @@ function SellerCard({ form, setField, isEditing, isR2R }: {
           <i className="ti ti-user-circle" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{label}</div>
-          <div className="pii" style={{ fontSize: '11px', color: 'var(--text-2)' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {label}
+            {sellerComplete && (
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>Complete</span>
+            )}
+          </div>
+          <div className="pii" style={{ fontSize: 11, color: 'var(--text-2)' }}>
             {hasData
               ? `${String(form.sellerName ?? '')}${form.sellerPhone ? ` · ${String(form.sellerPhone)}` : ''}`
               : `Add ${label.toLowerCase()} contact details`}
           </div>
         </div>
-        <span style={{ fontSize: '10px', color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: '20px' }}>Optional</span>
+        <span style={{ fontSize: 10, color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: 20 }}>Optional</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb' }}>Full name</label>
-          <input
-            readOnly={!isEditing}
+      {/* U1: CRM search stub */}
+      <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '.5px solid var(--ds-border)' }}>
+        <input
+          type="text"
+          placeholder="Search existing sellers by name, phone or email…"
+          readOnly
+          style={{ width: '100%', padding: '8px 11px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: 'var(--bg-sec)', color: '#444', outline: 'none', fontFamily: 'inherit', cursor: 'text', boxSizing: 'border-box' as const }}
+        />
+        <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 5 }}>
+          Or fill in manually below to create a new seller record
+        </div>
+      </div>
+
+      {/* U2: 3-col contact grid — Full name (2fr) · Phone (1fr) · Email (1fr) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 9, marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999' }}>Full name</div>
+          <input type="text" placeholder={`${label} full name`}
             value={String(form.sellerName ?? '')}
-            onChange={isEditing ? e => { setField('sellerName', e.target.value); setField('sellerId', null) } : undefined}
-            placeholder={`${label} full name`}
-            className="pii"
-            style={{ padding: '7px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', fontFamily: 'inherit' }}
-          />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb' }}>Phone</label>
-          <input
             readOnly={!isEditing}
-            value={String(form.sellerPhone ?? '')}
-            onChange={isEditing ? e => setField('sellerPhone', e.target.value) : undefined}
-            placeholder="e.g. 07700 900 123"
+            onChange={isEditing ? e => { setField('sellerName', e.target.value); setField('sellerId', null) } : undefined}
             className="pii"
-            style={{ padding: '7px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', fontFamily: 'inherit' }}
-          />
+            style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999' }}>Phone</div>
+          <input type="tel" placeholder="e.g. 07700 900 123"
+            value={String(form.sellerPhone ?? '')}
+            readOnly={!isEditing}
+            onChange={isEditing ? e => setField('sellerPhone', e.target.value) : undefined}
+            className="pii"
+            style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999' }}>Email</div>
+          <input type="email" placeholder="e.g. john@email.com"
+            value={String(form.sellerEmail ?? '')}
+            readOnly={!isEditing}
+            onChange={isEditing ? e => setField('sellerEmail', e.target.value) : undefined}
+            className="pii"
+            style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
         </div>
       </div>
 
-      <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#bbb', marginBottom: '6px' }}>Motivation</div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-          {MOTIVATION_OPTS.map(opt => {
-            const active = sellerMotivation === opt.key
-            return (
-              <button key={opt.key} onClick={() => isEditing && setField('sellerMotivation', opt.key)}
-                style={{ padding: '5px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 500, border: `1.5px solid ${active ? opt.border : 'var(--ds-border)'}`, background: active ? opt.bg : '#fff', color: active ? opt.color : 'var(--text-2)', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .15s' }}>
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-        {sellerMotivation === 'other' && (
-          <input readOnly={!isEditing} value={String(form.sellerMotivationOther ?? '')}
-            onChange={isEditing ? e => setField('sellerMotivationOther', e.target.value) : undefined}
-            placeholder="Describe the situation…"
-            style={{ marginTop: '8px', padding: '7px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', width: '100%', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-        )}
+      {/* U3: Motivation — 8 wrapping pills */}
+      <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        MOTIVATION
+        <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginBottom: 14 }}>
+        {([
+          'Motivated seller', 'Below market value', 'Probate / estate',
+          'Repossession', 'Divorce', 'Relocated abroad', 'Developer exit', 'Other',
+        ] as const).map((opt) => {
+          const isActive = form.sellerMotivation === opt
+          return (
+            <button key={opt}
+              onClick={() => isEditing && setField('sellerMotivation', isActive ? '' : opt)}
+              style={{
+                padding: '5px 12px', fontSize: 12, fontWeight: isActive ? 600 : 400, borderRadius: 20,
+                border: `.5px solid ${isActive ? 'var(--navy)' : 'var(--ds-border)'}`,
+                background: isActive ? 'var(--navy)' : '#fff',
+                color: isActive ? '#fff' : '#555',
+                cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .15s',
+              }}>
+              {opt}
+            </button>
+          )
+        })}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <label style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb' }}>Situation notes</label>
-        <textarea readOnly={!isEditing} value={String(form.sellerNotes ?? '')}
-          onChange={isEditing ? e => setField('sellerNotes', e.target.value) : undefined}
-          placeholder="e.g. relocating to Scotland, needs to complete before end of month. Open to negotiation."
-          style={{ padding: '8px 10px', borderRadius: '7px', border: '.5px solid var(--ds-border)', fontSize: '12px', background: isEditing ? '#fff' : 'var(--bg-sec)', color: 'var(--text-1)', outline: 'none', width: '100%', fontFamily: 'inherit', resize: 'none', height: '60px', lineHeight: 1.5, boxSizing: 'border-box' }} />
+      {/* U4: Situation notes */}
+      <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        SITUATION NOTES
+        <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
       </div>
+      <textarea
+        placeholder="e.g. relocating to Scotland, needs to complete before end of month. Open to negotiation."
+        value={String(form.sellerNotes ?? '')}
+        readOnly={!isEditing}
+        onChange={isEditing ? e => setField('sellerNotes', e.target.value) : undefined}
+        rows={3}
+        style={{ padding: '8px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' as const }}
+      />
     </div>
   )
 }
@@ -1907,6 +1934,30 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
   }
 
   const propInfoComplete = !!(form.address && form.propertyType && form.bedrooms && form.tenure)
+  const purchaseComplete = !!(
+    Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 &&
+    Number(form.marketValue) > 0 &&
+    form.taxRegion
+  )
+  const isMortgage = !form.purchaseFinanceMethod || form.purchaseFinanceMethod === 'Mortgage'
+  const financeComplete = (
+    (form.purchaseFinanceMethod === 'Cash' || String(form.isCashBuyer) === 'Yes')
+      ? true
+      : isMortgage
+        ? !!(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent) > 0 && Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0)
+        : !!form.purchaseFinanceMethod
+  )
+  const refurbComplete = (form.sharedInputs as Record<string,unknown>)?.refurbCost !== undefined
+  const monthlyCostsComplete = !!(form.managementFeePercent !== undefined && form.voidAllowancePercent !== undefined)
+  const ownershipComplete = !!(form.ownershipStructure && form.incomeTaxBand)
+  const strategyComplete = (
+    activeTile === 'btl' ? !!(Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0) :
+    activeTile === 'hmo' ? !!(Number((form.hmoInputs as Record<string,unknown>)?.rooms) > 0 && Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0) :
+    activeTile === 'flip' ? !!(Number((form.flipInputs as Record<string,unknown>)?.expectedSalePrice) > 0) :
+    false
+  )
+  const sellerComplete = !!form.sellerName
+  const dealTermsComplete = form.sourcingFeePaid !== undefined
 
   return (
     <InputsCtx.Provider value={{ isEditing: isEditing, isNewDeal }}>
@@ -1986,9 +2037,22 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               />
               <ScBadge source={scSource} />
             </div>
+            <ISelect
+              label="Bathrooms"
+              value={String(form.bathrooms ?? '')}
+              onChange={v => setField('bathrooms', parseInt(v) || v)}
+              options={[
+                { value: '1', label: '1' },
+                { value: '2', label: '2' },
+                { value: '3', label: '3' },
+                { value: '4', label: '4' },
+                { value: '5', label: '5' },
+                { value: '6', label: '6+' },
+              ]}
+            />
             {/* Tenure — segmented Freehold/Leasehold */}
             <div>
-              <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#5a6270', marginBottom: 4 }}>Tenure *</div>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>Tenure *<span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} /></div>
               <Seg2 field="tenure" opts={['Freehold', 'Leasehold']} />
               <ScBadge source={scSource} />
             </div>
@@ -2037,19 +2101,6 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
           {showOptional && (
             <div style={{ marginTop: 12 }}>
               <IGrid>
-                <ISelect
-                  label="Bathrooms"
-                  value={String(form.bathrooms ?? '')}
-                  onChange={v => setField('bathrooms', parseInt(v) || v)}
-                  options={[
-                    { value: '1', label: '1' },
-                    { value: '2', label: '2' },
-                    { value: '3', label: '3' },
-                    { value: '4', label: '4' },
-                    { value: '5', label: '5' },
-                    { value: '6', label: '6+' },
-                  ]}
-                />
                 <IField label="Floor area (sqm)" value={String(form.floorAreaSqm ?? '')} onChange={v => setField('floorAreaSqm', parseFloat(v) || 0)} />
                 <IField label="Year built" value={String(form.yearBuilt ?? '')} onChange={v => setField('yearBuilt', parseInt(v) || 0)} />
                 
@@ -2211,133 +2262,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
           )}
         </div>
 
-        {/* Auction purchase — conditional */}
-        <div style={{
-          background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)',
-          padding: '16px 18px', marginBottom: 10,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <i className="ti ti-gavel" style={{ fontSize: 15, color: 'var(--text-2)' }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Auction purchase?</span>
-            <button onClick={() => isEditing && setField('isAuctionPurchase', !(!!form.isAuctionPurchase))}
-              style={{ padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: !!form.isAuctionPurchase ? 'var(--navy)' : 'var(--bg-sec)', color: !!form.isAuctionPurchase ? '#fff' : 'var(--text-2)' }}>
-              {!!form.isAuctionPurchase ? 'Yes' : 'No'}
-            </button>
-          </div>
-          {!!form.isAuctionPurchase && (
-            <IGrid style={{ marginTop: '12px' }}>
-              <IField label="Buyer's premium (%)" value={fp(Number(form.auctionBuyersPremiumPercent ?? 0))} onChange={v => setField('auctionBuyersPremiumPercent', parseFloat(v) || 0)} />
-              <IField label="Reservation fee (£)" value={Number(form.auctionReservationFee) > 0 ? fc(Number(form.auctionReservationFee)) : ''} onChange={v => setField('auctionReservationFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-            </IGrid>
-          )}
-        </div>
-
-        {/* Leasehold details — shown only when Tenure = Leasehold */}
-        {String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
-          <Sec title="Leasehold details">
-            <IGrid>
-              <IField label="Remaining lease (years)" value={String(form.remainingLeaseYears ?? '')} onChange={v => setField('remainingLeaseYears', parseInt(v) || 0)} required />
-              <IField label="Lease extension cost (£)" value={Number(form.leaseExtensionCost) > 0 ? fc(Number(form.leaseExtensionCost)) : ''} onChange={v => setField('leaseExtensionCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <ISelect
-                label="Ground rent review"
-                value={String(form.groundRentReviewClause ?? 'None')}
-                onChange={v => setField('groundRentReviewClause', v)}
-                options={[
-                  { value: 'None', label: 'None / fixed' },
-                  { value: 'RPI', label: 'RPI linked' },
-                  { value: 'CPI', label: 'CPI linked' },
-                  { value: 'Doubling', label: 'Doubling (⚠️ unmortgageable risk)' },
-                  { value: 'Fixed amount', label: 'Fixed amount increase' },
-                  { value: 'Unknown', label: 'Unknown' },
-                ]}
-              />
-              <ISelect
-                label="Share of freehold?"
-                value={String(form.shareOfFreehold ?? 'No')}
-                onChange={v => setField('shareOfFreehold', v)}
-                options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
-              />
-              <IField label="Sinking fund balance (£)" value={Number(form.sinkingFundBalance) > 0 ? fc(Number(form.sinkingFundBalance)) : ''} onChange={v => setField('sinkingFundBalance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-            </IGrid>
-            {String(form.groundRentReviewClause ?? '').toLowerCase().includes('doubl') && (
-              <div style={{ marginTop: '10px', padding: '10px 14px', background: '#fef2f2', border: '.5px solid #fca5a5', borderRadius: '8px', fontSize: '11px', color: '#991b1b' }}>
-                ⚠️ <strong>Doubling ground rent</strong> — this lease structure may make the property unmortgageable. Confirm with solicitor before proceeding.
-              </div>
-            )}
-          </Sec>
-        )}
-
-        {/* 3. SELLER / LANDLORD */}
-        <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} />
-
-        {/* 3b. OWNERSHIP & TAX */}
-        <Sec title="Ownership &amp; tax">
-          <IGrid>
-            <ISelect
-              label="Ownership structure"
-              value={String(form.ownershipStructure ?? 'Personal name')}
-              onChange={v => setField('ownershipStructure', v)}
-              options={[
-                { value: 'Personal name', label: 'Personal name' },
-                { value: 'Ltd company', label: 'Ltd company (SPV)' },
-                { value: 'LLP', label: 'LLP' },
-                { value: 'Trust', label: 'Trust' },
-              ]}
-            />
-            <ISelect
-              label="Income tax band"
-              value={String(form.incomeTaxBand ?? '20%')}
-              onChange={v => setField('incomeTaxBand', v)}
-              options={[
-                { value: '20%', label: '20% (Basic rate)' },
-                { value: '40%', label: '40% (Higher rate)' },
-                { value: '45%', label: '45% (Additional rate)' },
-              ]}
-            />
-            <div>
-              <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#5a6270', marginBottom: 4 }}>Joint ownership?</div>
-              <Seg2 field="isJointOwnership" opts={['No', 'Yes']} />
-            </div>
-          </IGrid>
-
-          {/* Joint ownership split */}
-          {String(form.isJointOwnership ?? 'No') === 'Yes' && (
-            <IGrid style={{ marginTop: '10px' }}>
-              <IField label="Your ownership (%)" value={fp(Number(form.ownershipSplitPercent ?? 50))} onChange={v => setField('ownershipSplitPercent', parseFloat(v) || 50)} />
-              <ISelect
-                label="Partner's tax band"
-                value={String(form.partnerTaxBand ?? '20%')}
-                onChange={v => setField('partnerTaxBand', v)}
-                options={[
-                  { value: '20%', label: '20% (Basic rate)' },
-                  { value: '40%', label: '40% (Higher rate)' },
-                  { value: '45%', label: '45% (Additional rate)' },
-                ]}
-              />
-            </IGrid>
-          )}
-
-          {/* JV investor split */}
-          {String(form.ownershipStructure ?? '').toLowerCase().includes('jv') && (
-            <IGrid style={{ marginTop: '10px' }}>
-              <IField label="JV investor split (%)" value={fp(Number(form.jvInvestorSplitPercent ?? 50))} onChange={v => setField('jvInvestorSplitPercent', parseFloat(v) || 50)} />
-            </IGrid>
-          )}
-
-          {/* Section 24 notice */}
-          {(String(form.ownershipStructure ?? 'Personal name') === 'Personal name' || !form.ownershipStructure) &&
-           String(form.isCashBuyer ?? 'No') !== 'Yes' &&
-           form.purchaseFinanceMethod !== 'Cash' && (
-            <div style={{ marginTop: '12px', padding: '10px 14px', background: '#eff6ff', border: '.5px solid #bfdbfe', borderRadius: '8px', fontSize: '11px', color: '#1e3a5f', lineHeight: 1.6 }}>
-              <i className="ti ti-info-circle" style={{ marginRight: '6px' }} />
-              <strong>Section 24:</strong> Personal name landlords cannot deduct mortgage interest from rental profit — only a 20% basic rate tax credit applies. Higher-rate taxpayers may pay tax on profit they haven't made. Consider Ltd company structure.
-            </div>
-          )}
-        </Sec>
-
-        {/* 4. STEP 1 — Buy / Rent / Specialist */}
+        {/* 3. STEP 1 — Buy / Rent / Specialist */}
         <Step1ModePicker mode={mode} onSelect={setMode} />
 
         {/* 5. STEP 2 — Strategy tiles + SC toggle (CHANGE 4) */}
@@ -2398,7 +2323,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Property & purchase — Buy strategies */}
         {mode === 'buy' && (
-          <Sec title="Property &amp; purchase">
+          <Sec title="Property &amp; purchase" badge={purchaseComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -2452,16 +2377,6 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               </div>
             )}
 
-            {/* MDR toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 4px', padding: '10px 12px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
-              <i className="ti ti-receipt-tax" style={{ fontSize: '15px', color: 'var(--text-2)' }} />
-              <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>Multiple Dwellings Relief (MDR) applies?</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-2)', marginRight: '8px' }}>Buying 2+ units in one transaction can reduce stamp duty significantly</span>
-              <button onClick={() => isEditing && setField('mdrApplies', !form.mdrApplies)} style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: form.mdrApplies ? 'var(--navy)' : 'var(--bg-sec)', color: form.mdrApplies ? '#fff' : 'var(--text-2)' }}>
-                {form.mdrApplies ? 'Yes' : 'No'}
-              </button>
-            </div>
-
             {/* Purchase costs breakdown (FIX I) */}
             <div style={{ height: 0.5, background: 'var(--ds-border)', margin: '14px 0 10px' }} />
             <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--navy)', marginBottom: 10, padding: '3px 8px', background: 'var(--navy-light)', borderRadius: 6, display: 'inline-block' }}>
@@ -2475,12 +2390,80 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               <IField label="Mortgage arrangement fee (£)" value={Number(form.mortgageArrangementFee) > 0 ? fc(Number(form.mortgageArrangementFee)) : ''} onChange={v => setField('mortgageArrangementFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Other costs (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.otherCosts) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).otherCosts)) : ''} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
+            {/* MDR — shown only for England/N.Ireland (SDLT) — FIX W */}
+            {(p.taxCountry === 'ENGLAND' || !p.taxCountry) && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: form.mdrApplies ? 'var(--navy-light)' : 'transparent', border: `.5px solid ${form.mdrApplies ? 'var(--navy)' : 'transparent'}`, borderRadius: 6, cursor: isEditing ? 'pointer' : 'default', fontSize: 12, color: form.mdrApplies ? 'var(--navy)' : 'var(--text-2)', transition: 'all .15s', userSelect: 'none' as const, marginTop: 4 }}>
+                <input type="checkbox" checked={!!form.mdrApplies} onChange={e => isEditing && setField('mdrApplies', e.target.checked)} disabled={!isEditing} style={{ accentColor: 'var(--navy)', width: 13, height: 13 }} />
+                Multiple Dwellings Relief (MDR) applies
+                <span style={{ fontSize: 10, color: 'var(--text-2)', marginLeft: 4 }}>— recalculates SDLT</span>
+              </label>
+            )}
+            {/* Auction purchase — FIX V */}
+            <div style={{ marginTop: 10 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 11px', background: form.isAuctionPurchase ? 'var(--navy-light)' : 'var(--bg-sec)', border: `.5px solid ${form.isAuctionPurchase ? 'var(--navy)' : 'var(--ds-border)'}`, borderRadius: 7, cursor: isEditing ? 'pointer' : 'default', fontSize: 13, color: form.isAuctionPurchase ? 'var(--navy)' : '#555', fontWeight: form.isAuctionPurchase ? 500 : 400, transition: 'all .15s', userSelect: 'none' as const }}>
+                <input type="checkbox" checked={!!form.isAuctionPurchase} onChange={e => isEditing && setField('isAuctionPurchase', e.target.checked)} disabled={!isEditing} style={{ accentColor: 'var(--navy)', width: 14, height: 14 }} />
+                This is an auction purchase
+              </label>
+              {!!form.isAuctionPurchase && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 9, marginTop: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: '#bbb', marginBottom: 4 }}>Auction date</div>
+                    <input type="date" value={String(form.auctionDate ?? '')} onChange={e => isEditing && setField('auctionDate', e.target.value)} readOnly={!isEditing} style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, width: '100%', fontFamily: 'inherit', outline: 'none' }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: '#bbb', marginBottom: 4 }}>Reserve price</div>
+                    <input type="number" placeholder="e.g. 220000" value={Number(form.auctionReserve) > 0 ? String(form.auctionReserve) : ''} onChange={e => isEditing && setField('auctionReserve', Number(e.target.value))} readOnly={!isEditing} style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, width: '100%', fontFamily: 'inherit', outline: 'none' }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: '#bbb', marginBottom: 4 }}>Completion deadline</div>
+                    <input type="date" value={form.auctionDate ? new Date(new Date(String(form.auctionDate)).getTime() + 28 * 86400000).toISOString().split('T')[0] : ''} readOnly style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, width: '100%', fontFamily: 'inherit', outline: 'none', background: 'var(--bg-sec)', color: 'var(--text-2)' }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </Sec>
+        )}
+
+        {/* Leasehold details — shown only when Tenure = Leasehold */}
+        {mode === 'buy' && String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
+          <Sec title="Leasehold details">
+            <IGrid>
+              <IField label="Remaining lease (years)" value={String(form.remainingLeaseYears ?? '')} onChange={v => setField('remainingLeaseYears', parseInt(v) || 0)} required />
+              <IField label="Lease extension cost (£)" value={Number(form.leaseExtensionCost) > 0 ? fc(Number(form.leaseExtensionCost)) : ''} onChange={v => setField('leaseExtensionCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <ISelect
+                label="Ground rent review"
+                value={String(form.groundRentReviewClause ?? 'None')}
+                onChange={v => setField('groundRentReviewClause', v)}
+                options={[
+                  { value: 'None', label: 'None / fixed' },
+                  { value: 'RPI', label: 'RPI linked' },
+                  { value: 'CPI', label: 'CPI linked' },
+                  { value: 'Doubling', label: 'Doubling (⚠️ unmortgageable risk)' },
+                  { value: 'Fixed amount', label: 'Fixed amount increase' },
+                  { value: 'Unknown', label: 'Unknown' },
+                ]}
+              />
+              <ISelect
+                label="Share of freehold?"
+                value={String(form.shareOfFreehold ?? 'No')}
+                onChange={v => setField('shareOfFreehold', v)}
+                options={[{ value: 'No', label: 'No' }, { value: 'Yes', label: 'Yes' }]}
+              />
+              <IField label="Sinking fund balance (£)" value={Number(form.sinkingFundBalance) > 0 ? fc(Number(form.sinkingFundBalance)) : ''} onChange={v => setField('sinkingFundBalance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+            </IGrid>
+            {String(form.groundRentReviewClause ?? '').toLowerCase().includes('doubl') && (
+              <div style={{ marginTop: '10px', padding: '10px 14px', background: '#fef2f2', border: '.5px solid #fca5a5', borderRadius: '8px', fontSize: '11px', color: '#991b1b' }}>
+                ⚠️ <strong>Doubling ground rent</strong> — this lease structure may make the property unmortgageable. Confirm with solicitor before proceeding.
+              </div>
+            )}
           </Sec>
         )}
 
         {/* Purchase financing — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec title="Purchase financing">
+          <Sec title="Purchase financing" badge={financeComplete ? 'Complete' : undefined}>
             {/* Method selector */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
@@ -2545,7 +2528,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Refurb financing — Buy strategies where refurb cost > 0 */}
         {mode === 'buy' && Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 && (
-          <Sec title="Refurb financing">
+          <Sec title="Refurb financing" badge={refurbComplete ? 'Complete' : undefined}>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               {(['Cash', 'Bridging'] as const).map(method => (
                 <button key={method}
@@ -2573,7 +2556,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Monthly costs — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec title="Monthly costs">
+          <Sec title="Monthly costs" badge={monthlyCostsComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Management fee (%)" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
               <div style={{ position: 'relative' }}>
@@ -2605,9 +2588,74 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
           </Sec>
         )}
 
+        {/* Ownership & tax */}
+        <Sec title="Ownership &amp; tax" badge={ownershipComplete ? 'Complete' : undefined}>
+          <IGrid>
+            <ISelect
+              label="Ownership structure"
+              value={String(form.ownershipStructure ?? 'Personal name')}
+              onChange={v => setField('ownershipStructure', v)}
+              options={[
+                { value: 'Personal name', label: 'Personal name' },
+                { value: 'Ltd company', label: 'Ltd company (SPV)' },
+                { value: 'LLP', label: 'LLP' },
+                { value: 'Trust', label: 'Trust' },
+              ]}
+            />
+            <ISelect
+              label="Income tax band"
+              value={String(form.incomeTaxBand ?? '20%')}
+              onChange={v => setField('incomeTaxBand', v)}
+              options={[
+                { value: '20%', label: '20% (Basic rate)' },
+                { value: '40%', label: '40% (Higher rate)' },
+                { value: '45%', label: '45% (Additional rate)' },
+              ]}
+            />
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>Joint ownership?<span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} /></div>
+              <Seg2 field="isJointOwnership" opts={['No', 'Yes']} />
+            </div>
+          </IGrid>
+
+          {/* Joint ownership split */}
+          {String(form.isJointOwnership ?? 'No') === 'Yes' && (
+            <IGrid style={{ marginTop: '10px' }}>
+              <IField label="Your ownership (%)" value={fp(Number(form.ownershipSplitPercent ?? 50))} onChange={v => setField('ownershipSplitPercent', parseFloat(v) || 50)} />
+              <ISelect
+                label="Partner's tax band"
+                value={String(form.partnerTaxBand ?? '20%')}
+                onChange={v => setField('partnerTaxBand', v)}
+                options={[
+                  { value: '20%', label: '20% (Basic rate)' },
+                  { value: '40%', label: '40% (Higher rate)' },
+                  { value: '45%', label: '45% (Additional rate)' },
+                ]}
+              />
+            </IGrid>
+          )}
+
+          {/* JV investor split */}
+          {String(form.ownershipStructure ?? '').toLowerCase().includes('jv') && (
+            <IGrid style={{ marginTop: '10px' }}>
+              <IField label="JV investor split (%)" value={fp(Number(form.jvInvestorSplitPercent ?? 50))} onChange={v => setField('jvInvestorSplitPercent', parseFloat(v) || 50)} />
+            </IGrid>
+          )}
+
+          {/* Section 24 notice */}
+          {(String(form.ownershipStructure ?? 'Personal name') === 'Personal name' || !form.ownershipStructure) &&
+           String(form.isCashBuyer ?? 'No') !== 'Yes' &&
+           form.purchaseFinanceMethod !== 'Cash' && (
+            <div style={{ marginTop: '12px', padding: '10px 14px', background: '#eff6ff', border: '.5px solid #bfdbfe', borderRadius: '8px', fontSize: '11px', color: '#1e3a5f', lineHeight: 1.6 }}>
+              <i className="ti ti-info-circle" style={{ marginRight: '6px' }} />
+              <strong>Section 24:</strong> Personal name landlords cannot deduct mortgage interest from rental profit — only a 20% basic rate tax credit applies. Higher-rate taxpayers may pay tax on profit they haven't made. Consider Ltd company structure.
+            </div>
+          )}
+        </Sec>
+
         {/* BTL */}
         {activeTile === 'btl' && (
-          <Sec title="BTL — income &amp; setup">
+          <Sec title="BTL — income &amp; setup" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} />
@@ -2628,7 +2676,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* HMO */}
         {activeTile === 'hmo' && (
-          <Sec title="HMO — room breakdown &amp; compliance">
+          <Sec title="HMO — room breakdown &amp; compliance" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Rooms" value={String((form.hmoInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
               <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
@@ -2706,7 +2754,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
         {/* FLIP */}
         {activeTile === 'flip' && (
           <>
-            <Sec title="FLIP — project details">
+            <Sec title="FLIP — project details" badge={strategyComplete ? 'Complete' : undefined}>
               <IGrid>
                 <IField label="Expected sale price" value={Number((form.flipInputs as Record<string,unknown>)?.expectedSalePrice) > 0 ? fc(Number((form.flipInputs as Record<string,unknown>).expectedSalePrice)) : ''} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
                 <IField label="Contingency %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.contingencyPercent ?? 10))} onChange={v => setField('flipInputs.contingencyPercent', parseFloat(v) || 10)} />
@@ -2884,6 +2932,19 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
             </div>
           </Sec>
         )}
+
+        {/* Seller / landlord */}
+        <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
+
+        {/* Deal terms */}
+        <Sec title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined}>
+          <IGrid>
+            <IField label="Sourcing fee (£)" value={Number(form.sourcingFeePaid) > 0 ? fc(Number(form.sourcingFeePaid)) : ''} onChange={v => setField('sourcingFeePaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+            <IField label="Cooling-off period (days)" value={String(form.coolingOffPeriodDays ?? '')} onChange={v => setField('coolingOffPeriodDays', parseInt(v) || 0)} />
+            <IField label="Payment terms" value={String(form.paymentTerms ?? '')} onChange={v => setField('paymentTerms', v)} />
+            <IField label="Target completion date" value={String(form.targetCompletionDate ?? '')} onChange={v => setField('targetCompletionDate', v)} />
+          </IGrid>
+        </Sec>
 
         {/* ── Sold Price Comparables — white card (FIX J) ── */}
         <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', padding: '16px 18px', marginBottom: 10 }}>
