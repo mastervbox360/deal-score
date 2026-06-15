@@ -5,7 +5,7 @@ import {
   calculateBRRR, calculateR2R, calculateSocialHousing,
   calculatePropertyTax, calculateDealScore,
   TAX_LABEL, COUNTRY_LABEL,
-  type Country, type BuyerType, type DealType, type DealScoreResult,
+  type Country, type BuyerType, type DealType, type DealScoreResult, type MortgageType,
 } from '@/lib/calculations'
 import { type SerializedInputs } from '@/lib/inputsSerializer'
 import { type Deal } from '@/lib/database.types'
@@ -113,6 +113,78 @@ interface ParsedInputs {
   socialLeaseIncomePerMonth: number
   socialLeaseLengthYears: number
   socialPurchaseFinancingMethod: string
+  // Purchase finance (Prompt 7+)
+  purchaseFinanceMethod: string
+  isCashBuyer: boolean
+  bridgingRateMonthly: number
+  bridgingTermMonths: number
+  bridgingLTV: number
+  bridgingArrangementFeePercent: number
+  bridgingExitFeePercent: number
+  // A1: Purchase cost breakdown
+  solicitorFee: number
+  surveyCost: number
+  brokerFee: number
+  sourcingFeePaid: number
+  mortgageArrangementFee: number
+  // Auction
+  isAuctionPurchase: boolean
+  auctionBuyersPremiumPercent: number
+  auctionReservationFee: number
+  // Leasehold extras
+  leaseExtensionCost: number
+  epcImprovementCost: number
+  // A8: New shared monthly costs
+  landlordInsuranceMonthly: number
+  rentGuaranteeInsurance: number
+  legalExpensesInsurance: number
+  annualComplianceCosts: number
+  councilTaxVoids: number
+  // FLIP (A6)
+  flipPlanningCost: number
+  flipPurchaseFinanceMethod: string
+  flipBridgingRate: number
+  flipBridgingTermMonths: number
+  flipBridgingLTV: number
+  flipBridgingArrangementFee: number
+  flipBridgingExitFee: number
+  // BRRR (A3)
+  brrrPurchaseBridgingRate: number
+  brrrPurchaseBridgingTermMonths: number
+  brrrPurchaseBridgingLTV: number
+  brrrPurchaseBridgingArrangementFee: number
+  brrrPurchaseBridgingExitFee: number
+  brrrRefinanceMortgageType: string
+  brrrRefinanceMortgageTerm: number
+  brrrRefinanceArrangementFeePercent: number
+  // SA (A4/A5)
+  saAvgStayLengthNights: number
+  saLinenCostPerStay: number
+  saConsumablesMonthly: number
+  saCouncilTaxMonthly: number
+  saChannelManagerMonthly: number
+  saFurnishingSetupCost: number
+  // HMO extras
+  hmoCouncilTaxMonthly: number
+  hmoFireComplianceCost: number
+  // BTL (A10)
+  btlInitialVoidWeeks: number
+  // R2R (A9)
+  r2rLeaseLengthMonths: number
+  r2rRightToSubletConfirmed: boolean
+  r2rLandlordMortgageConsentObtained: boolean
+  // Ownership/tax (B2/B3)
+  ownershipStructure: string
+  incomeTaxBand: string
+  askingPrice: number
+  // Risk flag inputs (C)
+  epcRating: string
+  constructionType: string
+  floodRisk: string
+  listedStatus: string
+  groundRentReviewClause: string
+  hmoArticle4Area: boolean
+  saLicenceRequired: boolean
 }
 
 function parseInputs(deal: Deal): ParsedInputs {
@@ -147,7 +219,7 @@ function parseInputs(deal: Deal): ParsedInputs {
     voidAllowancePercent: n(inp.voidAllowancePercent, 5),
     maintenanceReserve:   n(inp.maintenanceReserve, 75),
     buildingsInsurance:   n(inp.buildingsInsurance, 30),
-    serviceCharge:        n(inp.serviceCharge),
+    serviceCharge:        n(inp.serviceChargeMonthly ?? inp.serviceCharge),
     groundRentAnnual:     n(inp.groundRentAnnual),
     // property info
     propertyType: s(inp.propertyType, 'Terraced'),
@@ -196,6 +268,78 @@ function parseInputs(deal: Deal): ParsedInputs {
     socialLeaseIncomePerMonth: n(social.leaseIncomePerMonth),
     socialLeaseLengthYears:    n(social.leaseLengthYears, 5),
     socialPurchaseFinancingMethod: s(inp.socialPurchaseFinancingMethod, 'mortgage'),
+    // Purchase finance
+    purchaseFinanceMethod: s(inp.purchaseFinanceMethod, 'Mortgage'),
+    isCashBuyer: String(inp.isCashBuyer) === 'Yes',
+    bridgingRateMonthly: n(inp.bridgingRateMonthly ?? inp.bridgingRate),
+    bridgingTermMonths: n(inp.bridgingTermMonths),
+    bridgingLTV: n(inp.bridgingLTV, 70),
+    bridgingArrangementFeePercent: n(inp.bridgingArrangementFeePercent, 2),
+    bridgingExitFeePercent: n(inp.bridgingExitFeePercent),
+    // A1: Purchase cost breakdown
+    solicitorFee: n(inp.solicitorFee),
+    surveyCost: n(inp.surveyCost),
+    brokerFee: n(inp.brokerFee),
+    sourcingFeePaid: n(inp.sourcingFeePaid),
+    mortgageArrangementFee: n(inp.mortgageArrangementFee),
+    // Auction
+    isAuctionPurchase: !!inp.isAuctionPurchase,
+    auctionBuyersPremiumPercent: n(inp.auctionBuyersPremiumPercent),
+    auctionReservationFee: n(inp.auctionReservationFee),
+    // Leasehold extras
+    leaseExtensionCost: n(inp.leaseExtensionCost),
+    epcImprovementCost: n(inp.epcImprovementCost),
+    // A8: New shared monthly costs
+    landlordInsuranceMonthly: n(inp.landlordInsuranceMonthly),
+    rentGuaranteeInsurance: n(inp.rentGuaranteeInsurance),
+    legalExpensesInsurance: n(inp.legalExpensesInsurance),
+    annualComplianceCosts: n(inp.annualComplianceCosts),
+    councilTaxVoids: n(inp.councilTaxVoids),
+    // FLIP (A6)
+    flipPlanningCost: n(flip.planningCost),
+    flipPurchaseFinanceMethod: s(inp.flipPurchaseFinanceMethod, 'Cash'),
+    flipBridgingRate: n(flip.bridgingRate),
+    flipBridgingTermMonths: n(flip.bridgingTermMonths),
+    flipBridgingLTV: n(flip.bridgingLTV, 70),
+    flipBridgingArrangementFee: n(flip.bridgingArrangementFee, 2),
+    flipBridgingExitFee: n(flip.bridgingExitFee),
+    // BRRR (A3)
+    brrrPurchaseBridgingRate: n(brrr.purchaseBridgingRate),
+    brrrPurchaseBridgingTermMonths: n(brrr.purchaseBridgingTermMonths),
+    brrrPurchaseBridgingLTV: n(brrr.purchaseBridgingLTV, 70),
+    brrrPurchaseBridgingArrangementFee: n(brrr.purchaseBridgingArrangementFee, 2),
+    brrrPurchaseBridgingExitFee: n(brrr.purchaseBridgingExitFee),
+    brrrRefinanceMortgageType: s(brrr.refinanceMortgageType, 'IO'),
+    brrrRefinanceMortgageTerm: n(brrr.refinanceMortgageTerm, 25),
+    brrrRefinanceArrangementFeePercent: n(brrr.refinanceArrangementFeePercent, 1),
+    // SA (A4/A5)
+    saAvgStayLengthNights: n(sa.avgStayLengthNights, 3),
+    saLinenCostPerStay: n(sa.linenCostPerStay),
+    saConsumablesMonthly: n(sa.consumablesMonthly),
+    saCouncilTaxMonthly: n(sa.councilTaxMonthly),
+    saChannelManagerMonthly: n(sa.channelManagerMonthly),
+    saFurnishingSetupCost: n(sa.furnishingSetupCost),
+    // HMO extras
+    hmoCouncilTaxMonthly: n(hmo.councilTaxMonthly),
+    hmoFireComplianceCost: n(hmo.fireComplianceCost),
+    // BTL (A10)
+    btlInitialVoidWeeks: n(btl.initialVoidWeeks, 4),
+    // R2R (A9)
+    r2rLeaseLengthMonths: n(r2r.leaseLengthMonths),
+    r2rRightToSubletConfirmed: !!r2r.rightToSubletConfirmed,
+    r2rLandlordMortgageConsentObtained: !!r2r.landlordMortgageConsentObtained,
+    // Ownership/tax (B2/B3)
+    ownershipStructure: s(inp.ownershipStructure, 'Personal name'),
+    incomeTaxBand: s(inp.incomeTaxBand, '40%'),
+    askingPrice: n(inp.askingPrice),
+    // Risk flag inputs (C)
+    epcRating: s(inp.epcRating),
+    constructionType: s(inp.constructionType),
+    floodRisk: s(inp.floodRisk),
+    listedStatus: s(inp.listedStatus, 'None'),
+    groundRentReviewClause: s(inp.groundRentReviewClause),
+    hmoArticle4Area: !!hmo.article4Area,
+    saLicenceRequired: !!sa.licenceRequired,
   }
 }
 
@@ -232,6 +376,32 @@ interface CalcResult {
   monthlyProfit?: number
   spreadPerRoom?: number
   occupancyBreakEven?: number
+  // Analysis extras (Prompt 9)
+  bmvPercent?: number
+  icrMultiplier?: number
+  icrRequirement?: number
+  passesICR?: boolean
+  netProfitAfterTax?: number
+  effectiveTaxRate?: number
+  riskFlags?: Record<string, boolean>
+  totalBridgingCost?: number
+  extraUpfrontCosts?: number
+}
+
+function computeBridgingCost(
+  purchasePrice: number,
+  rateMonthly: number,
+  termMonths: number,
+  ltv: number,
+  arrangementFeePercent: number,
+  exitFeePercent: number,
+): number {
+  if (rateMonthly <= 0 || termMonths <= 0 || ltv <= 0) return 0
+  const loanAmount = purchasePrice * (ltv / 100)
+  const interestCost = loanAmount * (rateMonthly / 100) * termMonths
+  const arrangementCost = loanAmount * (arrangementFeePercent / 100)
+  const exitCost = loanAmount * (exitFeePercent / 100)
+  return interestCost + arrangementCost + exitCost
 }
 
 function runCalc(p: ParsedInputs, overrides?: Partial<ParsedInputs>): CalcResult {
@@ -239,6 +409,21 @@ function runCalc(p: ParsedInputs, overrides?: Partial<ParsedInputs>): CalcResult
   const tax = pp.taxOverrideActive
     ? pp.manualTaxValue
     : calculatePropertyTax(pp.purchasePrice, pp.taxCountry, pp.buyerType)
+
+  // A1: Extra upfront one-off costs
+  const auctionCosts = pp.isAuctionPurchase
+    ? pp.purchasePrice * (pp.auctionBuyersPremiumPercent / 100) + pp.auctionReservationFee
+    : 0
+  const leaseholdExtCost = pp.tenure === 'Leasehold' ? pp.leaseExtensionCost : 0
+  const extraUpfrontCosts =
+    pp.solicitorFee + pp.surveyCost + pp.brokerFee + pp.sourcingFeePaid +
+    pp.mortgageArrangementFee + auctionCosts + leaseholdExtCost + pp.epcImprovementCost
+
+  // A8: Additional monthly costs shared across buy strategies
+  const additionalMonthlyCosts =
+    pp.landlordInsuranceMonthly + pp.rentGuaranteeInsurance +
+    pp.legalExpensesInsurance / 12 + pp.annualComplianceCosts / 12 + pp.councilTaxVoids
+
   const costInputs = {
     managementFeePercent: pp.managementFeePercent,
     voidAllowancePercent: pp.voidAllowancePercent,
@@ -246,6 +431,7 @@ function runCalc(p: ParsedInputs, overrides?: Partial<ParsedInputs>): CalcResult
     buildingsInsurance:   pp.buildingsInsurance,
     serviceCharge:        pp.serviceCharge,
     groundRentAnnual:     pp.groundRentAnnual,
+    additionalMonthlyCosts,
   }
   const baseShared = {
     purchasePrice: pp.purchasePrice,
@@ -254,57 +440,172 @@ function runCalc(p: ParsedInputs, overrides?: Partial<ParsedInputs>): CalcResult
     stampDuty:     tax,
   }
 
+  // A2: Purchase bridging cost (BTL/HMO/SA/SOCIAL when purchaseFinanceMethod = 'Bridging')
+  const purchaseBridgingCost = pp.purchaseFinanceMethod === 'Bridging'
+    ? computeBridgingCost(pp.purchasePrice, pp.bridgingRateMonthly, pp.bridgingTermMonths, pp.bridgingLTV, pp.bridgingArrangementFeePercent, pp.bridgingExitFeePercent)
+    : 0
+
+  // B1: BMV%
+  const bmvPercent = pp.askingPrice > 0 && pp.purchasePrice > 0
+    ? ((pp.askingPrice - pp.purchasePrice) / pp.askingPrice) * 100
+    : 0
+
+  // C: Base risk flags (strategy-specific overrides applied per block below)
+  const baseRiskFlags: Record<string, boolean> = {
+    doubling_ground_rent:        pp.groundRentReviewClause === 'Doubling',
+    non_standard_construction:   !!(pp.constructionType) && pp.constructionType !== 'Standard (brick/block)',
+    epc_below_c:                 ['D', 'E', 'F', 'G'].includes((pp.epcRating ?? '').toUpperCase()),
+    article_4_area:              pp.hmoArticle4Area,
+    flood_risk_high:             pp.floodRisk === 'High',
+    listed_building:             !!(pp.listedStatus) && pp.listedStatus !== 'None',
+    r2r_no_sublet_right:         false,
+    r2r_no_mortgage_consent:     false,
+    sa_licence_required:         pp.saLicenceRequired,
+    fails_icr:                   false,
+  }
+
   if (pp.strategy === 'BTL') {
+    const isCash = pp.purchaseFinanceMethod === 'Cash' || pp.btlPurchaseFinancingMethod === 'cash' || pp.isCashBuyer
     const r = calculateBTL({
       ...baseShared,
-      depositPercent: pp.btlPurchaseFinancingMethod === 'cash' ? 100 : pp.depositPercent,
-      mortgageRate:   pp.btlPurchaseFinancingMethod === 'cash' ? 0   : pp.mortgageRate,
+      depositPercent: isCash ? 100 : pp.depositPercent,
+      mortgageRate:   isCash ? 0   : pp.mortgageRate,
       mortgageTerm:   pp.mortgageTerm,
       mortgageType:   pp.mortgageType,
       monthlyRent:    pp.btlMonthlyRent,
       ...costInputs,
     })
-    return { ...r, monthlyMortgagePayment: r.monthlyMortgageInterest }
+    // A10: Initial void cost — mortgage interest during vacant setup period
+    const initialVoidCost = isCash ? 0 : (pp.btlInitialVoidWeeks / 4) * r.monthlyMortgageInterest
+    const totalCashInvested = r.totalCashInvested + extraUpfrontCosts + purchaseBridgingCost + initialVoidCost
+
+    // B2: ICR stress test
+    const depositPct = isCash ? 100 : pp.depositPercent
+    const mortgageLoan = pp.purchasePrice * (1 - depositPct / 100)
+    const monthlyStress = mortgageLoan * (0.055 / 12)
+    const icrMultiplier = monthlyStress > 0 ? pp.btlMonthlyRent / monthlyStress : 0
+    const icrRequirement = pp.ownershipStructure === 'Ltd company' ? 1.25 : 1.45
+    const passesICR = isCash || icrMultiplier >= icrRequirement
+
+    // B3: Section 24 net profit after tax (personal ownership, mortgaged)
+    let netProfitAfterTax: number | undefined
+    let effectiveTaxRate: number | undefined
+    if (pp.ownershipStructure === 'Personal name' && !isCash && pp.mortgageRate > 0) {
+      const annualMortgageInterest = mortgageLoan * (pp.mortgageRate / 100)
+      const section24TaxCredit = annualMortgageInterest * 0.20
+      const annualRentalIncome = pp.btlMonthlyRent * 12
+      const annualOpCosts = r.totalOperatingCosts * 12
+      const annualMortgageCost = r.monthlyMortgageInterest * 12
+      const taxableProfit = annualRentalIncome - annualOpCosts
+      const incomeTaxRate = pp.incomeTaxBand === '45%' ? 0.45 : pp.incomeTaxBand === '40%' ? 0.40 : 0.20
+      const taxLiability = Math.max(0, taxableProfit * incomeTaxRate - section24TaxCredit)
+      netProfitAfterTax = annualRentalIncome - annualOpCosts - annualMortgageCost - taxLiability
+      effectiveTaxRate = annualRentalIncome > 0 ? (taxLiability / annualRentalIncome) * 100 : 0
+    }
+
+    return {
+      ...r,
+      totalCashInvested,
+      monthlyMortgagePayment: r.monthlyMortgageInterest,
+      bmvPercent,
+      icrMultiplier,
+      icrRequirement,
+      passesICR,
+      netProfitAfterTax,
+      effectiveTaxRate,
+      riskFlags: { ...baseRiskFlags, fails_icr: !passesICR },
+      totalBridgingCost: purchaseBridgingCost,
+      extraUpfrontCosts,
+    }
   }
 
   if (pp.strategy === 'HMO') {
+    const isCash = pp.purchaseFinanceMethod === 'Cash' || pp.hmoPurchaseFinancingMethod === 'cash' || pp.isCashBuyer
     const r = calculateHMO({
       ...baseShared,
-      otherCosts:     baseShared.otherCosts + pp.hmoLicenceCost,
-      depositPercent: pp.hmoPurchaseFinancingMethod === 'cash' ? 100 : pp.depositPercent,
-      mortgageRate:   pp.hmoPurchaseFinancingMethod === 'cash' ? 0   : pp.mortgageRate,
-      mortgageTerm:   pp.mortgageTerm,
-      mortgageType:   pp.mortgageType,
-      rooms:          pp.hmoRooms,
-      rentPerRoom:    pp.hmoRentPerRoom,
-      occupancyRate:  pp.hmoOccupancyRate,
+      otherCosts:        baseShared.otherCosts + pp.hmoLicenceCost + pp.hmoFireComplianceCost,
+      depositPercent:    isCash ? 100 : pp.depositPercent,
+      mortgageRate:      isCash ? 0   : pp.mortgageRate,
+      mortgageTerm:      pp.mortgageTerm,
+      mortgageType:      pp.mortgageType,
+      rooms:             pp.hmoRooms,
+      rentPerRoom:       pp.hmoRentPerRoom,
+      occupancyRate:     pp.hmoOccupancyRate,
+      billsUtilities:    pp.hmoBillsUtilities,
+      councilTaxMonthly: pp.hmoCouncilTaxMonthly,
       ...costInputs,
     })
-    return { ...r, monthlyMortgagePayment: r.monthlyMortgageInterest }
+    const totalCashInvested = r.totalCashInvested + extraUpfrontCosts + purchaseBridgingCost
+
+    // B2: ICR
+    const depositPct = isCash ? 100 : pp.depositPercent
+    const mortgageLoan = pp.purchasePrice * (1 - depositPct / 100)
+    const monthlyStress = mortgageLoan * (0.055 / 12)
+    const grossMonthlyRent = pp.hmoRooms * pp.hmoRentPerRoom
+    const icrMultiplier = monthlyStress > 0 ? grossMonthlyRent / monthlyStress : 0
+    const icrRequirement = pp.ownershipStructure === 'Ltd company' ? 1.25 : 1.45
+    const passesICR = isCash || icrMultiplier >= icrRequirement
+
+    return {
+      ...r,
+      totalCashInvested,
+      monthlyMortgagePayment: r.monthlyMortgageInterest,
+      bmvPercent,
+      icrMultiplier,
+      icrRequirement,
+      passesICR,
+      riskFlags: { ...baseRiskFlags, article_4_area: pp.hmoArticle4Area, fails_icr: !passesICR },
+      totalBridgingCost: purchaseBridgingCost,
+      extraUpfrontCosts,
+    }
   }
 
   if (pp.strategy === 'SA') {
+    const isCash = pp.purchaseFinanceMethod === 'Cash' || pp.saPurchaseFinancingMethod === 'cash' || pp.isCashBuyer
     const r = calculateSA({
       ...baseShared,
-      depositPercent:      pp.saPurchaseFinancingMethod === 'cash' ? 100 : pp.depositPercent,
-      mortgageRate:        pp.saPurchaseFinancingMethod === 'cash' ? 0   : pp.mortgageRate,
-      mortgageTerm:        pp.mortgageTerm,
-      mortgageType:        pp.mortgageType,
-      nightlyRate:         pp.saNightlyRate,
-      occupancyPercent:    pp.saOccupancyPercent,
-      platformFeesPercent: pp.saPlatformFeesPercent,
+      depositPercent:        isCash ? 100 : pp.depositPercent,
+      mortgageRate:          isCash ? 0   : pp.mortgageRate,
+      mortgageTerm:          pp.mortgageTerm,
+      mortgageType:          pp.mortgageType,
+      nightlyRate:           pp.saNightlyRate,
+      occupancyPercent:      pp.saOccupancyPercent,
+      platformFeesPercent:   pp.saPlatformFeesPercent,
+      cleaningCostPerStay:   pp.saCleaningCostPerStay,
+      billsUtilities:        pp.saBillsUtilities,
+      avgStayLengthNights:   pp.saAvgStayLengthNights,
+      linenCostPerStay:      pp.saLinenCostPerStay,
+      consumablesMonthly:    pp.saConsumablesMonthly,
+      councilTaxMonthly:     pp.saCouncilTaxMonthly,
+      channelManagerMonthly: pp.saChannelManagerMonthly,
+      furnishingSetupCost:   pp.saFurnishingSetupCost,
       ...costInputs,
     })
-    return { ...r, monthlyMortgagePayment: (r as { monthlyMortgage?: number }).monthlyMortgage }
+    // furnishingSetupCost is already inside r.totalCashInvested (from calculateSA)
+    const totalCashInvested = r.totalCashInvested + extraUpfrontCosts + purchaseBridgingCost
+
+    return {
+      ...r,
+      totalCashInvested,
+      monthlyMortgagePayment: (r as { monthlyMortgage?: number }).monthlyMortgage,
+      bmvPercent,
+      riskFlags: { ...baseRiskFlags, sa_licence_required: pp.saLicenceRequired },
+      totalBridgingCost: purchaseBridgingCost,
+      extraUpfrontCosts,
+    }
   }
 
   if (pp.strategy === 'FLIP') {
+    // A6: FLIP planning cost + optional bridging cost folded into project costs
+    const flipBridgingCost = pp.flipPurchaseFinanceMethod === 'Bridging'
+      ? computeBridgingCost(pp.purchasePrice, pp.flipBridgingRate, pp.flipBridgingTermMonths, pp.flipBridgingLTV, pp.flipBridgingArrangementFee, pp.flipBridgingExitFee)
+      : 0
     const refurbAdj = pp.refurbCost * (1 + pp.flipContingencyPercent / 100)
     const r = calculateFlip({
-      purchasePrice:       pp.purchasePrice,
-      refurbCost:          refurbAdj,
-      otherCosts:          pp.otherCosts,
-      stampDuty:           tax,
+      purchasePrice:        pp.purchasePrice,
+      refurbCost:           refurbAdj,
+      otherCosts:           pp.otherCosts + pp.flipPlanningCost + extraUpfrontCosts + flipBridgingCost,
+      stampDuty:            tax,
       holdingCostsPerMonth: pp.flipHoldingCostsPerMonth,
       projectLengthMonths:  pp.flipProjectLengthMonths,
       expectedSalePrice:    pp.flipExpectedSalePrice,
@@ -313,52 +614,67 @@ function runCalc(p: ParsedInputs, overrides?: Partial<ParsedInputs>): CalcResult
     const monthlyCashFlow = pp.flipProjectLengthMonths > 0 ? r.netProfit / pp.flipProjectLengthMonths : 0
     return {
       monthlyCashFlow,
-      annualCashFlow: monthlyCashFlow * 12,
-      cashOnCashROI:  r.roi,
-      grossYield:     0,
-      netYield:       0,
+      annualCashFlow:    monthlyCashFlow * 12,
+      cashOnCashROI:     r.roi,
+      grossYield:        0,
+      netYield:          0,
       totalCashInvested: r.totalCost,
-      breakEvenRent:  0,
-      score:          r.score,
-      netProfit:      r.netProfit,
-      totalCost:      r.totalCost,
-      roi:            r.roi,
-      annualisedROI:  r.annualisedROI,
-      sellingCosts:   r.sellingCosts,
+      breakEvenRent:     0,
+      score:             r.score,
+      netProfit:         r.netProfit,
+      totalCost:         r.totalCost,
+      roi:               r.roi,
+      annualisedROI:     r.annualisedROI,
+      sellingCosts:      r.sellingCosts,
+      bmvPercent,
+      riskFlags:         baseRiskFlags,
+      totalBridgingCost: flipBridgingCost,
+      extraUpfrontCosts,
     }
   }
 
   if (pp.strategy === 'BRRR') {
+    // A3: BRRR purchase bridging cost
+    const brrrBridgingCost = pp.brrrPurchaseBridgingRate > 0
+      ? computeBridgingCost(pp.purchasePrice, pp.brrrPurchaseBridgingRate, pp.brrrPurchaseBridgingTermMonths, pp.brrrPurchaseBridgingLTV, pp.brrrPurchaseBridgingArrangementFee, pp.brrrPurchaseBridgingExitFee)
+      : 0
     const r = calculateBRRR({
-      purchasePrice:    pp.purchasePrice,
-      refurbCost:       pp.refurbCost,
-      otherCosts:       pp.otherCosts,
-      stampDuty:        tax,
-      postRefurbValue:  pp.brrrPostRefurbValue,
-      refinancePercent: pp.brrrRefinancePercent,
-      newMortgageRate:  pp.brrrNewMortgageRate,
-      monthlyRent:      pp.brrrMonthlyRent,
+      purchasePrice:                  pp.purchasePrice,
+      refurbCost:                     pp.refurbCost,
+      otherCosts:                     pp.otherCosts + extraUpfrontCosts + brrrBridgingCost,
+      stampDuty:                      tax,
+      postRefurbValue:                pp.brrrPostRefurbValue,
+      refinancePercent:               pp.brrrRefinancePercent,
+      newMortgageRate:                pp.brrrNewMortgageRate,
+      refinanceMortgageType:          pp.brrrRefinanceMortgageType as MortgageType,
+      refinanceMortgageTerm:          pp.brrrRefinanceMortgageTerm,
+      refinanceArrangementFeePercent: pp.brrrRefinanceArrangementFeePercent,
+      monthlyRent:                    pp.brrrMonthlyRent,
       ...costInputs,
     })
     return {
-      monthlyCashFlow: r.monthlyCashFlow,
-      annualCashFlow:  r.annualCashFlow,
-      cashOnCashROI:   r.cashOnCashROI,
-      grossYield:      r.grossYield,
-      netYield:        r.netYield,
-      totalCashInvested: r.cashLeftInDeal > 0 ? r.cashLeftInDeal : 0,
-      breakEvenRent:   r.breakEvenRent,
-      score:           r.score,
+      monthlyCashFlow:     r.monthlyCashFlow,
+      annualCashFlow:      r.annualCashFlow,
+      cashOnCashROI:       r.cashOnCashROI,
+      grossYield:          r.grossYield,
+      netYield:            r.netYield,
+      totalCashInvested:   r.cashLeftInDeal > 0 ? r.cashLeftInDeal : 0,
+      breakEvenRent:       r.breakEvenRent,
+      score:               r.score,
       monthlyMortgagePayment: r.monthlyMortgage,
-      effectiveRent:   r.effectiveRent,
+      effectiveRent:       r.effectiveRent,
       managementFeeAmount: r.managementFeeAmount,
       totalOperatingCosts: r.totalOperatingCosts,
       netOperatingIncome:  r.netOperatingIncome,
       voidAllowanceAmount: r.voidAllowanceAmount,
-      refinanceLoan:   r.refinanceLoan,
-      cashLeftInDeal:  r.cashLeftInDeal,
-      equityCreated:   r.equityCreated,
-      moneyOut:        r.moneyOut,
+      refinanceLoan:       r.refinanceLoan,
+      cashLeftInDeal:      r.cashLeftInDeal,
+      equityCreated:       r.equityCreated,
+      moneyOut:            r.moneyOut,
+      bmvPercent,
+      riskFlags:           baseRiskFlags,
+      totalBridgingCost:   brrrBridgingCost,
+      extraUpfrontCosts,
     }
   }
 
@@ -372,34 +688,50 @@ function runCalc(p: ParsedInputs, overrides?: Partial<ParsedInputs>): CalcResult
       managementFeesPercent: pp.r2rManagementFeesPercent,
       monthlyRunningCosts:   pp.r2rMonthlyRunningCosts,
       setupCosts:            setupTotal,
+      leaseLengthMonths:     pp.r2rLeaseLengthMonths,
     })
     return {
-      monthlyCashFlow: r.monthlyProfit,
-      annualCashFlow:  r.monthlyProfit * 12,
-      cashOnCashROI:   r.roi,
-      grossYield:      r.roi,
-      netYield:        r.roi,
+      monthlyCashFlow:   r.monthlyProfit,
+      annualCashFlow:    r.monthlyProfit * 12,
+      cashOnCashROI:     r.roi,
+      grossYield:        r.roi,
+      netYield:          r.roi,
       totalCashInvested: setupTotal,
-      breakEvenRent:   0,
-      score:           r.score,
-      monthlyProfit:   r.monthlyProfit,
-      spreadPerRoom:   r.spreadPerRoom,
+      breakEvenRent:     0,
+      score:             r.score,
+      monthlyProfit:     r.monthlyProfit,
+      spreadPerRoom:     r.spreadPerRoom,
       occupancyBreakEven: r.occupancyBreakEven,
+      bmvPercent,
+      riskFlags: {
+        ...baseRiskFlags,
+        r2r_no_sublet_right:     !pp.r2rRightToSubletConfirmed,
+        r2r_no_mortgage_consent: !pp.r2rLandlordMortgageConsentObtained,
+      },
     }
   }
 
   // SOCIAL
+  const isSocialCash = pp.purchaseFinanceMethod === 'Cash' || pp.socialPurchaseFinancingMethod === 'cash' || pp.isCashBuyer
   const r = calculateSocialHousing({
     ...baseShared,
-    depositPercent: pp.socialPurchaseFinancingMethod === 'cash' ? 100 : pp.depositPercent,
-    mortgageRate:   pp.socialPurchaseFinancingMethod === 'cash' ? 0   : pp.mortgageRate,
-    mortgageTerm:   pp.mortgageTerm,
-    mortgageType:   pp.mortgageType,
+    depositPercent:      isSocialCash ? 100 : pp.depositPercent,
+    mortgageRate:        isSocialCash ? 0   : pp.mortgageRate,
+    mortgageTerm:        pp.mortgageTerm,
+    mortgageType:        pp.mortgageType,
     leaseIncomePerMonth: pp.socialLeaseIncomePerMonth,
     leaseLengthYears:    pp.socialLeaseLengthYears,
     ...costInputs,
   })
-  return { ...r, monthlyMortgagePayment: r.monthlyMortgage }
+  return {
+    ...r,
+    totalCashInvested: r.totalCashInvested + extraUpfrontCosts + purchaseBridgingCost,
+    monthlyMortgagePayment: (r as { monthlyMortgage?: number }).monthlyMortgage,
+    bmvPercent,
+    riskFlags:         baseRiskFlags,
+    totalBridgingCost: purchaseBridgingCost,
+    extraUpfrontCosts,
+  }
 }
 
 function getCompositeScore(p: ParsedInputs, base: CalcResult): DealScoreResult | null {

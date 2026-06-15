@@ -6,6 +6,7 @@ export interface BaseInputs {
   stampDuty: number;
   refurbCost: number;
   otherCosts: number;
+  additionalMonthlyCosts?: number;
 }
 
 export interface BTLInputs extends BaseInputs {
@@ -36,6 +37,8 @@ export interface HMOInputs extends BaseInputs {
   buildingsInsurance: number;
   serviceCharge: number;
   groundRentAnnual: number;
+  billsUtilities?: number;
+  councilTaxMonthly?: number;
 }
 
 export interface SAInputs extends BaseInputs {
@@ -52,6 +55,14 @@ export interface SAInputs extends BaseInputs {
   buildingsInsurance: number;
   serviceCharge: number;
   groundRentAnnual: number;
+  cleaningCostPerStay?: number;
+  billsUtilities?: number;
+  avgStayLengthNights?: number;
+  linenCostPerStay?: number;
+  consumablesMonthly?: number;
+  councilTaxMonthly?: number;
+  channelManagerMonthly?: number;
+  furnishingSetupCost?: number;
 }
 
 export interface BRRRInputs extends BaseInputs {
@@ -60,6 +71,7 @@ export interface BRRRInputs extends BaseInputs {
   newMortgageRate: number;
   refinanceMortgageType?: MortgageType;
   refinanceMortgageTerm?: number;
+  refinanceArrangementFeePercent?: number;
   monthlyRent: number;
   managementFeePercent: number;
   voidAllowancePercent: number;
@@ -271,7 +283,7 @@ export function calculateBTL(inputs: BTLInputs) {
   const effectiveRent = grossRent - voidAllowanceAmount;
   const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
   const groundRentMonthly = inputs.groundRentAnnual / 12;
-  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + (inputs.additionalMonthlyCosts ?? 0);
   const netOperatingIncome = effectiveRent - totalOperatingCosts;
   const netCashFlow = netOperatingIncome - monthlyMortgageInterest;
   const annualNetCashFlow = netCashFlow * 12;
@@ -282,7 +294,7 @@ export function calculateBTL(inputs: BTLInputs) {
   const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
   const monthlyCashFlow = netCashFlow;
   const annualCashFlow = annualNetCashFlow;
-  const fixedCostsBTL = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const fixedCostsBTL = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + (inputs.additionalMonthlyCosts ?? 0);
   const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
     ? (monthlyMortgageInterest + fixedCostsBTL) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
     : 0;
@@ -337,7 +349,7 @@ export function calculateHMO(inputs: HMOInputs) {
   const effectiveRent = grossRent - voidAllowanceAmount;
   const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
   const groundRentMonthly = inputs.groundRentAnnual / 12;
-  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + (inputs.billsUtilities ?? 0) + (inputs.councilTaxMonthly ?? 0) + (inputs.additionalMonthlyCosts ?? 0);
   const netOperatingIncome = effectiveRent - totalOperatingCosts;
   const netCashFlow = netOperatingIncome - monthlyMortgageInterest;
   const annualNetCashFlow = netCashFlow * 12;
@@ -347,7 +359,7 @@ export function calculateHMO(inputs: HMOInputs) {
   const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
   const monthlyCashFlow = netCashFlow;
   const annualCashFlow = annualNetCashFlow;
-  const fixedCostsHMO = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const fixedCostsHMO = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + (inputs.billsUtilities ?? 0) + (inputs.councilTaxMonthly ?? 0) + (inputs.additionalMonthlyCosts ?? 0);
   const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
     ? (monthlyMortgageInterest + fixedCostsHMO) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
     : 0;
@@ -437,7 +449,7 @@ export function calculateSA(inputs: SAInputs) {
     inputs.mortgageTerm,
     inputs.mortgageType,
   );
-  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + (inputs.furnishingSetupCost ?? 0);
 
   const nightsPerMonth = 365 / 12;
   const grossMonthlyRevenue = inputs.nightlyRate * (inputs.occupancyPercent / 100) * nightsPerMonth;
@@ -445,12 +457,20 @@ export function calculateSA(inputs: SAInputs) {
   const netMonthlyRevenue = grossMonthlyRevenue - platformFees;
   const annualNetRevenue = netMonthlyRevenue * 12;
 
+  // Cleaning turns — use avg stay length if provided (A5)
+  const avgStayNights = (inputs.avgStayLengthNights && inputs.avgStayLengthNights > 0) ? inputs.avgStayLengthNights : 3;
+  const cleaningTurnsPerMonth = (nightsPerMonth * (inputs.occupancyPercent / 100)) / avgStayNights;
+  const monthlyCleaningCost = cleaningTurnsPerMonth * (inputs.cleaningCostPerStay ?? 0);
+  const monthlyLinenCost = cleaningTurnsPerMonth * (inputs.linenCostPerStay ?? 0);
+
   const grossRent = netMonthlyRevenue;
   const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
   const effectiveRent = grossRent - voidAllowanceAmount;
   const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
   const groundRentMonthly = inputs.groundRentAnnual / 12;
-  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  // Fixed additional monthly costs (independent of occupancy)
+  const saFixedAdditional = (inputs.billsUtilities ?? 0) + (inputs.consumablesMonthly ?? 0) + (inputs.councilTaxMonthly ?? 0) + (inputs.channelManagerMonthly ?? 0) + (inputs.additionalMonthlyCosts ?? 0);
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + monthlyCleaningCost + monthlyLinenCost + saFixedAdditional;
   const netOperatingIncome = effectiveRent - totalOperatingCosts;
   const netCashFlow = netOperatingIncome - monthlyMortgage;
   const annualNetCashFlow = netCashFlow * 12;
@@ -460,7 +480,8 @@ export function calculateSA(inputs: SAInputs) {
   const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
   const monthlyCashFlow = netCashFlow;
   const annualCashFlow = annualNetCashFlow;
-  const fixedCostsSA = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  // Fixed costs for break-even (excludes variable cleaning/linen which scale with occupancy)
+  const fixedCostsSA = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + saFixedAdditional;
   const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
     ? (monthlyMortgage + fixedCostsSA) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
     : 0;
@@ -531,6 +552,7 @@ export interface SocialHousingInputs {
   buildingsInsurance: number;
   serviceCharge: number;
   groundRentAnnual: number;
+  additionalMonthlyCosts?: number;
 }
 
 export function calculateR2R(inputs: R2RInputs) {
@@ -595,7 +617,7 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
   const effectiveRent = grossRent - voidAllowanceAmount;
   const managementFeeAmount = effectiveRent * (inputs.managementFeePercent / 100);
   const groundRentMonthly = inputs.groundRentAnnual / 12;
-  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const totalOperatingCosts = managementFeeAmount + inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + (inputs.additionalMonthlyCosts ?? 0);
   const netOperatingIncome = effectiveRent - totalOperatingCosts;
   const netCashFlow = netOperatingIncome - monthlyMortgage;
   const annualNetCashFlow = netCashFlow * 12;
@@ -605,7 +627,7 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
   const cashOnCashROI = totalCashInvested > 0 ? (annualNetCashFlow / totalCashInvested) * 100 : 0;
   const monthlyCashFlow = netCashFlow;
   const annualCashFlow = annualNetCashFlow;
-  const fixedCostsSocial = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly;
+  const fixedCostsSocial = inputs.maintenanceReserve + inputs.buildingsInsurance + inputs.serviceCharge + groundRentMonthly + (inputs.additionalMonthlyCosts ?? 0);
   const breakEvenRent = (inputs.voidAllowancePercent < 100 && inputs.managementFeePercent < 100)
     ? (monthlyMortgage + fixedCostsSocial) / ((1 - inputs.voidAllowancePercent / 100) * (1 - inputs.managementFeePercent / 100))
     : 0;
@@ -646,7 +668,8 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
 export function calculateBRRR(inputs: BRRRInputs) {
   const totalCostIn = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
   const refinanceLoan = inputs.postRefurbValue * (inputs.refinancePercent / 100);
-  const cashLeftInDeal = totalCostIn - refinanceLoan;
+  const refinanceArrangementFeeAmount = refinanceLoan * ((inputs.refinanceArrangementFeePercent ?? 0) / 100);
+  const cashLeftInDeal = totalCostIn - refinanceLoan + refinanceArrangementFeeAmount;
   const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.stampDuty - inputs.refurbCost - inputs.otherCosts;
   const refinanceMortgageType: MortgageType = inputs.refinanceMortgageType ?? 'IO';
   const refinanceMortgageTerm: number = inputs.refinanceMortgageTerm ?? 25;
