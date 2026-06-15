@@ -1093,14 +1093,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 
   // ── New state ────────────────────────────────────────────────────────────────
   const [metricsView, setMetricsView] = useState<'monthly' | 'annual'>('monthly')
-  const [optimiserTarget, setOptimiserTarget] = useState<'coc' | 'cf' | 'yield' | 'netyield' | 'cashmax'>('coc')
   const [previewStrategy, setPreviewStrategy] = useState<DealType>(p.strategy)
-  const [localComps, setLocalComps] = useState<CompsRow[]>(() => {
-    try { return JSON.parse(((deal as unknown as Record<string, unknown>).comps as string) ?? '[]') as CompsRow[] }
-    catch { return [] }
-  })
-  const [compsLoading, setCompsLoading] = useState(false)
-  const [localCompsError, setLocalCompsError] = useState<string | null>(null)
 
   // ── Derived ──────────────────────────────────────────────────────────────────
   const monthlyRent =
@@ -1143,41 +1136,6 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
   const bridgingLoanAmt = p.purchasePrice * (p.bridgingLTV / 100)
   const bridgingMonthlyInt = bridgingLoanAmt * (p.bridgingRateMonthly / 100)
 
-  // Section 8 optimiser
-  const targetCoCRatio  = 0.08
-  const cashInvested    = base.totalCashInvested
-  const maxPrice        = cashInvested > 0
-    ? p.purchasePrice + (base.monthlyCashFlow * 12 / targetCoCRatio - cashInvested) * (p.depositPercent / 100)
-    : p.purchasePrice
-  const priceHeadroom   = maxPrice - p.purchasePrice
-  const minRent         = base.breakEvenRent + (cashInvested > 0 ? cashInvested * targetCoCRatio / 12 : 0)
-  const targetMet       = base.cashOnCashROI >= 8
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-  async function doRefreshComps() {
-    const pc = (deal.postcode ?? '').trim()
-    if (!pc) return
-    setCompsLoading(true)
-    setLocalCompsError(null)
-    try {
-      const { data, error } = await supabase.functions.invoke('land-registry-comps', { body: { postcode: pc } })
-      if (error || !data?.success) {
-        setLocalCompsError(data?.error ?? 'Could not load comparables.')
-      } else {
-        const fetched: CompsRow[] = ((data.comps ?? []) as Array<{ date: string; price: number; address: string; type: string; tenure: string }>).map(c => ({
-          ...c,
-          kept: localComps.find(lc => lc.address === c.address && lc.date === c.date)?.kept ?? false,
-        }))
-        updateLocalComps(fetched)
-      }
-    } catch { setLocalCompsError('Failed to load comparables.') }
-    finally   { setCompsLoading(false) }
-  }
-
-  function updateLocalComps(updated: CompsRow[]) {
-    setLocalComps(updated)
-    onSave?.({ ...deal, comps: JSON.stringify(updated) } as unknown as Deal)
-  }
 
   // ── Shared style shortcuts ────────────────────────────────────────────────────
   const secLabel: React.CSSProperties = { fontSize: 11, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-2)', margin: 0 }
@@ -1341,7 +1299,7 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
                       <div style={tileS}><div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Net yield</div><div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fp(base.netYield)}</div></div>
                     </div>
                     <GrpHead label="Capital" />
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8, marginBottom: 10 }}>
                       <div style={tileS}>
                         <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Cash invested</div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{fc(base.totalCashInvested)}</div>
@@ -1364,6 +1322,24 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
                         <div style={{ fontSize: 15, fontWeight: 700, color: TEXT_1 }}>{p.refurbCost > 0 ? fc(p.refurbCost) : '—'}</div>
                         {p.refurbCost > 0 && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>Inc. {fp(p.flipContingencyPercent, 0)} contingency</div>}
                       </div>
+                      {(() => {
+                        try {
+                          const comps: Array<{ price: number; kept?: boolean }> = JSON.parse(((deal as unknown as Record<string, unknown>).comps as string) ?? '[]')
+                          const relevant = comps.filter(c => c.kept !== false)
+                          if (relevant.length === 0) return null
+                          const avg = Math.round(relevant.reduce((s, c) => s + c.price, 0) / relevant.length)
+                          const priceDiff = avg - (p.purchasePrice ?? 0)
+                          return (
+                            <div style={tileS}>
+                              <div style={{ fontSize: 10, color: TEXT_2, marginBottom: 3 }}>Avg comparable price</div>
+                              <div style={{ fontSize: 15, fontWeight: 700, color: NAVY }}>£{avg.toLocaleString()}</div>
+                              <div style={{ fontSize: 9, color: priceDiff >= 0 ? '#059669' : '#dc2626', marginTop: 2 }}>
+                                {priceDiff >= 0 ? '+' : ''}£{priceDiff.toLocaleString()} vs asking · {relevant.length} sold
+                              </div>
+                            </div>
+                          )
+                        } catch { return null }
+                      })()}
                     </div>
                     <GrpHead label="Income & costs" />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
@@ -1420,50 +1396,6 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#065f46' }}>{yr5Return > 0 ? fc(yr5Return) : '—'}</div>
                     {yr5Return > 0 && p.purchasePrice > 0 && <div style={{ fontSize: 9, color: TEXT_2, marginTop: 2 }}>CF + {fc(Math.max(0, p.marketValue - p.purchasePrice))} equity</div>}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── S5: ICR stress test + Section 24 ─────────────────────────── */}
-            {(p.strategy === 'BTL' || p.strategy === 'HMO' || p.strategy === 'SA' || p.strategy === 'SOCIAL') && base.icrMultiplier != null && (
-              <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
-                <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
-                  <span style={secLabel}>ICR STRESS TEST & SECTION 24</span>
-                </div>
-                <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div style={{ background: base.passesICR ? '#f0fdf4' : '#fff1f2', border: `.5px solid ${base.passesICR ? '#6ee7b7' : '#fca5a5'}`, borderRadius: 8, padding: '12px 14px' }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, color: TEXT_1, marginBottom: 2 }}>ICR Stress Test</div>
-                    <div style={{ fontSize: 11, color: TEXT_2, marginBottom: 10 }}>At 5.5% stressed rate</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Multiplier</span><span style={{ fontWeight: 600 }}>{base.icrMultiplier.toFixed(2)}×</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Required</span><span style={{ fontWeight: 600 }}>{(base.icrRequirement ?? 1.45).toFixed(2)}× ({p.ownershipStructure === 'Ltd company' ? 'Ltd co' : 'personal'})</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Result</span><span style={{ fontWeight: 700, color: base.passesICR ? '#059669' : '#dc2626' }}>{base.passesICR ? '✅ PASS' : '❌ FAIL'}</span></div>
-                    </div>
-                    <div style={{ fontSize: 11, color: TEXT_2, marginTop: 10, lineHeight: 1.5 }}>Lenders stress-test at 5.5% to check rent covers mortgage</div>
-                  </div>
-                  {p.ownershipStructure === 'Ltd company' ? (
-                    <div style={{ background: BG_SEC, border: `.5px solid ${DS_BORDER}`, borderRadius: 8, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, color: TEXT_1, marginBottom: 2 }}>Ltd Company — Corporation Tax</div>
-                      <div style={{ fontSize: 11, color: TEXT_2, marginBottom: 10 }}>25% CT on rental profit</div>
-                      <div style={{ fontSize: 11, color: TEXT_2, lineHeight: 1.6 }}>
-                        Est. after-CT profit: <strong style={{ color: TEXT_1 }}>{fc(base.netProfitAfterTax ?? 0)}/mo</strong> (25% CT applied).<br />Mortgage interest remains fully deductible for Ltd companies.
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ background: '#fffbeb', border: '.5px solid #fcd34d', borderRadius: 8, padding: '12px 14px' }}>
-                      <div style={{ fontSize: 12, fontWeight: 500, color: TEXT_1, marginBottom: 2 }}>Section 24 — After Tax</div>
-                      <div style={{ fontSize: 11, color: TEXT_2, marginBottom: 10 }}>Personal name only</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Pre-tax CF</span><span style={{ fontWeight: 600 }}>{signedFc(base.monthlyCashFlow)}/mo</span></div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Tax rate</span><span style={{ fontWeight: 600 }}>{(base.effectiveTaxRate ?? 0).toFixed(0)}%</span></div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Est. after-tax</span><span style={{ fontWeight: 700, color: (base.netProfitAfterTax ?? 0) > 0 ? '#059669' : '#dc2626' }}>{fc(base.netProfitAfterTax ?? base.monthlyCashFlow)}/mo</span></div>
-                        {p.purchasePrice > 0 && base.netProfitAfterTax != null && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: TEXT_2 }}>Net yield post-tax</span><span style={{ fontWeight: 600 }}>{fp((base.netProfitAfterTax * 12 / p.purchasePrice) * 100)}</span></div>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 10, color: '#92400e', marginTop: 10, lineHeight: 1.5 }}>Mortgage interest not deductible for personal-name landlords since April 2020</div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -1546,136 +1478,6 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
               </div>
             )}
 
-            {/* ── S8: Deal Optimiser ────────────────────────────────────────── */}
-            {p.purchasePrice > 0 && (
-              <div style={{ background: '#152d55', borderRadius: 8, padding: '14px 16px', marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#93c5fd', marginRight: 4 }}>DEAL OPTIMISER</span>
-                  <span style={{ fontSize: 10, color: '#93c5fd', opacity: .7, marginRight: 4 }}>Target:</span>
-                  {(['coc', 'cf', 'yield', 'netyield', 'cashmax'] as const).map(t => (
-                    <button key={t} onClick={() => setOptimiserTarget(t)}
-                      style={{ padding: '4px 10px', fontSize: 11, fontWeight: 500, borderRadius: 20, background: optimiserTarget === t ? '#1B3A6B' : 'transparent', color: optimiserTarget === t ? '#e0eaff' : '#93c5fd', border: `.5px solid ${optimiserTarget === t ? '#93c5fd' : 'rgba(147,197,253,.35)'}`, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      {t === 'coc' ? 'CoC ROI' : t === 'cf' ? 'Cash flow' : t === 'yield' ? 'Gross yield' : t === 'netyield' ? 'Net yield' : 'Max cash in'}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-                  {[
-                    { label: 'Current CoC ROI',    value: fp(base.cashOnCashROI),                                           good: base.cashOnCashROI >= 8 },
-                    { label: 'Max purchase price',  value: isFinite(maxPrice) && maxPrice > 0 ? fc(maxPrice) : '—',          good: maxPrice >= p.purchasePrice },
-                    { label: 'Price headroom',      value: isFinite(priceHeadroom) ? (priceHeadroom >= 0 ? `+${fc(priceHeadroom)}` : `−${fc(-priceHeadroom)}`) : '—', good: priceHeadroom >= 0 },
-                    { label: 'Min rent needed',     value: fc(minRent) + '/mo',                                              good: monthlyRent >= minRent },
-                    { label: 'Rent buffer',         value: signedFc(monthlyRent - minRent) + '/mo',                          good: monthlyRent >= minRent },
-                    { label: 'Verdict',             value: targetMet ? '✓ Target met' : '✗ Not met',                        good: targetMet },
-                  ].map(item => (
-                    <div key={item.label} style={{ background: 'rgba(255,255,255,.07)', borderRadius: 6, padding: '8px 10px' }}>
-                      <div style={{ fontSize: 10, color: '#93c5fd', opacity: .75, marginBottom: 3 }}>{item.label}</div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: item.good ? '#6ee7b7' : '#fca5a5' }}>{item.value}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#93c5fd', opacity: .8, fontWeight: 500, marginBottom: 6 }}>If purchase price changes</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4 }}>
-                      {[-10000, 0, 10000].map(delta => {
-                        const adjPrice = p.purchasePrice + delta
-                        const adjCash  = cashInvested + delta * (p.depositPercent / 100)
-                        const adjCF    = base.monthlyCashFlow - (delta * (1 - p.depositPercent / 100) * (p.mortgageRate / 100) / 12)
-                        const adjCoC   = adjCash > 0 ? (adjCF * 12 / adjCash) * 100 : 0
-                        const isCur    = delta === 0
-                        return (
-                          <div key={delta} style={{ background: isCur ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.06)', border: `.5px solid ${isCur ? 'rgba(147,197,253,.4)' : 'transparent'}`, borderRadius: 5, padding: '6px 7px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 10, color: '#93c5fd', opacity: .7 }}>{fc(adjPrice)}</div>
-                            <div style={{ fontSize: 12, fontWeight: 500, color: adjCoC >= 8 ? '#6ee7b7' : adjCoC >= 5 ? '#e0eaff' : '#fca5a5' }}>{fp(adjCoC)}</div>
-                            {!isCur && <div style={{ fontSize: 9, color: '#93c5fd', opacity: .5 }}>CoC</div>}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#93c5fd', opacity: .8, fontWeight: 500, marginBottom: 6 }}>If rent changes</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4 }}>
-                      {[0.9, 1.0, 1.1].map(mult => {
-                        const adjRent = monthlyRent * mult
-                        const adjCF   = base.monthlyCashFlow + (adjRent - monthlyRent) * (1 - (p.managementFeePercent) / 100)
-                        const isCur   = mult === 1.0
-                        return (
-                          <div key={mult} style={{ background: isCur ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.06)', border: `.5px solid ${isCur ? 'rgba(147,197,253,.4)' : 'transparent'}`, borderRadius: 5, padding: '6px 7px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 10, color: '#93c5fd', opacity: .7 }}>{fc(adjRent)}/mo</div>
-                            <div style={{ fontSize: 12, fontWeight: 500, color: adjCF > 200 ? '#6ee7b7' : adjCF > 0 ? '#e0eaff' : '#fca5a5' }}>{signedFc(adjCF)}</div>
-                            {!isCur && <div style={{ fontSize: 9, color: '#93c5fd', opacity: .5 }}>CF</div>}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right', marginTop: 10, paddingTop: 8, borderTop: '.5px solid rgba(147,197,253,.2)' }}>
-                  <span style={{ fontSize: 12, color: '#93c5fd', cursor: 'pointer' }}>Open full optimiser with negotiation tips →</span>
-                </div>
-              </div>
-            )}
-
-            {/* ── S9: Sold price comparables ────────────────────────────────── */}
-            <div style={{ background: '#fff', borderRadius: 12, border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 10 }}>
-              <div style={{ padding: '10px 16px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC, display: 'flex', alignItems: 'center' }}>
-                <span style={{ ...secLabel, flex: 1 }}>SOLD PRICE COMPARABLES</span>
-                <button onClick={() => { void doRefreshComps() }} disabled={compsLoading}
-                  style={{ fontSize: 11, padding: '3px 10px', border: `.5px solid ${DS_BORDER}`, borderRadius: 20, background: '#fff', color: TEXT_2, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 11 }} />{compsLoading ? 'Loading…' : '↺ Refresh'}
-                </button>
-              </div>
-              <div style={{ padding: '14px 16px' }}>
-                {localCompsError && <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{localCompsError}</div>}
-                {localComps.length === 0 ? (
-                  <div style={{ fontSize: 12, color: TEXT_2, padding: '16px', background: BG_SEC, borderRadius: 8, textAlign: 'center' }}>
-                    No sold price data yet. Open Show Workings to fetch comparables for this postcode.
-                  </div>
-                ) : (
-                  <>
-                    {localComps.filter(c => c.kept).length === 0 && (
-                      <div style={{ fontSize: 12, color: '#92400e', background: '#fef3c7', border: '.5px solid #fcd34d', borderRadius: 6, padding: '8px 12px', marginBottom: 8 }}>
-                        No comparables marked for pack — click Keep on the rows you want to include.
-                      </div>
-                    )}
-                    <div style={{ border: `.5px solid ${DS_BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 100px 110px 100px 120px', background: BG_SEC, borderBottom: `.5px solid ${DS_BORDER}` }}>
-                        {['Address', 'Sold', 'Price', 'Type', 'Tenure', ''].map(h => (
-                          <div key={h} style={{ padding: '7px 12px', fontSize: 11, fontWeight: 500, color: TEXT_2 }}>{h}</div>
-                        ))}
-                      </div>
-                      {localComps.map((comp, i) => (
-                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 100px 110px 100px 120px', borderBottom: i < localComps.length - 1 ? `.5px solid ${DS_BORDER}` : 'none', fontSize: 12 }}>
-                          <div style={{ padding: '9px 12px', color: TEXT_1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{comp.address}</div>
-                          <div style={{ padding: '9px 12px', color: TEXT_2 }}>{comp.date ? new Date(comp.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</div>
-                          <div style={{ padding: '9px 12px', fontWeight: 500, color: NAVY }}>£{comp.price?.toLocaleString('en-GB') ?? '—'}</div>
-                          <div style={{ padding: '9px 12px', color: TEXT_2 }}>{comp.type || '—'}</div>
-                          <div style={{ padding: '9px 12px', color: TEXT_2 }}>{comp.tenure || '—'}</div>
-                          <div style={{ padding: '6px 10px', display: 'flex', gap: 5, alignItems: 'center', justifyContent: 'flex-end' }}>
-                            <button onClick={() => { const u = localComps.map((c, j) => j === i ? { ...c, kept: !c.kept } : c); updateLocalComps(u) }}
-                              style={{ padding: '3px 8px', borderRadius: 20, fontSize: 10, fontWeight: 600, border: `.5px solid ${comp.kept ? '#1D9E75' : DS_BORDER}`, background: comp.kept ? '#e6f7f1' : BG_SEC, color: comp.kept ? '#1D9E75' : TEXT_2, cursor: 'pointer', fontFamily: 'inherit' }}>
-                              {comp.kept ? '✓ Keep' : 'Keep'}
-                            </button>
-                            <button onClick={() => { const u = localComps.filter((_, j) => j !== i); updateLocalComps(u) }}
-                              style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `.5px solid ${DS_BORDER}`, background: 'none', color: TEXT_2, borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}>
-                              −
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {(() => {
-                      const kc = localComps.filter(c => c.kept)
-                      if (kc.length === 0) return null
-                      const avg = kc.reduce((s, c) => s + c.price, 0) / kc.length
-                      return <div style={{ fontSize: 12, color: TEXT_2, marginTop: 8 }}>{kc.length} comparable(s) selected for investor pack · Avg price: {fc(avg)}</div>
-                    })()}
-                  </>
-                )}
-              </div>
-            </div>
           </>
         )}
       </div>
@@ -1892,11 +1694,12 @@ function Step2StrategyPicker({ mode, activeTile, onSelect, isEditing }: { mode: 
 }
 
 // ── VIEW: Inputs ──────────────────────────────────────────────────────────────
-function ViewInputs({ p, isNewDeal, dealId, onSave }: {
+function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
   p: ParsedInputs
   isNewDeal: boolean
   dealId: string
   onSave?: (updated: Deal) => void
+  deal: Deal
 }) {
   const [searchParams] = useSearchParams()
   const isEditing = searchParams.get('editing') === 'true'
@@ -1973,6 +1776,33 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
       })
       if (updated) { setSaveStatus('saved'); onSave?.(updated) }
     }
+  }
+
+  const [localComps, setLocalComps] = useState<CompsRow[]>(() => {
+    try { return JSON.parse(((deal as unknown as Record<string, unknown>).comps as string) ?? '[]') as CompsRow[] } catch { return [] }
+  })
+  const [compsLoading, setCompsLoading] = useState(false)
+  const [localCompsError, setLocalCompsError] = useState<string | null>(null)
+
+  async function doRefreshComps() {
+    const pc = (deal.postcode ?? '').trim()
+    if (!pc) return
+    setCompsLoading(true)
+    setLocalCompsError(null)
+    try {
+      const { data, error } = await supabase.functions.invoke('land-registry-comps', { body: { postcode: pc } })
+      if (error || !data?.success) {
+        setLocalCompsError(data?.error ?? 'Could not load comparables.')
+      } else {
+        const fetched: CompsRow[] = ((data.comps ?? []) as Array<{ date: string; price: number; address: string; type: string; tenure: string }>).map(c => ({
+          ...c,
+          kept: localComps.find(lc => lc.address === c.address && lc.date === c.date)?.kept ?? false,
+        }))
+        setLocalComps(fetched)
+        setField('comps', JSON.stringify(fetched))
+      }
+    } catch { setLocalCompsError('Failed to load comparables.') }
+    finally { setCompsLoading(false) }
   }
 
   function scheduleAutosave(nextForm: Record<string, unknown>) {
@@ -2828,6 +2658,113 @@ function ViewInputs({ p, isNewDeal, dealId, onSave }: {
           </Sec>
         )}
 
+        {/* ── Sold Price Comparables ── */}
+        <div style={{ marginTop: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase' as const, color: 'var(--text-2)' }}>
+              Sold Price Comparables
+            </span>
+            <button
+              onClick={() => { void doRefreshComps() }}
+              disabled={compsLoading}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px',
+                fontSize: 11, borderRadius: 6, cursor: compsLoading ? 'default' : 'pointer',
+                background: 'none', border: `.5px solid var(--ds-border)`, color: 'var(--text-2)',
+                fontFamily: 'inherit',
+              }}>
+              <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 11 }} />
+              {compsLoading ? 'Loading…' : '↺ Refresh'}
+            </button>
+          </div>
+          {localCompsError && (
+            <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{localCompsError}</div>
+          )}
+          {localComps.length === 0 ? (
+            <div style={{
+              background: 'var(--bg-sec)', borderRadius: 8, padding: '14px 16px',
+              fontSize: 12, color: 'var(--text-2)', textAlign: 'center' as const,
+            }}>
+              No sold price data yet — click Refresh to fetch comparables for {deal.postcode ?? 'this postcode'}.
+            </div>
+          ) : (
+            <>
+              <div style={{ border: `.5px solid var(--ds-border)`, borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{
+                  display: 'grid', gridTemplateColumns: '1fr 90px 100px 110px 100px 120px',
+                  background: 'var(--bg-sec)', padding: '7px 14px',
+                  fontSize: 11, fontWeight: 500, color: 'var(--text-2)',
+                  borderBottom: `.5px solid var(--ds-border)`,
+                }}>
+                  <span>Address</span><span>Sold</span><span>Price</span>
+                  <span>Type</span><span>Tenure</span><span style={{ textAlign: 'right' as const }}>Actions</span>
+                </div>
+                {localComps.map((row, idx) => (
+                  <div key={idx} style={{
+                    display: 'grid', gridTemplateColumns: '1fr 90px 100px 110px 100px 120px',
+                    padding: '9px 14px', fontSize: 12, alignItems: 'center',
+                    borderBottom: idx < localComps.length - 1 ? `.5px solid var(--ds-border)` : 'none',
+                    background: row.kept ? 'rgba(29,158,117,.04)' : undefined,
+                  }}>
+                    <span style={{ color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                      {row.address}
+                    </span>
+                    <span style={{ color: 'var(--text-2)' }}>{row.date ? new Date(row.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '—'}</span>
+                    <span style={{ fontWeight: 500, color: 'var(--navy)' }}>£{row.price?.toLocaleString('en-GB') ?? '—'}</span>
+                    <span style={{ color: 'var(--text-2)', fontSize: 11 }}>{row.type || '—'}</span>
+                    <span style={{ color: 'var(--text-2)', fontSize: 11 }}>{row.tenure || '—'}</span>
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' as const }}>
+                      <button
+                        onClick={() => {
+                          const updated = localComps.map((r, i) => i === idx ? { ...r, kept: !r.kept } : r)
+                          setLocalComps(updated)
+                          setField('comps', JSON.stringify(updated))
+                        }}
+                        style={{
+                          padding: '3px 8px', fontSize: 11, borderRadius: 4, cursor: 'pointer',
+                          background: row.kept ? '#e6f7f1' : 'var(--bg-sec)',
+                          color: row.kept ? '#1D9E75' : 'var(--text-2)',
+                          border: row.kept ? '.5px solid #1D9E75' : `.5px solid var(--ds-border)`,
+                          fontFamily: 'inherit',
+                        }}>
+                        {row.kept ? '✓ Keep' : 'Keep'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          const updated = localComps.filter((_, i) => i !== idx)
+                          setLocalComps(updated)
+                          setField('comps', JSON.stringify(updated))
+                        }}
+                        style={{
+                          width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 14, borderRadius: 4, cursor: 'pointer',
+                          background: 'none', border: `.5px solid var(--ds-border)`, color: 'var(--text-2)',
+                          fontFamily: 'inherit',
+                        }}>
+                        −
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {(() => {
+                const kept = localComps.filter(c => c.kept)
+                if (kept.length === 0) return (
+                  <div style={{ fontSize: 12, color: '#d97706', marginTop: 6 }}>
+                    No comparables marked for pack — click Keep on the rows you want to include.
+                  </div>
+                )
+                const avg = Math.round(kept.reduce((s, c) => s + c.price, 0) / kept.length)
+                return (
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 6 }}>
+                    {kept.length} comparable{kept.length > 1 ? 's' : ''} selected for investor pack · Avg price: £{avg.toLocaleString()}
+                  </div>
+                )
+              })()}
+            </>
+          )}
+        </div>
+
       </div>
 
       {/* Sidebar */}
@@ -3390,6 +3327,138 @@ function ViewWorkings({ p, base, composite, postcode }: { p: ParsedInputs; base:
   )
 }
 
+// ── OptimiserContent ──────────────────────────────────────────────────────────
+function OptimiserContent({ results, deal }: { results: CalcResult | null; deal: Deal | null }) {
+  const [optimiserTarget, setOptimiserTarget] = useState<'coc' | 'cf' | 'yield' | 'netyield' | 'cashmax'>('coc')
+
+  if (!results || !deal) return <p style={{ color: '#93c5fd' }}>No results yet — fill in the inputs first.</p>
+
+  const {
+    cashOnCashROI = 0, monthlyCashFlow = 0, grossYield = 0, netYield = 0,
+    totalCashInvested = 0, breakEvenRent = 0,
+  } = results
+
+  const dealRaw = deal as unknown as Record<string, unknown>
+  const purchasePrice = (dealRaw.purchase_price as number) ?? 0
+  const depositPercent = (dealRaw.depositPercent as number) ?? 25
+  const monthlyRent = (dealRaw.monthly_rent as number) ?? 0
+  const targetCoC = 0.08
+  const annualCF = monthlyCashFlow * 12
+  const maxPurchasePrice = annualCF > 0
+    ? Math.round(purchasePrice + (annualCF / targetCoC - totalCashInvested) * (depositPercent / 100))
+    : 0
+  const priceHeadroom = maxPurchasePrice - purchasePrice
+  const minRent = Math.ceil(breakEvenRent + (totalCashInvested * targetCoC / 12))
+  const rentBuffer = (monthlyRent ?? 0) - minRent
+  const targetMet = cashOnCashROI >= targetCoC * 100
+
+  const targets = [
+    { key: 'coc',      label: 'CoC ROI' },
+    { key: 'cf',       label: 'Cash flow' },
+    { key: 'yield',    label: 'Gross yield' },
+    { key: 'netyield', label: 'Net yield' },
+    { key: 'cashmax',  label: 'Max cash in' },
+  ] as const
+
+  const priceScenarios = [-10000, 0, 10000].map(delta => {
+    const newDeposit = (purchasePrice + delta) * (depositPercent / 100)
+    const depositDelta = newDeposit - (purchasePrice * depositPercent / 100)
+    const newCashInvested = totalCashInvested + depositDelta
+    const approxCoc = newCashInvested > 0 ? (annualCF / newCashInvested) * 100 : 0
+    return { price: purchasePrice + delta, coc: approxCoc }
+  })
+
+  const rentScenarios = [0.9, 1, 1.1].map(mult => {
+    const newRent = Math.round((monthlyRent ?? 0) * mult)
+    const rentDelta = newRent - (monthlyRent ?? 0)
+    const newCF = monthlyCashFlow + rentDelta
+    return { rent: newRent, cf: newCF }
+  })
+
+  const good = '#6ee7b7'
+  const warn = '#fca5a5'
+  const lbl: React.CSSProperties = { fontSize: 10, color: 'rgba(147,197,253,.75)', marginBottom: 3 }
+  const val = (color?: string): React.CSSProperties => ({ fontSize: 14, fontWeight: 500, color: color ?? '#e0eaff' })
+
+  void grossYield; void netYield
+
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        <span style={{ fontSize: 11, color: '#93c5fd', marginRight: 4, alignSelf: 'center' }}>Target:</span>
+        {targets.map(t => (
+          <button key={t.key} onClick={() => setOptimiserTarget(t.key)}
+            style={{
+              padding: '4px 10px', fontSize: 11, fontWeight: 500, borderRadius: 20, cursor: 'pointer', fontFamily: 'inherit',
+              background: optimiserTarget === t.key ? '#1B3A6B' : 'transparent',
+              color: optimiserTarget === t.key ? '#e0eaff' : '#93c5fd',
+              border: `.5px solid ${optimiserTarget === t.key ? '#93c5fd' : 'rgba(147,197,253,.35)'}`,
+            }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
+        {[
+          { label: 'Current CoC ROI',    value: `${cashOnCashROI.toFixed(1)}%`,                                                                             color: cashOnCashROI >= 8 ? good : warn },
+          { label: 'Max purchase price', value: maxPurchasePrice > 0 ? `£${maxPurchasePrice.toLocaleString()}` : '—',                                       color: good },
+          { label: 'Price headroom',     value: maxPurchasePrice > 0 ? `${priceHeadroom >= 0 ? '+' : ''}£${priceHeadroom.toLocaleString()}` : '—',         color: priceHeadroom >= 0 ? good : warn },
+          { label: 'Min rent needed',    value: `£${minRent.toLocaleString()}/mo`,                                                                          color: '#e0eaff' },
+          { label: 'Rent buffer',        value: `£${rentBuffer.toLocaleString()}/mo`,                                                                       color: rentBuffer >= 0 ? good : warn },
+          { label: 'Verdict',            value: targetMet ? '✓ Target met' : '✗ Not met',                                                                   color: targetMet ? good : warn },
+        ].map((cell, i) => (
+          <div key={i} style={{ background: 'rgba(255,255,255,.07)', borderRadius: 6, padding: '9px 12px' }}>
+            <div style={lbl}>{cell.label}</div>
+            <div style={val(cell.color)}>{cell.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div>
+          <div style={{ fontSize: 11, color: 'rgba(147,197,253,.8)', fontWeight: 500, marginBottom: 6 }}>If purchase price changes</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+            {priceScenarios.map((s, i) => (
+              <div key={i} style={{
+                borderRadius: 6, padding: '7px 10px',
+                background: i === 1 ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.06)',
+                border: i === 1 ? '.5px solid rgba(147,197,253,.4)' : 'none',
+              }}>
+                <div style={{ fontSize: 10, color: 'rgba(147,197,253,.7)', marginBottom: 3 }}>£{s.price.toLocaleString()}</div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: s.coc >= 8 ? good : warn }}>{s.coc.toFixed(1)}%</div>
+                <div style={{ fontSize: 10, color: 'rgba(147,197,253,.5)' }}>CoC</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: 'rgba(147,197,253,.8)', fontWeight: 500, marginBottom: 6 }}>If rent changes</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+            {rentScenarios.map((s, i) => (
+              <div key={i} style={{
+                borderRadius: 6, padding: '7px 10px',
+                background: i === 1 ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.06)',
+                border: i === 1 ? '.5px solid rgba(147,197,253,.4)' : 'none',
+              }}>
+                <div style={{ fontSize: 10, color: 'rgba(147,197,253,.7)', marginBottom: 3 }}>£{s.rent.toLocaleString()}/mo</div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: i === 0 ? warn : i === 2 ? good : '#e0eaff' }}>£{s.cf.toLocaleString()}</div>
+                <div style={{ fontSize: 10, color: 'rgba(147,197,253,.5)' }}>CF</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: 'right', marginTop: 14, paddingTop: 10, borderTop: '.5px solid rgba(147,197,253,.2)' }}>
+        <span style={{ fontSize: 12, color: '#93c5fd' }}>
+          Negotiation tips: use price headroom as anchor in offer →
+        </span>
+      </div>
+    </>
+  )
+}
+
 // ── Main AnalysisHub component ────────────────────────────────────────────────
 export default function AnalysisHub({
   deal,
@@ -3412,6 +3481,7 @@ export default function AnalysisHub({
   const activeView: SubView = externalView ?? localView
   const [isEditingInputs, setIsEditingInputs] = useState(false)
   const [isNewDeal, setIsNewDeal] = useState(false)
+  const [showOptimiser, setShowOptimiser] = useState(false)
   const isNewParam = new URLSearchParams(window.location.search).get('new') === '1'
 
   const p = useMemo(() => parseInputs(deal), [deal])
@@ -3501,7 +3571,20 @@ export default function AnalysisHub({
       </button>
 
       {/* ── Sub-nav ────────────────────────────────────────────────────────── */}
-      <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 0 }}>
+        <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
+        <button
+          onClick={() => setShowOptimiser(true)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '5px 14px', fontSize: 11, fontWeight: 600, borderRadius: 7,
+            border: 'none', background: '#152d55', color: '#93c5fd',
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+          <i className="ti ti-adjustments-alt" style={{ fontSize: 11 }} />
+          Optimise
+        </button>
+      </div>
 
       {/* ── Views ─────────────────────────────────────────────────────────── */}
       {activeView === 'results' && (
@@ -3518,7 +3601,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'inputs' && (
-        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} />
+        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} deal={deal} />
       )}
 
       {activeView === 'sensitivity' && (
@@ -3534,6 +3617,31 @@ export default function AnalysisHub({
 
       {activeView === 'workings' && (
         <ViewWorkings p={p} base={base} composite={composite} postcode={deal.postcode} />
+      )}
+
+      {/* ── Deal Optimiser modal ─────────────────────────────────────────────── */}
+      {showOptimiser && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} onClick={() => setShowOptimiser(false)}>
+          <div style={{
+            background: '#152d55', borderRadius: 12, padding: '20px 24px',
+            width: 'min(820px,90vw)', maxHeight: '85vh', overflowY: 'auto',
+            boxShadow: '0 8px 40px rgba(0,0,0,0.35)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#e0eaff', letterSpacing: '.04em' }}>
+                DEAL OPTIMISER
+              </span>
+              <button onClick={() => setShowOptimiser(false)}
+                style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 18, cursor: 'pointer', lineHeight: 1, fontFamily: 'inherit' }}>
+                ×
+              </button>
+            </div>
+            <OptimiserContent results={base} deal={deal} />
+          </div>
+        </div>
       )}
 
     </div>
