@@ -307,6 +307,17 @@ export default function DashboardPage() {
   const [ndMotiv, setNdMotiv]           = useState<'motivated' | 'flexible' | 'firm' | ''>('')
   const [ndSituations, setNdSituations] = useState<Set<string>>(new Set())
 
+  // ── Scrape state ──────────────────────────────────────────────────────────
+  const [scrapeUrl, setScrapeUrl]         = useState('')
+  const [scrapeLoading, setScrapeLoading] = useState(false)
+  const [scrapeResult, setScrapeResult]   = useState<string | null>(null)
+  const [scrapeExtra, setScrapeExtra]     = useState<{
+    tenure?: string
+    epcRating?: string
+    floorAreaSqm?: number
+    images?: string[]
+  }>({})
+
   // Escape key closes slide-over
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -380,6 +391,10 @@ export default function DashboardPage() {
     setNdVendorTel('')
     setNdMotiv('')
     setNdSituations(new Set())
+    setScrapeUrl('')
+    setScrapeResult(null)
+    setScrapeLoading(false)
+    setScrapeExtra({})
     document.body.style.overflow = 'hidden'
   }
 
@@ -419,7 +434,7 @@ export default function DashboardPage() {
       user.id, strategy,
       ndData.address.trim() || null, null,
       price, null,
-      {}, null, null, null, null
+      { ...scrapeExtra }, null, null, null, null
     )
     setNdCreating(false)
     if (!deal) { alert('Failed to create deal — please try again'); return }
@@ -430,6 +445,65 @@ export default function DashboardPage() {
       void fetchDeals()
       navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)
     }, 1900)
+  }
+
+  async function handleScrapeUrl() {
+    const url = scrapeUrl.trim()
+    if (!url) return
+    setScrapeLoading(true)
+    setScrapeResult(null)
+    setScrapeExtra({})
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-property', {
+        body: { url },
+      })
+      if (error || !data?.success) {
+        setScrapeResult(data?.error || 'Could not read that listing — please enter details manually.')
+        return
+      }
+      const d = data.data
+
+      if (d.address) setNdData(nd => ({ ...nd, address: d.address }))
+      if (d.price)   setNdData(nd => ({ ...nd, price: `£${d.price.toLocaleString('en-GB')}` }))
+      if (d.beds)    setNdData(nd => ({ ...nd, beds: d.beds }))
+      if (d.propertyType) setNdData(nd => ({ ...nd, proptype: d.propertyType }))
+      if (d.postcode && !d.address) setNdData(nd => ({ ...nd, address: d.postcode }))
+
+      if (d.postcode) {
+        const pc = d.postcode.toUpperCase()
+        if (pc.startsWith('BT')) {
+          setNdData(nd => ({ ...nd, country: 'Northern Ireland' }))
+        } else if (['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => pc.startsWith(p))) {
+          setNdData(nd => ({ ...nd, country: 'Scotland' }))
+        } else if (['CF','CH','LD','LL','NP','SA','SY'].some(p => pc.startsWith(p))) {
+          setNdData(nd => ({ ...nd, country: 'Wales' }))
+        } else {
+          setNdData(nd => ({ ...nd, country: 'England' }))
+        }
+      }
+
+      const extra: { tenure?: string; epcRating?: string; floorAreaSqm?: number; images?: string[] } = {}
+      if (d.tenure)       extra.tenure = d.tenure
+      if (d.epcRating)    extra.epcRating = d.epcRating
+      if (d.floorAreaSqm) extra.floorAreaSqm = d.floorAreaSqm
+      if (d.images?.length) extra.images = d.images
+      setScrapeExtra(extra)
+
+      const populated = [
+        d.address && 'address',
+        d.price && 'price',
+        d.beds && 'beds',
+        d.propertyType && 'property type',
+        d.tenure && 'tenure',
+        d.epcRating && `EPC ${d.epcRating}`,
+        d.floorAreaSqm && `${d.floorAreaSqm}m²`,
+      ].filter(Boolean)
+      setScrapeResult(`success:${populated.join(', ')}`)
+    } catch (_err) {
+      setScrapeResult('Could not read that listing — please enter details manually.')
+    } finally {
+      setScrapeLoading(false)
+    }
   }
 
   function ndSetStrat(code: NdStrat) {
@@ -749,6 +823,82 @@ export default function DashboardPage() {
           {/* ── STEP 2: Deal basics ── */}
           {newDealStep === 2 && (
             <div>
+              {/* ── Listing URL auto-fill ── */}
+              <div style={{
+                background: '#f0f9f5',
+                border: '1px solid #b6e8d5',
+                borderRadius: 8,
+                padding: '12px 14px',
+                marginBottom: 14,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#1D9E75', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <i className="ti ti-sparkles" style={{ fontSize: 12 }} />
+                  Auto-fill from listing
+                </div>
+                <div style={{ fontSize: 11, color: '#5a6270', marginBottom: 8 }}>
+                  Paste a Rightmove, Zoopla, or OnTheMarket URL and we'll fill in the details for you.
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    type="url"
+                    value={scrapeUrl}
+                    onChange={e => { setScrapeUrl(e.target.value); setScrapeResult(null) }}
+                    placeholder="https://www.rightmove.co.uk/properties/..."
+                    style={{
+                      flex: 1,
+                      fontSize: 11,
+                      padding: '6px 10px',
+                      border: '.5px solid #b6e8d5',
+                      borderRadius: 6,
+                      fontFamily: 'inherit',
+                      color: '#1a2332',
+                      background: '#fff',
+                      outline: 'none',
+                    }}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void handleScrapeUrl() } }}
+                  />
+                  <button
+                    onClick={() => void handleScrapeUrl()}
+                    disabled={!scrapeUrl.trim() || scrapeLoading}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      border: 'none',
+                      background: scrapeLoading ? '#9ca3af' : '#1D9E75',
+                      color: '#fff',
+                      cursor: scrapeLoading ? 'default' : 'pointer',
+                      whiteSpace: 'nowrap',
+                      fontFamily: 'inherit',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      minWidth: 80,
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {scrapeLoading
+                      ? <><i className="ti ti-loader-2 ti-spin" style={{ fontSize: 12 }} /> Reading…</>
+                      : <><i className="ti ti-download" style={{ fontSize: 12 }} /> Fill in</>
+                    }
+                  </button>
+                </div>
+
+                {scrapeResult && scrapeResult.startsWith('success:') && (
+                  <div style={{ marginTop: 7, fontSize: 11, color: '#1D9E75', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <i className="ti ti-circle-check" style={{ fontSize: 12 }} />
+                    Filled in: {scrapeResult.replace('success:', '')}
+                  </div>
+                )}
+                {scrapeResult && !scrapeResult.startsWith('success:') && (
+                  <div style={{ marginTop: 7, fontSize: 11, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <i className="ti ti-alert-circle" style={{ fontSize: 12 }} />
+                    {scrapeResult}
+                  </div>
+                )}
+              </div>
+
               {/* Address */}
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
