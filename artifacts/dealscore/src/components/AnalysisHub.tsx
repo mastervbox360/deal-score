@@ -768,12 +768,15 @@ function VerdictPill({ v, size = 'sm' }: { v: 'RECOMMENDED' | 'REVIEW' | 'AVOID'
 // ── Card / section primitives ─────────────────────────────────────────────────
 function Sec({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: '10px' }}>
-      <div style={{ padding: '12px 16px', borderBottom: `.5px solid ${DS_BORDER}`, display: 'flex', alignItems: 'center', gap: '8px', background: BG_SEC }}>
-        <span style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1, flex: 1 }}>{title}</span>
-        {badge && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 9px', borderRadius: '20px', background: NAVY_LIGHT, color: NAVY }}>{badge}</span>}
+    <div style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10 }}>
+      <div style={{ padding: '16px 18px' }}>
+        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {title}
+          {badge && <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: NAVY_LIGHT, color: NAVY, textTransform: 'none' as const }}>{badge}</span>}
+          <span style={{ flex: 1, height: 0.5, background: DS_BORDER, display: 'block' }} />
+        </div>
+        {children}
       </div>
-      <div style={{ padding: '14px 16px' }}>{children}</div>
     </div>
   )
 }
@@ -1534,13 +1537,11 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 
 // ── SellerCard ────────────────────────────────────────────────────────────────
 const MOTIVATION_OPTS = [
-  { key: 'hot'   as const, label: 'Motivated', color: '#065f46', bg: '#d1fae5', border: '#6ee7b7' },
-  { key: 'warm'  as const, label: 'Flexible',  color: '#92400e', bg: '#fef3c7', border: '#fcd34d' },
-  { key: 'cool'  as const, label: 'Firm',      color: '#1e3a5f', bg: '#dbeafe', border: '#93c5fd' },
-  { key: 'other' as const, label: 'Other',     color: '#374151', bg: '#f3f4f6', border: '#d1d5db' },
+  'Motivated seller', 'Below market value', 'Probate / estate',
+  'Repossession', 'Divorce', 'Relocated abroad', 'Developer exit', 'Other',
 ] as const
 
-type MotivationKey = typeof MOTIVATION_OPTS[number]['key']
+type MotivationKey = typeof MOTIVATION_OPTS[number]
 
 function SellerCard({ form, setField, isEditing, isR2R }: {
   form: Record<string, unknown>
@@ -1549,17 +1550,17 @@ function SellerCard({ form, setField, isEditing, isR2R }: {
   isR2R: boolean
 }) {
   const label = isR2R ? 'Landlord' : 'Seller'
-  const sellerMotivation = form.sellerMotivation as MotivationKey | undefined
+  const sellerMotivation = form.sellerMotivation as string | undefined
   const hasData = !!(form.sellerName || form.sellerPhone)
 
   return (
-    <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px 20px', marginBottom: '10px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '7px', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', color: 'var(--navy)' }}>
+    <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', padding: '18px 20px', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <div style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: 'var(--navy)' }}>
           <i className="ti ti-user-circle" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)' }}>{label}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{label}</div>
           <div className="pii" style={{ fontSize: '11px', color: 'var(--text-2)' }}>
             {hasData
               ? `${String(form.sellerName ?? '')}${form.sellerPhone ? ` · ${String(form.sellerPhone)}` : ''}`
@@ -1595,19 +1596,23 @@ function SellerCard({ form, setField, isEditing, isR2R }: {
       </div>
 
       <div style={{ marginBottom: '10px' }}>
-        <div style={{ fontSize: '10px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.05em', color: '#bbb', marginBottom: '6px' }}>Motivation</div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          Motivation
+          <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {MOTIVATION_OPTS.map(opt => {
-            const active = sellerMotivation === opt.key
+            const active = sellerMotivation === opt
             return (
-              <button key={opt.key} onClick={() => isEditing && setField('sellerMotivation', opt.key)}
-                style={{ padding: '5px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 500, border: `1.5px solid ${active ? opt.border : 'var(--ds-border)'}`, background: active ? opt.bg : '#fff', color: active ? opt.color : 'var(--text-2)', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .15s' }}>
-                {opt.label}
+              <button key={opt} onClick={() => isEditing && setField('sellerMotivation', opt)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 11px', borderRadius: 7, border: `.5px solid ${active ? 'var(--navy)' : 'var(--ds-border)'}`, background: active ? 'var(--navy-light)' : '#fff', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', fontSize: 12, fontWeight: active ? 600 : 400, color: active ? 'var(--navy)' : '#444', transition: 'all .15s', textAlign: 'left' as const, width: '100%' }}>
+                {opt}
+                {active && <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3.5 3.5 5.5-7" stroke="var(--navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
             )
           })}
         </div>
-        {sellerMotivation === 'other' && (
+        {sellerMotivation === 'Other' && (
           <input readOnly={!isEditing} value={String(form.sellerMotivationOther ?? '')}
             onChange={isEditing ? e => setField('sellerMotivationOther', e.target.value) : undefined}
             placeholder="Describe the situation…"
@@ -1669,28 +1674,25 @@ const RENT_TILES = [
 
 function Step2StrategyPicker({ mode, activeTile, onSelect, isEditing }: { mode: string; activeTile: string; onSelect: (k: string) => void; isEditing: boolean }) {
   const tiles = mode === 'rent' ? RENT_TILES : BUY_TILES
-  const modeLabel = mode === 'rent' ? 'Rent strategies' : mode === 'specialist' ? 'Specialist strategies' : 'Buy strategies'
   return (
-    <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px 20px', marginBottom: '10px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: '#aaa', marginBottom: '3px' }}>Step 2 of 2 — {modeLabel}</div>
-      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '12px' }}>Select your strategy</div>
+    <>
       {mode === 'specialist' ? (
-        <div style={{ fontSize: '12px', color: 'var(--text-2)', padding: '16px', background: 'var(--bg-sec)', borderRadius: '8px' }}>Lease Option and Assisted Sale coming soon.</div>
+        <div style={{ fontSize: 12, color: 'var(--text-2)', padding: 16, background: 'var(--bg-sec)', borderRadius: 8 }}>Lease Option and Assisted Sale coming soon.</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {tiles.map(t => (
             <div key={t.key} onClick={() => isEditing && t.live && onSelect(t.key)}
-              style={{ border: `${activeTile === t.key ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`, borderRadius: '8px', padding: '11px', cursor: isEditing && t.live ? 'pointer' : 'default', background: activeTile === t.key ? 'var(--navy-light)' : 'var(--bg-sec)', transition: 'all .18s', opacity: t.live ? 1 : 0.55 }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '2px' }}>{t.name}</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-2)', lineHeight: 1.4, marginBottom: '5px' }}>{t.full}</div>
-              <span style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '20px', background: t.live ? 'var(--teal-light)' : '#fef3c7', color: t.live ? '#065f46' : '#92400e', display: 'inline-block' }}>
+              style={{ border: activeTile === t.key ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)', borderRadius: 8, padding: 11, cursor: isEditing && t.live ? 'pointer' : 'default', background: activeTile === t.key ? 'var(--navy-light)' : 'var(--bg-sec)', transition: 'all .18s', opacity: t.live ? 1 : 0.55 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2 }}>{t.name}</div>
+              <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.4, marginBottom: 5 }}>{t.full}</div>
+              <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 20, background: t.live ? 'var(--teal-light)' : '#fef3c7', color: t.live ? '#065f46' : '#92400e', display: 'inline-block' }}>
                 {t.live ? '✓ Live' : 'Coming soon'}
               </span>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -1991,8 +1993,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
             onClick={() => setShowOptional(v => !v)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', marginTop: 8, fontFamily: 'inherit' }}>
             <i className={`ti ti-chevron-${showOptional ? 'up' : 'down'}`} style={{ fontSize: 12 }} />
-            {showOptional ? 'Hide optional details' : 'Show optional details'}
-            <span style={{ fontSize: 10, color: '#bbb', marginLeft: 4 }}>Floor area, year built, EPC, construction type, flood risk, gas supply, council tax, listed building, conservation area, PD rights, cash buyer, bathrooms, tenanted, uninhabitable</span>
+            {showOptional ? 'Hide optional details' : 'Optional details'}
           </button>
 
           {showOptional && (
@@ -2013,7 +2014,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                 />
                 <IField label="Floor area (sqm)" value={String(form.floorAreaSqm ?? '')} onChange={v => setField('floorAreaSqm', parseFloat(v) || 0)} />
                 <IField label="Year built" value={String(form.yearBuilt ?? '')} onChange={v => setField('yearBuilt', parseInt(v) || 0)} />
-                <div>
+                <div style={{ position: 'relative' }}>
                   <ISelect
                     label="EPC rating"
                     value={String(form.epcRating ?? '')}
@@ -2030,6 +2031,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                     ]}
                   />
                   <ScBadge source={scSource} />
+                  <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
                 </div>
                 <div>
                   <ISelectOther
@@ -2065,18 +2067,21 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                     { value: 'Non-UK resident', label: 'Non-UK resident' },
                   ]}
                 />
-                <ISelect
-                  label="Flood risk"
-                  value={String(form.floodRisk ?? 'Low')}
-                  onChange={v => setField('floodRisk', v)}
-                  options={[
-                    { value: 'Low', label: 'Low' },
-                    { value: 'Medium', label: 'Medium' },
-                    { value: 'High', label: 'High' },
-                    { value: 'Very high', label: 'Very high' },
-                    { value: 'Unknown', label: 'Unknown' },
-                  ]}
-                />
+                <div style={{ position: 'relative' }}>
+                  <ISelect
+                    label="Flood risk"
+                    value={String(form.floodRisk ?? 'Low')}
+                    onChange={v => setField('floodRisk', v)}
+                    options={[
+                      { value: 'Low', label: 'Low' },
+                      { value: 'Medium', label: 'Medium' },
+                      { value: 'High', label: 'High' },
+                      { value: 'Very high', label: 'Very high' },
+                      { value: 'Unknown', label: 'Unknown' },
+                    ]}
+                  />
+                  <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
+                </div>
                 <ISelect
                   label="Gas supply"
                   value={String(form.hasGasSupply ?? 'Yes')}
@@ -2202,21 +2207,23 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Auction purchase — conditional */}
         <div style={{
-          background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)',
-          boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '14px 18px', marginBottom: '10px',
+          background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)',
+          padding: '16px 18px', marginBottom: 10,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <i className="ti ti-gavel" style={{ fontSize: '16px', color: 'var(--text-2)' }} />
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Auction purchase?</span>
-            <button
-              onClick={() => isEditing && setField('isAuctionPurchase', !(!!form.isAuctionPurchase))}
-              style={{
-                padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default',
-                background: !!form.isAuctionPurchase ? 'var(--navy)' : 'var(--bg-sec)',
-                color: !!form.isAuctionPurchase ? '#fff' : 'var(--text-2)',
-              }}
-            >{!!form.isAuctionPurchase ? 'Yes' : 'No'}</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <i className="ti ti-gavel" style={{ fontSize: 15, color: 'var(--text-2)' }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Auction purchase?</span>
+            <div style={{ display: 'flex', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2, gap: 1 }}>
+              {(['No', 'Yes'] as const).map(opt => {
+                const active = opt === 'Yes' ? !!form.isAuctionPurchase : !form.isAuctionPurchase
+                return (
+                  <button key={opt} onClick={() => isEditing && setField('isAuctionPurchase', opt === 'Yes')}
+                    style={{ padding: '5px 14px', fontSize: 12, border: 'none', borderRadius: 6, cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .12s', background: active ? '#fff' : 'transparent', color: active ? 'var(--navy)' : 'var(--text-2)', fontWeight: active ? 600 : 400, boxShadow: active ? '0 0 0 0.5px rgba(27,58,107,.15)' : 'none' }}>
+                    {opt}
+                  </button>
+                )
+              })}
+            </div>
           </div>
           {!!form.isAuctionPurchase && (
             <IGrid style={{ marginTop: '12px' }}>
@@ -2396,10 +2403,30 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
             <IGrid>
               <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Country" value={COUNTRY_LABEL[p.taxCountry] ?? p.taxCountry} />
               <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} />
               <IField label="Refurb / works cost (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
+
+            {/* Country stacked list (FIX C) */}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                Country
+                <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['ENGLAND', 'SCOTLAND', 'WALES'] as const).map(c => {
+                  const lbl = c === 'ENGLAND' ? 'England & N. Ireland' : c === 'SCOTLAND' ? 'Scotland' : 'Wales'
+                  const isActive = p.taxCountry === c
+                  return (
+                    <button key={c} onClick={() => isEditing && setField('taxRegion', c)}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 11px', borderRadius: 7, border: `.5px solid ${isActive ? 'var(--navy)' : 'var(--ds-border)'}`, background: isActive ? 'var(--navy-light)' : '#fff', cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', fontSize: 12, fontWeight: isActive ? 600 : 400, color: isActive ? 'var(--navy)' : '#444', transition: 'all .15s' }}>
+                      {lbl}
+                      {isActive && <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3.5 3.5 5.5-7" stroke="var(--navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
             {/* Country tax chip (CHANGE 5) */}
             {p.taxCountry && (
@@ -2426,18 +2453,31 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               </div>
             )}
 
-            {/* MDR toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '12px 0 4px', padding: '10px 12px', background: 'var(--bg-sec)', borderRadius: '8px', border: '.5px solid var(--ds-border)' }}>
-              <i className="ti ti-receipt-tax" style={{ fontSize: '15px', color: 'var(--text-2)' }} />
-              <span style={{ fontSize: '12px', color: 'var(--text-1)', flex: 1 }}>Multiple Dwellings Relief (MDR) applies?</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-2)', marginRight: '8px' }}>Buying 2+ units in one transaction can reduce stamp duty significantly</span>
-              <button onClick={() => isEditing && setField('mdrApplies', !form.mdrApplies)} style={{ padding: '3px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, border: '.5px solid var(--ds-border)', fontFamily: 'inherit', cursor: isEditing ? 'pointer' : 'default', background: form.mdrApplies ? 'var(--navy)' : 'var(--bg-sec)', color: form.mdrApplies ? '#fff' : 'var(--text-2)' }}>
-                {form.mdrApplies ? 'Yes' : 'No'}
-              </button>
+            {/* MDR toggle — Seg2 (FIX A) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0 4px', padding: '10px 12px', background: 'var(--bg-sec)', borderRadius: 8, border: '.5px solid var(--ds-border)' }}>
+              <i className="ti ti-receipt-tax" style={{ fontSize: 14, color: 'var(--text-2)' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-1)', fontWeight: 500 }}>Multiple Dwellings Relief (MDR) applies?</div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 1 }}>Buying 2+ units in one transaction can reduce stamp duty significantly</div>
+              </div>
+              <div style={{ display: 'flex', background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2, gap: 1, flexShrink: 0 }}>
+                {(['No', 'Yes'] as const).map(opt => {
+                  const active = opt === 'Yes' ? !!form.mdrApplies : !form.mdrApplies
+                  return (
+                    <button key={opt} onClick={() => isEditing && setField('mdrApplies', opt === 'Yes')}
+                      style={{ padding: '4px 12px', fontSize: 11, border: 'none', borderRadius: 6, cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .12s', background: active ? 'var(--navy)' : 'transparent', color: active ? '#fff' : 'var(--text-2)', fontWeight: active ? 600 : 400 }}>
+                      {opt}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
-            {/* Purchase costs breakdown */}
-            <div style={{ marginTop: '12px', marginBottom: '4px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', color: '#aaa' }}>Purchase costs breakdown</div>
+            {/* Purchase costs breakdown (FIX I) */}
+            <div style={{ height: 0.5, background: 'var(--ds-border)', margin: '14px 0 10px' }} />
+            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--navy)', marginBottom: 10, padding: '3px 8px', background: 'var(--navy-light)', borderRadius: 6, display: 'inline-block' }}>
+              Purchase costs breakdown
+            </div>
             <IGrid>
               <IField label="Solicitor / conveyancing (£)" value={Number(form.solicitorFee) > 0 ? fc(Number(form.solicitorFee)) : ''} onChange={v => setField('solicitorFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Survey cost (£)" value={Number(form.surveyCost) > 0 ? fc(Number(form.surveyCost)) : ''} onChange={v => setField('surveyCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -2562,12 +2602,13 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
               <IField label="Rent guarantee insurance (£/mo)" value={Number(form.rentGuaranteeInsurance) > 0 ? fc(Number(form.rentGuaranteeInsurance)) : ''} onChange={v => setField('rentGuaranteeInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Legal expenses insurance (£/yr)" value={Number(form.legalExpensesInsurance) > 0 ? fc(Number(form.legalExpensesInsurance)) : ''} onChange={v => setField('legalExpensesInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Council tax during voids (£/mo)" value={Number(form.councilTaxVoids) > 0 ? fc(Number(form.councilTaxVoids)) : ''} onChange={v => setField('councilTaxVoids', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              {String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
-                <>
-                  <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-                  <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-                </>
-              )}
+              {/* Leasehold fields — always shown, disabled when not leasehold (FIX L) */}
+              <div style={{ opacity: String(form.tenure ?? '') === 'Leasehold' ? 1 : 0.38, pointerEvents: String(form.tenure ?? '') === 'Leasehold' ? 'auto' : 'none' as const }}>
+                <IField label="Service charge (£/mo) — leasehold only" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              </div>
+              <div style={{ opacity: String(form.tenure ?? '') === 'Leasehold' ? 1 : 0.38, pointerEvents: String(form.tenure ?? '') === 'Leasehold' ? 'auto' : 'none' as const }}>
+                <IField label="Ground rent (£/yr) — leasehold only" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              </div>
             </IGrid>
             <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-2)', padding: '6px 10px', background: 'var(--bg-sec)', borderRadius: '6px' }}>
               Annual compliance costs — gas safety cert (~£80/yr), EICR (~£150 every 5yr), EPC renewal (~£60 every 10yr)
@@ -2686,7 +2727,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                   <span style={{ position: 'absolute', top: 2, right: 2 }}><FieldTip id="holding-costs" text="Monthly costs while you own during refurb — council tax, utilities, insurance, and bridging interest." /></span>
                 </div>
                 <IField label="Selling costs %" value={fp(Number((form.flipInputs as Record<string,unknown>)?.sellingCostsPercent ?? 2))} onChange={v => setField('flipInputs.sellingCostsPercent', parseFloat(v) || 2)} />
-                <IField label="Planning permission?" value={String(form.flipPlanningRequired ?? 'No')} onChange={v => setField('flipPlanningRequired', v)} />
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#5a6270', marginBottom: 4 }}>Planning permission?</div>
+                  <Seg2 field="flipPlanningRequired" opts={['No', 'Yes']} />
+                </div>
               </IGrid>
               {String(form.flipPlanningRequired ?? 'No') === 'Yes' && (
                 <IGrid style={{ marginTop: '10px' }}>
@@ -2852,12 +2896,14 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
           </Sec>
         )}
 
-        {/* ── Sold Price Comparables ── */}
-        <div style={{ marginTop: 18 }}>
+        {/* ── Sold Price Comparables — white card (FIX J) ── */}
+        <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', padding: '16px 18px', marginBottom: 10 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            Sold Price Comparables
+            <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase' as const, color: 'var(--text-2)' }}>
-              Sold Price Comparables
-            </span>
+            <span />
             <button
               onClick={() => { void doRefreshComps() }}
               disabled={compsLoading}
