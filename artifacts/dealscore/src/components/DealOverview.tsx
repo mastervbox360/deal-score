@@ -399,6 +399,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
   const [archivedMsg, setArchivedMsg]         = useState('')
   const [archivedSuccess, setArchivedSuccess] = useState(false)
   const [expDismissed, setExpDismissed] = useState(false)
+  const [dealStatusEducatorDismissed, setDealStatusEducatorDismissed] = useState(false)
 
   const stageIdx = STATUS_STAGE_IDX[deal.status]
   const daysSince = daysAgo(deal.created_at)
@@ -447,6 +448,19 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
   return (
     <div className="ds-content">
 
+      {/* Overview / Deal Status switcher — sticky band (always shown) */}
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10 }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 0', display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '4px', background: 'transparent', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
+            {(['overview', 'status'] as const).map(v => (
+              <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
+                {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {overviewView === 'overview' && <>
 
       {!expDismissed ? (
@@ -463,19 +477,6 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
           <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
         </button>
       )}
-
-      {/* Overview / Deal Status switcher — sticky band */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10 }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 0', display: 'flex', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '4px', background: 'transparent', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
-            {(['overview', 'status'] as const).map(v => (
-              <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
-                {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
       <div className={`archived-banner${archivedBanner ? (archivedSuccess ? ' show complete' : ' show') : ''}`}>
@@ -973,6 +974,20 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
 
       {overviewView === 'status' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, alignItems: 'start' }}>
+
+          {/* ── Deal Status educator banner ─────────── */}
+          {!dealStatusEducatorDismissed && (
+            <div style={{ gridColumn: '1 / -1', background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 4, boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--navy-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: 'var(--navy)', flexShrink: 0 }}>
+                <i className="ti ti-clipboard-list" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>Track your deal's progress</div>
+                <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>Deal Status tracks reservation countdown, key dates, and fees. Use <strong style={{ color: 'var(--text-1)' }}>Close deal</strong> when the deal completes or falls through.</div>
+              </div>
+              <button onClick={() => setDealStatusEducatorDismissed(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16, lineHeight: 1, padding: 4 }} aria-label="Dismiss">×</button>
+            </div>
+          )}
 
           {/* ── Left column ─────────────────────────── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
