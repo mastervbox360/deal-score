@@ -2160,25 +2160,6 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
 
-        {/* 1. READ-ONLY NOTICE — subtle inline row (FIX N) */}
-        {!isEditing && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <rect x="1" y="5" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
-                <path d="M4 5V3.5a2 2 0 014 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-              Viewing — read-only
-            </span>
-            <button
-              onClick={() => navigate('?tab=analysis&view=inputs&editing=true')}
-              style={{ fontSize: 12, fontWeight: 500, color: 'var(--navy)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4, padding: 0 }}
-            >
-              ✏ Edit inputs
-            </button>
-          </div>
-        )}
-
         {/* 2. PROPERTY INFORMATION */}
         <Sec id="sec-property-info" title="Property information" badge={propInfoComplete ? 'Complete' : undefined}>
           {/* ── Mandatory fields ── */}
@@ -4027,7 +4008,9 @@ export default function AnalysisHub({
   onSave?: (updated: Deal) => void
 }) {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const viewParam = searchParams.get('view')
+  const isEditing = searchParams.get('editing') === 'true'
   const [localView, setLocalView] = useState<SubView>(
     (viewParam === 'inputs' || viewParam === 'results' || viewParam === 'sensitivity' || viewParam === 'workings')
       ? viewParam
@@ -4125,9 +4108,35 @@ export default function AnalysisHub({
         <i className="ti ti-book-2" style={{ fontSize: '11px' }}></i> Page guide
       </button>
 
-      {/* ── Sub-nav ────────────────────────────────────────────────────────── */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'transparent', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px 6px' }}>
+      {/* ── Sub-nav band (sticky) ──────────────────────────────────────────── */}
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px' }}>
+        {/* Left: sub-tabs */}
         <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
+
+        {/* Right: read-only / edit notice — only shown on inputs tab */}
+        {activeView === 'inputs' && (
+          !isEditing ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                  <rect x="1" y="5" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                  <path d="M4 5V3.5a2 2 0 014 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                Viewing — read-only
+              </span>
+              <button
+                onClick={() => navigate('?tab=analysis&view=inputs&editing=true')}
+                style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--navy)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                <i className="ti ti-pencil" style={{ fontSize: 10 }} /> Edit inputs
+              </button>
+            </div>
+          ) : (
+            <span style={{ fontSize: 11, color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <i className="ti ti-pencil" style={{ fontSize: 10 }} /> Editing
+            </span>
+          )
+        )}
       </div>
 
       {/* ── Views ─────────────────────────────────────────────────────────── */}
