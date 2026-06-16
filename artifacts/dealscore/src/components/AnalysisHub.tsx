@@ -841,6 +841,7 @@ function ISelect({
   required,
   disabled,
   hint,
+  labelLink,
 }: {
   label: string
   value: string
@@ -849,13 +850,20 @@ function ISelect({
   required?: boolean
   disabled?: boolean
   hint?: string
+  labelLink?: { href: string; text: string }
 }) {
   const { isEditing } = useContext(InputsCtx)
   const id = label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-      <label htmlFor={id} style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-        {label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}
+      <label htmlFor={id} style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span>{label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}</span>
+        {labelLink && (
+          <a href={labelLink.href} target="_blank" rel="noreferrer"
+            style={{ fontSize: 10, fontWeight: 400, color: '#aaa', textTransform: 'lowercase', letterSpacing: 0, textDecoration: 'none' }}>
+            {labelLink.text}
+          </a>
+        )}
       </label>
       <div style={{ position: 'relative' }}>
         <select
@@ -2065,9 +2073,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
             </div>
             <IField label="Source of deal" value={String(form.sourceOfDeal ?? '')} onChange={v => setField('sourceOfDeal', v)} />
             {/* EPC + Flood Risk — mandatory visible fields (FIX O) */}
-            <div style={{ position: 'relative' }}>
+            <div>
               <ISelect
                 label="EPC rating"
+                labelLink={{ href: 'https://www.gov.uk/find-energy-certificate', text: '· gov.uk ↗' }}
                 value={String(form.epcRating ?? '')}
                 onChange={v => setField('epcRating', v)}
                 options={[
@@ -2078,11 +2087,11 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                 ]}
               />
               <ScBadge source={scSource} />
-              <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
             </div>
-            <div style={{ position: 'relative' }}>
+            <div>
               <ISelect
                 label="Flood risk"
+                labelLink={{ href: 'https://check-long-term-flood-risk.service.gov.uk/postcode', text: '· gov.uk ↗' }}
                 value={String(form.floodRisk ?? 'Low')}
                 onChange={v => setField('floodRisk', v)}
                 options={[
@@ -2091,7 +2100,6 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
                   { value: 'Unknown', label: 'Unknown' },
                 ]}
               />
-              <span style={{ position: 'absolute', top: 1, right: 2, fontSize: 8, fontWeight: 700, letterSpacing: '.04em', color: '#fff', background: '#1a2332', padding: '1px 5px', borderRadius: 2, opacity: .65 }}>GOV.UK</span>
             </div>
           </IGrid>
 
