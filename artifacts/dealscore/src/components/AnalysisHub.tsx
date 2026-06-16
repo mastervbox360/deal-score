@@ -2098,11 +2098,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
           {/* ── Optional details — compact strip (FIX P) */}
           <button
             onClick={() => setShowOptional(v => !v)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', background: 'none', border: 'none', borderTop: '.5px solid var(--ds-border)', cursor: 'pointer', fontFamily: 'inherit', marginTop: 12 }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', marginTop: 12 }}>
             <span style={{ fontSize: 11, color: 'var(--text-2)', fontWeight: 500 }}>
               {showOptional ? '↑ Hide optional details' : '↓ Optional details'}
             </span>
-            <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)' }} />
           </button>
 
           {showOptional && (
