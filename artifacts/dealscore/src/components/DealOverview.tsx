@@ -465,8 +465,8 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
       )}
 
       {/* Overview / Deal Status switcher — sticky band */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)', marginLeft: -24, marginRight: -24 }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 24px', display: 'flex', alignItems: 'center' }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 0', display: 'flex', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '4px', background: 'transparent', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
             {(['overview', 'status'] as const).map(v => (
               <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
@@ -476,7 +476,6 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
           </div>
         </div>
       </div>
-      <div style={{ paddingTop: 20 }} />
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
       <div className={`archived-banner${archivedBanner ? (archivedSuccess ? ' show complete' : ' show') : ''}`}>
