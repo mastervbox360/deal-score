@@ -4109,7 +4109,7 @@ export default function AnalysisHub({
       </button>
 
       {/* ── Sub-nav band (sticky) ──────────────────────────────────────────── */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'var(--bg-body, #f5f6f8)', paddingBottom: 10 }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'transparent', paddingBottom: 10, overflow: 'hidden' }}>
         <div style={{ background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {/* Left: sub-tabs */}
