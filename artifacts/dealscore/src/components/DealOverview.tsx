@@ -464,15 +464,13 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
         </button>
       )}
 
-      {/* Overview / Deal Status switcher — sticky */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 99, background: 'var(--bg-body, #f5f6f8)', padding: '10px 0 6px', marginLeft: -24, marginRight: -24, paddingLeft: 24, paddingRight: 24 }}>
-        <div style={{ display: 'flex', gap: '4px', background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: '20px', padding: '4px', width: 'fit-content', boxShadow: '0 1px 3px rgba(0,0,0,.05)' }}>
-          {(['overview', 'status'] as const).map(v => (
-            <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '12px', fontWeight: 600, padding: '6px 16px', borderRadius: '16px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s', whiteSpace: 'nowrap' }}>
-              {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
-            </button>
-          ))}
-        </div>
+      {/* Overview / Deal Status switcher */}
+      <div style={{ display: 'flex', gap: '4px', background: 'transparent', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', marginBottom: '12px', width: 'fit-content' }}>
+        {(['overview', 'status'] as const).map(v => (
+          <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
+            {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
+          </button>
+        ))}
       </div>
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
