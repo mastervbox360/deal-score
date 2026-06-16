@@ -485,7 +485,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
       </div>
 
       {/* ─── Deal Hero ────────────────────────────────────────────────────── */}
-      <div className="deal-hero">
+      <div className="deal-hero" style={{ marginTop: 16 }}>
         <div className="hero-score-ring">
           {deal.deal_score === 'RECOMMENDED' ? (
             <>
