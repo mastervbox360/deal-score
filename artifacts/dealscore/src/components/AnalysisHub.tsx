@@ -4113,29 +4113,15 @@ export default function AnalysisHub({
         {/* Left: sub-tabs */}
         <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
 
-        {/* Right: read-only / edit notice — only shown on inputs tab */}
-        {activeView === 'inputs' && (
-          !isEditing ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 11, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                  <rect x="1" y="5" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
-                  <path d="M4 5V3.5a2 2 0 014 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                </svg>
-                Viewing — read-only
-              </span>
-              <button
-                onClick={() => navigate('?tab=analysis&view=inputs&editing=true')}
-                style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: 'var(--navy)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}
-              >
-                <i className="ti ti-pencil" style={{ fontSize: 10 }} /> Edit inputs
-              </button>
-            </div>
-          ) : (
-            <span style={{ fontSize: 11, color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <i className="ti ti-pencil" style={{ fontSize: 10 }} /> Editing
-            </span>
-          )
+        {/* Right: read-only notice — only on inputs tab, only when not editing */}
+        {activeView === 'inputs' && !isEditing && (
+          <span style={{ fontSize: 11, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <rect x="1" y="5" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M4 5V3.5a2 2 0 014 0V5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+            Viewing — read-only
+          </span>
         )}
       </div>
 
