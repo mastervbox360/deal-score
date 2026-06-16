@@ -3894,7 +3894,7 @@ export default function AnalysisHub({
       </button>
 
       {/* ── Sub-nav ────────────────────────────────────────────────────────── */}
-      <div style={{ position: 'sticky', top: 178, zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', marginBottom: 0 }}>
+      <div style={{ position: 'sticky', top: 178, zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px 0', marginBottom: 0 }}>
         <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
       </div>
 
