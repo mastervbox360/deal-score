@@ -766,9 +766,9 @@ function VerdictPill({ v, size = 'sm' }: { v: 'RECOMMENDED' | 'REVIEW' | 'AVOID'
 }
 
 // ── Card / section primitives ─────────────────────────────────────────────────
-function Sec({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
+function Sec({ title, badge, id, children }: { title: string; badge?: string; id?: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, overflow: 'hidden' }}>
+    <div id={id} style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, overflow: 'hidden' }}>
       <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
         {badge && <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>{badge}</span>}
@@ -1734,13 +1734,68 @@ function Step2StrategyPicker({ mode, activeTile, onSelect, isEditing }: { mode: 
   )
 }
 
+// ── Sidebar helpers ────────────────────────────────────────────────────────────
+
+function getFormVal(form: Record<string, unknown>, path: string): unknown {
+  const [ns, key] = path.split('.')
+  if (!key) return form[ns]
+  const sub = form[ns] as Record<string, unknown> | undefined
+  return sub?.[key]
+}
+
+function isFilled(v: unknown): boolean {
+  if (v === undefined || v === null || v === '') return false
+  if (typeof v === 'number') return v !== 0
+  return true
+}
+
+function getStrategyFinanceKey(tile: string): string {
+  switch (tile) {
+    case 'btl':    return 'btlPurchaseFinancingMethod'
+    case 'hmo':    return 'hmoPurchaseFinancingMethod'
+    case 'sa':     return 'saPurchaseFinancingMethod'
+    case 'brrr':   return 'brrrPurchaseFinancingMethod'
+    case 'social': return 'socialPurchaseFinancingMethod'
+    case 'flip':   return 'flipPurchaseFinanceMethod'
+    case 'r2r':    return ''
+    default:       return ''
+  }
+}
+
+function getStrategyIncomeFields(tile: string): string[] {
+  switch (tile) {
+    case 'btl':    return ['btlInputs.monthlyRent']
+    case 'hmo':    return ['hmoInputs.rooms', 'hmoInputs.rentPerRoom']
+    case 'sa':     return ['saInputs.nightlyRate', 'saInputs.occupancyPercent']
+    case 'brrr':   return ['brrrInputs.postRefurbValue', 'brrrInputs.monthlyRent']
+    case 'flip':   return ['flipInputs.expectedSalePrice']
+    case 'r2r':    return ['r2rInputs.monthlyRentPaid', 'r2rInputs.rooms', 'r2rInputs.rentPerRoom']
+    case 'social': return ['socialInputs.leaseIncomePerMonth']
+    default:       return []
+  }
+}
+
+function getStrategyLabel(tile: string): string {
+  switch (tile) {
+    case 'btl':    return 'BTL'
+    case 'hmo':    return 'HMO'
+    case 'sa':     return 'SA'
+    case 'brrr':   return 'BRRR'
+    case 'flip':   return 'FLIP'
+    case 'r2r':    return 'R2R'
+    case 'social': return 'Social Housing'
+    default:       return 'Strategy'
+  }
+}
+
 // ── VIEW: Inputs ──────────────────────────────────────────────────────────────
-function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
+function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
   p: ParsedInputs
   isNewDeal: boolean
   dealId: string
   onSave?: (updated: Deal) => void
   deal: Deal
+  onViewChange?: (v: SubView) => void
 }) {
   const [searchParams] = useSearchParams()
   const isEditing = searchParams.get('editing') === 'true'
@@ -1894,6 +1949,132 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
   const [activeTip, setActiveTip] = useState<string | null>(null)
   const scSource = (deal as unknown as Record<string, unknown>)?.scSource as string | undefined
 
+  // ── Sidebar computation ──────────────────────────────────────────────────────
+
+  const sidebarSections = useMemo(() => {
+    const financeKey = getStrategyFinanceKey(activeTile)
+    const incomeFields = getStrategyIncomeFields(activeTile)
+
+    const sections: Array<{
+      id: string
+      label: string
+      fields: string[]
+      tier: 'core' | 'defaults' | 'tax' | 'risk' | 'crm'
+    }> = [
+      {
+        id: 'property-info',
+        label: 'Property information',
+        fields: ['propertyType', 'bedrooms', 'epcRating', 'floodRisk'],
+        tier: 'risk',
+      },
+      {
+        id: 'property-purchase',
+        label: 'Property & purchase',
+        fields: ['sharedInputs.purchasePrice', 'marketValue', 'buyerType'],
+        tier: 'core',
+      },
+      {
+        id: 'purchase-financing',
+        label: 'Purchase financing',
+        fields: [
+          ...(financeKey ? [financeKey] : []),
+          'sharedInputs.depositPercent',
+          'sharedInputs.mortgageRate',
+          'sharedInputs.mortgageTerm',
+        ],
+        tier: 'core',
+      },
+      {
+        id: 'refurb',
+        label: 'Refurb',
+        fields: ['sharedInputs.refurbCost'],
+        tier: 'crm',
+      },
+      {
+        id: 'monthly-costs',
+        label: 'Monthly costs',
+        fields: ['managementFeePercent', 'buildingsInsurance', 'maintenanceReserve', 'voidAllowancePercent'],
+        tier: 'defaults',
+      },
+      {
+        id: 'strategy-fields',
+        label: `${getStrategyLabel(activeTile)} fields`,
+        fields: incomeFields,
+        tier: 'core',
+      },
+      {
+        id: 'ownership-tax',
+        label: 'Ownership & tax',
+        fields: ['ownershipStructure', 'incomeTaxBand'],
+        tier: 'tax',
+      },
+      {
+        id: 'deal-terms',
+        label: 'Deal terms',
+        fields: ['sourcingFeePaid', 'coolingOffPeriodDays'],
+        tier: 'crm',
+      },
+      {
+        id: 'seller',
+        label: 'Seller',
+        fields: ['sellerName', 'sellerPhone', 'sellerEmail'],
+        tier: 'crm',
+      },
+    ]
+
+    return sections.map(sec => {
+      const vals = sec.fields.map(f => getFormVal(form, f))
+      const filledCount = vals.filter(isFilled).length
+      const allFilled = filledCount === vals.length && vals.length > 0
+      const noneFilled = filledCount === 0
+
+      let dotClass: 'done' | 'miss' | '' = ''
+      if (allFilled) dotClass = 'done'
+      else if (!noneFilled) dotClass = 'miss'
+
+      const estNote = sec.tier === 'defaults' && !allFilled
+
+      return { ...sec, dotClass, filledCount, totalCount: vals.length, estNote }
+    })
+  }, [form, activeTile])
+
+  const { doneSections, totalSections } = useMemo(() => {
+    const mandatory = sidebarSections.filter(s => s.tier === 'core' || s.tier === 'defaults')
+    return {
+      doneSections: mandatory.filter(s => s.dotClass === 'done').length,
+      totalSections: mandatory.length,
+    }
+  }, [sidebarSections])
+
+  const { filledMandatory, totalMandatory } = useMemo(() => {
+    const mandatorySecs = sidebarSections.filter(s => s.tier === 'core' || s.tier === 'defaults')
+    const filled = mandatorySecs.reduce((sum, s) => sum + s.filledCount, 0)
+    const total = mandatorySecs.reduce((sum, s) => sum + s.totalCount, 0)
+    return { filledMandatory: filled, totalMandatory: total }
+  }, [sidebarSections])
+
+  const coreComplete = useMemo(() => {
+    const financeKey = getStrategyFinanceKey(activeTile)
+    const coreFields = [
+      'sharedInputs.purchasePrice',
+      ...(financeKey ? [financeKey] : []),
+      ...getStrategyIncomeFields(activeTile),
+    ]
+    return coreFields.every(f => isFilled(getFormVal(form, f)))
+  }, [form, activeTile])
+
+  const sbarStrategyComplete = useMemo(() => {
+    return getStrategyIncomeFields(activeTile).every(f => isFilled(getFormVal(form, f)))
+  }, [form, activeTile])
+
+  function scrollToSection(id: string) {
+    const el = document.getElementById(`sec-${id}`)
+    if (!el) return
+    const stickyOffset = 56 + 48 + 44 + 42 + 20
+    const top = el.getBoundingClientRect().top + window.scrollY - stickyOffset
+    window.scrollTo({ top, behavior: 'smooth' })
+  }
+
   const FieldTip = ({ id, text }: { id: string; text: string }) => (
     <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: 4 }}>
       <i
@@ -1999,7 +2180,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
         )}
 
         {/* 2. PROPERTY INFORMATION */}
-        <Sec title="Property information" badge={propInfoComplete ? 'Complete' : undefined}>
+        <Sec id="sec-property-info" title="Property information" badge={propInfoComplete ? 'Complete' : undefined}>
           {/* ── Mandatory fields ── */}
           <IGrid>
             <div>
@@ -2334,7 +2515,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Property & purchase — Buy strategies */}
         {mode === 'buy' && (
-          <Sec title="Property &amp; purchase" badge={purchaseComplete ? 'Complete' : undefined}>
+          <Sec id="sec-property-purchase" title="Property &amp; purchase" badge={purchaseComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -2446,7 +2627,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* FLIP — Purchase financing (FIX 6: moved here from strategy block) */}
         {activeTile === 'flip' && (
-          <Sec title="Purchase financing">
+          <Sec id="sec-purchase-financing" title="Purchase financing">
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
                 <button key={method}
@@ -2512,7 +2693,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Purchase financing — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec title="Purchase financing" badge={financeComplete ? 'Complete' : undefined}>
+          <Sec id="sec-purchase-financing" title="Purchase financing" badge={financeComplete ? 'Complete' : undefined}>
             {/* Method selector */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
@@ -2577,7 +2758,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Refurb — Buy only, not FLIP (FIX 7: absorbs old standalone Refurb financing Sec) */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec title="Refurb" badge={refurbComplete ? 'Complete' : undefined}>
+          <Sec id="sec-refurb" title="Refurb" badge={refurbComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Refurb / works cost (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
@@ -2617,7 +2798,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* Monthly costs — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec title="Monthly costs" badge={monthlyCostsComplete ? 'Complete' : undefined}>
+          <Sec id="sec-monthly-costs" title="Monthly costs" badge={monthlyCostsComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Management fee (%)" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
               <div style={{ position: 'relative' }}>
@@ -2650,7 +2831,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
         )}
 
         {/* Ownership & tax */}
-        <Sec title="Ownership &amp; tax" badge={ownershipComplete ? 'Complete' : undefined}>
+        <Sec id="sec-ownership-tax" title="Ownership &amp; tax" badge={ownershipComplete ? 'Complete' : undefined}>
           <IGrid>
             <ISelect
               label="Ownership structure"
@@ -2716,7 +2897,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* BTL */}
         {activeTile === 'btl' && (
-          <Sec title="BTL — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="BTL — project details" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} />
@@ -2737,7 +2918,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* HMO */}
         {activeTile === 'hmo' && (
-          <Sec title="HMO — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="HMO — project details" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Rooms" value={String((form.hmoInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
               <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
@@ -2785,7 +2966,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* SA */}
         {activeTile === 'sa' && (
-          <Sec title="SA — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="SA — project details" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Avg nightly rate (£)" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Target occupancy (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
@@ -2841,7 +3022,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
         {/* BRRR */}
         {activeTile === 'brrr' && (
           <>
-            <Sec title="BRRR — project details">
+            <Sec id="sec-strategy-fields" title="BRRR — project details">
               <div style={{ fontSize: '11px', color: 'var(--text-2)', marginBottom: '10px' }}>BRRR purchases are typically bridged. Enter the bridging details for the purchase below.</div>
               <IGrid>
                 <IField label="Bridging rate (% pm)" value={Number((form.brrrInputs as Record<string,unknown>)?.purchaseBridgingRate) > 0 ? fp(Number((form.brrrInputs as Record<string,unknown>).purchaseBridgingRate)) : ''} onChange={v => setField('brrrInputs.purchaseBridgingRate', parseFloat(v) || 0)} />
@@ -2884,7 +3065,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* R2R */}
         {activeTile === 'r2r' && (
-          <Sec title="R2R — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="R2R — project details" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Monthly rent paid to landlord" value={Number((form.r2rInputs as Record<string,unknown>)?.monthlyRentPaid) > 0 ? fc(Number((form.r2rInputs as Record<string,unknown>).monthlyRentPaid)) : ''} onChange={v => setField('r2rInputs.monthlyRentPaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Rooms" value={String((form.r2rInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('r2rInputs.rooms', parseInt(v) || 0)} required />
@@ -2930,7 +3111,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
         {/* SOCIAL */}
         {activeTile === 'social' && (
-          <Sec title="Social Housing — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="Social Housing — project details" badge={strategyComplete ? 'Complete' : undefined}>
             <IGrid>
               <IField label="Monthly lease income (£)" value={Number((form.socialInputs as Record<string,unknown>)?.leaseIncomePerMonth) > 0 ? fc(Number((form.socialInputs as Record<string,unknown>).leaseIncomePerMonth)) : ''} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Lease term (years)" value={String((form.socialInputs as Record<string,unknown>)?.leaseLengthYears || 5)} onChange={v => setField('socialInputs.leaseLengthYears', parseInt(v) || 5)} />
@@ -2970,7 +3151,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
         <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
 
         {/* Deal terms */}
-        <Sec title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined}>
+        <Sec id="sec-deal-terms" title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined}>
           <IGrid>
             <IField label="Sourcing fee (£)" value={Number(form.sourcingFeePaid) > 0 ? fc(Number(form.sourcingFeePaid)) : ''} onChange={v => setField('sourcingFeePaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             <IField label="Cooling-off period (days)" value={String(form.coolingOffPeriodDays ?? '')} onChange={v => setField('coolingOffPeriodDays', parseInt(v) || 0)} />
@@ -3090,24 +3271,75 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal }: {
 
       </div>
 
-      {/* Sidebar */}
-      <div style={{ position: 'sticky', top: `${56 + 48 + 44 + 42 + 20}px` }}>
-        <div style={{ background: '#fff', borderRadius: '12px', border: `.5px solid ${DS_BORDER}`, overflow: 'hidden' }}>
-          <div style={{ padding: '11px 14px', borderBottom: `.5px solid ${DS_BORDER}`, background: BG_SEC }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: TEXT_1 }}>Quick summary</div>
+      {/* Sidebar — Input completion tracker */}
+      <div className="sbar-sticky">
+        <div className="sbar-card">
+
+          {/* Header */}
+          <div className="sbar-hdr">
+            <div className="sbar-icon">
+              <i className="ti ti-checklist" />
+            </div>
+            <div className="sbar-hdr-text">
+              <div className="sbar-title">Input completion</div>
+              <div className="sbar-subtitle">{doneSections} of {totalSections} sections done</div>
+            </div>
+            <span className={`sbar-badge${doneSections < totalSections ? ' amber' : ''}`}>
+              {doneSections}/{totalSections}
+            </span>
           </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px', color: TEXT_2 }}>
-            <div><strong style={{ color: TEXT_1 }}>Strategy:</strong> {strategyLabel[p.strategy]}</div>
-            {p.purchasePrice > 0 && <div><strong style={{ color: TEXT_1 }}>Purchase price:</strong> {fc(p.purchasePrice)}</div>}
-            {p.marketValue > 0 && <div><strong style={{ color: TEXT_1 }}>Market value:</strong> {fc(p.marketValue)}</div>}
-            {p.mortgageRate > 0 && <div><strong style={{ color: TEXT_1 }}>Mortgage rate:</strong> {fp(p.mortgageRate)}</div>}
-            <div><strong style={{ color: TEXT_1 }}>Tax region:</strong> {COUNTRY_LABEL[p.taxCountry]}</div>
-            {isEditing && (
-              <div style={{ paddingTop: '8px', borderTop: `.5px solid #f3f4f6`, marginTop: '4px', fontSize: '10px', color: saveStatus === 'saved' ? '#065f46' : saveStatus === 'error' ? '#b91c1c' : '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <i className={`ti ${saveStatus === 'saved' ? 'ti-check' : saveStatus === 'saving' ? 'ti-loader' : saveStatus === 'error' ? 'ti-alert-circle' : 'ti-cloud'}`} style={{ fontSize: '10px' }} />
-                {saveStatus === 'saved' ? 'Autosaved' : saveStatus === 'saving' ? 'Saving…' : saveStatus === 'error' ? 'Save failed' : 'Ready'}
-              </div>
+
+          {/* Body */}
+          <div className="sbar-body">
+
+            {/* Progress bar */}
+            <div className="sbar-progress">
+              <div
+                className="sbar-progress-fill"
+                style={{ width: `${totalMandatory > 0 ? Math.round((filledMandatory / totalMandatory) * 100) : 0}%` }}
+              />
+            </div>
+
+            {/* Section rows */}
+            <div className="sbar-items">
+              {sidebarSections.map(sec => (
+                <button
+                  key={sec.id}
+                  className="sbar-item"
+                  onClick={() => scrollToSection(sec.id)}
+                >
+                  <span className={`sbar-dot-sm${sec.dotClass ? ` ${sec.dotClass}` : ''}`} />
+                  <span className={`sbar-item-lbl${sec.dotClass === 'done' ? ' done' : ''}`}>
+                    {sec.label}
+                    {sec.estNote && (
+                      <span style={{ color: '#D97706', fontSize: 10, marginLeft: 4, fontStyle: 'italic' }}>est.</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* View results CTA */}
+            <button
+              className="sbar-cta"
+              disabled={!coreComplete}
+              onClick={() => onViewChange?.('results')}
+            >
+              <i className="ti ti-trophy" style={{ fontSize: 12 }} />
+              {coreComplete ? 'View results' : 'Complete core inputs first'}
+            </button>
+
+            {/* Finish strategy fields shortcut */}
+            {!sbarStrategyComplete && activeTile && (
+              <button
+                className="sbar-cta outline"
+                style={{ marginTop: 6 }}
+                onClick={() => scrollToSection('strategy-fields')}
+              >
+                Finish {getStrategyLabel(activeTile)} fields
+              </button>
             )}
+
           </div>
         </div>
       </div>
@@ -3913,7 +4145,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'inputs' && (
-        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} deal={deal} />
+        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} deal={deal} onViewChange={setLocalView} />
       )}
 
       {activeView === 'sensitivity' && (
