@@ -465,7 +465,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
       )}
 
       {/* Overview / Deal Status switcher — sticky band */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)' }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10 }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 0', display: 'flex', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '4px', background: 'transparent', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
             {(['overview', 'status'] as const).map(v => (

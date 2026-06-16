@@ -4109,7 +4109,7 @@ export default function AnalysisHub({
       </button>
 
       {/* ── Sub-nav band (sticky) ──────────────────────────────────────────── */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', borderBottom: '.5px solid var(--ds-border)' }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10 }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Left: sub-tabs */}
           <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
