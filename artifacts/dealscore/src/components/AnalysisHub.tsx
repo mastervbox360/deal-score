@@ -768,12 +768,12 @@ function VerdictPill({ v, size = 'sm' }: { v: 'RECOMMENDED' | 'REVIEW' | 'AVOID'
 // ── Card / section primitives ─────────────────────────────────────────────────
 function Sec({ title, badge, id, children }: { title: string; badge?: string; id?: string; children: React.ReactNode }) {
   return (
-    <div id={id} style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, overflow: 'hidden' }}>
-      <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '10px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
-        {badge && <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>{badge}</span>}
+    <div id={id} style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+      <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
+        {badge && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20 }}>{badge}</span>}
       </div>
-      <div style={{ padding: '16px 18px' }}>
+      <div style={{ padding: '14px 16px' }}>
         {children}
       </div>
     </div>
@@ -805,7 +805,7 @@ function IField({ label, value, onChange, required }: { label: string; value: st
         readOnly={!isEditing || !onChange}
         value={displayValue}
         onChange={isEditing && onChange ? (e) => onChange(e.target.value) : undefined}
-        style={{ border: `.5px solid #c8cbd2`, borderRadius: '8px', padding: '7px 10px', fontSize: '12px', color: TEXT_2, background: isEditing ? '#fff' : BG_SEC, minHeight: '33px', cursor: isEditing ? 'text' : 'default', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+        style={{ border: `1px solid #c8cbd2`, borderRadius: '8px', padding: '7px 10px', fontSize: '12px', color: 'var(--text-1)', background: isEditing ? '#fff' : BG_SEC, minHeight: '33px', cursor: isEditing ? 'text' : 'default', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
       />
     </div>
   )
