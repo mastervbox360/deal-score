@@ -448,20 +448,8 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
   return (
     <div className="ds-content">
 
-      {/* Overview / Deal Status switcher — sticky band (always shown) */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, backgroundColor: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
-        <div style={{ display: 'inline-flex', gap: 0, background: '#e2e4e8', borderRadius: 8, padding: '3px', width: 'fit-content' }}>
-          {(['overview', 'status'] as const).map(v => (
-            <button key={v} onClick={() => setOverviewView(v)} style={{ background: overviewView === v ? '#ffffff' : 'transparent', borderRadius: 6, boxShadow: overviewView === v ? '0 1px 3px rgba(0,0,0,.12)' : 'none', color: overviewView === v ? 'var(--navy, #1B3A6B)' : 'var(--text-2, #6c757d)', fontWeight: overviewView === v ? 500 : 400, fontSize: 12, padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s ease' }}>
-              {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {overviewView === 'overview' && <>
-
-      {!expDismissed ? (
+      {/* Educator banner — above sticky band (overview only) */}
+      {overviewView === 'overview' && (!expDismissed ? (
         <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
           <button onClick={()=>setExpDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
           <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="ti ti-home-check" /></div>
@@ -474,7 +462,20 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
         <button onClick={()=>setExpDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
           <i className="ti ti-book-2" style={{fontSize:11}} /> Page guide
         </button>
-      )}
+      ))}
+
+      {/* Overview / Deal Status switcher — sticky band (always shown) */}
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, backgroundColor: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
+        <div style={{ display: 'inline-flex', gap: 0, background: '#e2e4e8', borderRadius: 8, padding: '3px', width: 'fit-content' }}>
+          {(['overview', 'status'] as const).map(v => (
+            <button key={v} onClick={() => setOverviewView(v)} style={{ background: overviewView === v ? '#ffffff' : 'transparent', borderRadius: 6, boxShadow: overviewView === v ? '0 1px 3px rgba(0,0,0,.12)' : 'none', color: overviewView === v ? 'var(--navy, #1B3A6B)' : 'var(--text-2, #6c757d)', fontWeight: overviewView === v ? 500 : 400, fontSize: 12, padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s ease' }}>
+              {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {overviewView === 'overview' && <>
 
       {/* ─── Archived banner ──────────────────────────────────────────────── */}
       <div className={`archived-banner${archivedBanner ? (archivedSuccess ? ' show complete' : ' show') : ''}`}>
