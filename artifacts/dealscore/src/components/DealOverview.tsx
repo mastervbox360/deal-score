@@ -449,7 +449,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
     <div className="ds-content">
 
       {/* Overview / Deal Status switcher — sticky band (always shown) */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#f5f6f8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
         <div style={{ display: 'inline-flex', gap: 0, background: '#e2e4e8', borderRadius: 8, padding: '3px', width: 'fit-content' }}>
           {(['overview', 'status'] as const).map(v => (
             <button key={v} onClick={() => setOverviewView(v)} style={{ background: overviewView === v ? '#ffffff' : 'transparent', borderRadius: 6, boxShadow: overviewView === v ? '0 1px 3px rgba(0,0,0,.12)' : 'none', color: overviewView === v ? 'var(--navy, #1B3A6B)' : 'var(--text-2, #6c757d)', fontWeight: overviewView === v ? 500 : 400, fontSize: 12, padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s ease' }}>
