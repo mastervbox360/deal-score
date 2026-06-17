@@ -449,10 +449,10 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
     <div className="ds-content">
 
       {/* Overview / Deal Status switcher — sticky band (always shown) */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', marginBottom: 12 }}>
-        <div style={{ display: 'flex', gap: '4px', background: '#fff', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,.09)', padding: '4px', width: 'fit-content' }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'var(--bg-sec, #f5f6f8)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
+        <div style={{ display: 'inline-flex', gap: 0, background: '#e2e4e8', borderRadius: 8, padding: '3px', width: 'fit-content' }}>
           {(['overview', 'status'] as const).map(v => (
-            <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '6px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
+            <button key={v} onClick={() => setOverviewView(v)} style={{ background: overviewView === v ? '#ffffff' : 'transparent', borderRadius: 6, boxShadow: overviewView === v ? '0 1px 3px rgba(0,0,0,.12)' : 'none', color: overviewView === v ? 'var(--navy, #1B3A6B)' : 'var(--text-2, #6c757d)', fontWeight: overviewView === v ? 500 : 400, fontSize: 12, padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s ease' }}>
               {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}
             </button>
           ))}

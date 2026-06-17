@@ -1022,9 +1022,9 @@ function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) 
     { key: 'workings',    label: 'Workings',    icon: 'ti-list-search' },
   ]
   return (
-    <div style={{ display: 'flex', gap: '4px', background: '#fff', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,.09)', padding: '4px', width: 'fit-content' }}>
+    <div style={{ display: 'inline-flex', gap: 0, background: '#e2e4e8', borderRadius: 8, padding: '3px', width: 'fit-content' }}>
       {items.map(({ key, label, icon }) => (
-        <button key={key} onClick={() => onChange(key)} style={{ fontSize: '11px', fontWeight: 600, padding: '6px 14px', borderRadius: '7px', border: 'none', background: active === key ? 'var(--navy)' : 'transparent', color: active === key ? '#fff' : 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
+        <button key={key} onClick={() => onChange(key)} style={{ background: active === key ? '#ffffff' : 'transparent', borderRadius: 6, boxShadow: active === key ? '0 1px 3px rgba(0,0,0,.12)' : 'none', color: active === key ? 'var(--navy, #1B3A6B)' : 'var(--text-2, #6c757d)', fontWeight: active === key ? 500 : 400, fontSize: 12, padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s ease', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
           <i className={`ti ${icon}`} style={{ fontSize: '11px' }} />{label}
         </button>
       ))}
@@ -4109,7 +4109,7 @@ export default function AnalysisHub({
       </button>
 
       {/* ── Sub-nav band (sticky) ──────────────────────────────────────────── */}
-      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', marginBottom: 12 }}>
+      <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: 'var(--bg-sec, #f5f6f8)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
         {/* Left: sub-tabs */}
         <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
 
