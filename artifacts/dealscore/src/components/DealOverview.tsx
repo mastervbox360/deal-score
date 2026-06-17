@@ -452,7 +452,7 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
       <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, background: '#f5f6f8', paddingBottom: 10 }}>
         <div style={{ background: '#fff', borderRadius: 10 }}>
           <div style={{ maxWidth: 1280, margin: '0 auto', padding: '8px 0', display: 'flex', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '4px', background: 'transparent', border: '.5px solid var(--ds-border)', borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
+            <div style={{ display: 'flex', gap: '4px', padding: '4px', width: 'fit-content' }}>
               {(['overview', 'status'] as const).map(v => (
                 <button key={v} onClick={() => setOverviewView(v)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: overviewView === v ? 'var(--navy)' : 'transparent', color: overviewView === v ? '#fff' : 'var(--text-2)', display: 'inline-flex', alignItems: 'center', gap: '5px', transition: 'all .15s' }}>
                   {v === 'overview' ? <><i className="ti ti-layout-dashboard" style={{ fontSize: '11px' }} /> Overview</> : <><i className="ti ti-chart-gantt" style={{ fontSize: '11px' }} /> Deal Status</>}

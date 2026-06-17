@@ -1022,7 +1022,7 @@ function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) 
     { key: 'workings',    label: 'Workings',    icon: 'ti-list-search' },
   ]
   return (
-    <div style={{ display: 'flex', gap: '4px', background: '#fff', border: `.5px solid var(--ds-border)`, borderRadius: '10px', padding: '4px', width: 'fit-content' }}>
+    <div style={{ display: 'flex', gap: '4px', padding: '4px', width: 'fit-content' }}>
       {items.map(({ key, label, icon }) => (
         <button key={key} onClick={() => onChange(key)} style={{ fontSize: '11px', fontWeight: 600, padding: '5px 14px', borderRadius: '7px', border: 'none', background: active === key ? 'var(--navy)' : 'transparent', color: active === key ? '#fff' : 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
           <i className={`ti ${icon}`} style={{ fontSize: '11px' }} />{label}
