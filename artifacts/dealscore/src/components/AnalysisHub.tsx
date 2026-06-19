@@ -1543,7 +1543,9 @@ function ViewResults({ p, base, composite, stressRentDown, stressRateUp, stressC
 }
 
 // ── SellerCard ────────────────────────────────────────────────────────────────
-function SellerCard({ form, setField, isEditing, isR2R, sellerComplete = false }: {
+type SellerRecord = { id?: string; name: string; phone: string; email: string; motivation: string; dealCount?: number }
+
+function SellerCard({ form, setField, isR2R }: {
   form: Record<string, unknown>
   setField: (path: string, v: unknown) => void
   isEditing: boolean
@@ -1551,95 +1553,199 @@ function SellerCard({ form, setField, isEditing, isR2R, sellerComplete = false }
   sellerComplete?: boolean
 }) {
   const label = isR2R ? 'Landlord' : 'Seller'
-  const hasData = !!(form.sellerName || form.sellerPhone)
+
+  const [sellerUiState, setSellerUiState] = useState<'search' | 'results' | 'linked' | 'create'>(
+    form.sellerName ? 'linked' : 'search'
+  )
+  const [sellerSearch, setSellerSearch] = useState('')
+  const [linkedSeller, setLinkedSeller] = useState<SellerRecord | null>(
+    form.sellerName
+      ? { name: String(form.sellerName ?? ''), phone: String(form.sellerPhone ?? ''), email: String(form.sellerEmail ?? ''), motivation: String(form.sellerMotivation ?? '') }
+      : null
+  )
+  const [newSeller, setNewSeller] = useState<SellerRecord>({ name: '', phone: '', email: '', motivation: '' })
+
+  // Stub — no CRM records yet; will be populated in a future prompt
+  const sellers: SellerRecord[] = []
+  const filteredSellers = sellers.filter(s =>
+    s.name?.toLowerCase().includes(sellerSearch.toLowerCase()) ||
+    s.phone?.includes(sellerSearch) ||
+    s.email?.toLowerCase().includes(sellerSearch.toLowerCase())
+  ).slice(0, 5)
+
+  const linkSeller = (s: SellerRecord) => {
+    setLinkedSeller(s)
+    setField('sellerName', s.name)
+    setField('sellerPhone', s.phone)
+    setField('sellerEmail', s.email)
+    setField('sellerMotivation', s.motivation)
+    setSellerUiState('linked')
+  }
+
+  const clearSeller = () => {
+    setLinkedSeller(null)
+    setField('sellerName', '')
+    setField('sellerPhone', '')
+    setField('sellerEmail', '')
+    setField('sellerMotivation', '')
+    setSellerUiState('search')
+    setSellerSearch('')
+  }
+
+  const handleSaveNewSeller = () => {
+    if (!newSeller.name) return
+    linkSeller(newSeller)
+  }
+
+  const badge = linkedSeller ? 'Complete' : 'Optional'
+
+  const searchIcon = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-2,#6c757d)" strokeWidth="2"
+      style={{ position: 'absolute' as const, left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' as const }}>
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+  )
 
   return (
-    <Sec title={label} badge={sellerComplete ? 'Complete' : 'Optional'}>
+    <Sec title={label} badge={badge}>
 
-      {/* U1: CRM search stub */}
-      <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '.5px solid var(--ds-border)' }}>
-        <input
-          type="text"
-          placeholder="Search existing sellers by name, phone or email…"
-          readOnly
-          style={{ width: '100%', padding: '8px 11px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: 'var(--bg-sec)', color: '#444', outline: 'none', fontFamily: 'inherit', cursor: 'text', boxSizing: 'border-box' as const }}
-        />
-        <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 5 }}>
-          Or fill in manually below to create a new seller record
+      {/* STATE 1 — search */}
+      {sellerUiState === 'search' && (
+        <div>
+          <div style={{ position: 'relative' as const }}>
+            {searchIcon}
+            <input
+              type="text"
+              placeholder={`Search by name, phone or email…`}
+              value={sellerSearch}
+              onChange={e => { setSellerSearch(e.target.value); setSellerUiState('results') }}
+              style={{ width: '100%', padding: '9px 10px 9px 32px', border: '1px solid var(--ds-border,#e3e5e9)', borderRadius: 8, fontSize: 13, color: 'var(--text-1,#1a1a2e)', background: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }}
+            />
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-2,#6c757d)', marginTop: 8 }}>
+            Find an existing {label.toLowerCase()} or add a new one
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* U2: 3-col contact grid — Full name (2fr) · Phone (1fr) · Email (1fr) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 9, marginBottom: 14 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999' }}>Full name</div>
-          <input type="text" placeholder={`${label} full name`}
-            value={String(form.sellerName ?? '')}
-            readOnly={!isEditing}
-            onChange={isEditing ? e => { setField('sellerName', e.target.value); setField('sellerId', null) } : undefined}
-            className="pii"
-            style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+      {/* STATE 2 — results */}
+      {sellerUiState === 'results' && (
+        <div>
+          <div style={{ position: 'relative' as const }}>
+            {searchIcon}
+            <input
+              type="text"
+              value={sellerSearch}
+              onChange={e => setSellerSearch(e.target.value)}
+              autoFocus
+              style={{ width: '100%', padding: '9px 10px 9px 32px', border: '1px solid var(--navy,#1B3A6B)', borderRadius: 8, fontSize: 13, color: 'var(--text-1)', background: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }}
+            />
+          </div>
+          <div style={{ marginTop: 6, border: '1px solid var(--ds-border,#e3e5e9)', borderRadius: 8, background: '#fff', overflow: 'hidden' }}>
+            {filteredSellers.map((seller, idx) => (
+              <div key={seller.id ?? idx}
+                onClick={() => linkSeller(seller)}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: '1px solid var(--ds-border,#e3e5e9)', cursor: 'pointer' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-sec,#f5f6f8)')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
+              >
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#E1F5EE', color: '#0F6E56', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 500, flexShrink: 0 }}>
+                  {seller.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1,#1a1a2e)' }}>{seller.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-2,#6c757d)' }}>{seller.phone}{seller.email ? ` · ${seller.email}` : ''}</div>
+                </div>
+                {(seller.dealCount ?? 0) > 0 && (
+                  <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 10, background: '#E1F5EE', color: '#0F6E56', fontWeight: 500 }}>
+                    {seller.dealCount} deal{seller.dealCount !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            ))}
+            <div
+              onClick={() => setSellerUiState('create')}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', cursor: 'pointer', color: 'var(--text-2,#6c757d)', fontSize: 12 }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-sec,#f5f6f8)'; e.currentTarget.style.color = 'var(--text-1,#1a1a2e)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--text-2,#6c757d)' }}
+            >
+              <div style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid var(--ds-border,#e3e5e9)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, lineHeight: 1, flexShrink: 0 }}>+</div>
+              Add {sellerSearch ? `"${sellerSearch}"` : `new ${label.toLowerCase()}`}
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999' }}>Phone</div>
-          <input type="tel" placeholder="e.g. 07700 900 123"
-            value={String(form.sellerPhone ?? '')}
-            readOnly={!isEditing}
-            onChange={isEditing ? e => setField('sellerPhone', e.target.value) : undefined}
-            className="pii"
-            style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999' }}>Email</div>
-          <input type="email" placeholder="e.g. john@email.com"
-            value={String(form.sellerEmail ?? '')}
-            readOnly={!isEditing}
-            onChange={isEditing ? e => setField('sellerEmail', e.target.value) : undefined}
-            className="pii"
-            style={{ padding: '7px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
-        </div>
-      </div>
+      )}
 
-      {/* U3: Motivation — 8 wrapping pills */}
-      <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-        MOTIVATION
-        <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginBottom: 14 }}>
-        {([
-          'Motivated seller', 'Below market value', 'Probate / estate',
-          'Repossession', 'Divorce', 'Relocated abroad', 'Developer exit', 'Other',
-        ] as const).map((opt) => {
-          const isActive = form.sellerMotivation === opt
-          return (
-            <button key={opt}
-              onClick={() => isEditing && setField('sellerMotivation', isActive ? '' : opt)}
-              style={{
-                padding: '5px 12px', fontSize: 12, fontWeight: isActive ? 600 : 400, borderRadius: 20,
-                border: `.5px solid ${isActive ? 'var(--navy)' : 'var(--ds-border)'}`,
-                background: isActive ? 'var(--navy)' : '#fff',
-                color: isActive ? '#fff' : '#555',
-                cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .15s',
-              }}>
-              {opt}
+      {/* STATE 3 — linked */}
+      {sellerUiState === 'linked' && linkedSeller && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: 'var(--bg-sec,#f5f6f8)', border: '1px solid var(--ds-border,#e3e5e9)', borderRadius: 8 }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#E1F5EE', color: '#0F6E56', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500, flexShrink: 0 }}>
+            {linkedSeller.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1,#1a1a2e)' }}>{linkedSeller.name}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2,#6c757d)', marginTop: 2 }}>
+              {[linkedSeller.phone, linkedSeller.email].filter(Boolean).join(' · ')}
+            </div>
+            {linkedSeller.motivation && (
+              <span style={{ display: 'inline-block', marginTop: 5, fontSize: 11, padding: '2px 8px', borderRadius: 10, background: '#FEF3C7', color: '#92400E' }}>
+                {linkedSeller.motivation}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={clearSeller}
+            style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--ds-border,#e3e5e9)', background: '#fff', color: 'var(--text-2,#6c757d)', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Change
+          </button>
+        </div>
+      )}
+
+      {/* STATE 4 — create */}
+      {sellerUiState === 'create' && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+            {([
+              { lbl: 'FULL NAME', placeholder: 'e.g. James Thornton', field: 'name' as const },
+              { lbl: 'PHONE',     placeholder: '07700 900 123',       field: 'phone' as const },
+              { lbl: 'EMAIL',     placeholder: 'e.g. james@email.com', field: 'email' as const },
+            ]).map(({ lbl, placeholder, field }) => (
+              <div key={field}>
+                <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-2,#6c757d)', textTransform: 'uppercase' as const, letterSpacing: '.04em', marginBottom: 4 }}>{lbl}</div>
+                <input
+                  type="text"
+                  placeholder={placeholder}
+                  value={newSeller[field]}
+                  onChange={e => setNewSeller(prev => ({ ...prev, [field]: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--ds-border,#e3e5e9)', borderRadius: 6, fontSize: 13, color: 'var(--text-1,#1a1a2e)', background: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }}
+                />
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-2,#6c757d)', textTransform: 'uppercase' as const, letterSpacing: '.04em', marginBottom: 8 }}>Motivation</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
+            {(['Motivated seller', 'Below market value', 'Probate / estate', 'Repossession', 'Divorce', 'Relocated abroad', 'Developer exit', 'Other'] as const).map(m => (
+              <button key={m}
+                onClick={() => setNewSeller(prev => ({ ...prev, motivation: prev.motivation === m ? '' : m }))}
+                style={{ fontSize: 12, padding: '5px 12px', borderRadius: 20, border: `1px solid ${newSeller.motivation === m ? 'var(--navy,#1B3A6B)' : 'var(--ds-border,#e3e5e9)'}`, background: newSeller.motivation === m ? 'var(--navy,#1B3A6B)' : '#fff', color: newSeller.motivation === m ? '#fff' : 'var(--text-2,#6c757d)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                {m}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' as const, gap: 8, marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--ds-border,#e3e5e9)' }}>
+            <button onClick={() => setSellerUiState('search')}
+              style={{ fontSize: 12, padding: '7px 14px', borderRadius: 6, border: '1px solid var(--ds-border,#e3e5e9)', background: '#fff', color: 'var(--text-2,#6c757d)', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Cancel
             </button>
-          )
-        })}
-      </div>
+            <button onClick={handleSaveNewSeller}
+              style={{ fontSize: 12, padding: '7px 14px', borderRadius: 6, border: 'none', background: 'var(--navy,#1B3A6B)', color: '#fff', cursor: 'pointer', fontWeight: 500, fontFamily: 'inherit' }}>
+              Save {label.toLowerCase()}
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* U4: Situation notes */}
-      <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-        SITUATION NOTES
-        <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
-      </div>
-      <textarea
-        placeholder="e.g. relocating to Scotland, needs to complete before end of month. Open to negotiation."
-        value={String(form.sellerNotes ?? '')}
-        readOnly={!isEditing}
-        onChange={isEditing ? e => setField('sellerNotes', e.target.value) : undefined}
-        rows={3}
-        style={{ padding: '8px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' as const }}
-      />
     </Sec>
   )
 }
@@ -2393,6 +2499,9 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
           </div>
         )}
 
+        {/* Seller / landlord — moved above photos so sourcer enters property + seller together */}
+        <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
+
         {/* ── Property photos card (CHANGE 3) ── */}
         <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10, overflow: 'hidden' }}>
           <div
@@ -3108,9 +3217,6 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             </div>
           </Sec>
         )}
-
-        {/* Seller / landlord */}
-        <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
 
         {/* Deal terms */}
         <Sec id="sec-deal-terms" title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined}>
