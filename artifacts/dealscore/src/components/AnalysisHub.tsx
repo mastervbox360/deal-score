@@ -1554,16 +1554,7 @@ function SellerCard({ form, setField, isEditing, isR2R, sellerComplete = false }
   const hasData = !!(form.sellerName || form.sellerPhone)
 
   return (
-    <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', padding: '18px 20px', marginBottom: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {label}
-          {sellerComplete && (
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>Complete</span>
-          )}
-        </span>
-        <span style={{ fontSize: 10, color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: 20 }}>Optional</span>
-      </div>
+    <Sec title={label} badge={sellerComplete ? 'Complete' : 'Optional'}>
 
       {/* U1: CRM search stub */}
       <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '.5px solid var(--ds-border)' }}>
@@ -1649,7 +1640,7 @@ function SellerCard({ form, setField, isEditing, isR2R, sellerComplete = false }
         rows={3}
         style={{ padding: '8px 10px', borderRadius: 7, border: '.5px solid var(--ds-border)', fontSize: 13, background: isEditing ? '#fff' : 'var(--bg-sec)', color: '#222', outline: 'none', width: '100%', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' as const }}
       />
-    </div>
+    </Sec>
   )
 }
 
