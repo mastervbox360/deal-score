@@ -2514,20 +2514,22 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {/* Seller / landlord — moved above photos so sourcer enters property + seller together */}
         <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
 
-        {/* ── Property photos card (CHANGE 3) ── */}
+        {/* ── Property photos — grey header band matching Sec style, collapsible body ── */}
         <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10, overflow: 'hidden' }}>
           <div
             onClick={() => setPhotosOpen(v => !v)}
-            style={{ display: 'flex', alignItems: 'center', padding: '13px 18px', cursor: 'pointer', userSelect: 'none', gap: 10 }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-sec)')}
-            onMouseLeave={e => (e.currentTarget.style.background = '')}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Property photos</span>
-            <span style={{ fontSize: 10, fontWeight: 500, color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: 20 }}>Optional</span>
-            <span style={{ fontSize: 11, color: 'var(--text-2)', fontStyle: 'italic' }}>★ Hero image = deal card</span>
-            <i className={`ti ti-chevron-${photosOpen ? 'up' : 'down'}`} style={{ fontSize: 16, color: '#ccc' }} />
+            style={{ background: 'var(--bg-sec)', borderBottom: photosOpen ? '.5px solid var(--ds-border)' : 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' as const }}
+            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.97)')}
+            onMouseLeave={e => (e.currentTarget.style.filter = '')}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Property photos</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20, marginRight: 8 }}>Optional</span>
+            <i className={`ti ti-chevron-${photosOpen ? 'up' : 'down'}`} style={{ fontSize: 14, color: '#ccc' }} />
           </div>
           {photosOpen && (
-            <div style={{ padding: '0 18px 16px' }}>
+            <div style={{ padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-2)', fontStyle: 'italic' }}>★ Hero image = deal card</span>
+              </div>
               <div style={{ border: '1.5px dashed var(--ds-border)', borderRadius: 8, padding: '20px 16px', textAlign: 'center' as const, color: 'var(--text-2)', fontSize: 12 }}>
                 <i className="ti ti-upload" style={{ fontSize: 20, marginBottom: 6, display: 'block', opacity: .4 }} />
                 Drag photos here or <span style={{ color: 'var(--navy)', cursor: 'pointer', fontWeight: 500 }}>browse</span>
