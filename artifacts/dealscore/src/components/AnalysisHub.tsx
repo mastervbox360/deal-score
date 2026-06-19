@@ -1967,13 +1967,22 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
   const [compsLoading, setCompsLoading] = useState(false)
   const [localCompsError, setLocalCompsError] = useState<string | null>(null)
 
+  // Extract UK postcode from deal address (e.g. "CF24 1RN", "SW1A 2AA")
+  const extractPostcode = (address: string): string | null => {
+    const match = address?.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i)
+    return match ? match[0].toUpperCase().replace(/\s+/g, ' ') : null
+  }
+  const compsPostcodeAuto = extractPostcode(String(deal.address ?? deal.postcode ?? ''))
+
   async function doRefreshComps() {
-    const pc = (deal.postcode ?? '').trim()
-    if (!pc) return
+    if (!compsPostcodeAuto) {
+      setLocalCompsError('No postcode found in address — add a full address including postcode first.')
+      return
+    }
     setCompsLoading(true)
     setLocalCompsError(null)
     try {
-      const { data, error } = await supabase.functions.invoke('land-registry-comps', { body: { postcode: pc } })
+      const { data, error } = await supabase.functions.invoke('land-registry-comps', { body: { postcode: compsPostcodeAuto } })
       if (error || !data?.success) {
         setLocalCompsError(data?.error ?? 'Could not load comparables.')
       } else {
@@ -3238,15 +3247,23 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2 }}>Sold price comparables</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-2)' }}>No data yet — fetch sold prices for {deal.postcode ?? 'this postcode'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
+                    {compsPostcodeAuto
+                      ? `Fetch sold prices for ${compsPostcodeAuto}`
+                      : 'Add a full address including postcode to fetch comparables'}
+                  </div>
                 </div>
                 <button
                   onClick={() => { void doRefreshComps() }}
-                  disabled={compsLoading}
+                  disabled={!compsPostcodeAuto || compsLoading}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-                    fontSize: 12, fontWeight: 500, borderRadius: 6, cursor: compsLoading ? 'default' : 'pointer',
-                    background: '#fff', border: `.5px solid var(--ds-border)`, color: 'var(--navy)',
+                    fontSize: 12, fontWeight: 500, borderRadius: 6,
+                    cursor: compsPostcodeAuto && !compsLoading ? 'pointer' : 'not-allowed',
+                    background: compsPostcodeAuto ? '#fff' : 'var(--bg-sec)',
+                    border: `.5px solid var(--ds-border)`,
+                    color: compsPostcodeAuto ? 'var(--navy)' : 'var(--text-2)',
+                    opacity: compsPostcodeAuto ? 1 : 0.6,
                     fontFamily: 'inherit',
                   }}>
                   <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 12 }} />
