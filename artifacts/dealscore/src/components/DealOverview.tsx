@@ -464,6 +464,22 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
         </button>
       ))}
 
+      {/* Educator banner — above sticky band (Deal Status only) */}
+      {overviewView === 'status' && (!dealStatusEducatorDismissed ? (
+        <div style={{position:'relative',display:'flex',gap:14,alignItems:'flex-start',background:'#fff',borderRadius:12,border:'.5px solid var(--ds-border)',boxShadow:'0 1px 3px rgba(0,0,0,.06)',padding:'16px 18px',marginBottom:12}}>
+          <button onClick={()=>setDealStatusEducatorDismissed(true)} style={{position:'absolute',top:10,right:12,background:'none',border:'none',cursor:'pointer',color:'#ccc',fontSize:16,lineHeight:1,padding:4}}>×</button>
+          <div style={{width:36,height:36,borderRadius:8,background:'var(--navy-light)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,color:'var(--navy)',flexShrink:0}}><i className="ti ti-clipboard-list" /></div>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:'var(--text-1)',marginBottom:4}}>Track your deal's progress</div>
+            <div style={{fontSize:12,color:'var(--text-2)',lineHeight:1.7}}>Deal Status tracks reservation countdown, key dates, and fees. Use <strong style={{color:'var(--text-1)'}}>Close deal</strong> when the deal completes or falls through.</div>
+          </div>
+        </div>
+      ) : (
+        <button onClick={()=>setDealStatusEducatorDismissed(false)} style={{display:'inline-flex',alignItems:'center',gap:5,fontSize:11,color:'var(--text-2)',background:'var(--bg-sec)',border:'.5px solid var(--ds-border)',borderRadius:20,padding:'4px 12px',cursor:'pointer',marginBottom:12,width:'fit-content'}}>
+          <i className="ti ti-clipboard-list" style={{fontSize:11}} /> Deal Status guide
+        </button>
+      ))}
+
       {/* Overview / Deal Status switcher — sticky band (always shown) */}
       <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, backgroundColor: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
         <div style={{ display: 'inline-flex', gap: 0, background: '#e2e4e8', borderRadius: 8, padding: '3px', width: 'fit-content' }}>
@@ -973,20 +989,6 @@ export default function DealOverview({ deal, onTabChange, initialView }: Props) 
 
       {overviewView === 'status' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, alignItems: 'start' }}>
-
-          {/* ── Deal Status educator banner ─────────── */}
-          {!dealStatusEducatorDismissed && (
-            <div style={{ gridColumn: '1 / -1', background: '#fff', border: '.5px solid var(--ds-border)', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 4, boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--navy-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: 'var(--navy)', flexShrink: 0 }}>
-                <i className="ti ti-clipboard-list" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>Track your deal's progress</div>
-                <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7 }}>Deal Status tracks reservation countdown, key dates, and fees. Use <strong style={{ color: 'var(--text-1)' }}>Close deal</strong> when the deal completes or falls through.</div>
-              </div>
-              <button onClick={() => setDealStatusEducatorDismissed(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: 16, lineHeight: 1, padding: 4 }} aria-label="Dismiss">×</button>
-            </div>
-          )}
 
           {/* ── Left column ─────────────────────────── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
