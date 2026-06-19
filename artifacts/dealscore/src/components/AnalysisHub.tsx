@@ -766,18 +766,13 @@ function VerdictPill({ v, size = 'sm' }: { v: 'RECOMMENDED' | 'REVIEW' | 'AVOID'
 }
 
 // ── Card / section primitives ─────────────────────────────────────────────────
-function InfoTip({ text }: { text: string }) {
+function InfoIcon({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false)
   return (
     <div
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: 6 }}
-      onMouseEnter={e => {
-        const tip = (e.currentTarget as HTMLElement).querySelector('.sec-tip') as HTMLElement | null;
-        if (tip) tip.style.opacity = '1';
-      }}
-      onMouseLeave={e => {
-        const tip = (e.currentTarget as HTMLElement).querySelector('.sec-tip') as HTMLElement | null;
-        if (tip) tip.style.opacity = '0';
-      }}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: 4 }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
     >
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
         style={{ color: 'var(--text-2,#6c757d)', cursor: 'default', flexShrink: 0 }}>
@@ -785,38 +780,38 @@ function InfoTip({ text }: { text: string }) {
         <path d="M8 7v5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         <circle cx="8" cy="4.5" r="0.8" fill="currentColor" />
       </svg>
-      <div className="sec-tip" style={{
-        position: 'absolute',
-        bottom: '100%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        marginBottom: 8,
-        background: 'var(--navy,#1B3A6B)',
-        color: '#fff',
-        fontSize: 12,
-        lineHeight: 1.5,
-        padding: '8px 12px',
-        borderRadius: 8,
-        width: 240,
-        pointerEvents: 'none',
-        opacity: 0,
-        transition: 'opacity 0.15s ease',
-        zIndex: 200,
-        boxShadow: '0 4px 12px rgba(0,0,0,.15)',
-        whiteSpace: 'normal' as const,
-      }}>
-        {text}
+      {visible && (
         <div style={{
           position: 'absolute',
-          top: '100%',
+          bottom: '100%',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 0, height: 0,
-          borderLeft: '5px solid transparent',
-          borderRight: '5px solid transparent',
-          borderTop: '5px solid var(--navy,#1B3A6B)',
-        }} />
-      </div>
+          marginBottom: 8,
+          background: 'var(--navy,#1B3A6B)',
+          color: '#fff',
+          fontSize: 12,
+          lineHeight: 1.5,
+          padding: '8px 12px',
+          borderRadius: 8,
+          width: 240,
+          pointerEvents: 'none',
+          zIndex: 300,
+          boxShadow: '0 4px 12px rgba(0,0,0,.15)',
+          whiteSpace: 'normal' as const,
+        }}>
+          {text}
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 0, height: 0,
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderTop: '5px solid var(--navy,#1B3A6B)',
+          }} />
+        </div>
+      )}
     </div>
   )
 }
@@ -827,7 +822,7 @@ function Sec({ title, badge, id, info, children }: { title: string; badge?: stri
       <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '10px 10px 0 0' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
-          {info && <InfoTip text={info} />}
+          {info && <InfoIcon text={info} />}
         </div>
         {badge && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20 }}>{badge}</span>}
       </div>
@@ -851,14 +846,17 @@ function Met({ label, value, highlighted, green }: { label: string; value: strin
 // ── Input field ───────────────────────────────────────────────────────────────
 const InputsCtx = createContext({ isEditing: false, isNewDeal: false })
 
-function IField({ label, value, onChange, required }: { label: string; value: string; onChange?: (v: string) => void; required?: boolean }) {
+function IField({ label, value, onChange, required, info }: { label: string; value: string; onChange?: (v: string) => void; required?: boolean; info?: string }) {
   const { isEditing, isNewDeal } = useContext(InputsCtx)
   const displayValue = isNewDeal ? '' : (value === '—' ? '' : value)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em', color: '#52606d' }}>
-        {label}{required && <span style={{ color: AMBER }}> *</span>}
-      </label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#52606d' }}>
+          {label}{required && <span style={{ color: AMBER }}> *</span>}
+        </label>
+        {info && <InfoIcon text={info} />}
+      </div>
       <input
         readOnly={!isEditing || !onChange}
         value={displayValue}
@@ -900,6 +898,7 @@ function ISelect({
   disabled,
   hint,
   labelLink,
+  info,
 }: {
   label: string
   value: string
@@ -909,6 +908,7 @@ function ISelect({
   disabled?: boolean
   hint?: string
   labelLink?: { href: string; text: string }
+  info?: string
 }) {
   const { isEditing } = useContext(InputsCtx)
   const id = label.toLowerCase().replace(/\s+/g, '-')
@@ -922,6 +922,7 @@ function ISelect({
             {labelLink.text}
           </a>
         )}
+        {info && <InfoIcon text={info} />}
       </label>
       <div style={{ position: 'relative' }}>
         <select
@@ -2578,7 +2579,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             onMouseLeave={e => (e.currentTarget.style.filter = '')}>
             <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>Property photos</span>
-              <InfoTip text="Photos are used in your investor deal pack. The hero image appears on the deal card in your pipeline and on any shared deal pages. Good photos significantly improve investor engagement." />
+              <InfoIcon text="Photos are used in your investor deal pack. The hero image appears on the deal card in your pipeline and on any shared deal pages. Good photos significantly improve investor engagement." />
             </div>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20, marginRight: 8 }}>Optional</span>
             <i className={`ti ti-chevron-${photosOpen ? 'up' : 'down'}`} style={{ fontSize: 14, color: '#ccc' }} />
@@ -2662,7 +2663,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             <IGrid>
               <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} />
+              <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} info="Land Transaction Tax (Wales) / Stamp Duty Land Tax (England & N. Ireland) / Land and Buildings Transaction Tax (Scotland). Calculated automatically from your purchase price and country. Includes the 3% surcharge for additional dwellings. Check current bands via the link below." />
             </IGrid>
 
             {/* Country stacked list (FIX C) */}
@@ -2856,9 +2857,9 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             {/* Mortgage fields */}
             {(form.purchaseFinanceMethod === 'Mortgage' || !form.purchaseFinanceMethod) && String(form.isCashBuyer ?? 'No') !== 'Yes' && (
               <IGrid>
-                <IField label="Deposit %" value={fp(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} />
-                <IField label="Mortgage rate (%)" value={Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0 ? fp(Number((form.sharedInputs as Record<string,unknown>).mortgageRate)) : ''} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} />
-                <IField label="Term (years)" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageTerm ?? 25)} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} />
+                <IField label="Deposit %" value={fp(Number((form.sharedInputs as Record<string,unknown>)?.depositPercent ?? 25))} onChange={v => setField('sharedInputs.depositPercent', parseFloat(v) || 25)} info="Your cash contribution as a percentage of the purchase price. Most buy-to-let lenders require a minimum 25% deposit. A higher deposit reduces your monthly mortgage payment but increases your upfront cash-in." />
+                <IField label="Mortgage rate (%)" value={Number((form.sharedInputs as Record<string,unknown>)?.mortgageRate) > 0 ? fp(Number((form.sharedInputs as Record<string,unknown>).mortgageRate)) : ''} onChange={v => setField('sharedInputs.mortgageRate', parseFloat(v) || 0)} info="The annual interest rate on your mortgage. DealScore defaults to 5.5% if left blank — shown with an 'est.' badge on your results. Use your lender's actual rate for an accurate cash flow calculation." />
+                <IField label="Term (years)" value={String((form.sharedInputs as Record<string,unknown>)?.mortgageTerm ?? 25)} onChange={v => setField('sharedInputs.mortgageTerm', parseInt(v) || 25)} info="The mortgage term affects your monthly repayment amount. Interest-only mortgages ignore this field — your monthly payment is interest only. Repayment mortgages use this to calculate capital repayment on top of interest." />
                 <ISelect
                   label="Mortgage type"
                   value={String((form.sharedInputs as Record<string,unknown>)?.mortgageType ?? 'IO') === 'IO' ? 'Interest only' : 'Repayment'}
@@ -2868,8 +2869,8 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                     { value: 'Repayment', label: 'Repayment' },
                   ]}
                 />
-                <IField label="Fixed rate ends" value={String(form.fixedRateEndDate ?? '')} onChange={v => setField('fixedRateEndDate', v)} />
-                <IField label="Reversion / SVR rate (%)" value={Number(form.reversionRate) > 0 ? fp(Number(form.reversionRate)) : ''} onChange={v => setField('reversionRate', parseFloat(v) || 0)} />
+                <IField label="Fixed rate ends" value={String(form.fixedRateEndDate ?? '')} onChange={v => setField('fixedRateEndDate', v)} info="When your fixed rate period expires and the mortgage reverts to the SVR. DealScore uses this for timeline awareness — deals where the fixed rate ends soon carry more refinancing risk." />
+                <IField label="Reversion / SVR rate (%)" value={Number(form.reversionRate) > 0 ? fp(Number(form.reversionRate)) : ''} onChange={v => setField('reversionRate', parseFloat(v) || 0)} info="The Standard Variable Rate your mortgage reverts to when your fixed term ends. Important for stress-testing — if your deal only works at the initial rate but not the SVR, it may not be viable long-term." />
               </IGrid>
             )}
 
@@ -2943,13 +2944,13 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {mode === 'buy' && activeTile !== 'flip' && (
           <Sec id="sec-monthly-costs" title="Monthly costs" badge={monthlyCostsComplete ? 'Complete' : undefined} info="Running costs that reduce your gross rent to net monthly cash flow. Management fee, void allowance and maintenance reserve are the biggest drivers. If left blank, DealScore substitutes sensible defaults and marks those figures with an 'est.' badge on your results.">
             <IGrid>
-              <IField label="Management fee (%)" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
+              <IField label="Management fee (%)" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} info="Letting agent fee as a percentage of gross monthly rent — typically 8–12% for a managed service. If you self-manage, set this to 0%. DealScore defaults to 10% if left blank." />
               <div style={{ position: 'relative' }}>
-                <IField label="Void allowance (%)" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 5)} />
+                <IField label="Void allowance (%)" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 5)} info="An allowance for periods when the property is unoccupied and generating no rent. DealScore defaults to 8.3% (equivalent to 4 weeks per year) if left blank. A higher void rate — common in student lets or SA — will reduce your net cash flow significantly." />
                 <span style={{ position: 'absolute', top: 2, right: 2 }}><FieldTip id="void-allowance" text="Percentage of the year the property is empty. 0% if income is guaranteed (social/lease). Typically 8–10% for BTL." /></span>
               </div>
               <IField label="Buildings insurance (£/mo)" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 30)} />
-              <IField label="Maintenance reserve (£/mo)" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 75)} />
+              <IField label="Maintenance reserve (£/mo)" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 75)} info="A monthly provision for repairs and upkeep. DealScore defaults to 5% of gross rent if left blank. Older properties, HMOs and properties with communal areas typically require a higher reserve." />
               <IField label="Landlord insurance (£/mo)" value={Number(form.landlordInsuranceMonthly) > 0 ? fc(Number(form.landlordInsuranceMonthly)) : ''} onChange={v => setField('landlordInsuranceMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <div style={{ position: 'relative' }}>
                 <IField label="Letting agent re-let fee (£)" value={Number(form.reletFee) > 0 ? fc(Number(form.reletFee)) : ''} onChange={v => setField('reletFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -2996,9 +2997,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 { value: '40%', label: '40% (Higher rate)' },
                 { value: '45%', label: '45% (Additional rate)' },
               ]}
+              info="Your marginal income tax rate. Used to calculate post-tax cash flow. Basic rate (20%) and higher rate (40%) produce very different after-tax returns, especially under Section 24 where mortgage interest is not fully deductible for personal landlords."
             />
             <div>
-              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>Joint ownership?<span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} /></div>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>Joint ownership?<InfoIcon text="If owned jointly, rental income and tax liability are split between owners — typically 50/50 unless a Declaration of Trust specifies otherwise. Joint ownership with a lower-rate taxpayer can significantly reduce the overall tax burden." /><span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} /></div>
               <Seg2 field="isJointOwnership" opts={['No', 'Yes']} />
             </div>
           </IGrid>
@@ -3043,7 +3045,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
           <Sec id="sec-strategy-fields" title="BTL — project details" badge={strategyComplete ? 'Complete' : undefined} info="Buy-to-Let income figures. Monthly rent is the primary driver of your gross yield, cash flow and DealScore. The initial void period accounts for the time to find your first tenant — typically 4–8 weeks for a standard BTL.">
             <IGrid>
               <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} />
+              <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} info="The time between purchase completion and your first paying tenant moving in. Typically 4–8 weeks for a standard BTL. This period costs you mortgage payments with no rental income — it's factored into your first-year cash flow." />
               <IField label="Tenant find / inventory fee (£)" value={Number((form.btlInputs as Record<string,unknown>)?.tenantFindFee) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).tenantFindFee)) : ''} onChange={v => setField('btlInputs.tenantFindFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <ISelect
                 label="Furnished?"
@@ -3311,7 +3313,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
                     Sold price comparables
-                    <InfoTip text="Land Registry sold prices for nearby properties — useful for validating your purchase price against recent comparable sales. Postcode must include a space (e.g. CF24 1RN) to return results." />
+                    <InfoIcon text="Land Registry sold prices for nearby properties — useful for validating your purchase price against recent comparable sales. Postcode must include a space (e.g. CF24 1RN) to return results." />
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
                     {compsPostcodeAuto
