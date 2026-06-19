@@ -2263,6 +2263,9 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             <div>
               <IField label="Address *" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
               <ScBadge source={scSource} />
+              <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4 }}>
+                Include full postcode with a space (e.g. CF24 1RN) to enable sold price comparables
+              </div>
             </div>
             <div>
               <ISelectOther
@@ -3251,6 +3254,9 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                     {compsPostcodeAuto
                       ? `Fetch sold prices for ${compsPostcodeAuto}`
                       : 'Add a full address including postcode to fetch comparables'}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4, opacity: 0.8 }}>
+                    Postcode must include a space (e.g. CF24 1RN) — postcodes without a space will not return results
                   </div>
                 </div>
                 <button
