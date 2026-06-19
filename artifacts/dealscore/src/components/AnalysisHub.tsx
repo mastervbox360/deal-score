@@ -798,7 +798,7 @@ function IField({ label, value, onChange, required }: { label: string; value: st
   const displayValue = isNewDeal ? '' : (value === '—' ? '' : value)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em', color: '#5a6270' }}>
+      <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em', color: '#52606d' }}>
         {label}{required && <span style={{ color: AMBER }}> *</span>}
       </label>
       <input
@@ -856,7 +856,7 @@ function ISelect({
   const id = label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-      <label htmlFor={id} style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
+      <label htmlFor={id} style={{ fontSize: '10px', fontWeight: 600, color: '#52606d', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
         <span>{label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}</span>
         {labelLink && (
           <a href={labelLink.href} target="_blank" rel="noreferrer"
