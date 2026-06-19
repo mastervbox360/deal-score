@@ -1556,22 +1556,12 @@ function SellerCard({ form, setField, isEditing, isR2R, sellerComplete = false }
   return (
     <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', padding: '18px 20px', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <div style={{ width: 30, height: 30, borderRadius: 7, background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: 'var(--navy)' }}>
-          <i className="ti ti-user-circle" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            {label}
-            {sellerComplete && (
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>Complete</span>
-            )}
-          </div>
-          <div className="pii" style={{ fontSize: 11, color: 'var(--text-2)' }}>
-            {hasData
-              ? `${String(form.sellerName ?? '')}${form.sellerPhone ? ` · ${String(form.sellerPhone)}` : ''}`
-              : `Add ${label.toLowerCase()} contact details`}
-          </div>
-        </div>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {label}
+          {sellerComplete && (
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#065f46', background: '#d1fae5', padding: '2px 9px', borderRadius: 20 }}>Complete</span>
+          )}
+        </span>
         <span style={{ fontSize: 10, color: '#bbb', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', padding: '2px 8px', borderRadius: 20 }}>Optional</span>
       </div>
 
@@ -3143,36 +3133,57 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* ── Sold Price Comparables — white card (FIX J) ── */}
         <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', padding: '16px 18px', marginBottom: 10 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            Sold Price Comparables
-            <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span />
-            <button
-              onClick={() => { void doRefreshComps() }}
-              disabled={compsLoading}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px',
-                fontSize: 11, borderRadius: 6, cursor: compsLoading ? 'default' : 'pointer',
-                background: 'none', border: `.5px solid var(--ds-border)`, color: 'var(--text-2)',
-                fontFamily: 'inherit',
-              }}>
-              <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 11 }} />
-              {compsLoading ? 'Loading…' : '↺ Refresh'}
-            </button>
-          </div>
-          {localCompsError && (
-            <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{localCompsError}</div>
-          )}
           {localComps.length === 0 ? (
-            <div style={{
-              background: 'var(--bg-sec)', borderRadius: 8, padding: '14px 16px',
-              fontSize: 12, color: 'var(--text-2)', textAlign: 'center' as const,
-            }}>
-              No sold price data yet — click Refresh to fetch comparables for {deal.postcode ?? 'this postcode'}.
-            </div>
+            <>
+              {localCompsError && (
+                <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{localCompsError}</div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2 }}>Sold price comparables</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)' }}>No data yet — fetch sold prices for {deal.postcode ?? 'this postcode'}</div>
+                </div>
+                <button
+                  onClick={() => { void doRefreshComps() }}
+                  disabled={compsLoading}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+                    fontSize: 12, fontWeight: 500, borderRadius: 6, cursor: compsLoading ? 'default' : 'pointer',
+                    background: '#fff', border: `.5px solid var(--ds-border)`, color: 'var(--navy)',
+                    fontFamily: 'inherit',
+                  }}>
+                  <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 12 }} />
+                  {compsLoading ? 'Loading…' : '↻ Refresh'}
+                </button>
+              </div>
+            </>
           ) : (
+            <>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                Sold Price Comparables
+                <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span />
+                <button
+                  onClick={() => { void doRefreshComps() }}
+                  disabled={compsLoading}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px',
+                    fontSize: 11, borderRadius: 6, cursor: compsLoading ? 'default' : 'pointer',
+                    background: 'none', border: `.5px solid var(--ds-border)`, color: 'var(--text-2)',
+                    fontFamily: 'inherit',
+                  }}>
+                  <i className={`ti ${compsLoading ? 'ti-loader-2' : 'ti-refresh'}`} style={{ fontSize: 11 }} />
+                  {compsLoading ? 'Loading…' : '↺ Refresh'}
+                </button>
+              </div>
+              {localCompsError && (
+                <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>{localCompsError}</div>
+              )}
+            </>
+          )}
+          {localComps.length > 0 && (
             <>
               <div style={{ border: `.5px solid var(--ds-border)`, borderRadius: 8, overflow: 'hidden' }}>
                 <div style={{
