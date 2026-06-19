@@ -766,14 +766,72 @@ function VerdictPill({ v, size = 'sm' }: { v: 'RECOMMENDED' | 'REVIEW' | 'AVOID'
 }
 
 // ── Card / section primitives ─────────────────────────────────────────────────
-function Sec({ title, badge, id, children }: { title: string; badge?: string; id?: string; children: React.ReactNode }) {
+function InfoTip({ text }: { text: string }) {
   return (
-    <div id={id} style={{ background: '#fff', borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-      <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
+    <div
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: 6 }}
+      onMouseEnter={e => {
+        const tip = (e.currentTarget as HTMLElement).querySelector('.sec-tip') as HTMLElement | null;
+        if (tip) tip.style.opacity = '1';
+      }}
+      onMouseLeave={e => {
+        const tip = (e.currentTarget as HTMLElement).querySelector('.sec-tip') as HTMLElement | null;
+        if (tip) tip.style.opacity = '0';
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+        style={{ color: 'var(--text-2,#6c757d)', cursor: 'default', flexShrink: 0 }}>
+        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M8 7v5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="8" cy="4.5" r="0.8" fill="currentColor" />
+      </svg>
+      <div className="sec-tip" style={{
+        position: 'absolute',
+        bottom: '100%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        marginBottom: 8,
+        background: 'var(--navy,#1B3A6B)',
+        color: '#fff',
+        fontSize: 12,
+        lineHeight: 1.5,
+        padding: '8px 12px',
+        borderRadius: 8,
+        width: 240,
+        pointerEvents: 'none',
+        opacity: 0,
+        transition: 'opacity 0.15s ease',
+        zIndex: 200,
+        boxShadow: '0 4px 12px rgba(0,0,0,.15)',
+        whiteSpace: 'normal' as const,
+      }}>
+        {text}
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 0, height: 0,
+          borderLeft: '5px solid transparent',
+          borderRight: '5px solid transparent',
+          borderTop: '5px solid var(--navy,#1B3A6B)',
+        }} />
+      </div>
+    </div>
+  )
+}
+
+function Sec({ title, badge, id, info, children }: { title: string; badge?: string; id?: string; info?: string; children?: React.ReactNode }) {
+  return (
+    <div id={id} style={{ borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+      <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '10px 10px 0 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
+          {info && <InfoTip text={info} />}
+        </div>
         {badge && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20 }}>{badge}</span>}
       </div>
-      <div style={{ padding: '14px 16px' }}>
+      <div style={{ padding: '14px 16px', background: '#fff', borderRadius: '0 0 10px 10px' }}>
         {children}
       </div>
     </div>
@@ -1607,7 +1665,7 @@ function SellerCard({ form, setField, isR2R }: {
   )
 
   return (
-    <Sec title={label} badge={badge}>
+    <Sec title={label} badge={badge} info="Optional CRM record. Linking a seller lets you track relationships across multiple deals. Seller motivation — for example below market value or probate — gives you and your investors important context on why this deal exists and how urgent the seller is.">
 
       {/* STATE 1 — search */}
       {sellerUiState === 'search' && (
@@ -2257,15 +2315,12 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
       <div>
 
         {/* 2. PROPERTY INFORMATION */}
-        <Sec id="sec-property-info" title="Property information" badge={propInfoComplete ? 'Complete' : undefined}>
+        <Sec id="sec-property-info" title="Property information" badge={propInfoComplete ? 'Complete' : undefined} info="Core details that identify the deal across DealScore. EPC rating and flood risk are factored into your DealScore penalty — a poor EPC or high flood risk will reduce your score even if the financials are strong.">
           {/* ── Mandatory fields ── */}
           <IGrid>
             <div>
               <IField label="Address *" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
               <ScBadge source={scSource} />
-              <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4 }}>
-                Include full postcode with a space (e.g. CF24 1RN) to enable sold price comparables
-              </div>
             </div>
             <div>
               <ISelectOther
@@ -2515,13 +2570,16 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
 
         {/* ── Property photos — grey header band matching Sec style, collapsible body ── */}
-        <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10, overflow: 'hidden' }}>
+        <div style={{ borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10 }}>
           <div
             onClick={() => setPhotosOpen(v => !v)}
-            style={{ background: 'var(--bg-sec)', borderBottom: photosOpen ? '.5px solid var(--ds-border)' : 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' as const }}
+            style={{ background: 'var(--bg-sec)', borderBottom: photosOpen ? '.5px solid var(--ds-border)' : 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' as const, borderRadius: photosOpen ? '10px 10px 0 0' : 10 }}
             onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.97)')}
             onMouseLeave={e => (e.currentTarget.style.filter = '')}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', flex: 1 }}>Property photos</span>
+            <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>Property photos</span>
+              <InfoTip text="Photos are used in your investor deal pack. The hero image appears on the deal card in your pipeline and on any shared deal pages. Good photos significantly improve investor engagement." />
+            </div>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20, marginRight: 8 }}>Optional</span>
             <i className={`ti ti-chevron-${photosOpen ? 'up' : 'down'}`} style={{ fontSize: 14, color: '#ccc' }} />
           </div>
@@ -2600,7 +2658,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* Property & purchase — Buy strategies */}
         {mode === 'buy' && (
-          <Sec id="sec-property-purchase" title="Property &amp; purchase" badge={purchaseComplete ? 'Complete' : undefined}>
+          <Sec id="sec-property-purchase" title="Property &amp; purchase" badge={purchaseComplete ? 'Complete' : undefined} info="Your entry figures. Purchase price and costs determine total cash-in and your equity on entry. Market value sets your day-one equity gap. Land Transaction Tax (LTT/SDLT) is calculated automatically based on your country and purchase price.">
             <IGrid>
               <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -2712,7 +2770,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* FLIP — Purchase financing (FIX 6: moved here from strategy block) */}
         {activeTile === 'flip' && (
-          <Sec id="sec-purchase-financing" title="Purchase financing">
+          <Sec id="sec-purchase-financing" title="Purchase financing" info="How you're funding the purchase. Mortgage settings calculate your monthly payment and determine how much cash you need upfront. Cash deals show ungeared returns. Bridging finance is typically used for auction purchases or properties unmortgageable at entry.">
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
                 <button key={method}
@@ -2741,7 +2799,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* Leasehold details — shown only when Tenure = Leasehold */}
         {mode === 'buy' && String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
-          <Sec title="Leasehold details">
+          <Sec title="Leasehold details" info="Leasehold costs — service charge and ground rent — are added to your monthly outgoings and reduce net cash flow. Leases under 80 years attract a DealScore risk flag and can make mortgage financing difficult or impossible.">
             <IGrid>
               <IField label="Remaining lease (years)" value={String(form.remainingLeaseYears ?? '')} onChange={v => setField('remainingLeaseYears', parseInt(v) || 0)} required />
               <IField label="Lease extension cost (£)" value={Number(form.leaseExtensionCost) > 0 ? fc(Number(form.leaseExtensionCost)) : ''} onChange={v => setField('leaseExtensionCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -2778,7 +2836,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* Purchase financing — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec id="sec-purchase-financing" title="Purchase financing" badge={financeComplete ? 'Complete' : undefined}>
+          <Sec id="sec-purchase-financing" title="Purchase financing" badge={financeComplete ? 'Complete' : undefined} info="How you're funding the purchase. Mortgage settings calculate your monthly payment and determine how much cash you need upfront. Cash deals show ungeared returns. Bridging finance is typically used for auction purchases or properties unmortgageable at entry.">
             {/* Method selector */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               {(['Cash', 'Mortgage', 'Bridging'] as const).map(method => (
@@ -2843,7 +2901,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* Refurb — Buy only, not FLIP (FIX 7: absorbs old standalone Refurb financing Sec) */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec id="sec-refurb" title="Refurb" badge={refurbComplete ? 'Complete' : undefined}>
+          <Sec id="sec-refurb" title="Refurb" badge={refurbComplete ? 'Complete' : undefined} info="Estimated works cost is added to your total cash-in when calculating return on investment. If you're funding the refurb separately — for example via a bridging facility — select Bridging here so DealScore can model the financing cost accurately.">
             <IGrid>
               <IField label="Refurb / works cost (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             </IGrid>
@@ -2883,7 +2941,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* Monthly costs — Buy only, not FLIP */}
         {mode === 'buy' && activeTile !== 'flip' && (
-          <Sec id="sec-monthly-costs" title="Monthly costs" badge={monthlyCostsComplete ? 'Complete' : undefined}>
+          <Sec id="sec-monthly-costs" title="Monthly costs" badge={monthlyCostsComplete ? 'Complete' : undefined} info="Running costs that reduce your gross rent to net monthly cash flow. Management fee, void allowance and maintenance reserve are the biggest drivers. If left blank, DealScore substitutes sensible defaults and marks those figures with an 'est.' badge on your results.">
             <IGrid>
               <IField label="Management fee (%)" value={fp(Number(form.managementFeePercent ?? 10))} onChange={v => setField('managementFeePercent', parseFloat(v) || 10)} />
               <div style={{ position: 'relative' }}>
@@ -2916,7 +2974,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         )}
 
         {/* Ownership & tax */}
-        <Sec id="sec-ownership-tax" title="Ownership &amp; tax" badge={ownershipComplete ? 'Complete' : undefined}>
+        <Sec id="sec-ownership-tax" title="Ownership &amp; tax" badge={ownershipComplete ? 'Complete' : undefined} info="Affects your post-tax cash flow calculation. Personal name landlords cannot deduct mortgage interest from rental profit under Section 24 — only a 20% tax credit applies, which significantly erodes returns for higher-rate taxpayers. A Ltd Co structure avoids Section 24 but has its own costs and tax implications.">
           <IGrid>
             <ISelect
               label="Ownership structure"
@@ -2982,7 +3040,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* BTL */}
         {activeTile === 'btl' && (
-          <Sec id="sec-strategy-fields" title="BTL — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="BTL — project details" badge={strategyComplete ? 'Complete' : undefined} info="Buy-to-Let income figures. Monthly rent is the primary driver of your gross yield, cash flow and DealScore. The initial void period accounts for the time to find your first tenant — typically 4–8 weeks for a standard BTL.">
             <IGrid>
               <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} />
@@ -3003,7 +3061,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* HMO */}
         {activeTile === 'hmo' && (
-          <Sec id="sec-strategy-fields" title="HMO — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="HMO — project details" badge={strategyComplete ? 'Complete' : undefined} info="HMO income figures. Enter individual room rents — DealScore totals these to calculate gross income. HMOs typically produce higher yields than standard BTL but carry higher management complexity and licensing requirements.">
             <IGrid>
               <IField label="Rooms" value={String((form.hmoInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
               <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
@@ -3051,7 +3109,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
         {/* SA */}
         {activeTile === 'sa' && (
-          <Sec id="sec-strategy-fields" title="SA — project details" badge={strategyComplete ? 'Complete' : undefined}>
+          <Sec id="sec-strategy-fields" title="SA — project details" badge={strategyComplete ? 'Complete' : undefined} info="Serviced accommodation income figures. Nightly rate and occupancy together determine your gross monthly income. SA returns are highly sensitive to occupancy — a drop from 80% to 60% can turn a cash-flowing deal into a loss.">
             <IGrid>
               <IField label="Avg nightly rate (£)" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
               <IField label="Target occupancy (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
@@ -3233,7 +3291,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         )}
 
         {/* Deal terms */}
-        <Sec id="sec-deal-terms" title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined}>
+        <Sec id="sec-deal-terms" title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined} info="Commercial terms for this deal. Your sourcing fee flows through to the invoice in the Fees &amp; invoice tab. The cooling-off period is tracked in Deal Status — DealScore shows a countdown from reservation date. Target completion date is used for timeline planning.">
           <IGrid>
             <IField label="Sourcing fee (£)" value={Number(form.sourcingFeePaid) > 0 ? fc(Number(form.sourcingFeePaid)) : ''} onChange={v => setField('sourcingFeePaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
             <IField label="Cooling-off period (days)" value={String(form.coolingOffPeriodDays ?? '')} onChange={v => setField('coolingOffPeriodDays', parseInt(v) || 0)} />
@@ -3251,7 +3309,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
               )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2 }}>Sold price comparables</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    Sold price comparables
+                    <InfoTip text="Land Registry sold prices for nearby properties — useful for validating your purchase price against recent comparable sales. Postcode must include a space (e.g. CF24 1RN) to return results." />
+                  </div>
                   <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
                     {compsPostcodeAuto
                       ? `Fetch sold prices for ${compsPostcodeAuto}`
