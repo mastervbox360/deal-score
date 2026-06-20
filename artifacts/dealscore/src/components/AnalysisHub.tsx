@@ -818,8 +818,8 @@ function InfoIcon({ text }: { text: string }) {
 
 function Sec({ title, badge, id, info, children }: { title: string; badge?: string; id?: string; info?: string; children?: React.ReactNode }) {
   return (
-    <div id={id} style={{ borderRadius: 10, border: `.5px solid ${DS_BORDER}`, marginBottom: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-      <div style={{ background: 'var(--bg-sec)', borderBottom: `.5px solid ${DS_BORDER}`, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '10px 10px 0 0' }}>
+    <div id={id} style={{ borderRadius: 10, border: '1px solid #d1d5db', marginBottom: 10, boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+      <div style={{ background: 'var(--bg-sec)', borderBottom: '1px solid #d1d5db', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '10px 10px 0 0' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{title}</span>
           {info && <InfoIcon text={info} />}
@@ -848,12 +848,13 @@ const InputsCtx = createContext({ isEditing: false, isNewDeal: false })
 
 function IField({ label, value, onChange, required, info }: { label: string; value: string; onChange?: (v: string) => void; required?: boolean; info?: string }) {
   const { isEditing, isNewDeal } = useContext(InputsCtx)
+  const [focused, setFocused] = useState(false)
   const displayValue = isNewDeal ? '' : (value === '—' ? '' : value)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <label style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: '#52606d' }}>
-          {label}{required && <span style={{ color: AMBER }}> *</span>}
+        <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.05em', color: 'var(--text-1, #1a1a2e)' }}>
+          {label}{required && <span style={{ color: '#ef4444', fontWeight: 700, marginLeft: 2 }}>*</span>}
         </label>
         {info && <InfoIcon text={info} />}
       </div>
@@ -861,7 +862,9 @@ function IField({ label, value, onChange, required, info }: { label: string; val
         readOnly={!isEditing || !onChange}
         value={displayValue}
         onChange={isEditing && onChange ? (e) => onChange(e.target.value) : undefined}
-        style={{ border: `1px solid #c8cbd2`, borderRadius: '8px', padding: '7px 10px', fontSize: '12px', color: 'var(--text-1)', background: isEditing ? '#fff' : BG_SEC, minHeight: '33px', cursor: isEditing ? 'text' : 'default', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{ border: focused && isEditing ? '1px solid var(--navy, #1B3A6B)' : '1px solid #d1d5db', borderRadius: '8px', padding: '7px 10px', fontSize: '13px', color: 'var(--text-1, #1a1a2e)', background: isEditing ? '#fff' : BG_SEC, minHeight: '33px', cursor: isEditing ? 'text' : 'default', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
       />
     </div>
   )
@@ -871,11 +874,11 @@ function IField({ label, value, onChange, required, info }: { label: string; val
 const selectStyle: React.CSSProperties = {
   width: '100%',
   padding: '7px 28px 7px 10px',
-  fontSize: '12px',
+  fontSize: '13px',
   fontFamily: 'inherit',
-  color: 'var(--text-1)',
-  background: 'var(--bg-input, #fff)',
-  border: '.5px solid var(--ds-border)',
+  color: 'var(--text-1, #1a1a2e)',
+  background: '#fff',
+  border: '1px solid #d1d5db',
   borderRadius: '7px',
   outline: 'none',
   appearance: 'none' as const,
@@ -914,8 +917,8 @@ function ISelect({
   const id = label.toLowerCase().replace(/\s+/g, '-')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-      <label htmlFor={id} style={{ fontSize: '10px', fontWeight: 600, color: '#52606d', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span>{label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}</span>
+      <label htmlFor={id} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-1, #1a1a2e)', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span>{label}{required && <span style={{ color: '#ef4444', fontWeight: 700, marginLeft: 2 }}>*</span>}</span>
         {labelLink && (
           <a href={labelLink.href} target="_blank" rel="noreferrer"
             style={{ fontSize: 10, fontWeight: 400, color: '#aaa', textTransform: 'lowercase', letterSpacing: 0, textDecoration: 'none' }}>
@@ -979,8 +982,8 @@ function ISelectOther({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-      <label style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span>{label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}</span>
+      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-1, #1a1a2e)', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span>{label}{required && <span style={{ color: '#ef4444', fontWeight: 700, marginLeft: 2 }}>*</span>}</span>
         {info && <InfoIcon text={info} />}
       </label>
       <select
@@ -2305,16 +2308,16 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
     const fpath = path ?? field
     const val = String(form[field] ?? opts[0])
     return (
-      <div style={{ display: 'flex', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2, gap: 1 }}>
+      <div style={{ display: 'flex', background: '#f3f4f6', borderRadius: 8, padding: 2, gap: 1 }}>
         {opts.map(opt => (
           <button key={opt} onClick={() => isEditing && setField(fpath, opt)}
             style={{
               flex: 1, padding: '5px 8px', fontSize: 12, border: 'none', borderRadius: 6,
               cursor: isEditing ? 'pointer' : 'default', fontFamily: 'inherit', whiteSpace: 'nowrap' as const, transition: 'all .12s',
-              background: val === opt ? '#fff' : 'transparent',
-              color: val === opt ? 'var(--navy)' : 'var(--text-2)',
-              fontWeight: val === opt ? 500 : 400,
-              boxShadow: val === opt ? '0 0 0 0.5px rgba(27,58,107,.15)' : 'none',
+              background: val === opt ? 'var(--navy, #1B3A6B)' : 'transparent',
+              color: val === opt ? '#fff' : 'var(--text-2, #6c757d)',
+              fontWeight: val === opt ? 600 : 500,
+              boxShadow: 'none',
             }}>
             {opt}
           </button>
