@@ -540,15 +540,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
           <div className="tab-action">
             {activeTab === 'overview' ? (
               <>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
-                  background: 'rgba(217,119,6,.08)', color: '#92400e',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
-                </button>
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
@@ -573,15 +564,48 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
               </>
             ) : activeTab === 'analysis' ? (
               <>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
-                  background: 'rgba(217,119,6,.08)', color: '#92400e',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
-                </button>
+                {sellerName ? (
+                  <button
+                    onClick={() => navigate(`/deal/${deal.id}?tab=seller`)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: 'none',
+                      border: 'none',
+                      borderRadius: 7,
+                      padding: '5px 4px',
+                      fontSize: 11, fontWeight: 500,
+                      color: 'var(--text-2, #6c757d)',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                      maxWidth: 140,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    <i className="ti ti-user" style={{ fontSize: 11, flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{sellerName}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/deal/${deal.id}?tab=seller`)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: 'none',
+                      border: '.5px solid var(--ds-border, #e3e5e9)',
+                      borderRadius: 7,
+                      padding: '5px 11px',
+                      fontSize: 11, fontWeight: 600,
+                      color: 'var(--teal, #1D9E75)',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <i className="ti ti-user-plus" style={{ fontSize: 11 }} />
+                    {' '}Link seller
+                  </button>
+                )}
                 {(analysisView === 'inputs' || analysisView === 'results') && (
                   <button style={{
                     display: 'inline-flex', alignItems: 'center', gap: '5px',
@@ -600,26 +624,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
-                {analysisView === 'inputs' && (() => {
-                  const isEditing = searchParams.get('editing') === 'true'
-                  return isEditing ? (
-                    <button
-                      className="log-btn"
-                      style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
-                      onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs`)}
-                    >
-                      <i className="ti ti-check" style={{ fontSize: 11 }}></i> Confirm inputs
-                    </button>
-                  ) : (
-                    <button
-                      className="log-btn"
-                      style={{ borderRadius: '7px', background: 'var(--navy)', color: '#fff', borderColor: 'var(--navy)' }}
-                      onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=inputs&editing=true`)}
-                    >
-                      <i className="ti ti-edit" style={{ fontSize: 11 }}></i> Edit inputs
-                    </button>
-                  )
-                })()}
                 {analysisView === 'results' && (
                   <button
                     className="log-btn"
@@ -650,15 +654,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
               </>
             ) : activeTab === 'content' ? (
               <>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
-                  background: 'rgba(217,119,6,.08)', color: '#92400e',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
-                </button>
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
@@ -683,15 +678,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
               </>
             ) : activeTab === 'seller' ? (
               <>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
-                  background: 'rgba(217,119,6,.08)', color: '#92400e',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
-                </button>
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
@@ -716,15 +702,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
               </>
             ) : activeTab === 'investors' ? (
               <>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
-                  background: 'rgba(217,119,6,.08)', color: '#92400e',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
-                </button>
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}
@@ -749,15 +726,6 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
               </>
             ) : activeTab === 'fees' ? (
               <>
-                <button style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  fontSize: '11px', fontWeight: 600, padding: '5px 12px',
-                  borderRadius: '7px', border: '.5px solid rgba(217,119,6,.35)',
-                  background: 'rgba(217,119,6,.08)', color: '#92400e',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  <i className="ti ti-alert-triangle" style={{ fontSize: '11px' }}></i> 2 inputs to confirm
-                </button>
                 <button
                   className="log-btn"
                   style={{ borderRadius: '7px' }}

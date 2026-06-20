@@ -2347,13 +2347,80 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
     activeTile === 'flip' ? !!(Number((form.flipInputs as Record<string,unknown>)?.expectedSalePrice) > 0) :
     false
   )
-  const sellerComplete = !!form.sellerName
   const dealTermsComplete = form.sourcingFeePaid !== undefined
 
   return (
     <InputsCtx.Provider value={{ isEditing: isEditing, isNewDeal }}>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '12px', alignItems: 'start' }}>
       <div>
+
+        {/* Editing indicator row — sits directly below sub-tabs */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '8px 0 12px',
+          borderBottom: '.5px solid var(--ds-border, #e3e5e9)',
+          marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isEditing ? (
+              <>
+                <span style={{ fontSize: 11, color: 'var(--text-2, #6c757d)' }}>
+                  Editing — changes save automatically
+                </span>
+                <span style={{
+                  fontSize: 10, fontWeight: 600,
+                  background: '#dcfce7', color: '#166534',
+                  padding: '2px 7px', borderRadius: 20,
+                  display: 'inline-flex', alignItems: 'center', gap: 3,
+                }}>
+                  <i className="ti ti-check" style={{ fontSize: 9 }} />
+                  {saveStatus === 'saving' ? 'Saving...' : 'Saved'}
+                </span>
+              </>
+            ) : (
+              <span style={{ fontSize: 11, color: 'var(--text-2, #6c757d)' }}>
+                Locked by default to prevent accidental edits — tap Edit to make changes
+              </span>
+            )}
+          </div>
+          {isEditing ? (
+            <button
+              onClick={() => navigate(`/deal/${dealId}?tab=analysis&view=inputs`)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                background: 'none',
+                border: '.5px solid var(--ds-border, #e3e5e9)',
+                borderRadius: 7,
+                padding: '5px 11px',
+                fontSize: 11, fontWeight: 600,
+                color: 'var(--text-2, #6c757d)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              <i className="ti ti-lock" style={{ fontSize: 11 }} />
+              Lock inputs
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(`/deal/${dealId}?tab=analysis&view=inputs&editing=true`)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                background: 'var(--navy, #1B3A6B)',
+                border: 'none',
+                borderRadius: 7,
+                padding: '5px 11px',
+                fontSize: 11, fontWeight: 600,
+                color: '#fff',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              <i className="ti ti-edit" style={{ fontSize: 11 }} />
+              Edit inputs
+            </button>
+          )}
+        </div>
 
         {/* 2. PROPERTY INFORMATION */}
         <Sec id="sec-property-info" title="Property information" badge={propInfoComplete ? 'Complete' : undefined} info="Core details that identify the deal across DealScore. EPC rating and flood risk are factored into your DealScore penalty — a poor EPC or high flood risk will reduce your score even if the financials are strong.">
@@ -2611,8 +2678,6 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
           </div>
         )}
 
-        {/* Seller / landlord — moved above photos so sourcer enters property + seller together */}
-        <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
 
         {/* ── Property photos ── */}
         <Sec title="Property photos" badge="Optional">
