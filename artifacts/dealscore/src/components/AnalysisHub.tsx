@@ -955,6 +955,7 @@ function ISelectOther({
   options,
   required,
   otherPlaceholder,
+  info,
 }: {
   label: string
   value: string
@@ -962,6 +963,7 @@ function ISelectOther({
   options: { value: string; label: string }[]
   required?: boolean
   otherPlaceholder?: string
+  info?: string
 }) {
   const knownValues = options.map(o => o.value)
   const isOther = value !== '' && !knownValues.includes(value)
@@ -977,8 +979,9 @@ function ISelectOther({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-      <label style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-        {label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}
+      <label style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '.04em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span>{label}{required && <span style={{ color: 'var(--teal)', marginLeft: '2px' }}>*</span>}</span>
+        {info && <InfoIcon text={info} />}
       </label>
       <select
         value={selectVal}
@@ -2320,7 +2323,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
           {/* ── Mandatory fields ── */}
           <IGrid>
             <div>
-              <IField label="Address *" value={String(form.address ?? '')} onChange={v => setField('address', v)} required />
+              <IField label="Address *" value={String(form.address ?? '')} onChange={v => setField('address', v)} required info="The full property address including postcode. DealScore uses the postcode to fetch Land Registry sold price comparables. Postcode must include a space (e.g. CF24 1RN) — without a space, comparables will not return results." />
               <ScBadge source={scSource} />
             </div>
             <div>
@@ -2328,6 +2331,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 label="Property type *"
                 value={String(form.propertyType ?? '')}
                 onChange={v => setField('propertyType', v)}
+                info="Property type affects mortgage eligibility and valuation methodology. Some lenders restrict lending on ex-local authority flats, high-rise blocks, or non-standard construction. Studio flats and bedsits may also face lender restrictions."
                 options={[
                   { value: 'Terraced house', label: 'Terraced house' },
                   { value: 'End-of-terrace house', label: 'End-of-terrace house' },
@@ -2354,6 +2358,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 label="Bedrooms *"
                 value={String(form.bedrooms ?? '')}
                 onChange={v => setField('bedrooms', parseInt(v) || v)}
+                info="Number of bedrooms in the property. For HMOs, this informs room count and licensing thresholds — most local authorities require mandatory HMO licensing for properties with 5 or more occupants forming 2 or more households."
                 options={[
                   { value: '1', label: '1' },
                   { value: '2', label: '2' },
@@ -2384,7 +2389,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             />
             {/* Tenure — segmented Freehold/Leasehold */}
             <div>
-              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>Tenure *<span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} /></div>
+              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>Tenure *<InfoIcon text="Freehold means you own the property and land outright. Leasehold means you own the property for a fixed term — additional costs (service charge, ground rent) and risks (short lease) apply. Selecting Leasehold will reveal additional fields." /><span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} /></div>
               <Seg2 field="tenure" opts={['Freehold', 'Leasehold']} />
               <ScBadge source={scSource} />
             </div>
@@ -2396,6 +2401,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 labelLink={{ href: 'https://www.gov.uk/find-energy-certificate', text: '· gov.uk ↗' }}
                 value={String(form.epcRating ?? '')}
                 onChange={v => setField('epcRating', v)}
+                info="Energy Performance Certificate rating from A (most efficient) to G (least efficient). Properties rated F or G incur a DealScore penalty — lettings legislation requires a minimum EPC rating of E for most tenancies, with plans to raise this to C in future."
                 options={[
                   { value: 'A', label: 'A' }, { value: 'B', label: 'B' },
                   { value: 'C', label: 'C' }, { value: 'D', label: 'D' },
@@ -2411,6 +2417,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 labelLink={{ href: 'https://check-long-term-flood-risk.service.gov.uk/postcode', text: '· gov.uk ↗' }}
                 value={String(form.floodRisk ?? 'Low')}
                 onChange={v => setField('floodRisk', v)}
+                info="Flood risk classification from the Environment Agency or equivalent. High flood risk properties incur a DealScore penalty and can face significantly higher insurance premiums, reduced mortgage lender appetite, and lower resale values."
                 options={[
                   { value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' },
                   { value: 'High', label: 'High' }, { value: 'Very high', label: 'Very high' },
@@ -2661,15 +2668,15 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {mode === 'buy' && (
           <Sec id="sec-property-purchase" title="Property &amp; purchase" badge={purchaseComplete ? 'Complete' : undefined} info="Your entry figures. Purchase price and costs determine total cash-in and your equity on entry. Market value sets your day-one equity gap. Land Transaction Tax (LTT/SDLT) is calculated automatically based on your country and purchase price.">
             <IGrid>
-              <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Purchase price" value={Number((form.sharedInputs as Record<string,unknown>)?.purchasePrice) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).purchasePrice)) : ''} onChange={v => setField('sharedInputs.purchasePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The price agreed with the seller. This is your entry point for calculating equity on entry, Land Transaction Tax, and total cash-in. If buying below market value, purchase price and market value will differ — DealScore captures both." />
+              <IField label="Market value / GDV" value={Number(form.marketValue) > 0 ? fc(Number(form.marketValue)) : ''} onChange={v => setField('marketValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="The open market value of the property at completion — or the Gross Development Value (GDV) if this is a development project. Used to calculate your equity on entry (market value minus purchase price) and your day-one loan-to-value." />
               <IField label={`${taxLabel} (auto-calculated)`} value={taxValue > 0 ? fc(taxValue) : '—'} info="Land Transaction Tax (Wales) / Stamp Duty Land Tax (England & N. Ireland) / Land and Buildings Transaction Tax (Scotland). Calculated automatically from your purchase price and country. Includes the 3% surcharge for additional dwellings. Check current bands via the link below." />
             </IGrid>
 
             {/* Country stacked list (FIX C) */}
             <div style={{ marginTop: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                Country
+                Country<InfoIcon text="Determines which land transaction tax applies: Stamp Duty Land Tax (England & N. Ireland), Land and Buildings Transaction Tax (Scotland), or Land Transaction Tax (Wales). Rates and thresholds differ — DealScore auto-calculates the correct tax for your selected country." />
                 <span style={{ flex: 1, height: 0.5, background: 'var(--ds-border)', display: 'block' }} />
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -2718,8 +2725,8 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
               Purchase costs breakdown
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 9 }}>
-              <IField label="Solicitor / conveyancing (£)" value={Number(form.solicitorFee) > 0 ? fc(Number(form.solicitorFee)) : ''} onChange={v => setField('solicitorFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Survey cost (£)" value={Number(form.surveyCost) > 0 ? fc(Number(form.surveyCost)) : ''} onChange={v => setField('surveyCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Solicitor / conveyancing (£)" value={Number(form.solicitorFee) > 0 ? fc(Number(form.solicitorFee)) : ''} onChange={v => setField('solicitorFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Legal fees for transferring ownership of the property. Typically £1,500–£3,000 for a standard residential purchase. Added to your total purchase costs and cash-in calculation." />
+              <IField label="Survey cost (£)" value={Number(form.surveyCost) > 0 ? fc(Number(form.surveyCost)) : ''} onChange={v => setField('surveyCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Cost of a structural or homebuyer's survey. A basic valuation is usually arranged by your mortgage lender. An independent homebuyer's report (£400–£700) or full structural survey (£600–£1,500) is recommended for older or unusual properties." />
             </div>
             <button
               onClick={() => setShowMoreCosts(v => !v)}
@@ -2730,8 +2737,8 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
             </button>
             {showMoreCosts && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 9, marginTop: 6 }}>
-                <IField label="Broker fee (£)" value={Number(form.brokerFee) > 0 ? fc(Number(form.brokerFee)) : ''} onChange={v => setField('brokerFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-                <IField label="Mortgage arrangement fee (£)" value={Number(form.mortgageArrangementFee) > 0 ? fc(Number(form.mortgageArrangementFee)) : ''} onChange={v => setField('mortgageArrangementFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                <IField label="Broker fee (£)" value={Number(form.brokerFee) > 0 ? fc(Number(form.brokerFee)) : ''} onChange={v => setField('brokerFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Fee charged by your mortgage broker for arranging the mortgage. Typically £500–£2,000 depending on the complexity of the case. Some brokers charge a percentage of the loan. Added to total purchase costs." />
+                <IField label="Mortgage arrangement fee (£)" value={Number(form.mortgageArrangementFee) > 0 ? fc(Number(form.mortgageArrangementFee)) : ''} onChange={v => setField('mortgageArrangementFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="A fee charged by the mortgage lender for setting up the mortgage — typically £999–£2,000. It can usually be added to the loan (increasing your mortgage balance) or paid upfront. Added to purchase costs in DealScore." />
                 <IField label="Other costs (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.otherCosts) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).otherCosts)) : ''} onChange={v => setField('sharedInputs.otherCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               </div>
             )}
@@ -2748,6 +2755,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 11px', background: form.isAuctionPurchase ? 'var(--navy-light)' : 'var(--bg-sec)', border: `.5px solid ${form.isAuctionPurchase ? 'var(--navy)' : 'var(--ds-border)'}`, borderRadius: 7, cursor: isEditing ? 'pointer' : 'default', fontSize: 13, color: form.isAuctionPurchase ? 'var(--navy)' : '#555', fontWeight: form.isAuctionPurchase ? 500 : 400, transition: 'all .15s', userSelect: 'none' as const }}>
                 <input type="checkbox" checked={!!form.isAuctionPurchase} onChange={e => isEditing && setField('isAuctionPurchase', e.target.checked)} disabled={!isEditing} style={{ accentColor: 'var(--navy)', width: 14, height: 14 }} />
                 This is an auction purchase
+                <InfoIcon text="Auction purchases require a 10% deposit on the day and full completion within 28 days. This removes standard due diligence time — survey, searches, and legal work must be completed before or during the auction period." />
               </label>
               {!!form.isAuctionPurchase && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 9, marginTop: 8 }}>
@@ -2802,10 +2810,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {mode === 'buy' && String(form.tenure ?? '').toLowerCase() === 'leasehold' && (
           <Sec title="Leasehold details" info="Leasehold costs — service charge and ground rent — are added to your monthly outgoings and reduce net cash flow. Leases under 80 years attract a DealScore risk flag and can make mortgage financing difficult or impossible.">
             <IGrid>
-              <IField label="Remaining lease (years)" value={String(form.remainingLeaseYears ?? '')} onChange={v => setField('remainingLeaseYears', parseInt(v) || 0)} required />
+              <IField label="Remaining lease (years)" value={String(form.remainingLeaseYears ?? '')} onChange={v => setField('remainingLeaseYears', parseInt(v) || 0)} required info="Remaining years on the lease. Leases under 80 years make it difficult to obtain a mortgage and trigger a DealScore risk flag. Leases under 70 years are considered very short — lease extension costs rise significantly as the lease approaches 80 years." />
               <IField label="Lease extension cost (£)" value={Number(form.leaseExtensionCost) > 0 ? fc(Number(form.leaseExtensionCost)) : ''} onChange={v => setField('leaseExtensionCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Service charge (£/mo)" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Annual charge paid to the freeholder or managing agent for maintenance of communal areas, buildings insurance, and management. Added to your monthly costs in DealScore. Review the last 3 years of service charge accounts before purchasing." />
+              <IField label="Ground rent (£/yr)" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Annual payment to the freeholder for use of the land. Ground rents over £250/yr (£1,000 in London) can trigger the property to be classified as an assured tenancy, creating mortgage and sale complications. Ground rents that double every 10–25 years are considered onerous." />
               <ISelect
                 label="Ground rent review"
                 value={String(form.groundRentReviewClause ?? 'None')}
@@ -2904,13 +2912,13 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {mode === 'buy' && activeTile !== 'flip' && (
           <Sec id="sec-refurb" title="Refurb" badge={refurbComplete ? 'Complete' : undefined} info="Estimated works cost is added to your total cash-in when calculating return on investment. If you're funding the refurb separately — for example via a bridging facility — select Bridging here so DealScore can model the financing cost accurately.">
             <IGrid>
-              <IField label="Refurb / works cost (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Refurb / works cost (£)" value={Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 ? fc(Number((form.sharedInputs as Record<string,unknown>).refurbCost)) : ''} onChange={v => setField('sharedInputs.refurbCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Your estimated total cost for all works — materials, labour, and a contingency allowance. Added to your total cash-in when calculating return on investment. A 10–15% contingency on top of your contractor quotes is standard practice." />
             </IGrid>
             {Number((form.sharedInputs as Record<string,unknown>)?.refurbCost) > 0 && (
               <>
                 <div style={{ height: .5, background: 'var(--ds-border)', margin: '12px 0 10px' }} />
                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#999', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  REFURB FINANCING
+                  REFURB FINANCING<InfoIcon text="How you're funding the works. Cash means the works cost comes from your own capital and is included in cash-in. Bridging means you're using a separate bridging facility — DealScore will ask for the bridging rate to model the financing cost accurately." />
                   <span style={{ flex: 1, height: .5, background: 'var(--ds-border)', display: 'block' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
@@ -2949,7 +2957,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
                 <IField label="Void allowance (%)" value={fp(Number(form.voidAllowancePercent ?? 5))} onChange={v => setField('voidAllowancePercent', parseFloat(v) || 5)} info="An allowance for periods when the property is unoccupied and generating no rent. DealScore defaults to 8.3% (equivalent to 4 weeks per year) if left blank. A higher void rate — common in student lets or SA — will reduce your net cash flow significantly." />
                 <span style={{ position: 'absolute', top: 2, right: 2 }}><FieldTip id="void-allowance" text="Percentage of the year the property is empty. 0% if income is guaranteed (social/lease). Typically 8–10% for BTL." /></span>
               </div>
-              <IField label="Buildings insurance (£/mo)" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 30)} />
+              <IField label="Buildings insurance (£/mo)" value={fc(Number(form.buildingsInsurance ?? 30))} onChange={v => setField('buildingsInsurance', parseFloat(v.replace(/[£,]/g, '')) || 30)} info="Landlord buildings insurance for the property. Typically £20–£50/month for a standard BTL. HMOs and larger properties cost more. Your mortgage lender will require buildings insurance as a condition of the mortgage." />
               <IField label="Maintenance reserve (£/mo)" value={fc(Number(form.maintenanceReserve ?? 75))} onChange={v => setField('maintenanceReserve', parseFloat(v.replace(/[£,]/g, '')) || 75)} info="A monthly provision for repairs and upkeep. DealScore defaults to 5% of gross rent if left blank. Older properties, HMOs and properties with communal areas typically require a higher reserve." />
               <IField label="Landlord insurance (£/mo)" value={Number(form.landlordInsuranceMonthly) > 0 ? fc(Number(form.landlordInsuranceMonthly)) : ''} onChange={v => setField('landlordInsuranceMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <div style={{ position: 'relative' }}>
@@ -2959,13 +2967,13 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
               <IField label="Annual compliance costs (£/yr)" value={Number(form.annualComplianceCosts) > 0 ? fc(Number(form.annualComplianceCosts)) : ''} onChange={v => setField('annualComplianceCosts', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Rent guarantee insurance (£/mo)" value={Number(form.rentGuaranteeInsurance) > 0 ? fc(Number(form.rentGuaranteeInsurance)) : ''} onChange={v => setField('rentGuaranteeInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Legal expenses insurance (£/yr)" value={Number(form.legalExpensesInsurance) > 0 ? fc(Number(form.legalExpensesInsurance)) : ''} onChange={v => setField('legalExpensesInsurance', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Council tax during voids (£/mo)" value={Number(form.councilTaxVoids) > 0 ? fc(Number(form.councilTaxVoids)) : ''} onChange={v => setField('councilTaxVoids', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Council tax during voids (£/mo)" value={Number(form.councilTaxVoids) > 0 ? fc(Number(form.councilTaxVoids)) : ''} onChange={v => setField('councilTaxVoids', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Annual council tax divided by 12. For BTL where the tenant pays council tax, set this to 0. For HMOs where the landlord pays (common in all-inclusive let arrangements), this is a significant cost — a 6-bed HMO in a Band D property could be £200+/month." />
               {/* Leasehold fields — always shown, disabled when not leasehold (FIX L) */}
               <div style={{ opacity: String(form.tenure ?? '') === 'Leasehold' ? 1 : 0.38, pointerEvents: String(form.tenure ?? '') === 'Leasehold' ? 'auto' : 'none' as const }}>
-                <IField label="Service charge (£/mo) — leasehold only" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                <IField label="Service charge (£/mo) — leasehold only" value={Number(form.serviceChargeMonthly) > 0 ? fc(Number(form.serviceChargeMonthly)) : ''} onChange={v => setField('serviceChargeMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Annual charge paid to the freeholder or managing agent for maintenance of communal areas, buildings insurance, and management. Added to your monthly costs in DealScore. Review the last 3 years of service charge accounts before purchasing." />
               </div>
               <div style={{ opacity: String(form.tenure ?? '') === 'Leasehold' ? 1 : 0.38, pointerEvents: String(form.tenure ?? '') === 'Leasehold' ? 'auto' : 'none' as const }}>
-                <IField label="Ground rent (£/yr) — leasehold only" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+                <IField label="Ground rent (£/yr) — leasehold only" value={Number(form.groundRentAnnual) > 0 ? fc(Number(form.groundRentAnnual)) : ''} onChange={v => setField('groundRentAnnual', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Annual payment to the freeholder for use of the land. Ground rents over £250/yr (£1,000 in London) can trigger the property to be classified as an assured tenancy, creating mortgage and sale complications. Ground rents that double every 10–25 years are considered onerous." />
               </div>
             </IGrid>
             <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-2)', padding: '6px 10px', background: 'var(--bg-sec)', borderRadius: '6px' }}>
@@ -2981,6 +2989,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
               label="Ownership structure"
               value={String(form.ownershipStructure ?? 'Personal name')}
               onChange={v => setField('ownershipStructure', v)}
+              info="Whether you're purchasing in your personal name or through a Limited Company. Personal ownership is simpler but subject to Section 24 — higher-rate taxpayers cannot deduct mortgage interest from rental profit. A Ltd Co avoids Section 24 but incurs set-up costs, accountancy fees, and corporation tax on profits."
               options={[
                 { value: 'Personal name', label: 'Personal name' },
                 { value: 'Ltd company', label: 'Ltd company (SPV)' },
@@ -3044,7 +3053,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {activeTile === 'btl' && (
           <Sec id="sec-strategy-fields" title="BTL — project details" badge={strategyComplete ? 'Complete' : undefined} info="Buy-to-Let income figures. Monthly rent is the primary driver of your gross yield, cash flow and DealScore. The initial void period accounts for the time to find your first tenant — typically 4–8 weeks for a standard BTL.">
             <IGrid>
-              <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Monthly rent (£)" value={Number((form.btlInputs as Record<string,unknown>)?.monthlyRent) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="Expected gross monthly rent from a single tenant or couple. Used to calculate gross yield, annual rental income, and cash flow. Use a realistic market rent — check Rightmove/Zoopla comparables for similar properties in the same postcode." />
               <IField label="Initial void period (weeks)" value={String((form.btlInputs as Record<string,unknown>)?.initialVoidWeeks ?? 4)} onChange={v => setField('btlInputs.initialVoidWeeks', parseInt(v) || 0)} info="The time between purchase completion and your first paying tenant moving in. Typically 4–8 weeks for a standard BTL. This period costs you mortgage payments with no rental income — it's factored into your first-year cash flow." />
               <IField label="Tenant find / inventory fee (£)" value={Number((form.btlInputs as Record<string,unknown>)?.tenantFindFee) > 0 ? fc(Number((form.btlInputs as Record<string,unknown>).tenantFindFee)) : ''} onChange={v => setField('btlInputs.tenantFindFee', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <ISelect
@@ -3066,10 +3075,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
           <Sec id="sec-strategy-fields" title="HMO — project details" badge={strategyComplete ? 'Complete' : undefined} info="HMO income figures. Enter individual room rents — DealScore totals these to calculate gross income. HMOs typically produce higher yields than standard BTL but carry higher management complexity and licensing requirements.">
             <IGrid>
               <IField label="Rooms" value={String((form.hmoInputs as Record<string,unknown>)?.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required />
-              <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
+              <IField label="Rent per room / mo" value={Number((form.hmoInputs as Record<string,unknown>)?.rentPerRoom) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="Monthly rent per room. DealScore totals individual room rents to calculate gross HMO income. Room rates vary by room size, en-suite, and local demand — check SpareRoom comparables for your area." />
               <IField label="Occupancy rate" value={fp(Number((form.hmoInputs as Record<string,unknown>)?.occupancyRate ?? 90))} onChange={v => setField('hmoInputs.occupancyRate', parseFloat(v) || 90)} />
               <IField label="HMO licence cost (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.licenceCost) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).licenceCost)) : ''} onChange={v => setField('hmoInputs.licenceCost', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Bills &amp; utilities / mo (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Bills &amp; utilities / mo (£)" value={Number((form.hmoInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.hmoInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('hmoInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Monthly utilities if you pay them as part of an all-inclusive let — common in HMOs and serviced accommodation. For standard BTL where the tenant pays utilities, set this to 0." />
               <ISelect
                 label="HMO licence type"
                 value={String((form.hmoInputs as Record<string,unknown>)?.licenceType ?? '')}
@@ -3113,11 +3122,11 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {activeTile === 'sa' && (
           <Sec id="sec-strategy-fields" title="SA — project details" badge={strategyComplete ? 'Complete' : undefined} info="Serviced accommodation income figures. Nightly rate and occupancy together determine your gross monthly income. SA returns are highly sensitive to occupancy — a drop from 80% to 60% can turn a cash-flowing deal into a loss.">
             <IGrid>
-              <IField label="Avg nightly rate (£)" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required />
-              <IField label="Target occupancy (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required />
-              <IField label="Platform fee (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} />
-              <IField label="Cleaning cost / stay (£)" value={Number((form.saInputs as Record<string,unknown>)?.cleaningCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).cleaningCostPerStay)) : ''} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-              <IField label="Bills &amp; utilities / mo (£)" value={Number((form.saInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
+              <IField label="Avg nightly rate (£)" value={Number((form.saInputs as Record<string,unknown>)?.nightlyRate) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="Your average nightly rate across the year. SA rates fluctuate significantly by season, local events, and platform — this is your blended annual average. Check AirDNA or similar for comparable rates in your postcode." />
+              <IField label="Target occupancy (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.occupancyPercent ?? 75))} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} required info="The percentage of nights occupied across the year. Typical SA occupancy runs 60–75% for a standard property. High-demand tourist or city-centre locations can achieve 80%+. SA returns are highly sensitive to occupancy — model at 60% as your downside scenario." />
+              <IField label="Platform fee (%)" value={fp(Number((form.saInputs as Record<string,unknown>)?.platformFeesPercent ?? 0))} onChange={v => setField('saInputs.platformFeesPercent', parseFloat(v) || 0)} info="Commission charged by platforms such as Airbnb (typically 3%) or Booking.com (typically 15%). If you use a co-hosting or management service, their fee is typically 15–25% on top of platform commission. Deducted from gross nightly revenue." />
+              <IField label="Cleaning cost / stay (£)" value={Number((form.saInputs as Record<string,unknown>)?.cleaningCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).cleaningCostPerStay)) : ''} onChange={v => setField('saInputs.cleaningCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Turnover cleaning cost per stay. For direct bookings this can be charged to the guest. For managed properties it comes from your revenue. A 1-bed flat typically costs £50–£80 per clean; a larger property £100–£150." />
+              <IField label="Bills &amp; utilities / mo (£)" value={Number((form.saInputs as Record<string,unknown>)?.billsUtilities) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).billsUtilities)) : ''} onChange={v => setField('saInputs.billsUtilities', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Monthly utilities if you pay them as part of an all-inclusive let — common in HMOs and serviced accommodation. For standard BTL where the tenant pays utilities, set this to 0." />
               <IField label="Avg stay length (nights)" value={String((form.saInputs as Record<string,unknown>)?.avgStayLengthNights ?? 3)} onChange={v => setField('saInputs.avgStayLengthNights', parseInt(v) || 3)} />
               <IField label="Linen / laundry / stay (£)" value={Number((form.saInputs as Record<string,unknown>)?.linenCostPerStay) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).linenCostPerStay)) : ''} onChange={v => setField('saInputs.linenCostPerStay', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
               <IField label="Welcome pack / consumables (£/mo)" value={Number((form.saInputs as Record<string,unknown>)?.consumablesMonthly) > 0 ? fc(Number((form.saInputs as Record<string,unknown>).consumablesMonthly)) : ''} onChange={v => setField('saInputs.consumablesMonthly', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
@@ -3295,10 +3304,10 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {/* Deal terms */}
         <Sec id="sec-deal-terms" title="Deal terms" badge={dealTermsComplete ? 'Complete' : undefined} info="Commercial terms for this deal. Your sourcing fee flows through to the invoice in the Fees &amp; invoice tab. The cooling-off period is tracked in Deal Status — DealScore shows a countdown from reservation date. Target completion date is used for timeline planning.">
           <IGrid>
-            <IField label="Sourcing fee (£)" value={Number(form.sourcingFeePaid) > 0 ? fc(Number(form.sourcingFeePaid)) : ''} onChange={v => setField('sourcingFeePaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} />
-            <IField label="Cooling-off period (days)" value={String(form.coolingOffPeriodDays ?? '')} onChange={v => setField('coolingOffPeriodDays', parseInt(v) || 0)} />
+            <IField label="Sourcing fee (£)" value={Number(form.sourcingFeePaid) > 0 ? fc(Number(form.sourcingFeePaid)) : ''} onChange={v => setField('sourcingFeePaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} info="Your fee for finding and packaging this deal. Flows directly into the Fees & invoice tab where you can generate a client invoice. Sourcing fees are subject to VAT if you are VAT registered. Standard market rate is £3,000–£10,000 depending on deal complexity." />
+            <IField label="Cooling-off period (days)" value={String(form.coolingOffPeriodDays ?? '')} onChange={v => setField('coolingOffPeriodDays', parseInt(v) || 0)} info="The number of days from reservation during which the buyer can withdraw without penalty. Tracked in Deal Status — DealScore shows a live countdown from the reservation date. Typically 14–30 days depending on your terms of business." />
             <IField label="Payment terms" value={String(form.paymentTerms ?? '')} onChange={v => setField('paymentTerms', v)} />
-            <IField label="Target completion date" value={String(form.targetCompletionDate ?? '')} onChange={v => setField('targetCompletionDate', v)} />
+            <IField label="Target completion date" value={String(form.targetCompletionDate ?? '')} onChange={v => setField('targetCompletionDate', v)} info="Your anticipated date for legal completion. Used for timeline planning in Deal Status. For auction purchases this is fixed at 28 days from the auction date." />
           </IGrid>
         </Sec>
 
