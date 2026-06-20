@@ -1076,7 +1076,7 @@ function Insight({ text }: { text: string }) {
 // ── Sub-nav ───────────────────────────────────────────────────────────────────
 export type SubView = 'results' | 'inputs' | 'sensitivity' | 'workings'
 
-function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) => void }) {
+function SubNav({ active, onChange, showScPill }: { active: SubView; onChange: (v: SubView) => void; showScPill?: boolean }) {
   const items: { key: SubView; label: string; icon: string }[] = [
     { key: 'inputs',      label: 'Inputs',      icon: 'ti-adjustments-horizontal' },
     { key: 'results',     label: 'Results',     icon: 'ti-chart-line' },
@@ -1088,6 +1088,9 @@ function SubNav({ active, onChange }: { active: SubView; onChange: (v: SubView) 
       {items.map(({ key, label, icon }) => (
         <button key={key} onClick={() => onChange(key)} style={{ background: active === key ? '#ffffff' : 'transparent', borderRadius: 6, boxShadow: active === key ? '0 1px 3px rgba(0,0,0,.12)' : 'none', color: active === key ? 'var(--navy, #1B3A6B)' : 'var(--text-2, #6c757d)', fontWeight: active === key ? 500 : 400, fontSize: 12, padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s ease', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
           <i className={`ti ${icon}`} style={{ fontSize: '11px' }} />{label}
+          {key === 'inputs' && showScPill && (
+            <span style={{ fontSize: 9, fontWeight: 700, background: '#7c3aed', color: '#fff', padding: '1px 5px', borderRadius: 8, marginLeft: 4, letterSpacing: '.02em', verticalAlign: 'middle' }}>SC</span>
+          )}
         </button>
       ))}
     </div>
@@ -1860,18 +1863,24 @@ const SPECIALIST_TILES = [
   { key: 'assisted-sale', name: 'Assisted Sale', full: 'Help vendor sell, earn a fee',       live: false, icon: 'ti-handshake' },
 ]
 
-function Step2StrategyPicker({ mode, activeTile, onSelect, isEditing }: { mode: string; activeTile: string; onSelect: (k: string) => void; isEditing: boolean }) {
+function Step2StrategyPicker({ mode, activeTile, onSelect, isEditing, scMode }: { mode: string; activeTile: string; onSelect: (k: string) => void; isEditing: boolean; scMode?: 'manual' | 'sc' }) {
   const tiles = mode === 'rent' ? RENT_TILES : mode === 'specialist' ? SPECIALIST_TILES : BUY_TILES
+  const isSc = scMode === 'sc'
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
       {tiles.map(t => (
-        <div key={t.key} onClick={() => isEditing && t.live && onSelect(t.key)}
-          style={{ border: activeTile === t.key ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)', borderRadius: 8, padding: 11, cursor: isEditing && t.live ? 'pointer' : 'default', background: activeTile === t.key ? 'var(--navy-light)' : 'var(--bg-sec)', transition: 'all .18s', opacity: t.live ? 1 : 0.5 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 7, background: activeTile === t.key ? 'var(--navy)' : 'var(--bg-sec)', border: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, transition: 'all .18s', flexShrink: 0 }}>
-            <i className={`ti ${t.icon}`} style={{ fontSize: 16, color: activeTile === t.key ? '#fff' : 'var(--text-2)' }} />
+        <div key={t.key} onClick={() => !isSc && isEditing && t.live && onSelect(t.key)}
+          style={{ border: (!isSc && activeTile === t.key) ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)', borderRadius: 8, padding: 11, cursor: (!isSc && isEditing && t.live) ? 'pointer' : 'default', background: (!isSc && activeTile === t.key) ? 'var(--navy-light)' : 'var(--bg-sec)', transition: 'all .18s', opacity: t.live ? 1 : 0.5 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 7, background: (!isSc && activeTile === t.key) ? 'var(--navy)' : 'var(--bg-sec)', border: '.5px solid var(--ds-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, transition: 'all .18s', flexShrink: 0 }}>
+            <i className={`ti ${t.icon}`} style={{ fontSize: 16, color: (!isSc && activeTile === t.key) ? '#fff' : 'var(--text-2)' }} />
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2 }}>{t.name}</div>
           <div style={{ fontSize: 10, color: 'var(--text-2)', lineHeight: 1.4, marginBottom: 5 }}>{t.full}</div>
+          {isSc && t.live && (
+            <span style={{ fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 20, background: '#f5f3ff', color: '#7c3aed', display: 'inline-block', letterSpacing: '.03em' }}>
+              Will be scored
+            </span>
+          )}
           {!t.live && (
             <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 20, background: '#fef3c7', color: '#92400e', display: 'inline-block', letterSpacing: '.03em' }}>
               Coming soon
@@ -1938,13 +1947,14 @@ function getStrategyLabel(tile: string): string {
 }
 
 // ── VIEW: Inputs ──────────────────────────────────────────────────────────────
-function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
+function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScModeChange }: {
   p: ParsedInputs
   isNewDeal: boolean
   dealId: string
   onSave?: (updated: Deal) => void
   deal: Deal
   onViewChange?: (v: SubView) => void
+  onScModeChange?: (m: 'manual' | 'sc') => void
 }) {
   const [searchParams] = useSearchParams()
   const isEditing = searchParams.get('editing') === 'true'
@@ -2100,9 +2110,14 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
   // ── Prompt 14 additions ──────────────────────────────────────────────────────
   const { tier } = useTier()
   const isPro = tier === 'pro' || tier === 'proplus'
+  const isProPlus = tier === 'proplus'
   const [showOptional, setShowOptional] = useState(false)
   const [photosOpen, setPhotosOpen] = useState(false)
   const [showMoreCosts, setShowMoreCosts] = useState(false)
+  // scMode is a display-only preference. It NEVER affects form field values.
+  // sharedInputs persist across all strategies (already handled by form state).
+  // Strategy-specific fields (btlInputs.*, hmoInputs.*, etc.) persist per-strategy (already handled).
+  // Switching scMode must never call setField, reset form, or clear any input.
   const [scMode, setScMode] = useState<'manual' | 'sc'>('manual')
   const [activeTip, setActiveTip] = useState<string | null>(null)
   const scSource = (deal as unknown as Record<string, unknown>)?.scSource as string | undefined
@@ -2224,6 +2239,27 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
   const sbarStrategyComplete = useMemo(() => {
     return getStrategyIncomeFields(activeTile).every(f => isFilled(getFormVal(form, f)))
   }, [form, activeTile])
+
+  const scStrategies = useMemo(() => {
+    const all = [
+      ...(mode === 'buy' || mode === 'specialist' ? [
+        { key: 'btl',  label: 'Buy to Let',              status: btl.monthlyRent ? 'ready' : 'none' as 'ready' | 'partial' | 'none' },
+        { key: 'hmo',  label: 'HMO',                     status: hmo.rooms && hmo.rentPerRoom ? 'ready' : hmo.rooms || hmo.rentPerRoom ? 'partial' : 'none' as 'ready' | 'partial' | 'none' },
+        { key: 'sa',   label: 'Serviced Accommodation',  status: sa.nightlyRate ? 'ready' : 'none' as 'ready' | 'partial' | 'none' },
+        { key: 'brrr', label: 'BRRR',                    status: brrr.postRefurbValue && brrr.monthlyRent ? 'ready' : brrr.postRefurbValue || brrr.monthlyRent ? 'partial' : 'none' as 'ready' | 'partial' | 'none' },
+        { key: 'flip', label: 'FLIP',                    status: flip.expectedSalePrice ? 'ready' : 'none' as 'ready' | 'partial' | 'none' },
+      ] : []),
+      ...(mode === 'rent' || mode === 'specialist' ? [
+        { key: 'r2r',    label: 'Rent to Rent',    status: r2r.monthlyRentPaid && r2r.rooms && r2r.rentPerRoom ? 'ready' : r2r.monthlyRentPaid || r2r.rooms || r2r.rentPerRoom ? 'partial' : 'none' as 'ready' | 'partial' | 'none' },
+        { key: 'social', label: 'Social Housing',  status: social.leaseIncomePerMonth ? 'ready' : 'none' as 'ready' | 'partial' | 'none' },
+      ] : []),
+    ]
+    return all
+  }, [form, mode, btl, hmo, sa, flip, brrr, r2r, social])
+
+  useEffect(() => {
+    onScModeChange?.(scMode)
+  }, [scMode, onScModeChange])
 
   function scrollToSection(id: string) {
     const el = document.getElementById(`sec-${id}`)
@@ -2608,56 +2644,71 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
         {/* 3. STEP 1 — Buy / Rent / Specialist */}
         <Step1ModePicker mode={mode} onSelect={setMode} />
 
-        {/* 5. STEP 2 — Strategy tiles + SC toggle (CHANGE 4) */}
+        {/* 5. STEP 2 — Strategy tiles */}
         <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '14px 18px', marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.07em', color: '#bbb', marginBottom: 3 }}>
-                Step 2 of 2 — {mode === 'buy' ? 'Buy' : mode === 'rent' ? 'Rent' : 'Specialist'} strategies
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Select your strategy</div>
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.07em', color: '#bbb', marginBottom: 3 }}>
+              Step 2 of 2 — {mode === 'buy' ? 'Buy' : mode === 'rent' ? 'Rent' : 'Specialist'} strategies
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>
+              {scMode === 'manual'
+                ? 'Select your strategy'
+                : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    Strategies available to you
+                    <span style={{ fontSize: 10, fontWeight: 700, background: '#7c3aed', color: '#fff', padding: '2px 8px', borderRadius: 10, letterSpacing: '.02em' }}>SC</span>
+                    <button
+                      onClick={() => setScMode('manual')}
+                      style={{ fontSize: 10, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, textDecoration: 'underline', fontWeight: 500 }}
+                    >
+                      Exit Smart Capture
+                    </button>
+                  </span>
+                )
+              }
+            </div>
+            {scMode === 'manual' && (
               <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>
                 Select one as your primary. All scoreable strategies appear in the Results tab ranking simultaneously.
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingTop: 2 }}>
-              {isPro ? (
-                <>
-                  <div style={{ display: 'flex', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2, gap: 1 }}>
-                    <button
-                      onClick={() => setScMode('manual')}
-                      style={{ padding: '5px 10px', fontSize: 11, border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const, transition: 'all .12s', background: scMode === 'manual' ? '#fff' : 'transparent', color: scMode === 'manual' ? 'var(--navy)' : 'var(--text-2)', fontWeight: scMode === 'manual' ? 500 : 400, boxShadow: scMode === 'manual' ? '0 0 0 0.5px rgba(27,58,107,.15)' : 'none' }}>
-                      Manual
-                    </button>
-                    <button
-                      onClick={() => setScMode('sc')}
-                      style={{ padding: '5px 10px', fontSize: 11, border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const, transition: 'all .12s', background: scMode === 'sc' ? '#5B21B6' : 'transparent', color: scMode === 'sc' ? '#fff' : 'var(--text-2)', fontWeight: scMode === 'sc' ? 500 : 400 }}>
-                      Smart Capture
-                    </button>
-                  </div>
-                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.04em', color: 'var(--navy)', background: 'var(--navy-light)', border: '.5px solid rgba(27,58,107,.2)', padding: '2px 7px', borderRadius: 20 }}>PRO</span>
-                </>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: .5, cursor: 'not-allowed' }}>
-                  <div style={{ display: 'flex', background: 'var(--bg-sec)', border: '.5px solid var(--ds-border)', borderRadius: 8, padding: 2 }}>
-                    <button disabled style={{ padding: '5px 10px', fontSize: 11, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-2)', fontFamily: 'inherit', cursor: 'not-allowed' }}>Manual</button>
-                    <button disabled style={{ padding: '5px 10px', fontSize: 11, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--text-2)', fontFamily: 'inherit', cursor: 'not-allowed' }}>Smart Capture 🔒</button>
-                  </div>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--navy)', background: 'var(--navy-light)', border: '.5px solid rgba(27,58,107,.2)', padding: '2px 7px', borderRadius: 20 }}>PRO</span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
-          {scMode === 'manual' ? (
-            <Step2StrategyPicker mode={mode} activeTile={activeTile} onSelect={selectStrategy} isEditing={isEditing} />
-          ) : (
-            <div style={{ border: '1.5px dashed var(--ds-border)', borderRadius: 8, padding: '20px 16px', textAlign: 'center' as const, color: 'var(--text-2)', fontSize: 12 }}>
-              <i className="ti ti-link" style={{ fontSize: 20, marginBottom: 6, display: 'block', opacity: .4 }} />
-              Paste a Rightmove / Zoopla / OnTheMarket URL and Smart Capture will auto-fill property details and suggest the best strategy.
-              <div style={{ marginTop: 10, display: 'flex', gap: 8, maxWidth: 480, margin: '10px auto 0' }}>
-                <input type="url" placeholder="https://www.rightmove.co.uk/properties/..." style={{ flex: 1, padding: '7px 10px', fontSize: 12, border: '.5px solid var(--ds-border)', borderRadius: 7, outline: 'none', fontFamily: 'inherit', color: 'var(--text-1)' }} />
-                <button style={{ padding: '7px 14px', background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>Capture →</button>
+
+          {/* Strategy tiles — always shown, non-interactive in SC mode */}
+          <Step2StrategyPicker mode={mode} activeTile={activeTile} onSelect={selectStrategy} isEditing={isEditing} scMode={scMode} />
+
+          {/* SC explanatory note */}
+          {scMode === 'sc' && (
+            <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 10, lineHeight: 1.6 }}>
+              All strategies will be ranked once you fill in their income fields below. Scroll down to complete each strategy.
+            </div>
+          )}
+
+          {/* Activate Smart Capture feature card — manual mode only */}
+          {scMode === 'manual' && (
+            <div style={{ marginTop: 16, background: isProPlus ? '#f5f3ff' : '#fafafa', border: `.5px solid ${isProPlus ? '#7c3aed' : 'var(--ds-border)'}`, borderRadius: 10, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 8, background: isProPlus ? '#ede9fe' : 'var(--bg-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <i className="ti ti-sparkles" style={{ fontSize: 15, color: isProPlus ? '#7c3aed' : '#9ca3af' }} />
               </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: isProPlus ? '#4c1d95' : 'var(--text-1)', marginBottom: 2 }}>
+                  Smart Capture
+                  {!isProPlus && <span style={{ fontSize: 10, fontWeight: 600, background: '#f3f0ff', color: '#7c3aed', padding: '1px 6px', borderRadius: 10, marginLeft: 6 }}>Pro Plus</span>}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                  {isProPlus
+                    ? 'Fill in all strategies at once and get a ranked comparison across every investment approach.'
+                    : 'Upgrade to Pro Plus to score all strategies simultaneously and get a full ranked comparison.'}
+                </div>
+              </div>
+              {isProPlus && (
+                <button
+                  onClick={() => isEditing && setScMode('sc')}
+                  style={{ background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 11, fontWeight: 600, cursor: isEditing ? 'pointer' : 'not-allowed', opacity: isEditing ? 1 : 0.5, whiteSpace: 'nowrap' as const, flexShrink: 0, fontFamily: 'inherit' }}
+                >
+                  Activate →
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -3455,10 +3506,122 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
           )}
         </div>
 
+        {/* Part D — SC income sections (shown below all existing sections in SC mode) */}
+        {scMode === 'sc' && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase' as const, letterSpacing: '.07em', marginBottom: 12, padding: '0 2px' }}>
+              Smart Capture — Strategy income fields
+            </div>
+
+            {(mode === 'buy' || mode === 'specialist') && (
+              <Sec title="BTL — Monthly income" info="Fill in the BTL fields so DealScore can calculate yield, cash flow, and deal score for a Buy to Let strategy.">
+                <IGrid>
+                  <IField label="Monthly rent (£)" value={Number(btl.monthlyRent) > 0 ? fc(Number(btl.monthlyRent)) : ''} onChange={v => setField('btlInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The monthly rental income you expect from this property as a single let." />
+                </IGrid>
+              </Sec>
+            )}
+
+            {(mode === 'buy' || mode === 'specialist') && (
+              <Sec title="HMO — Room income" info="Fill in the HMO fields so DealScore can calculate yield, cash flow, and deal score for a House in Multiple Occupation strategy.">
+                <IGrid>
+                  <IField label="Rooms" value={String(hmo.rooms || '')} onChange={v => setField('hmoInputs.rooms', parseInt(v) || 0)} required info="The total number of lettable rooms in this HMO." />
+                  <IField label="Rent per room (£/mo)" value={Number(hmo.rentPerRoom) > 0 ? fc(Number(hmo.rentPerRoom)) : ''} onChange={v => setField('hmoInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The monthly rent charged per room. Use the average if rooms are priced differently." />
+                </IGrid>
+              </Sec>
+            )}
+
+            {(mode === 'buy' || mode === 'specialist') && (
+              <Sec title="SA — Serviced accommodation income" info="Fill in the SA fields so DealScore can calculate yield, cash flow, and deal score for a Serviced Accommodation strategy.">
+                <IGrid>
+                  <IField label="Avg nightly rate (£)" value={Number(sa.nightlyRate) > 0 ? fc(Number(sa.nightlyRate)) : ''} onChange={v => setField('saInputs.nightlyRate', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="Your average nightly rate across the year." />
+                  <IField label="Target occupancy (%)" value={sa.occupancyPercent != null ? fp(Number(sa.occupancyPercent)) : ''} onChange={v => setField('saInputs.occupancyPercent', parseFloat(v) || 75)} info="The percentage of nights occupied across the year." />
+                </IGrid>
+              </Sec>
+            )}
+
+            {(mode === 'buy' || mode === 'specialist') && (
+              <Sec title="BRRR — Post-refurb income & refinance" info="Fill in the BRRR fields so DealScore can calculate the refinance outcome and ongoing cash flow for a Buy, Refurb, Refinance, Rent strategy.">
+                <IGrid>
+                  <IField label="Post-refurb value (£)" value={Number(brrr.postRefurbValue) > 0 ? fc(Number(brrr.postRefurbValue)) : ''} onChange={v => setField('brrrInputs.postRefurbValue', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The estimated market value of the property after refurbishment is complete." />
+                  <IField label="Monthly rent post-refurb (£)" value={Number(brrr.monthlyRent) > 0 ? fc(Number(brrr.monthlyRent)) : ''} onChange={v => setField('brrrInputs.monthlyRent', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The monthly rent once the property is let after refurbishment." />
+                  <IField label="Target refinance LTV (%)" value={brrr.refinancePercent != null ? fp(Number(brrr.refinancePercent)) : ''} onChange={v => setField('brrrInputs.refinancePercent', parseFloat(v) || 75)} info="The loan-to-value percentage your mortgage lender will offer against the post-refurb value." />
+                </IGrid>
+              </Sec>
+            )}
+
+            {(mode === 'buy' || mode === 'specialist') && (
+              <Sec title="FLIP — Sale & profit" info="Fill in the FLIP fields so DealScore can calculate net profit and ROI for a property flip strategy.">
+                <IGrid>
+                  <IField label="Expected sale price (£)" value={Number(flip.expectedSalePrice) > 0 ? fc(Number(flip.expectedSalePrice)) : ''} onChange={v => setField('flipInputs.expectedSalePrice', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The price you expect to achieve when selling the refurbished property." />
+                  <IField label="Project length (months)" value={String(flip.projectLengthMonths || '')} onChange={v => setField('flipInputs.projectLengthMonths', parseInt(v) || 0)} info="How many months from purchase to sale completion." />
+                </IGrid>
+              </Sec>
+            )}
+
+            {(mode === 'rent' || mode === 'specialist') && (
+              <Sec title="R2R — Rent to rent income" info="Fill in the R2R fields so DealScore can calculate monthly profit and ROI for a Rent to Rent strategy.">
+                <IGrid>
+                  <IField label="Monthly rent paid to landlord (£)" value={Number(r2r.monthlyRentPaid) > 0 ? fc(Number(r2r.monthlyRentPaid)) : ''} onChange={v => setField('r2rInputs.monthlyRentPaid', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The monthly rent you pay to the property owner under your lease agreement." />
+                  <IField label="Rooms" value={String(r2r.rooms || '')} onChange={v => setField('r2rInputs.rooms', parseInt(v) || 0)} required info="Total number of lettable rooms." />
+                  <IField label="Rent per room (£/mo)" value={Number(r2r.rentPerRoom) > 0 ? fc(Number(r2r.rentPerRoom)) : ''} onChange={v => setField('r2rInputs.rentPerRoom', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The monthly rent charged per room." />
+                </IGrid>
+              </Sec>
+            )}
+
+            {(mode === 'rent' || mode === 'specialist') && (
+              <Sec title="Social Housing — Guaranteed rent" info="Fill in the Social Housing fields so DealScore can calculate yield and cash flow for a Social / Supported Living strategy.">
+                <IGrid>
+                  <IField label="Monthly lease income (£)" value={Number(social.leaseIncomePerMonth) > 0 ? fc(Number(social.leaseIncomePerMonth)) : ''} onChange={v => setField('socialInputs.leaseIncomePerMonth', parseFloat(v.replace(/[£,]/g, '')) || 0)} required info="The fixed monthly payment from the housing association, local authority, or care provider." />
+                </IGrid>
+              </Sec>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* Sidebar — Input completion tracker */}
       <div className="sbar-sticky">
+        {scMode === 'sc' ? (
+          <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--strip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px) + 20px)' }}>
+            <div style={{ background: '#fff', borderRadius: 12, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden', marginBottom: 10 }}>
+              <div style={{ padding: '11px 14px', borderBottom: '.5px solid var(--ds-border)', background: '#2d1060', display: 'flex', alignItems: 'center', gap: 9 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', flexShrink: 0 }}>
+                  <i className="ti ti-sparkles" />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>Smart Capture</div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.65)', marginTop: 1 }}>Fill in each strategy to get ranked results</div>
+                </div>
+              </div>
+              <div style={{ padding: '12px 14px' }}>
+                {scStrategies.map(s => (
+                  <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '.5px solid #f3f4f6' }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: s.status === 'ready' ? 'var(--teal)' : s.status === 'partial' ? '#D97706' : '#d1d5db' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: s.status === 'ready' ? '#9ca3af' : 'var(--text-1)', lineHeight: 1.4 }}>{s.label}</div>
+                      <div style={{ fontSize: 10, color: '#9ca3af' }}>{s.status === 'ready' ? 'Ready to score' : s.status === 'partial' ? 'Some fields filled' : 'Not yet started'}</div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => onViewChange?.('results')}
+                  disabled={!scStrategies.some(s => s.status === 'ready')}
+                  style={{ width: '100%', padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, border: 'none', background: scStrategies.some(s => s.status === 'ready') ? 'var(--teal)' : '#e5e7eb', color: scStrategies.some(s => s.status === 'ready') ? '#fff' : '#9ca3af', transition: 'background .2s' }}
+                >
+                  <i className="ti ti-trophy" style={{ fontSize: 12 }} />
+                  View ranked results
+                </button>
+                <button
+                  onClick={() => setScMode('manual')}
+                  style={{ width: '100%', marginTop: 6, padding: '8px 10px', background: 'none', border: '.5px solid var(--ds-border)', borderRadius: 8, fontSize: 11, color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Exit Smart Capture
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="sbar-card">
 
           {/* Header */}
@@ -3528,6 +3691,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange }: {
 
           </div>
         </div>
+        )}
       </div>
     </div>
     </InputsCtx.Provider>
@@ -4225,6 +4389,7 @@ export default function AnalysisHub({
   const [isEditingInputs, setIsEditingInputs] = useState(false)
   const [isNewDeal, setIsNewDeal] = useState(false)
   const [showOptimiser, setShowOptimiser] = useState(false)
+  const [scModeActive, setScModeActive] = useState(false)
   const isNewParam = new URLSearchParams(window.location.search).get('new') === '1'
 
   const p = useMemo(() => parseInputs(deal), [deal])
@@ -4316,7 +4481,7 @@ export default function AnalysisHub({
       {/* ── Sub-nav band (sticky) ──────────────────────────────────────────── */}
       <div style={{ position: 'sticky', top: 'calc(var(--hdr-h, 56px) + var(--istrip-h, 48px) + var(--livebar-h, 44px) + var(--tabs-h, 42px))', zIndex: 100, backgroundColor: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', marginBottom: 8 }}>
         {/* Left: sub-tabs */}
-        <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} />
+        <SubNav active={activeView} onChange={(v) => { setLocalView(v); onViewChange?.(v) }} showScPill={scModeActive && activeView === 'inputs'} />
 
         {/* Right: editing / read-only indicator — only on inputs tab */}
         {activeView === 'inputs' && (
@@ -4354,7 +4519,7 @@ export default function AnalysisHub({
       )}
 
       {activeView === 'inputs' && (
-        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} deal={deal} onViewChange={setLocalView} />
+        <ViewInputs p={p} isNewDeal={isNewDeal} dealId={deal.id} onSave={onSave} deal={deal} onViewChange={setLocalView} onScModeChange={m => setScModeActive(m === 'sc')} />
       )}
 
       {activeView === 'sensitivity' && (
