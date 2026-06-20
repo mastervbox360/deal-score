@@ -1826,14 +1826,12 @@ function Step1ModePicker({ mode, onSelect }: { mode: string; onSelect: (m: 'buy'
     { key: 'specialist' as const, icon: 'ti-arrows-exchange', title: 'Specialist / Other', desc: 'Control without purchase, or fee-based structures.', examples: 'Lease Option · Assisted Sale' },
   ]
   return (
-    <div style={{ background: '#fff', borderRadius: '12px', border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '18px 20px', marginBottom: '10px' }}>
-      <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: '#aaa', marginBottom: '3px' }}>Step 1 of 2</div>
-      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '12px' }}>Your route into this deal</div>
+    <Sec title="Your route into this deal">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         {cards.map(c => (
           <div key={c.key} onClick={() => onSelect(c.key)}
-            style={{ border: `${mode === c.key ? '1.5px solid var(--navy)' : '.5px solid var(--ds-border)'}`, borderRadius: '12px', padding: '14px', cursor: 'pointer', background: mode === c.key ? 'var(--navy-light)' : '#fff', transition: 'all .18s' }}>
-            <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: mode === c.key ? 'var(--navy)' : 'var(--bg-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px', color: mode === c.key ? '#fff' : 'var(--text-2)', marginBottom: '9px', border: mode === c.key ? 'none' : '.5px solid var(--ds-border)' }}>
+            style={{ border: `${mode === c.key ? '1.5px solid var(--navy)' : '1px solid #d1d5db'}`, borderRadius: '12px', padding: '14px', cursor: 'pointer', background: mode === c.key ? 'var(--navy-light)' : '#fff', transition: 'all .18s' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: mode === c.key ? 'var(--navy)' : 'var(--bg-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px', color: mode === c.key ? '#fff' : 'var(--text-2)', marginBottom: '9px', border: mode === c.key ? 'none' : '1px solid #d1d5db' }}>
               <i className={`ti ${c.icon}`} />
             </div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-1)', marginBottom: '3px' }}>{c.title}</div>
@@ -1842,7 +1840,7 @@ function Step1ModePicker({ mode, onSelect }: { mode: string; onSelect: (m: 'buy'
           </div>
         ))}
       </div>
-    </div>
+    </Sec>
   )
 }
 
@@ -2115,7 +2113,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
   const isPro = tier === 'pro' || tier === 'proplus'
   const isProPlus = tier === 'proplus'
   const [showOptional, setShowOptional] = useState(false)
-  const [photosOpen, setPhotosOpen] = useState(false)
+
   const [showMoreCosts, setShowMoreCosts] = useState(false)
   // scMode is a display-only preference. It NEVER affects form field values.
   // sharedInputs persist across all strategies (already handled by form state).
@@ -2616,66 +2614,44 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
         {/* Seller / landlord — moved above photos so sourcer enters property + seller together */}
         <SellerCard form={form} setField={setField} isEditing={isEditing} isR2R={activeTile === 'r2r'} sellerComplete={sellerComplete} />
 
-        {/* ── Property photos — grey header band matching Sec style, collapsible body ── */}
-        <div style={{ borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', marginBottom: 10 }}>
-          <div
-            onClick={() => setPhotosOpen(v => !v)}
-            style={{ background: 'var(--bg-sec)', borderBottom: photosOpen ? '.5px solid var(--ds-border)' : 'none', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' as const, borderRadius: photosOpen ? '10px 10px 0 0' : 10 }}
-            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.97)')}
-            onMouseLeave={e => (e.currentTarget.style.filter = '')}>
-            <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>Property photos</span>
-              <InfoIcon text="Photos are used in your investor deal pack. The hero image appears on the deal card in your pipeline and on any shared deal pages. Good photos significantly improve investor engagement." />
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--navy)', background: 'var(--navy-light, #e8edf5)', padding: '2px 9px', borderRadius: 20, marginRight: 8 }}>Optional</span>
-            <i className={`ti ti-chevron-${photosOpen ? 'up' : 'down'}`} style={{ fontSize: 14, color: '#ccc' }} />
+        {/* ── Property photos ── */}
+        <Sec title="Property photos" badge="Optional">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-2)', fontStyle: 'italic' }}>★ Hero image = deal card</span>
           </div>
-          {photosOpen && (
-            <div style={{ padding: '14px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 10 }}>
-                <span style={{ fontSize: 11, color: 'var(--text-2)', fontStyle: 'italic' }}>★ Hero image = deal card</span>
-              </div>
-              <div style={{ border: '1.5px dashed var(--ds-border)', borderRadius: 8, padding: '20px 16px', textAlign: 'center' as const, color: 'var(--text-2)', fontSize: 12 }}>
-                <i className="ti ti-upload" style={{ fontSize: 20, marginBottom: 6, display: 'block', opacity: .4 }} />
-                Drag photos here or <span style={{ color: 'var(--navy)', cursor: 'pointer', fontWeight: 500 }}>browse</span>
-                <div style={{ fontSize: 10, color: '#bbb', marginTop: 4 }}>Used on the deal card and in the investor pack</div>
-              </div>
+          <div style={{ background: '#fff', border: '1.5px dashed #d1d5db', borderRadius: 10, padding: '32px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', minHeight: 120 }}>
+            <i className="ti ti-upload" style={{ fontSize: 22, color: '#9ca3af' }} />
+            <div style={{ fontSize: 13, color: 'var(--text-1, #1a1a2e)', fontWeight: 500 }}>
+              Drag photos here or click to <span style={{ color: 'var(--teal, #1D9E75)', cursor: 'pointer' }}>browse</span>
             </div>
-          )}
-        </div>
+            <div style={{ fontSize: 11, color: 'var(--text-2, #6c757d)' }}>
+              JPG, PNG · up to 20MB · first uploaded photo is auto-set as deal card hero
+            </div>
+          </div>
+        </Sec>
 
         {/* 3. STEP 1 — Buy / Rent / Specialist */}
         <Step1ModePicker mode={mode} onSelect={setMode} />
 
         {/* 5. STEP 2 — Strategy tiles */}
-        <div style={{ background: '#fff', borderRadius: 10, border: '.5px solid var(--ds-border)', boxShadow: '0 1px 3px rgba(0,0,0,.06)', padding: '14px 18px', marginBottom: 10 }}>
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '.07em', color: '#bbb', marginBottom: 3 }}>
-              Step 2 of 2 — {mode === 'buy' ? 'Buy' : mode === 'rent' ? 'Rent' : 'Specialist'} strategies
+        <Sec title={scMode === 'sc' ? 'Strategies available to you' : 'Strategy selection'}>
+          {scMode === 'sc' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, background: '#7c3aed', color: '#fff', padding: '2px 8px', borderRadius: 10, letterSpacing: '.02em' }}>SC</span>
+              <button
+                onClick={() => setScMode('manual')}
+                style={{ fontSize: 10, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, textDecoration: 'underline', fontWeight: 500 }}
+              >
+                Exit Smart Capture
+              </button>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>
-              {scMode === 'manual'
-                ? 'Select your strategy'
-                : (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    Strategies available to you
-                    <span style={{ fontSize: 10, fontWeight: 700, background: '#7c3aed', color: '#fff', padding: '2px 8px', borderRadius: 10, letterSpacing: '.02em' }}>SC</span>
-                    <button
-                      onClick={() => setScMode('manual')}
-                      style={{ fontSize: 10, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0, textDecoration: 'underline', fontWeight: 500 }}
-                    >
-                      Exit Smart Capture
-                    </button>
-                  </span>
-                )
-              }
+          )}
+
+          {scMode === 'manual' && (
+            <div style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 12 }}>
+              Select one as your primary. All scoreable strategies appear in the Results tab ranking simultaneously.
             </div>
-            {scMode === 'manual' && (
-              <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>
-                Select one as your primary. All scoreable strategies appear in the Results tab ranking simultaneously.
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Strategy tiles — always shown, non-interactive in SC mode */}
           <Step2StrategyPicker mode={mode} activeTile={activeTile} onSelect={selectStrategy} isEditing={isEditing} scMode={scMode} />
@@ -2714,7 +2690,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
               )}
             </div>
           )}
-        </div>
+        </Sec>
 
         {/* 6. STRATEGY-SPECIFIC INPUT SECTIONS */}
 
