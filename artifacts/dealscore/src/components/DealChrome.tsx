@@ -197,6 +197,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
   const noteInputId = useId()
 
   const activeTab = parseTab(searchParams.get('tab'))
+  const analysisSubView = searchParams.get('view') ?? 'results'
 
   function handleTabChange(tab: TabKey) {
     setSearchParams(prev => {
@@ -564,7 +565,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
               </>
             ) : activeTab === 'analysis' ? (
               <>
-                {sellerName ? (
+                {analysisSubView === 'inputs' && (sellerName ? (
                   <button
                     onClick={() => navigate(`/deal/${deal.id}?tab=seller`)}
                     style={{
@@ -605,7 +606,7 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                     <i className="ti ti-user-plus" style={{ fontSize: 11 }} />
                     {' '}Link seller
                   </button>
-                )}
+                ))}
                 {(analysisView === 'inputs' || analysisView === 'results') && (
                   <button style={{
                     display: 'inline-flex', alignItems: 'center', gap: '5px',
