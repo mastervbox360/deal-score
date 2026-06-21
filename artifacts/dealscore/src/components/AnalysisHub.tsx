@@ -2427,7 +2427,28 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
           {/* ── Mandatory fields ── */}
           <IGrid>
             <div>
-              <IField label="Address *" value={String(form.address ?? '')} onChange={v => setField('address', v)} required info="The full property address including postcode. DealScore uses the postcode to fetch Land Registry sold price comparables. Postcode must include a space (e.g. CF24 1RN) — without a space, comparables will not return results." />
+              <IField label="Address *" value={String(form.address ?? '')} onChange={v => {
+                setField('address', v)
+                const postcodeMatch = v.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2})\b/i)
+                if (postcodeMatch) {
+                  const extractedPostcode = postcodeMatch[1].toUpperCase()
+                  fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(extractedPostcode)}`)
+                    .then(r => r.json())
+                    .then(pcData => {
+                      if (pcData.status === 200 && pcData.result) {
+                        const countryMap: Record<string, string> = {
+                          'England': 'ENGLAND',
+                          'Wales': 'WALES',
+                          'Scotland': 'SCOTLAND',
+                          'Northern Ireland': 'ENGLAND',
+                        }
+                        const mappedTaxRegion = countryMap[pcData.result.country] ?? 'ENGLAND'
+                        setField('taxRegion', mappedTaxRegion)
+                      }
+                    })
+                    .catch(() => {})
+                }
+              }} required info="The full property address including postcode. DealScore uses the postcode to fetch Land Registry sold price comparables. Postcode must include a space (e.g. CF24 1RN) — without a space, comparables will not return results." />
               <ScBadge source={scSource} />
             </div>
             <div>

@@ -138,6 +138,22 @@ function getInitials(name: string | null | undefined, email: string | null | und
   }
   return email ? email.slice(0, 2).toUpperCase() : '??'
 }
+function calcStampDuty(price: number, country: string, isAdditionalDwelling = true): number {
+  if (country === 'Wales' || country === 'WALES') {
+    const bands: [number, number, number][] = [[0,180000,0.04],[180000,250000,0.075],[250000,400000,0.10],[400000,750000,0.115],[750000,1500000,0.14],[1500000,Infinity,0.17]]
+    return Math.round(bands.reduce((tax,[min,max,rate]) => { const t = Math.min(price,max)-min; return t>0?tax+t*rate:tax }, 0))
+  }
+  if (country === 'Scotland' || country === 'SCOTLAND') {
+    const lbttBands: [number, number, number][] = [[0,145000,0],[145000,250000,0.02],[250000,325000,0.05],[325000,750000,0.10],[750000,Infinity,0.12]]
+    const lbtt = lbttBands.reduce((tax,[min,max,rate]) => { const t = Math.min(price,max)-min; return t>0?tax+t*rate:tax }, 0)
+    const ads = isAdditionalDwelling ? price*0.06 : 0
+    return Math.round(lbtt+ads)
+  }
+  // England or Northern Ireland — SDLT + 3% additional dwelling surcharge
+  const bands: [number, number, number][] = [[0,250000,0.03],[250000,925000,0.08],[925000,1500000,0.13],[1500000,Infinity,0.15]]
+  return Math.round(bands.reduce((tax,[min,max,rate]) => { const t = Math.min(price,max)-min; return t>0?tax+t*rate:tax }, 0))
+}
+
 function parsePrice(raw: string): number | null {
   const n = parseFloat(raw.replace(/[^0-9.]/g, ''))
   return isNaN(n) ? null : n
@@ -321,6 +337,13 @@ export default function DashboardPage() {
     groundRent?: number
     councilTaxBand?: string
   }>({})
+  const [scrapeIntelligence, setScrapeIntelligence] = useState<{
+    epcRating?: string
+    floodRisk?: string
+    floodZone?: string
+    region?: string
+  } | null>(null)
+  const [stampDutyEstimate, setStampDutyEstimate] = useState<number | null>(null)
 
   // Escape key closes slide-over
   useEffect(() => {
@@ -457,6 +480,8 @@ export default function DashboardPage() {
     setScrapeLoading(true)
     setScrapeResult(null)
     setScrapeExtra({})
+    setScrapeIntelligence(null)
+    setStampDutyEstimate(null)
     try {
       const { data, error } = await supabase.functions.invoke('scrape-property', {
         body: { url },
@@ -473,17 +498,65 @@ export default function DashboardPage() {
       if (d.propertyType) setNdData(nd => ({ ...nd, proptype: d.propertyType }))
       if (d.postcode && !d.address) setNdData(nd => ({ ...nd, address: d.postcode }))
 
+      let scrapeLatLng: { lat: number; lng: number } | null = null
+      let mappedCountry = ''
       if (d.postcode) {
-        const pc = d.postcode.toUpperCase()
-        if (pc.startsWith('BT')) {
-          setNdData(nd => ({ ...nd, country: 'Northern Ireland' }))
-        } else if (['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => pc.startsWith(p))) {
-          setNdData(nd => ({ ...nd, country: 'Scotland' }))
-        } else if (['CF','CH','LD','LL','NP','SA','SY'].some(p => pc.startsWith(p))) {
-          setNdData(nd => ({ ...nd, country: 'Wales' }))
-        } else {
-          setNdData(nd => ({ ...nd, country: 'England' }))
+        try {
+          const pcRes = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(d.postcode.trim())}`)
+          const pcJson = await pcRes.json()
+          if (pcJson.status === 200 && pcJson.result) {
+            const r = pcJson.result
+            const countryMap: Record<string, string> = {
+              'England': 'England',
+              'Wales': 'Wales',
+              'Scotland': 'Scotland',
+              'Northern Ireland': 'England', // no NI option — maps to "England & NI"
+            }
+            mappedCountry = countryMap[r.country] ?? 'England'
+            scrapeLatLng = { lat: r.latitude, lng: r.longitude }
+            setNdData(nd => ({ ...nd, country: mappedCountry }))
+          }
+        } catch (_) {
+          // postcodes.io failed — fall back to prefix matching
+          const pc = d.postcode.toUpperCase()
+          if (['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => pc.startsWith(p))) {
+            mappedCountry = 'Scotland'
+          } else if (['CF','CH','LD','LL','NP','SA','SY'].some(p => pc.startsWith(p))) {
+            mappedCountry = 'Wales'
+          } else {
+            mappedCountry = 'England'
+          }
+          setNdData(nd => ({ ...nd, country: mappedCountry }))
         }
+      }
+
+      // Stamp duty auto-estimate
+      let sdEstimate: number | null = null
+      if (d.price) {
+        const countryForCalc = mappedCountry || 'England'
+        sdEstimate = calcStampDuty(d.price, countryForCalc, true)
+        setStampDutyEstimate(sdEstimate)
+      }
+
+      // Intelligence cascade — fire in background after basic fields populated
+      if (d.postcode) {
+        void scrapeLatLng // used implicitly for future flood risk display
+        supabase.functions.invoke('property-intelligence', {
+          body: { postcode: d.postcode, address: d.address || '' }
+        }).then(({ data: intel }) => {
+          if (intel && !intel.error) {
+            const intelligenceUpdate: { epcRating?: string; floodRisk?: string; floodZone?: string; region?: string } = {}
+            if (intel.epcRating) intelligenceUpdate.epcRating = intel.epcRating
+            if (intel.floodRisk) intelligenceUpdate.floodRisk = intel.floodRisk
+            if (intel.floodZone) intelligenceUpdate.floodZone = intel.floodZone
+            if (intel.region) intelligenceUpdate.region = intel.region
+            setScrapeIntelligence(intelligenceUpdate)
+          }
+        }).catch(() => {})
+
+        supabase.functions.invoke('land-registry-comps', {
+          body: { postcode: d.postcode }
+        }).catch(() => {})
       }
 
       const extra: { tenure?: string; epcRating?: string; floorAreaSqm?: number; images?: string[]; leaseYears?: number; serviceCharge?: number; groundRent?: number; councilTaxBand?: string } = {}
@@ -509,6 +582,7 @@ export default function DashboardPage() {
         d.serviceCharge && `SC £${d.serviceCharge.toLocaleString('en-GB')}pa`,
         d.groundRent && `GR £${d.groundRent.toLocaleString('en-GB')}pa`,
         d.councilTaxBand && `CT band ${d.councilTaxBand}`,
+        sdEstimate !== null && `SDLT ~£${sdEstimate.toLocaleString('en-GB')}`,
       ].filter(Boolean)
       setScrapeResult(`success:${populated.join(', ')}`)
     } catch (_err) {
@@ -907,6 +981,30 @@ export default function DashboardPage() {
                   <div style={{ marginTop: 7, fontSize: 11, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <i className="ti ti-alert-circle" style={{ fontSize: 12 }} />
                     {scrapeResult}
+                  </div>
+                )}
+                {scrapeIntelligence && (
+                  <div style={{ marginTop: 6, fontSize: 10, color: '#5a6270', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {scrapeIntelligence.epcRating && (
+                      <span style={{ background: '#f0f9f5', border: '1px solid #b6e8d5', borderRadius: 4, padding: '2px 7px', color: '#1D9E75', fontWeight: 600 }}>
+                        EPC {scrapeIntelligence.epcRating}
+                      </span>
+                    )}
+                    {scrapeIntelligence.floodRisk && (
+                      <span style={{
+                        background: scrapeIntelligence.floodRisk === 'Low' ? '#f0fdf4' : scrapeIntelligence.floodRisk === 'Medium' ? '#fffbeb' : '#fef2f2',
+                        border: `1px solid ${scrapeIntelligence.floodRisk === 'Low' ? '#bbf7d0' : scrapeIntelligence.floodRisk === 'Medium' ? '#fde68a' : '#fecaca'}`,
+                        borderRadius: 4, padding: '2px 7px', fontWeight: 600,
+                        color: scrapeIntelligence.floodRisk === 'Low' ? '#16a34a' : scrapeIntelligence.floodRisk === 'Medium' ? '#d97706' : '#dc2626',
+                      }}>
+                        Flood risk: {scrapeIntelligence.floodRisk}
+                      </span>
+                    )}
+                    {stampDutyEstimate !== null && (
+                      <span style={{ background: '#f0f4ff', border: '1px solid #c7d2fe', borderRadius: 4, padding: '2px 7px', color: '#4338ca', fontWeight: 600 }}>
+                        SDLT est. £{stampDutyEstimate.toLocaleString('en-GB')}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
