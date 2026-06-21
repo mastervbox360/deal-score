@@ -625,6 +625,21 @@ export default function DealChrome({ deal, children, analysisView = 'results', c
                 >
                   <i className="ti ti-notes" style={{ fontSize: '11px' }}></i> Notes
                 </button>
+                {analysisSubView === 'inputs' && (
+                  <button
+                    onClick={() => navigate(`/deal/${deal.id}?tab=analysis&view=results`)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: 'var(--navy, #1B3A6B)',
+                      border: 'none', borderRadius: 7, padding: '5px 12px',
+                      fontSize: 11, fontWeight: 600, color: '#fff',
+                      cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <i className="ti ti-chart-bar" style={{ fontSize: 11 }} />
+                    View results
+                  </button>
+                )}
                 {analysisView === 'results' && (
                   <button
                     className="log-btn"
