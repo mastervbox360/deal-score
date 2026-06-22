@@ -29,6 +29,8 @@ type NdData = {
   proptype: string
   beds: string
   bathrooms: string
+  tenure: string
+  epcRating: string
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -312,7 +314,7 @@ export default function DashboardPage() {
   // ── New Deal slide-over state ──────────────────────────────────────────────
   const [newDealOpen, setNewDealOpen]   = useState(false)
   const [newDealStep, setNewDealStep]   = useState<1 | 2 | 3>(1)
-  const [ndData, setNdData]             = useState<NdData>({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '' })
+  const [ndData, setNdData]             = useState<NdData>({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
   const [ndStratErr, setNdStratErr]     = useState(false)
   const [ndCreating, setNdCreating]     = useState(false)
   const [ndSuccess, setNdSuccess]       = useState(false)
@@ -409,7 +411,7 @@ export default function DashboardPage() {
   function openNd() {
     setNewDealOpen(true)
     setNewDealStep(1)
-    setNdData({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '' })
+    setNdData({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
     setNdStratErr(false)
     setNdCreating(false)
     setNdSuccess(false)
@@ -470,6 +472,8 @@ export default function DashboardPage() {
         ...(ndData.proptype ? { propertyType: ndData.proptype } : {}),
         ...(ndData.beds !== '' ? { bedrooms: parseInt(String(ndData.beds)) || ndData.beds } : {}),
         ...(ndData.bathrooms !== '' ? { bathrooms: parseInt(ndData.bathrooms) || undefined } : {}),
+        ...(ndData.tenure    !== '' ? { tenure: ndData.tenure } : {}),
+        ...(ndData.epcRating !== '' ? { epcRating: ndData.epcRating } : {}),
         taxRegion: taxRegionMap[ndData.country] ?? 'ENGLAND',
         ...scrapeExtra,
       },
@@ -514,6 +518,8 @@ export default function DashboardPage() {
       if (d.price)   setNdData(nd => ({ ...nd, price: `£${d.price.toLocaleString('en-GB')}` }))
       if (d.beds)    setNdData(nd => ({ ...nd, beds: d.beds }))
       if (d.bathrooms) setNdData(nd => ({ ...nd, bathrooms: d.bathrooms! }))
+      if (d.tenure)    setNdData(nd => ({ ...nd, tenure: d.tenure! }))
+      if (d.epcRating) setNdData(nd => ({ ...nd, epcRating: d.epcRating! }))
       if (d.propertyType) setNdData(nd => ({ ...nd, proptype: d.propertyType }))
       if (d.postcode && !d.address) setNdData(nd => ({ ...nd, address: d.postcode }))
 
@@ -1212,6 +1218,84 @@ export default function DashboardPage() {
                     <option value="6+">6+ bed</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Bathrooms + Tenure */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
+                    Bathrooms
+                  </label>
+                  <select
+                    value={ndData.bathrooms}
+                    onChange={e => setNdData(d => ({ ...d, bathrooms: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '9px 11px',
+                      border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
+                      fontSize: '13px', color: '#1a2332', background: '#fff',
+                      outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    <option value="">Select…</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6+">6+</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
+                    Tenure
+                  </label>
+                  <select
+                    value={ndData.tenure}
+                    onChange={e => setNdData(d => ({ ...d, tenure: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '9px 11px',
+                      border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
+                      fontSize: '13px', color: '#1a2332', background: '#fff',
+                      outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    <option value="">Select…</option>
+                    <option value="Freehold">Freehold</option>
+                    <option value="Leasehold">Leasehold</option>
+                    <option value="Share of freehold">Share of freehold</option>
+                    <option value="Commonhold">Commonhold</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* EPC Rating */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
+                    EPC rating
+                  </label>
+                  <select
+                    value={ndData.epcRating}
+                    onChange={e => setNdData(d => ({ ...d, epcRating: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '9px 11px',
+                      border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
+                      fontSize: '13px', color: '#1a2332', background: '#fff',
+                      outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    <option value="">Select…</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="G">G</option>
+                    <option value="Unknown">Unknown</option>
+                  </select>
+                </div>
+                <div />
               </div>
             </div>
           )}
