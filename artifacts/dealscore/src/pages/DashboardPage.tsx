@@ -505,8 +505,9 @@ export default function DashboardPage() {
       const d = data.data
 
       if (d.address) {
-        const fullAddress = (d.postcode && !d.address.includes(d.postcode.split(' ')[0]))
-          ? `${d.address}, ${d.postcode}`
+        const pc = (d.postcode || '').trim()
+        const fullAddress = (pc && !d.address.toUpperCase().includes(pc.split(' ')[0]))
+          ? `${d.address}, ${pc}`
           : d.address
         setNdData(nd => ({ ...nd, address: fullAddress }))
       }

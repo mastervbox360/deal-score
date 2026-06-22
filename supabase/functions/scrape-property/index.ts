@@ -119,9 +119,24 @@ function parseRightmove(html: string, url: string): PropertyData {
       const json = JSON.parse(nextMatch[1])
       const prop = json?.props?.pageProps?.propertyData || json?.props?.pageProps?.property || {}
       if (prop.address?.displayAddress) data.address = prop.address.displayAddress
-      if (prop.address?.outcode || prop.address?.incode) {
-        data.postcode = [prop.address.outcode, prop.address.incode].filter(Boolean).join(' ')
+      const outcode = prop.address?.outcode || prop.address?.outCode || ''
+      const incode  = prop.address?.incode  || prop.address?.inCode  || ''
+      if (outcode || incode) {
+        data.postcode = [outcode, incode].filter(Boolean).join(' ').trim()
+      } else {
+        const altPostcode =
+          prop.address?.postcode         ||
+          prop.address?.ukPostcode       ||
+          prop.address?.fullPostcode     ||
+          prop.location?.postcode        ||
+          prop.location?.postalCode      ||
+          prop.contactInfo?.address?.postcode ||
+          ''
+        if (altPostcode) data.postcode = String(altPostcode).trim()
       }
+      // DEBUG — log raw address keys so we can confirm the right field path
+      data.description = (data.description || '') +
+        ` [DEBUG addr keys: ${Object.keys(prop.address || {}).join(',')}]`
       if (prop.address?.ukCountry) {
         const nc = normaliseCountry(prop.address.ukCountry)
         if (nc) data.country = nc
