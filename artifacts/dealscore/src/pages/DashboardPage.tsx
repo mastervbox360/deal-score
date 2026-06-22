@@ -504,7 +504,12 @@ export default function DashboardPage() {
       }
       const d = data.data
 
-      if (d.address) setNdData(nd => ({ ...nd, address: d.address }))
+      if (d.address) {
+        const fullAddress = (d.postcode && !d.address.includes(d.postcode.split(' ')[0]))
+          ? `${d.address}, ${d.postcode}`
+          : d.address
+        setNdData(nd => ({ ...nd, address: fullAddress }))
+      }
       if (d.price)   setNdData(nd => ({ ...nd, price: `£${d.price.toLocaleString('en-GB')}` }))
       if (d.beds)    setNdData(nd => ({ ...nd, beds: d.beds }))
       if (d.bathrooms) setNdData(nd => ({ ...nd, bathrooms: d.bathrooms! }))
