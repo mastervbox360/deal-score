@@ -337,6 +337,7 @@ export default function DashboardPage() {
     serviceCharge?: number
     groundRent?: number
     councilTaxBand?: string
+    bathrooms?: string
   }>({})
   const [scrapeIntelligence, setScrapeIntelligence] = useState<{
     epcRating?: string
@@ -509,9 +510,21 @@ export default function DashboardPage() {
       if (d.postcode && !d.address) setNdData(nd => ({ ...nd, address: d.postcode }))
 
       let scrapeLatLng: { lat: number; lng: number } | null = null
-      let mappedCountry = ''
       let sdEstimate: number | null = null
-      if (d.postcode) {
+
+      // Country — read directly from scrape (Rightmove provides ukCountry in __NEXT_DATA__)
+      if (d.country) {
+        const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+        const mc = cmap[d.country] ?? 'England'
+        setNdData(nd => ({ ...nd, country: mc }))
+        if (d.price) {
+          sdEstimate = calcStampDuty(d.price, d.country, true)
+          setStampDutyEstimate(sdEstimate)
+        }
+      }
+
+      // Postcodes.io country detection — only when scrape didn't return country directly
+      if (!d.country && d.postcode) {
         const rawPc = d.postcode.trim().toUpperCase()
         const isFullPostcode = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/.test(rawPc)
         const isOutcodeOnly = /^[A-Z]{1,2}\d{1,2}[A-Z]?$/.test(rawPc)
@@ -536,9 +549,9 @@ export default function DashboardPage() {
                   : 'England'
               }
               const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-              mappedCountry = cmap[countryStr] ?? 'England'
+              const mc = cmap[countryStr] ?? 'England'
               if (r.latitude && r.longitude) scrapeLatLng = { lat: r.latitude, lng: r.longitude }
-              setNdData(nd => ({ ...nd, country: mappedCountry }))
+              setNdData(nd => ({ ...nd, country: mc }))
               if (d.price) {
                 sdEstimate = calcStampDuty(d.price, countryStr, true)
                 setStampDutyEstimate(sdEstimate)
@@ -551,8 +564,8 @@ export default function DashboardPage() {
               : ['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => rawPc.startsWith(p)) ? 'Scotland'
               : 'England'
             const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-            mappedCountry = cmap[fallbackStr] ?? 'England'
-            setNdData(nd => ({ ...nd, country: mappedCountry }))
+            const mc = cmap[fallbackStr] ?? 'England'
+            setNdData(nd => ({ ...nd, country: mc }))
             if (d.price) {
               sdEstimate = calcStampDuty(d.price, fallbackStr, true)
               setStampDutyEstimate(sdEstimate)
@@ -582,7 +595,7 @@ export default function DashboardPage() {
         }).catch(() => {})
       }
 
-      const extra: { tenure?: string; epcRating?: string; floorAreaSqm?: number; images?: string[]; leaseYears?: number; serviceCharge?: number; groundRent?: number; councilTaxBand?: string } = {}
+      const extra: { tenure?: string; epcRating?: string; floorAreaSqm?: number; images?: string[]; leaseYears?: number; serviceCharge?: number; groundRent?: number; councilTaxBand?: string; bathrooms?: string } = {}
       if (d.tenure)         extra.tenure = d.tenure
       if (d.epcRating)      extra.epcRating = d.epcRating
       if (d.floorAreaSqm)   extra.floorAreaSqm = d.floorAreaSqm
@@ -591,6 +604,7 @@ export default function DashboardPage() {
       if (d.serviceCharge)  extra.serviceCharge = d.serviceCharge
       if (d.groundRent)     extra.groundRent = d.groundRent
       if (d.councilTaxBand) extra.councilTaxBand = d.councilTaxBand
+      if (d.bathrooms)      extra.bathrooms = d.bathrooms
       setScrapeExtra(extra)
 
       const populated = [
@@ -599,6 +613,7 @@ export default function DashboardPage() {
         d.beds && 'beds',
         d.bathrooms && `${d.bathrooms} bath`,
         d.propertyType && 'property type',
+        d.country && d.country,
         d.tenure && 'tenure',
         d.epcRating && `EPC ${d.epcRating}`,
         d.floorAreaSqm && `${d.floorAreaSqm}m²`,

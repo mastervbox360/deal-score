@@ -31,6 +31,7 @@ interface PropertyData {
   price?: number
   beds?: string
   bathrooms?: string
+  country?: string        // canonical: 'England' | 'Wales' | 'Scotland' | 'Northern Ireland'
   propertyType?: string
   description?: string
   postcode?: string
@@ -121,9 +122,18 @@ function parseRightmove(html: string, url: string): PropertyData {
       if (prop.address?.outcode || prop.address?.incode) {
         data.postcode = [prop.address.outcode, prop.address.incode].filter(Boolean).join(' ')
       }
+      if (prop.address?.ukCountry) {
+        const nc = normaliseCountry(prop.address.ukCountry)
+        if (nc) data.country = nc
+      }
       if (prop.prices?.primaryPrice) data.price = parseInt(String(prop.prices.primaryPrice).replace(/[£,\s]/g, '')) || undefined
       if (prop.bedrooms != null) data.beds = normaliseBeds(String(prop.bedrooms))
-      if (prop.bathrooms != null) data.bathrooms = String(parseInt(String(prop.bathrooms)) || 0)
+      const bathroomValue = prop.bathrooms ?? prop.bathroomCount ?? prop.numberOfBathrooms
+        ?? prop.internalDetails?.bathrooms ?? prop.summary?.bathrooms
+      if (bathroomValue != null) {
+        const bathroomNum = parseInt(String(bathroomValue))
+        if (!isNaN(bathroomNum) && bathroomNum > 0) data.bathrooms = String(bathroomNum)
+      }
       if (prop.propertySubType) data.propertyType = normaliseType(prop.propertySubType)
       if (prop.text?.description) data.description = stripHtml(prop.text.description).substring(0, 600)
       if (prop.tenure?.tenureType) data.tenure = normaliseTenure(prop.tenure.tenureType)
@@ -155,7 +165,9 @@ function parseRightmove(html: string, url: string): PropertyData {
       if (prop.address?.displayAddress) data.address = prop.address.displayAddress
       if (prop.prices?.primaryPrice) data.price = parseInt(String(prop.prices.primaryPrice).replace(/[£,\s]/g, ''))
       if (prop.bedrooms != null) data.beds = normaliseBeds(String(prop.bedrooms))
-      if (prop.bathrooms != null) data.bathrooms = String(parseInt(String(prop.bathrooms)) || 0)
+      const bv2 = prop.bathrooms ?? prop.bathroomCount ?? prop.numberOfBathrooms
+      if (bv2 != null) { const n2 = parseInt(String(bv2)); if (!isNaN(n2) && n2 > 0) data.bathrooms = String(n2) }
+      if (prop.address?.ukCountry) { const nc = normaliseCountry(prop.address.ukCountry); if (nc) data.country = nc }
       if (prop.propertySubType) data.propertyType = normaliseType(prop.propertySubType)
       if (prop.tenure?.tenureType) data.tenure = normaliseTenure(prop.tenure.tenureType)
       return data
@@ -192,8 +204,10 @@ function parseZoopla(html: string, url: string): PropertyData {
       if (rawPrice) data.price = typeof rawPrice === 'number' ? rawPrice : parseInt(String(rawPrice).replace(/[£,\s]/g, ''))
       const beds = listing.numBedrooms ?? listing.beds ?? listing.bedroomsCount
       if (beds != null) data.beds = normaliseBeds(String(beds))
-      const baths = listing.numBathrooms ?? listing.bathrooms ?? listing.bathroomsCount
-      if (baths != null) data.bathrooms = String(parseInt(String(baths)) || 0)
+      const zBaths = listing.numBathrooms ?? listing.bathrooms ?? listing.bathroomsCount ?? listing.internalDetails?.bathrooms
+      if (zBaths != null) { const nb = parseInt(String(zBaths)); if (!isNaN(nb) && nb > 0) data.bathrooms = String(nb) }
+      const zCountry = listing.countryCode || listing.country || listing.address?.country
+      if (zCountry) { const nc = normaliseCountry(String(zCountry)); if (nc) data.country = nc }
       data.propertyType = normaliseType(listing.propertyType || listing.type || '')
       if (listing.shortDescription || listing.description) data.description = stripHtml(listing.shortDescription || listing.description).substring(0, 600)
       data.postcode = listing.postcode || listing.address?.postcode
@@ -233,7 +247,10 @@ function parseOTM(html: string, url: string): PropertyData {
       if (listing.price?.amount) data.price = listing.price.amount
       else if (listing.pricing?.price) data.price = listing.pricing.price
       if (listing.bedrooms != null) data.beds = normaliseBeds(String(listing.bedrooms))
-      if (listing.bathrooms != null) data.bathrooms = String(parseInt(String(listing.bathrooms)) || 0)
+      const otmBaths = listing.bathrooms ?? listing.bathroomCount
+      if (otmBaths != null) { const nb = parseInt(String(otmBaths)); if (!isNaN(nb) && nb > 0) data.bathrooms = String(nb) }
+      const otmCountry = listing.address?.country || listing.country
+      if (otmCountry) { const nc = normaliseCountry(String(otmCountry)); if (nc) data.country = nc }
       data.propertyType = normaliseType(listing.propertyType || listing.type || '')
       data.postcode = listing.address?.postcode || listing.postcode
       if (listing.tenure) data.tenure = normaliseTenure(listing.tenure)
@@ -345,6 +362,16 @@ function extractEpcFromFeatures(features: unknown): string | null {
     if (m) return normaliseEpc(m[1] || m[2] || m[3])
   }
   return null
+}
+
+function normaliseCountry(raw: string): string {
+  if (!raw) return ''
+  const r = raw.toUpperCase().replace(/[_\s-]/g, '')
+  if (r === 'WALES' || r === 'CYM' || r === 'CYMRU') return 'Wales'
+  if (r === 'SCOTLAND' || r === 'SCO' || r === 'ALBA') return 'Scotland'
+  if (r.includes('NORTHERN') || r === 'NI' || r === 'NORTHERNIRELAND') return 'Northern Ireland'
+  if (r === 'ENGLAND' || r === 'ENG') return 'England'
+  return ''
 }
 
 function stripHtml(str: string): string {
