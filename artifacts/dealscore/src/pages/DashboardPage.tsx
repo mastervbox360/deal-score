@@ -299,6 +299,7 @@ export default function DashboardPage() {
   const [privacyMode, setPrivacyMode]       = useState(false)
   const [avatarOpen, setAvatarOpen]         = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
+  const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [filterStrategy, setFilterStrategy] = useState<string>('')
   const [filterScore, setFilterScore]       = useState<string>('')
   const [filterStatus, setFilterStatus]     = useState<string>('')
@@ -429,6 +430,7 @@ export default function DashboardPage() {
 
   function closeNd() {
     if (ndCreating) return
+    if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current)
     setNewDealOpen(false)
     document.body.style.overflow = ''
   }
@@ -1057,7 +1059,42 @@ export default function DashboardPage() {
                   type="text"
                   placeholder="e.g. 14 Roath Court Road, Cardiff CF24 3BJ"
                   value={ndData.address}
-                  onChange={e => setNdData(d => ({ ...d, address: e.target.value }))}
+                  onChange={e => {
+                    const val = e.target.value
+                    const currentPrice = ndData.price
+                    setNdData(d => ({ ...d, address: val }))
+                    if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current)
+                    addressDebounceRef.current = setTimeout(async () => {
+                      const fullPcMatch = val.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2})\b/i)
+                      const outcodePcMatch = val.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?)\b/i)
+                      const rawPc = (fullPcMatch?.[1] ?? outcodePcMatch?.[1] ?? '').toUpperCase().trim()
+                      if (!rawPc) return
+                      const isFullPc = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2}$/.test(rawPc)
+                      const pcApiUrl = isFullPc
+                        ? `https://api.postcodes.io/postcodes/${encodeURIComponent(rawPc)}`
+                        : `https://api.postcodes.io/outcodes/${encodeURIComponent(rawPc)}`
+                      try {
+                        const res = await fetch(pcApiUrl)
+                        const json = await res.json()
+                        if (json.status !== 200 || !json.result) return
+                        const r = json.result
+                        const countryStr = typeof r.country === 'string' ? r.country
+                          : Array.isArray(r.country) ? (r.country[0] ?? '') : ''
+                        if (!countryStr) return
+                        const cmap: Record<string, string> = {
+                          'England': 'England', 'Wales': 'Wales',
+                          'Scotland': 'Scotland', 'Northern Ireland': 'England',
+                        }
+                        const mc = cmap[countryStr]
+                        if (!mc) return
+                        setNdData(nd => ({ ...nd, country: mc }))
+                        const priceNum = parseFloat(String(currentPrice).replace(/[£,]/g, ''))
+                        if (!isNaN(priceNum) && priceNum > 0) {
+                          setStampDutyEstimate(calcStampDuty(priceNum, countryStr, true))
+                        }
+                      } catch (_) { /* silent */ }
+                    }, 1200)
+                  }}
                   style={{
                     width: '100%', boxSizing: 'border-box', padding: '9px 11px',
                     border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
