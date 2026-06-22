@@ -134,9 +134,6 @@ function parseRightmove(html: string, url: string): PropertyData {
           ''
         if (altPostcode) data.postcode = String(altPostcode).trim()
       }
-      // DEBUG — log raw address keys so we can confirm the right field path
-      data.description = (data.description || '') +
-        ` [DEBUG addr keys: ${Object.keys(prop.address || {}).join(',')}]`
       if (prop.address?.ukCountry) {
         const nc = normaliseCountry(prop.address.ukCountry)
         if (nc) data.country = nc
