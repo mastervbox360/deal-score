@@ -457,11 +457,18 @@ export default function DashboardPage() {
     const strategy = ndData.strat as Deal['strategy']
     const price = ndData.price ? parsePrice(ndData.price) : null
     setNdCreating(true)
+    const taxRegionMap: Record<string, string> = { 'England': 'ENGLAND', 'Wales': 'WALES', 'Scotland': 'SCOTLAND' }
     const deal = await createDeal(
       user.id, strategy,
       ndData.address.trim() || null, null,
       price, null,
-      { ...scrapeExtra }, null, null, null, null
+      {
+        ...(ndData.proptype ? { propertyType: ndData.proptype } : {}),
+        ...(ndData.beds !== '' ? { bedrooms: parseInt(String(ndData.beds)) || ndData.beds } : {}),
+        taxRegion: taxRegionMap[ndData.country] ?? 'ENGLAND',
+        ...scrapeExtra,
+      },
+      null, null, null, null
     )
     setNdCreating(false)
     if (!deal) { alert('Failed to create deal — please try again'); return }
@@ -500,6 +507,7 @@ export default function DashboardPage() {
 
       let scrapeLatLng: { lat: number; lng: number } | null = null
       let mappedCountry = ''
+      let sdEstimate: number | null = null
       if (d.postcode) {
         try {
           const pcRes = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(d.postcode.trim())}`)
@@ -510,11 +518,16 @@ export default function DashboardPage() {
               'England': 'England',
               'Wales': 'Wales',
               'Scotland': 'Scotland',
-              'Northern Ireland': 'England', // no NI option — maps to "England & NI"
+              'Northern Ireland': 'England', // maps to "England & NI" option
             }
             mappedCountry = countryMap[r.country] ?? 'England'
             scrapeLatLng = { lat: r.latitude, lng: r.longitude }
             setNdData(nd => ({ ...nd, country: mappedCountry }))
+            // Stamp duty AFTER country confirmed from postcodes.io
+            if (d.price) {
+              sdEstimate = calcStampDuty(d.price, r.country, true)
+              setStampDutyEstimate(sdEstimate)
+            }
           }
         } catch (_) {
           // postcodes.io failed — fall back to prefix matching
@@ -527,20 +540,16 @@ export default function DashboardPage() {
             mappedCountry = 'England'
           }
           setNdData(nd => ({ ...nd, country: mappedCountry }))
+          if (d.price) {
+            sdEstimate = calcStampDuty(d.price, mappedCountry, true)
+            setStampDutyEstimate(sdEstimate)
+          }
         }
-      }
-
-      // Stamp duty auto-estimate
-      let sdEstimate: number | null = null
-      if (d.price) {
-        const countryForCalc = mappedCountry || 'England'
-        sdEstimate = calcStampDuty(d.price, countryForCalc, true)
-        setStampDutyEstimate(sdEstimate)
       }
 
       // Intelligence cascade — fire in background after basic fields populated
       if (d.postcode) {
-        void scrapeLatLng // used implicitly for future flood risk display
+        void scrapeLatLng // held for future flood risk usage
         supabase.functions.invoke('property-intelligence', {
           body: { postcode: d.postcode, address: d.address || '' }
         }).then(({ data: intel }) => {
@@ -1089,14 +1098,21 @@ export default function DashboardPage() {
                     }}
                   >
                     <option value="">Select…</option>
-                    <option>Terraced</option>
-                    <option>Semi-detached</option>
-                    <option>Detached</option>
-                    <option>Flat / apartment</option>
-                    <option>Bungalow</option>
-                    <option>HMO property</option>
-                    <option>Commercial</option>
-                    <option>Other</option>
+                    <option value="Terraced house">Terraced house</option>
+                    <option value="End-of-terrace house">End-of-terrace house</option>
+                    <option value="Semi-detached house">Semi-detached house</option>
+                    <option value="Detached house">Detached house</option>
+                    <option value="Flat / Apartment">Flat / Apartment</option>
+                    <option value="Studio flat">Studio flat</option>
+                    <option value="Maisonette">Maisonette</option>
+                    <option value="Bungalow (detached)">Bungalow (detached)</option>
+                    <option value="Bungalow (semi-detached)">Bungalow (semi-detached)</option>
+                    <option value="Converted flat">Converted flat</option>
+                    <option value="Purpose-built flat">Purpose-built flat</option>
+                    <option value="HMO">HMO</option>
+                    <option value="Block of flats">Block of flats</option>
+                    <option value="Commercial / mixed use">Commercial / mixed use</option>
+                    <option value="Land">Land</option>
                   </select>
                 </div>
                 <div>
