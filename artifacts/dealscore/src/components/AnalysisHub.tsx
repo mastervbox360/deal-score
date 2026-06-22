@@ -2429,21 +2429,28 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
             <div>
               <IField label="Address *" value={String(form.address ?? '')} onChange={v => {
                 setField('address', v)
-                const postcodeMatch = v.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2})\b/i)
-                if (postcodeMatch) {
-                  const extractedPostcode = postcodeMatch[1].toUpperCase()
-                  fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(extractedPostcode)}`)
+                // Prefer full postcode; fall back to outcode (e.g. CF24 from Rightmove active listings)
+                const fullPcMatch = v.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2})\b/i)
+                const outcodePcMatch = v.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?)\b/i)
+                const extractedPostcode = fullPcMatch?.[1] ?? outcodePcMatch?.[1] ?? null
+                if (extractedPostcode) {
+                  const rawPc = extractedPostcode.trim().toUpperCase()
+                  const isFullPc = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2}$/.test(rawPc)
+                  const pcApiUrl = isFullPc
+                    ? `https://api.postcodes.io/postcodes/${encodeURIComponent(rawPc)}`
+                    : `https://api.postcodes.io/outcodes/${encodeURIComponent(rawPc)}`
+                  fetch(pcApiUrl)
                     .then(r => r.json())
                     .then(pcData => {
                       if (pcData.status === 200 && pcData.result) {
-                        const countryMap: Record<string, string> = {
-                          'England': 'ENGLAND',
-                          'Wales': 'WALES',
-                          'Scotland': 'SCOTLAND',
-                          'Northern Ireland': 'ENGLAND',
+                        const r = pcData.result
+                        const countryStr = typeof r.country === 'string' ? r.country
+                          : Array.isArray(r.country) ? (r.country[0] || '') : ''
+                        const cmap: Record<string, string> = {
+                          'England': 'ENGLAND', 'Wales': 'WALES',
+                          'Scotland': 'SCOTLAND', 'Northern Ireland': 'ENGLAND',
                         }
-                        const mappedTaxRegion = countryMap[pcData.result.country] ?? 'ENGLAND'
-                        setField('taxRegion', mappedTaxRegion)
+                        setField('taxRegion', cmap[countryStr] ?? 'ENGLAND')
                       }
                     })
                     .catch(() => {})

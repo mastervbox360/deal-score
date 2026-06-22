@@ -30,6 +30,7 @@ interface PropertyData {
   address?: string
   price?: number
   beds?: string
+  bathrooms?: string
   propertyType?: string
   description?: string
   postcode?: string
@@ -122,6 +123,7 @@ function parseRightmove(html: string, url: string): PropertyData {
       }
       if (prop.prices?.primaryPrice) data.price = parseInt(String(prop.prices.primaryPrice).replace(/[£,\s]/g, '')) || undefined
       if (prop.bedrooms != null) data.beds = normaliseBeds(String(prop.bedrooms))
+      if (prop.bathrooms != null) data.bathrooms = String(parseInt(String(prop.bathrooms)) || 0)
       if (prop.propertySubType) data.propertyType = normaliseType(prop.propertySubType)
       if (prop.text?.description) data.description = stripHtml(prop.text.description).substring(0, 600)
       if (prop.tenure?.tenureType) data.tenure = normaliseTenure(prop.tenure.tenureType)
@@ -153,6 +155,7 @@ function parseRightmove(html: string, url: string): PropertyData {
       if (prop.address?.displayAddress) data.address = prop.address.displayAddress
       if (prop.prices?.primaryPrice) data.price = parseInt(String(prop.prices.primaryPrice).replace(/[£,\s]/g, ''))
       if (prop.bedrooms != null) data.beds = normaliseBeds(String(prop.bedrooms))
+      if (prop.bathrooms != null) data.bathrooms = String(parseInt(String(prop.bathrooms)) || 0)
       if (prop.propertySubType) data.propertyType = normaliseType(prop.propertySubType)
       if (prop.tenure?.tenureType) data.tenure = normaliseTenure(prop.tenure.tenureType)
       return data
@@ -189,6 +192,8 @@ function parseZoopla(html: string, url: string): PropertyData {
       if (rawPrice) data.price = typeof rawPrice === 'number' ? rawPrice : parseInt(String(rawPrice).replace(/[£,\s]/g, ''))
       const beds = listing.numBedrooms ?? listing.beds ?? listing.bedroomsCount
       if (beds != null) data.beds = normaliseBeds(String(beds))
+      const baths = listing.numBathrooms ?? listing.bathrooms ?? listing.bathroomsCount
+      if (baths != null) data.bathrooms = String(parseInt(String(baths)) || 0)
       data.propertyType = normaliseType(listing.propertyType || listing.type || '')
       if (listing.shortDescription || listing.description) data.description = stripHtml(listing.shortDescription || listing.description).substring(0, 600)
       data.postcode = listing.postcode || listing.address?.postcode
@@ -228,6 +233,7 @@ function parseOTM(html: string, url: string): PropertyData {
       if (listing.price?.amount) data.price = listing.price.amount
       else if (listing.pricing?.price) data.price = listing.pricing.price
       if (listing.bedrooms != null) data.beds = normaliseBeds(String(listing.bedrooms))
+      if (listing.bathrooms != null) data.bathrooms = String(parseInt(String(listing.bathrooms)) || 0)
       data.propertyType = normaliseType(listing.propertyType || listing.type || '')
       data.postcode = listing.address?.postcode || listing.postcode
       if (listing.tenure) data.tenure = normaliseTenure(listing.tenure)

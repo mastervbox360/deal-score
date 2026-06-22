@@ -28,6 +28,7 @@ type NdData = {
   country: string
   proptype: string
   beds: string
+  bathrooms: string
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -310,7 +311,7 @@ export default function DashboardPage() {
   // ── New Deal slide-over state ──────────────────────────────────────────────
   const [newDealOpen, setNewDealOpen]   = useState(false)
   const [newDealStep, setNewDealStep]   = useState<1 | 2 | 3>(1)
-  const [ndData, setNdData]             = useState<NdData>({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '' })
+  const [ndData, setNdData]             = useState<NdData>({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '' })
   const [ndStratErr, setNdStratErr]     = useState(false)
   const [ndCreating, setNdCreating]     = useState(false)
   const [ndSuccess, setNdSuccess]       = useState(false)
@@ -406,7 +407,7 @@ export default function DashboardPage() {
   function openNd() {
     setNewDealOpen(true)
     setNewDealStep(1)
-    setNdData({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '' })
+    setNdData({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '' })
     setNdStratErr(false)
     setNdCreating(false)
     setNdSuccess(false)
@@ -465,6 +466,7 @@ export default function DashboardPage() {
       {
         ...(ndData.proptype ? { propertyType: ndData.proptype } : {}),
         ...(ndData.beds !== '' ? { bedrooms: parseInt(String(ndData.beds)) || ndData.beds } : {}),
+        ...(ndData.bathrooms !== '' ? { bathrooms: parseInt(ndData.bathrooms) || undefined } : {}),
         taxRegion: taxRegionMap[ndData.country] ?? 'ENGLAND',
         ...scrapeExtra,
       },
@@ -502,6 +504,7 @@ export default function DashboardPage() {
       if (d.address) setNdData(nd => ({ ...nd, address: d.address }))
       if (d.price)   setNdData(nd => ({ ...nd, price: `£${d.price.toLocaleString('en-GB')}` }))
       if (d.beds)    setNdData(nd => ({ ...nd, beds: d.beds }))
+      if (d.bathrooms) setNdData(nd => ({ ...nd, bathrooms: d.bathrooms! }))
       if (d.propertyType) setNdData(nd => ({ ...nd, proptype: d.propertyType }))
       if (d.postcode && !d.address) setNdData(nd => ({ ...nd, address: d.postcode }))
 
@@ -509,40 +512,51 @@ export default function DashboardPage() {
       let mappedCountry = ''
       let sdEstimate: number | null = null
       if (d.postcode) {
-        try {
-          const pcRes = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(d.postcode.trim())}`)
-          const pcJson = await pcRes.json()
-          if (pcJson.status === 200 && pcJson.result) {
-            const r = pcJson.result
-            const countryMap: Record<string, string> = {
-              'England': 'England',
-              'Wales': 'Wales',
-              'Scotland': 'Scotland',
-              'Northern Ireland': 'England', // maps to "England & NI" option
+        const rawPc = d.postcode.trim().toUpperCase()
+        const isFullPostcode = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$/.test(rawPc)
+        const isOutcodeOnly = /^[A-Z]{1,2}\d{1,2}[A-Z]?$/.test(rawPc)
+        const postcodeApiUrl = isFullPostcode
+          ? `https://api.postcodes.io/postcodes/${encodeURIComponent(rawPc)}`
+          : isOutcodeOnly
+            ? `https://api.postcodes.io/outcodes/${encodeURIComponent(rawPc)}`
+            : ''
+        if (postcodeApiUrl) {
+          try {
+            const pcRes = await fetch(postcodeApiUrl)
+            const pcJson = await pcRes.json()
+            if (pcJson.status === 200 && pcJson.result) {
+              const r = pcJson.result
+              // full postcode → r.country is string; outcode → r.country is array
+              let countryStr = typeof r.country === 'string' ? r.country
+                : Array.isArray(r.country) ? (r.country[0] || '') : ''
+              if (!countryStr) {
+                countryStr = rawPc.startsWith('BT') ? 'Northern Ireland'
+                  : ['CF','CH','LD','LL','NP','SA','SY'].some(p => rawPc.startsWith(p)) ? 'Wales'
+                  : ['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => rawPc.startsWith(p)) ? 'Scotland'
+                  : 'England'
+              }
+              const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+              mappedCountry = cmap[countryStr] ?? 'England'
+              if (r.latitude && r.longitude) scrapeLatLng = { lat: r.latitude, lng: r.longitude }
+              setNdData(nd => ({ ...nd, country: mappedCountry }))
+              if (d.price) {
+                sdEstimate = calcStampDuty(d.price, countryStr, true)
+                setStampDutyEstimate(sdEstimate)
+              }
             }
-            mappedCountry = countryMap[r.country] ?? 'England'
-            scrapeLatLng = { lat: r.latitude, lng: r.longitude }
+          } catch (_) {
+            // API failed — prefix matching fallback
+            const fallbackStr = rawPc.startsWith('BT') ? 'Northern Ireland'
+              : ['CF','CH','LD','LL','NP','SA','SY'].some(p => rawPc.startsWith(p)) ? 'Wales'
+              : ['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => rawPc.startsWith(p)) ? 'Scotland'
+              : 'England'
+            const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+            mappedCountry = cmap[fallbackStr] ?? 'England'
             setNdData(nd => ({ ...nd, country: mappedCountry }))
-            // Stamp duty AFTER country confirmed from postcodes.io
             if (d.price) {
-              sdEstimate = calcStampDuty(d.price, r.country, true)
+              sdEstimate = calcStampDuty(d.price, fallbackStr, true)
               setStampDutyEstimate(sdEstimate)
             }
-          }
-        } catch (_) {
-          // postcodes.io failed — fall back to prefix matching
-          const pc = d.postcode.toUpperCase()
-          if (['AB','DD','DG','EH','FK','G','HS','IV','KA','KW','KY','ML','PA','PH','TD','ZE'].some(p => pc.startsWith(p))) {
-            mappedCountry = 'Scotland'
-          } else if (['CF','CH','LD','LL','NP','SA','SY'].some(p => pc.startsWith(p))) {
-            mappedCountry = 'Wales'
-          } else {
-            mappedCountry = 'England'
-          }
-          setNdData(nd => ({ ...nd, country: mappedCountry }))
-          if (d.price) {
-            sdEstimate = calcStampDuty(d.price, mappedCountry, true)
-            setStampDutyEstimate(sdEstimate)
           }
         }
       }
@@ -583,6 +597,7 @@ export default function DashboardPage() {
         d.address && 'address',
         d.price && 'price',
         d.beds && 'beds',
+        d.bathrooms && `${d.bathrooms} bath`,
         d.propertyType && 'property type',
         d.tenure && 'tenure',
         d.epcRating && `EPC ${d.epcRating}`,
