@@ -19,14 +19,39 @@ serve(async (req) => {
 
   try {
     const { postcode, address } = await req.json()
-    if (!postcode) {
-      return new Response(JSON.stringify({ error: 'postcode required' }), {
+    if (!postcode && !address) {
+      return new Response(JSON.stringify({ error: 'postcode or address required' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400,
       })
     }
 
-    const pc = postcode.replace(/\s+/g, ' ').trim().toUpperCase()
+    let pc = postcode ? postcode.replace(/\s+/g, ' ').trim().toUpperCase() : ''
     const result: Record<string, unknown> = {}
+
+    // ── 0. Nominatim geocode if postcode is missing but address provided ──────
+    if (!pc && address) {
+      try {
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address + ', UK')}&limit=1&format=json`,
+          { headers: { 'User-Agent': 'DealScore/1.0' } }
+        )
+        if (geoRes.ok) {
+          const geoJson = await geoRes.json()
+          if (Array.isArray(geoJson) && geoJson.length > 0) {
+            result.latitude  = parseFloat(geoJson[0].lat)
+            result.longitude = parseFloat(geoJson[0].lon)
+            const revRes = await fetch(
+              `https://api.postcodes.io/postcodes?lon=${geoJson[0].lon}&lat=${geoJson[0].lat}&limit=1`
+            )
+            if (revRes.ok) {
+              const revJson = await revRes.json()
+              const derived = revJson?.result?.[0]?.postcode
+              if (derived) pc = derived.replace(/\s+/g, ' ').trim().toUpperCase()
+            }
+          }
+        }
+      } catch (_) {}
+    }
 
     // ── 1. postcodes.io — country, region, lat/lng (full postcode or outcode) ─
     const isFullPostcode = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2}$/.test(pc)

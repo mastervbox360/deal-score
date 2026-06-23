@@ -309,7 +309,8 @@ export default function DashboardPage() {
   const [privacyMode, setPrivacyMode]       = useState(false)
   const [avatarOpen, setAvatarOpen]         = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
-  const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const addressDebounceRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const ndSuggestDebounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [filterStrategy, setFilterStrategy] = useState<string>('')
   const [filterScore, setFilterScore]       = useState<string>('')
   const [filterStatus, setFilterStatus]     = useState<string>('')
@@ -358,6 +359,8 @@ export default function DashboardPage() {
     region?: string
   } | null>(null)
   const [ndDataSource, setNdDataSource]         = useState<Record<string, string>>({})
+  const [ndSuggestions, setNdSuggestions]       = useState<{ description: string; placeId: string }[]>([])
+  const [ndShowSuggestions, setNdShowSuggestions] = useState(false)
   const [stampDutyEstimate, setStampDutyEstimate] = useState<number | null>(null)
 
   // Escape key closes slide-over
@@ -385,6 +388,15 @@ export default function DashboardPage() {
     if (avatarOpen) document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [avatarOpen])
+
+  useEffect(() => {
+    if (document.getElementById('google-maps-script')) return
+    const script = document.createElement('script')
+    script.id = 'google-maps-script'
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDHLc76QjrniMh6ylFEofPiS_kESZ7_z7A&libraries=places&v=beta&region=GB&language=en`
+    script.async = true
+    document.head.appendChild(script)
+  }, [])
 
   // Fetch deals
   const fetchDeals = useCallback(async () => {
@@ -417,11 +429,66 @@ export default function DashboardPage() {
 
   const stub = (msg = 'Coming soon!') => alert(msg)
 
-  async function fetchPropertyIntelligence(postcode: string) {
+  async function fetchPropertyIntelligence(postcode: string, address?: string) {
     try {
-      const { data, error } = await supabase.functions.invoke('property-intelligence', { body: { postcode } })
+      const { data, error } = await supabase.functions.invoke('property-intelligence', { body: { postcode, address } })
       return error ? null : data
     } catch (_) { return null }
+  }
+
+  async function fetchNdAddressSuggestions(input: string) {
+    if (!input || input.length < 3) { setNdSuggestions([]); setNdShowSuggestions(false); return }
+    const gm = (window as any).google?.maps?.places
+    if (!gm) return
+    try {
+      const result = await gm.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+        input,
+        includedRegionCodes: ['gb'],
+      })
+      const { suggestions } = result
+      if (suggestions && suggestions.length > 0) {
+        const items = suggestions.map((s: any) => {
+          const parsed = JSON.parse(JSON.stringify(s))
+          const text = s?.Yz || s?.YC || parsed?.mh?.[0]?.[2]?.[0] || s?.placePrediction?.text?.text || null
+          const placeId = parsed?.mh?.[0]?.[1] || null
+          return (typeof text === 'string' && placeId) ? { description: text, placeId } : null
+        }).filter(Boolean) as { description: string; placeId: string }[]
+        setNdSuggestions(items)
+        setNdShowSuggestions(items.length > 0)
+      } else {
+        setNdSuggestions([]); setNdShowSuggestions(false)
+      }
+    } catch (_) { setNdSuggestions([]); setNdShowSuggestions(false) }
+  }
+
+  async function selectNdSuggestion(s: { description: string; placeId: string }) {
+    setNdShowSuggestions(false)
+    setNdSuggestions([])
+    setNdData(nd => ({ ...nd, address: s.description }))
+    try {
+      const place = new (window as any).google.maps.places.Place({ id: s.placeId, requestedLanguage: 'en' })
+      await place.fetchFields({ fields: ['formattedAddress', 'addressComponents'] })
+      if (place.formattedAddress) {
+        let cleaned = place.formattedAddress.replace(/, UK$/, '').replace(/, United Kingdom$/, '')
+        const comps = JSON.parse(JSON.stringify(place.addressComponents || []))
+        const postcodeComp = comps.find((c: any) => Array.isArray(c.types) && c.types.includes('postal_code'))
+        const postcode = postcodeComp?.longText || ''
+        if (postcode && !cleaned.includes(postcode)) cleaned = `${cleaned}, ${postcode}`
+        setNdData(nd => ({ ...nd, address: cleaned }))
+        const intel = await fetchPropertyIntelligence(postcode, cleaned)
+        if (intel) {
+          if (intel.epcRating) { setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string })); setNdDataSource(src => ({ ...src, epcRating: 'Via EPC Register' })) }
+          if (intel.tenure)    { setNdData(nd => ({ ...nd, tenure:    intel.tenure    as string })); setNdDataSource(src => ({ ...src, tenure:    'Via EPC Register' })) }
+          if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
+          if (intel.country) {
+            const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+            const mc = cmap[intel.country as string] ?? 'England'
+            setNdData(nd => ({ ...nd, country: mc }))
+            setNdDataSource(src => ({ ...src, country: 'Via postcode lookup' }))
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   // ── New Deal helpers ────────────────────────────────────────────────────────
@@ -1100,7 +1167,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Address */}
-              <div style={{ marginBottom: '14px' }}>
+              <div style={{ marginBottom: '14px', position: 'relative' }}>
                 <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
                   Address
                 </label>
@@ -1112,6 +1179,9 @@ export default function DashboardPage() {
                     const val = e.target.value
                     const currentPrice = ndData.price
                     setNdData(d => ({ ...d, address: val }))
+                    if (!val.trim()) { setNdSuggestions([]); setNdShowSuggestions(false) }
+                    if (ndSuggestDebounceRef.current) clearTimeout(ndSuggestDebounceRef.current)
+                    ndSuggestDebounceRef.current = setTimeout(() => { void fetchNdAddressSuggestions(val) }, 350)
                     if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current)
                     addressDebounceRef.current = setTimeout(async () => {
                       const fullPcMatch = val.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2})\b/i)
@@ -1145,10 +1215,12 @@ export default function DashboardPage() {
                     }, 1200)
                   }}
                   onBlur={e => {
+                    setTimeout(() => setNdShowSuggestions(false), 150)
+                    if ((window as any).google?.maps?.places) return
                     const typed = e.target.value
                     const pc = extractPostcodeFromAddress(typed)
                     if (!pc) return
-                    void fetchPropertyIntelligence(pc).then(intel => {
+                    void fetchPropertyIntelligence(pc, typed).then(intel => {
                       if (!intel) return
                       if (intel.epcRating && !ndData.epcRating) {
                         setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string }))
@@ -1174,6 +1246,25 @@ export default function DashboardPage() {
                     outline: 'none', fontFamily: 'inherit', transition: 'border-color .13s',
                   }}
                 />
+                {ndShowSuggestions && ndSuggestions.length > 0 && (
+                  <div style={{
+                    position: 'absolute', zIndex: 50, left: 0, right: 0, top: '100%', marginTop: '2px',
+                    background: '#fff', border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)', overflow: 'hidden',
+                  }}>
+                    {ndSuggestions.map(sg => (
+                      <div
+                        key={sg.placeId}
+                        onMouseDown={() => { void selectNdSuggestion(sg) }}
+                        style={{ padding: '9px 12px', fontSize: '12px', color: '#1a2332', cursor: 'pointer', borderBottom: `0.5px solid ${DS_BORDER}` }}
+                        onMouseEnter={ev => (ev.currentTarget.style.background = '#f5f6f8')}
+                        onMouseLeave={ev => (ev.currentTarget.style.background = '#fff')}
+                      >
+                        {sg.description}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div style={{ marginTop: '5px', fontSize: '10px', color: '#9ca3af' }}>
                   Leave blank to save as <em>Untitled deal</em> and add the address later.
                 </div>
