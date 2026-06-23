@@ -41,6 +41,14 @@ const AMBER      = '#F59E0B'
 const BG_SEC     = '#f5f6f8'
 const DS_BORDER  = '#e3e5e9'
 
+function extractPostcodeFromAddress(address: string): string {
+  const full = address.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2})\b/i)
+  if (full) return full[1].toUpperCase().trim()
+  const outcode = address.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?)\s*$/i)
+  if (outcode) return outcode[1].toUpperCase().trim()
+  return ''
+}
+
 const STRATEGIES: { code: Deal['strategy']; name: string }[] = [
   { code: 'BTL',    name: 'Buy to Let' },
   { code: 'HMO',    name: 'House of Multiple Occupation' },
@@ -341,6 +349,7 @@ export default function DashboardPage() {
     groundRent?: number
     councilTaxBand?: string
     bathrooms?: string
+    floodRisk?: string
   }>({})
   const [scrapeIntelligence, setScrapeIntelligence] = useState<{
     epcRating?: string
@@ -348,6 +357,7 @@ export default function DashboardPage() {
     floodZone?: string
     region?: string
   } | null>(null)
+  const [ndDataSource, setNdDataSource]         = useState<Record<string, string>>({})
   const [stampDutyEstimate, setStampDutyEstimate] = useState<number | null>(null)
 
   // Escape key closes slide-over
@@ -407,11 +417,19 @@ export default function DashboardPage() {
 
   const stub = (msg = 'Coming soon!') => alert(msg)
 
+  async function fetchPropertyIntelligence(postcode: string) {
+    try {
+      const { data, error } = await supabase.functions.invoke('property-intelligence', { body: { postcode } })
+      return error ? null : data
+    } catch (_) { return null }
+  }
+
   // ── New Deal helpers ────────────────────────────────────────────────────────
   function openNd() {
     setNewDealOpen(true)
     setNewDealStep(1)
     setNdData({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
+    setNdDataSource({})
     setNdStratErr(false)
     setNdCreating(false)
     setNdSuccess(false)
@@ -516,11 +534,11 @@ export default function DashboardPage() {
         setNdData(nd => ({ ...nd, address: fullAddress }))
       }
       if (d.price)   setNdData(nd => ({ ...nd, price: `£${d.price.toLocaleString('en-GB')}` }))
-      if (d.beds)    setNdData(nd => ({ ...nd, beds: d.beds }))
-      if (d.bathrooms) setNdData(nd => ({ ...nd, bathrooms: d.bathrooms! }))
-      if (d.tenure)    setNdData(nd => ({ ...nd, tenure: d.tenure! }))
-      if (d.epcRating) setNdData(nd => ({ ...nd, epcRating: d.epcRating! }))
-      if (d.propertyType) setNdData(nd => ({ ...nd, proptype: d.propertyType }))
+      if (d.beds)    { setNdData(nd => ({ ...nd, beds: d.beds }));              setNdDataSource(s => ({ ...s, beds: 'Via Rightmove' })) }
+      if (d.bathrooms) { setNdData(nd => ({ ...nd, bathrooms: d.bathrooms! })); setNdDataSource(s => ({ ...s, bathrooms: 'Via Rightmove' })) }
+      if (d.tenure)    { setNdData(nd => ({ ...nd, tenure: d.tenure! }));       setNdDataSource(s => ({ ...s, tenure: 'Via Rightmove' })) }
+      if (d.epcRating) { setNdData(nd => ({ ...nd, epcRating: d.epcRating! })); setNdDataSource(s => ({ ...s, epcRating: 'Via Rightmove' })) }
+      if (d.propertyType) { setNdData(nd => ({ ...nd, proptype: d.propertyType })); setNdDataSource(s => ({ ...s, proptype: 'Via Rightmove' })) }
       if (d.postcode && !d.address) setNdData(nd => ({ ...nd, address: d.postcode }))
 
       let scrapeLatLng: { lat: number; lng: number } | null = null
@@ -531,6 +549,7 @@ export default function DashboardPage() {
         const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
         const mc = cmap[d.country] ?? 'England'
         setNdData(nd => ({ ...nd, country: mc }))
+        setNdDataSource(s => ({ ...s, country: 'Via Rightmove' }))
         if (d.price) {
           sdEstimate = calcStampDuty(d.price, d.country, true)
           setStampDutyEstimate(sdEstimate)
@@ -566,6 +585,7 @@ export default function DashboardPage() {
               const mc = cmap[countryStr] ?? 'England'
               if (r.latitude && r.longitude) scrapeLatLng = { lat: r.latitude, lng: r.longitude }
               setNdData(nd => ({ ...nd, country: mc }))
+              setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
               if (d.price) {
                 sdEstimate = calcStampDuty(d.price, countryStr, true)
                 setStampDutyEstimate(sdEstimate)
@@ -580,6 +600,7 @@ export default function DashboardPage() {
             const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
             const mc = cmap[fallbackStr] ?? 'England'
             setNdData(nd => ({ ...nd, country: mc }))
+            setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
             if (d.price) {
               sdEstimate = calcStampDuty(d.price, fallbackStr, true)
               setStampDutyEstimate(sdEstimate)
@@ -601,6 +622,22 @@ export default function DashboardPage() {
             if (intel.floodZone) intelligenceUpdate.floodZone = intel.floodZone
             if (intel.region) intelligenceUpdate.region = intel.region
             setScrapeIntelligence(intelligenceUpdate)
+            // Fill gaps — only set fields the scraper didn't return
+            if (intel.epcRating && !d.epcRating) {
+              setNdData(nd => ({ ...nd, epcRating: intel.epcRating }))
+              setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
+            }
+            if (intel.tenure && !d.tenure) {
+              setNdData(nd => ({ ...nd, tenure: intel.tenure }))
+              setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
+            }
+            if (intel.country && !d.country) {
+              const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+              const mc = cmap[intel.country as string] ?? 'England'
+              setNdData(nd => ({ ...nd, country: mc }))
+              setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+            }
+            if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
           }
         }).catch(() => {})
 
@@ -1107,6 +1144,29 @@ export default function DashboardPage() {
                       } catch (_) { /* silent */ }
                     }, 1200)
                   }}
+                  onBlur={e => {
+                    const typed = e.target.value
+                    const pc = extractPostcodeFromAddress(typed)
+                    if (!pc) return
+                    void fetchPropertyIntelligence(pc).then(intel => {
+                      if (!intel) return
+                      if (intel.epcRating && !ndData.epcRating) {
+                        setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string }))
+                        setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
+                      }
+                      if (intel.tenure && !ndData.tenure) {
+                        setNdData(nd => ({ ...nd, tenure: intel.tenure as string }))
+                        setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
+                      }
+                      if (intel.floodRisk) setScrapeExtra(ex => ({ ...ex, floodRisk: intel.floodRisk as string }))
+                      if (intel.country && !ndData.country) {
+                        const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+                        const mc = cmap[intel.country as string] ?? 'England'
+                        setNdData(nd => ({ ...nd, country: mc }))
+                        setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+                      }
+                    })
+                  }}
                   style={{
                     width: '100%', boxSizing: 'border-box', padding: '9px 11px',
                     border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1144,7 +1204,7 @@ export default function DashboardPage() {
                   </label>
                   <select
                     value={ndData.country}
-                    onChange={e => setNdData(d => ({ ...d, country: e.target.value }))}
+                    onChange={e => { setNdData(d => ({ ...d, country: e.target.value })); setNdDataSource(s => { const n = {...s}; delete n.country; return n }) }}
                     style={{
                       width: '100%', padding: '9px 11px',
                       border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1157,6 +1217,7 @@ export default function DashboardPage() {
                     <option value="Wales">Wales</option>
                     <option value="Scotland">Scotland</option>
                   </select>
+                  {ndDataSource.country && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>↳ {ndDataSource.country}</div>}
                 </div>
               </div>
 
@@ -1168,7 +1229,7 @@ export default function DashboardPage() {
                   </label>
                   <select
                     value={ndData.proptype}
-                    onChange={e => setNdData(d => ({ ...d, proptype: e.target.value }))}
+                    onChange={e => { setNdData(d => ({ ...d, proptype: e.target.value })); setNdDataSource(s => { const n = {...s}; delete n.proptype; return n }) }}
                     style={{
                       width: '100%', padding: '9px 11px',
                       border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1193,6 +1254,7 @@ export default function DashboardPage() {
                     <option value="Commercial / mixed use">Commercial / mixed use</option>
                     <option value="Land">Land</option>
                   </select>
+                  {ndDataSource.proptype && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>↳ {ndDataSource.proptype}</div>}
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
@@ -1200,7 +1262,7 @@ export default function DashboardPage() {
                   </label>
                   <select
                     value={ndData.beds}
-                    onChange={e => setNdData(d => ({ ...d, beds: e.target.value }))}
+                    onChange={e => { setNdData(d => ({ ...d, beds: e.target.value })); setNdDataSource(s => { const n = {...s}; delete n.beds; return n }) }}
                     style={{
                       width: '100%', padding: '9px 11px',
                       border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1217,6 +1279,7 @@ export default function DashboardPage() {
                     <option value="5">5 bed</option>
                     <option value="6+">6+ bed</option>
                   </select>
+                  {ndDataSource.beds && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>↳ {ndDataSource.beds}</div>}
                 </div>
               </div>
 
@@ -1228,7 +1291,7 @@ export default function DashboardPage() {
                   </label>
                   <select
                     value={ndData.bathrooms}
-                    onChange={e => setNdData(d => ({ ...d, bathrooms: e.target.value }))}
+                    onChange={e => { setNdData(d => ({ ...d, bathrooms: e.target.value })); setNdDataSource(s => { const n = {...s}; delete n.bathrooms; return n }) }}
                     style={{
                       width: '100%', padding: '9px 11px',
                       border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1244,6 +1307,7 @@ export default function DashboardPage() {
                     <option value="5">5</option>
                     <option value="6+">6+</option>
                   </select>
+                  {ndDataSource.bathrooms && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>↳ {ndDataSource.bathrooms}</div>}
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af', marginBottom: '5px' }}>
@@ -1251,7 +1315,7 @@ export default function DashboardPage() {
                   </label>
                   <select
                     value={ndData.tenure}
-                    onChange={e => setNdData(d => ({ ...d, tenure: e.target.value }))}
+                    onChange={e => { setNdData(d => ({ ...d, tenure: e.target.value })); setNdDataSource(s => { const n = {...s}; delete n.tenure; return n }) }}
                     style={{
                       width: '100%', padding: '9px 11px',
                       border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1265,6 +1329,7 @@ export default function DashboardPage() {
                     <option value="Share of freehold">Share of freehold</option>
                     <option value="Commonhold">Commonhold</option>
                   </select>
+                  {ndDataSource.tenure && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>↳ {ndDataSource.tenure}</div>}
                 </div>
               </div>
 
@@ -1276,7 +1341,7 @@ export default function DashboardPage() {
                   </label>
                   <select
                     value={ndData.epcRating}
-                    onChange={e => setNdData(d => ({ ...d, epcRating: e.target.value }))}
+                    onChange={e => { setNdData(d => ({ ...d, epcRating: e.target.value })); setNdDataSource(s => { const n = {...s}; delete n.epcRating; return n }) }}
                     style={{
                       width: '100%', padding: '9px 11px',
                       border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1294,6 +1359,7 @@ export default function DashboardPage() {
                     <option value="G">G</option>
                     <option value="Unknown">Unknown</option>
                   </select>
+                  {ndDataSource.epcRating && <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '3px' }}>↳ {ndDataSource.epcRating}</div>}
                 </div>
                 <div />
               </div>
