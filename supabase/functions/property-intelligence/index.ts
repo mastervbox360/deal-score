@@ -51,7 +51,7 @@ serve(async (req) => {
 
     // ── 2. EPC Register (gov.uk) — energy rating, floor area, tenure ─────────
     const epcKey = Deno.env.get('EPC_API_KEY')
-    if (epcKey && isFullPostcode) {
+    if (epcKey && (isFullPostcode || address)) {
       try {
         const epcQuery = address
           ? `postcode=${encodeURIComponent(pc)}&address=${encodeURIComponent(address)}&size=1`
