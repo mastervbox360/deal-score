@@ -437,8 +437,10 @@ export default function DashboardPage() {
 
       setNdData(nd => ({ ...nd, address: fullAddress }))
       setNdDataSource(s => ({ ...s, address: 'Via Google Places' }))
-      setNdSelectedPostcode(postcode)
-      setNdSelectedAddress(fullAddress)
+      setTimeout(() => {
+        setNdSelectedPostcode(postcode)
+        setNdSelectedAddress(fullAddress)
+      }, 0)
     })
 
     return () => { maps.event?.clearInstanceListeners(autocomplete) }
