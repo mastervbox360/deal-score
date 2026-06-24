@@ -1341,6 +1341,7 @@ export default function DashboardPage() {
                   >
                     <option value="">Select…</option>
                     <option value="Terraced house">Terraced house</option>
+                    <option value="Town house">Town house</option>
                     <option value="End-of-terrace house">End-of-terrace house</option>
                     <option value="Semi-detached house">Semi-detached house</option>
                     <option value="Detached house">Detached house</option>

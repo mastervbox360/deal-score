@@ -11,7 +11,7 @@ const corsHeaders = {
 // in AnalysisHub.tsx so that setField() auto-populates dropdowns correctly.
 //
 // propertyType:
-//   'Terraced house' | 'End-of-terrace house' | 'Semi-detached house' | 'Detached house'
+//   'Terraced house' | 'Town house' | 'End-of-terrace house' | 'Semi-detached house' | 'Detached house'
 //   'Flat / Apartment' | 'Studio flat' | 'Maisonette' | 'Bungalow (detached)'
 //   'Bungalow (semi-detached)' | 'Converted flat' | 'Purpose-built flat'
 //   'HMO' | 'Block of flats' | 'Commercial / mixed use' | 'Land'
@@ -322,6 +322,7 @@ function normaliseType(raw: string): string {
   // House types
   if (t.includes('semi')) return 'Semi-detached house'
   if (t.includes('detached')) return 'Detached house'
+  if (t.includes('town house') || t.includes('townhouse')) return 'Town house'
   if (t.includes('terraced') || t.includes('terrace')) return 'Terraced house'
   // Flat/apartment (after maisonette/studio/converted/purpose-built checks)
   if (t.includes('flat') || t.includes('apartment')) return 'Flat / Apartment'

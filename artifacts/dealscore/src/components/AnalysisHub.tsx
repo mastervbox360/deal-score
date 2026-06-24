@@ -2466,6 +2466,7 @@ function ViewInputs({ p, isNewDeal, dealId, onSave, deal, onViewChange, onScMode
                 info="Property type affects mortgage eligibility and valuation methodology. Some lenders restrict lending on ex-local authority flats, high-rise blocks, or non-standard construction. Studio flats and bedsits may also face lender restrictions."
                 options={[
                   { value: 'Terraced house', label: 'Terraced house' },
+                  { value: 'Town house', label: 'Town house' },
                   { value: 'End-of-terrace house', label: 'End-of-terrace house' },
                   { value: 'Semi-detached house', label: 'Semi-detached house' },
                   { value: 'Detached house', label: 'Detached house' },
