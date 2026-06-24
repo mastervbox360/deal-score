@@ -5303,3 +5303,8 @@ body{
 }
 .btn-go:hover{opacity:.87;}
 .btn-go i{font-size:13px;}
+
+/* Google Places autocomplete dropdown — must appear above modals */
+.pac-container {
+  z-index: 9999 !important;
+}

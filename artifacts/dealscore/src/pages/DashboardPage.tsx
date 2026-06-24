@@ -310,7 +310,7 @@ export default function DashboardPage() {
   const [avatarOpen, setAvatarOpen]         = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
   const addressDebounceRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const ndSuggestDebounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const addressInputRef       = useRef<HTMLInputElement>(null)
   const [filterStrategy, setFilterStrategy] = useState<string>('')
   const [filterScore, setFilterScore]       = useState<string>('')
   const [filterStatus, setFilterStatus]     = useState<string>('')
@@ -359,8 +359,6 @@ export default function DashboardPage() {
     region?: string
   } | null>(null)
   const [ndDataSource, setNdDataSource]         = useState<Record<string, string>>({})
-  const [ndSuggestions, setNdSuggestions]       = useState<{ description: string; placeId: string }[]>([])
-  const [ndShowSuggestions, setNdShowSuggestions] = useState(false)
   const [stampDutyEstimate, setStampDutyEstimate] = useState<number | null>(null)
 
   // Escape key closes slide-over
@@ -398,11 +396,71 @@ export default function DashboardPage() {
     console.log('[maps] injecting Maps script')
     const script = document.createElement('script')
     script.id = 'google-maps-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDHLc76QjrniMh6ylFEofPiS_kESZ7_z7A&libraries=places&v=beta&region=GB&language=en`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDHLc76QjrniMh6ylFEofPiS_kESZ7_z7A&libraries=places&region=GB&language=en`
     script.async = true
     script.onload = () => console.log('[maps] script loaded, places available:', !!(window as any).google?.maps?.places)
     document.head.appendChild(script)
   }, [])
+
+  // Classic Autocomplete widget — attaches when slide-over reaches Step 2
+  useEffect(() => {
+    if (newDealStep !== 2) return
+    const maps = (window as any).google?.maps
+    console.log('[maps] newDealStep:', newDealStep, '| google.maps.places:', !!maps?.places, '| addressInputRef.current:', !!addressInputRef.current)
+    if (!maps?.places) return
+    if (!addressInputRef.current) return
+
+    const autocomplete = new maps.places.Autocomplete(addressInputRef.current, {
+      componentRestrictions: { country: 'gb' },
+      fields: ['formatted_address', 'address_components'],
+      types: ['address'],
+    })
+    console.log('[maps] Autocomplete attached to input')
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace()
+      if (!place?.formatted_address) return
+
+      const fullAddress = place.formatted_address
+        .replace(/, UK$/, '')
+        .replace(/, United Kingdom$/, '')
+        .trim()
+
+      const postcodeComp = place.address_components?.find(
+        (c: any) => c.types.includes('postal_code')
+      )
+      const postcode = postcodeComp?.long_name || ''
+
+      setNdData(nd => ({ ...nd, address: fullAddress }))
+      setNdDataSource(s => ({ ...s, address: 'Via Google Places' }))
+
+      if (postcode || fullAddress) {
+        fetchPropertyIntelligence(postcode, fullAddress).then(intel => {
+          if (!intel) return
+          console.log('[places] intel result:', JSON.stringify(intel))
+          if (intel.epcRating) {
+            setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string }))
+            setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
+          }
+          if (intel.tenure) {
+            setNdData(nd => ({ ...nd, tenure: intel.tenure as string }))
+            setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
+          }
+          if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
+          if (intel.country) {
+            const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+            const mapped = cmap[intel.country as string] ?? null
+            if (mapped) {
+              setNdData(nd => ({ ...nd, country: mapped }))
+              setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+            }
+          }
+        }).catch(() => {})
+      }
+    })
+
+    return () => { maps.event?.clearInstanceListeners(autocomplete) }
+  }, [newDealStep])
 
   // Fetch deals
   const fetchDeals = useCallback(async () => {
@@ -446,61 +504,6 @@ export default function DashboardPage() {
     } catch (err) { console.error('[intel] fetch threw:', err); return null }
   }
 
-  async function fetchNdAddressSuggestions(input: string) {
-    console.log('[maps] suggestions requested, google.maps.places:', !!(window as any).google?.maps?.places, '| input length:', input.length)
-    if (!input || input.length < 3) { setNdSuggestions([]); setNdShowSuggestions(false); return }
-    const gm = (window as any).google?.maps?.places
-    if (!gm) { console.log('[maps] google.maps.places not yet loaded — skipping autocomplete'); return }
-    try {
-      const result = await gm.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-        input,
-        includedRegionCodes: ['gb'],
-      })
-      const { suggestions } = result
-      if (suggestions && suggestions.length > 0) {
-        const items = suggestions.map((s: any) => {
-          const parsed = JSON.parse(JSON.stringify(s))
-          const text = s?.Yz || s?.YC || parsed?.mh?.[0]?.[2]?.[0] || s?.placePrediction?.text?.text || null
-          const placeId = parsed?.mh?.[0]?.[1] || null
-          return (typeof text === 'string' && placeId) ? { description: text, placeId } : null
-        }).filter(Boolean) as { description: string; placeId: string }[]
-        setNdSuggestions(items)
-        setNdShowSuggestions(items.length > 0)
-      } else {
-        setNdSuggestions([]); setNdShowSuggestions(false)
-      }
-    } catch (_) { setNdSuggestions([]); setNdShowSuggestions(false) }
-  }
-
-  async function selectNdSuggestion(s: { description: string; placeId: string }) {
-    setNdShowSuggestions(false)
-    setNdSuggestions([])
-    setNdData(nd => ({ ...nd, address: s.description }))
-    try {
-      const place = new (window as any).google.maps.places.Place({ id: s.placeId, requestedLanguage: 'en' })
-      await place.fetchFields({ fields: ['formattedAddress', 'addressComponents'] })
-      if (place.formattedAddress) {
-        let cleaned = place.formattedAddress.replace(/, UK$/, '').replace(/, United Kingdom$/, '')
-        const comps = JSON.parse(JSON.stringify(place.addressComponents || []))
-        const postcodeComp = comps.find((c: any) => Array.isArray(c.types) && c.types.includes('postal_code'))
-        const postcode = postcodeComp?.longText || ''
-        if (postcode && !cleaned.includes(postcode)) cleaned = `${cleaned}, ${postcode}`
-        setNdData(nd => ({ ...nd, address: cleaned }))
-        const intel = await fetchPropertyIntelligence(postcode, cleaned)
-        if (intel) {
-          if (intel.epcRating) { setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string })); setNdDataSource(src => ({ ...src, epcRating: 'Via EPC Register' })) }
-          if (intel.tenure)    { setNdData(nd => ({ ...nd, tenure:    intel.tenure    as string })); setNdDataSource(src => ({ ...src, tenure:    'Via EPC Register' })) }
-          if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
-          if (intel.country) {
-            const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-            const mc = cmap[intel.country as string] ?? 'England'
-            setNdData(nd => ({ ...nd, country: mc }))
-            setNdDataSource(src => ({ ...src, country: 'Via postcode lookup' }))
-          }
-        }
-      }
-    } catch (_) {}
-  }
 
   // ── New Deal helpers ────────────────────────────────────────────────────────
   function openNd() {
@@ -1187,6 +1190,7 @@ export default function DashboardPage() {
                   Address
                 </label>
                 <input
+                  ref={addressInputRef}
                   type="text"
                   placeholder="e.g. 14 Roath Court Road, Cardiff CF24 3BJ"
                   value={ndData.address}
@@ -1194,9 +1198,6 @@ export default function DashboardPage() {
                     const val = e.target.value
                     const currentPrice = ndData.price
                     setNdData(d => ({ ...d, address: val }))
-                    if (!val.trim()) { setNdSuggestions([]); setNdShowSuggestions(false) }
-                    if (ndSuggestDebounceRef.current) clearTimeout(ndSuggestDebounceRef.current)
-                    ndSuggestDebounceRef.current = setTimeout(() => { void fetchNdAddressSuggestions(val) }, 350)
                     if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current)
                     addressDebounceRef.current = setTimeout(async () => {
                       const fullPcMatch = val.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\s\d[A-Z]{2})\b/i)
@@ -1229,31 +1230,6 @@ export default function DashboardPage() {
                       } catch (_) { /* silent */ }
                     }, 1200)
                   }}
-                  onBlur={e => {
-                    setTimeout(() => setNdShowSuggestions(false), 150)
-                    if ((window as any).google?.maps?.places) return
-                    const typed = e.target.value
-                    const pc = extractPostcodeFromAddress(typed)
-                    if (!pc) return
-                    void fetchPropertyIntelligence(pc, typed).then(intel => {
-                      if (!intel) return
-                      if (intel.epcRating && !ndData.epcRating) {
-                        setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string }))
-                        setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
-                      }
-                      if (intel.tenure && !ndData.tenure) {
-                        setNdData(nd => ({ ...nd, tenure: intel.tenure as string }))
-                        setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
-                      }
-                      if (intel.floodRisk) setScrapeExtra(ex => ({ ...ex, floodRisk: intel.floodRisk as string }))
-                      if (intel.country && !ndData.country) {
-                        const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-                        const mc = cmap[intel.country as string] ?? 'England'
-                        setNdData(nd => ({ ...nd, country: mc }))
-                        setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
-                      }
-                    })
-                  }}
                   style={{
                     width: '100%', boxSizing: 'border-box', padding: '9px 11px',
                     border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
@@ -1261,25 +1237,6 @@ export default function DashboardPage() {
                     outline: 'none', fontFamily: 'inherit', transition: 'border-color .13s',
                   }}
                 />
-                {ndShowSuggestions && ndSuggestions.length > 0 && (
-                  <div style={{
-                    position: 'absolute', zIndex: 50, left: 0, right: 0, top: '100%', marginTop: '2px',
-                    background: '#fff', border: `1px solid ${DS_BORDER}`, borderRadius: '7px',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)', overflow: 'hidden',
-                  }}>
-                    {ndSuggestions.map(sg => (
-                      <div
-                        key={sg.placeId}
-                        onMouseDown={() => { void selectNdSuggestion(sg) }}
-                        style={{ padding: '9px 12px', fontSize: '12px', color: '#1a2332', cursor: 'pointer', borderBottom: `0.5px solid ${DS_BORDER}` }}
-                        onMouseEnter={ev => (ev.currentTarget.style.background = '#f5f6f8')}
-                        onMouseLeave={ev => (ev.currentTarget.style.background = '#fff')}
-                      >
-                        {sg.description}
-                      </div>
-                    ))}
-                  </div>
-                )}
                 <div style={{ marginTop: '5px', fontSize: '10px', color: '#9ca3af' }}>
                   Leave blank to save as <em>Untitled deal</em> and add the address later.
                 </div>
