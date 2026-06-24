@@ -436,12 +436,14 @@ export default function DashboardPage() {
   const stub = (msg = 'Coming soon!') => alert(msg)
 
   async function fetchPropertyIntelligence(postcode: string, address?: string) {
+    console.log('[intel] fetchPropertyIntelligence entered — postcode:', JSON.stringify(postcode), 'address:', JSON.stringify(address))
+    console.log('[intel] supabase.functions present:', !!(supabase as any).functions)
     try {
       const { data, error } = await supabase.functions.invoke('property-intelligence', { body: { postcode, address } })
-      if (error) { console.error('[intel] error:', error); return null }
+      if (error) { console.error('[intel] invoke error:', error); return null }
       console.log('[intel] result:', JSON.stringify(data))
       return data
-    } catch (_) { return null }
+    } catch (err) { console.error('[intel] fetch threw:', err); return null }
   }
 
   async function fetchNdAddressSuggestions(input: string) {
@@ -688,6 +690,8 @@ export default function DashboardPage() {
       // Intelligence cascade — fire in background; works with postcode OR address
       const pcForLookup      = d.postcode || extractPostcodeFromAddress(d.address || '')
       const addressForLookup = d.address || ''
+      console.log('[intel] cascade check — pcForLookup:', JSON.stringify(pcForLookup), 'addressForLookup:', JSON.stringify(addressForLookup))
+      console.log('[intel] calling with:', pcForLookup, addressForLookup)
       if (pcForLookup || addressForLookup) {
         void scrapeLatLng // held for future flood risk usage
         void fetchPropertyIntelligence(pcForLookup, addressForLookup).then(intel => {
@@ -715,7 +719,7 @@ export default function DashboardPage() {
             setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
           }
           if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
-        }).catch(() => {})
+        }).catch(err => console.error('[intel] promise chain error:', err))
       }
 
       if (d.postcode) {
