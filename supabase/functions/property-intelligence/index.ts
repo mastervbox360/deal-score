@@ -1,5 +1,15 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, ms = 5000): Promise<Response> {
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), ms)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(id)
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -81,7 +91,7 @@ serve(async (req) => {
         const epcQuery = address
           ? `postcode=${encodeURIComponent(pc)}&address=${encodeURIComponent(address)}&size=1`
           : `postcode=${encodeURIComponent(pc)}&size=1`
-        const epcRes = await fetch(
+        const epcRes = await fetchWithTimeout(
           `https://epc.opendatacommunities.org/api/v1/domestic/search?${epcQuery}`,
           {
             headers: {
@@ -118,7 +128,7 @@ serve(async (req) => {
         const lat = result.latitude as number
         const lng = result.longitude as number
         const zone3Url = `https://environment.data.gov.uk/arcgis/rest/services/EA/FloodMapForPlanningRiversAndSeaFloodZone3/MapServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&spatialRel=esriSpatialRelIntersects&returnCountOnly=true&f=json`
-        const zone3Res = await fetch(zone3Url)
+        const zone3Res = await fetchWithTimeout(zone3Url)
         if (zone3Res.ok) {
           const zone3Json = await zone3Res.json()
           if ((zone3Json?.count ?? 0) > 0) {
@@ -126,7 +136,7 @@ serve(async (req) => {
             result.floodZone = '3'
           } else {
             const zone2Url = `https://environment.data.gov.uk/arcgis/rest/services/EA/FloodMapForPlanningRiversAndSeaFloodZone2/MapServer/0/query?geometry=${lng},${lat}&geometryType=esriGeometryPoint&spatialRel=esriSpatialRelIntersects&returnCountOnly=true&f=json`
-            const zone2Res = await fetch(zone2Url)
+            const zone2Res = await fetchWithTimeout(zone2Url)
             if (zone2Res.ok) {
               const zone2Json = await zone2Res.json()
               result.floodRisk = (zone2Json?.count ?? 0) > 0 ? 'Medium' : 'Low'
