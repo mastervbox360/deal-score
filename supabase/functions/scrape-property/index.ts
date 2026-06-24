@@ -201,6 +201,29 @@ function parseRightmove(html: string, url: string): PropertyData {
   if (htmlLh.serviceCharge && !data.serviceCharge) data.serviceCharge = htmlLh.serviceCharge
   if (htmlLh.groundRent && !data.groundRent) data.groundRent = htmlLh.groundRent
   if (htmlLh.councilTaxBand && !data.councilTaxBand) data.councilTaxBand = htmlLh.councilTaxBand
+
+  // Tenure from full page text (Rightmove renders in specs section)
+  if (!data.tenure) {
+    if (/share\s+of\s+freehold/i.test(htmlText)) data.tenure = 'Share of freehold'
+    else if (/commonhold/i.test(htmlText)) data.tenure = 'Commonhold'
+    else if (/leasehold/i.test(htmlText)) data.tenure = 'Leasehold'
+    else if (/freehold/i.test(htmlText)) data.tenure = 'Freehold'
+  }
+
+  // Bathrooms count from page text ("1 bathroom", "2 bathrooms")
+  if (!data.bathrooms) {
+    const bathM = htmlText.match(/\b(\d+)\s+bathroom/i)
+    if (bathM) {
+      const n = parseInt(bathM[1])
+      if (!isNaN(n) && n > 0 && n <= 10) data.bathrooms = String(n)
+    }
+  }
+
+  console.log('[scraper] result:', JSON.stringify({
+    postcode: data.postcode, country: data.country,
+    address: data.address, price: data.price,
+    tenure: data.tenure, bathrooms: data.bathrooms, beds: data.beds,
+  }))
   return data
 }
 

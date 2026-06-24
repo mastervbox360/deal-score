@@ -390,11 +390,17 @@ export default function DashboardPage() {
   }, [avatarOpen])
 
   useEffect(() => {
-    if (document.getElementById('google-maps-script')) return
+    console.log('[maps] google.maps already loaded:', !!(window as any).google?.maps)
+    if (document.getElementById('google-maps-script')) {
+      console.log('[maps] script tag already present in DOM')
+      return
+    }
+    console.log('[maps] injecting Maps script')
     const script = document.createElement('script')
     script.id = 'google-maps-script'
     script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDHLc76QjrniMh6ylFEofPiS_kESZ7_z7A&libraries=places&v=beta&region=GB&language=en`
     script.async = true
+    script.onload = () => console.log('[maps] script loaded, places available:', !!(window as any).google?.maps?.places)
     document.head.appendChild(script)
   }, [])
 
@@ -432,14 +438,17 @@ export default function DashboardPage() {
   async function fetchPropertyIntelligence(postcode: string, address?: string) {
     try {
       const { data, error } = await supabase.functions.invoke('property-intelligence', { body: { postcode, address } })
-      return error ? null : data
+      if (error) { console.error('[intel] error:', error); return null }
+      console.log('[intel] result:', JSON.stringify(data))
+      return data
     } catch (_) { return null }
   }
 
   async function fetchNdAddressSuggestions(input: string) {
+    console.log('[maps] suggestions requested, google.maps.places:', !!(window as any).google?.maps?.places, '| input length:', input.length)
     if (!input || input.length < 3) { setNdSuggestions([]); setNdShowSuggestions(false); return }
     const gm = (window as any).google?.maps?.places
-    if (!gm) return
+    if (!gm) { console.log('[maps] google.maps.places not yet loaded — skipping autocomplete'); return }
     try {
       const result = await gm.AutocompleteSuggestion.fetchAutocompleteSuggestions({
         input,
@@ -676,38 +685,40 @@ export default function DashboardPage() {
         }
       }
 
-      // Intelligence cascade — fire in background after basic fields populated
-      if (d.postcode) {
+      // Intelligence cascade — fire in background; works with postcode OR address
+      const pcForLookup      = d.postcode || extractPostcodeFromAddress(d.address || '')
+      const addressForLookup = d.address || ''
+      if (pcForLookup || addressForLookup) {
         void scrapeLatLng // held for future flood risk usage
-        supabase.functions.invoke('property-intelligence', {
-          body: { postcode: d.postcode, address: d.address || '' }
-        }).then(({ data: intel }) => {
-          if (intel && !intel.error) {
-            const intelligenceUpdate: { epcRating?: string; floodRisk?: string; floodZone?: string; region?: string } = {}
-            if (intel.epcRating) intelligenceUpdate.epcRating = intel.epcRating
-            if (intel.floodRisk) intelligenceUpdate.floodRisk = intel.floodRisk
-            if (intel.floodZone) intelligenceUpdate.floodZone = intel.floodZone
-            if (intel.region) intelligenceUpdate.region = intel.region
-            setScrapeIntelligence(intelligenceUpdate)
-            // Fill gaps — only set fields the scraper didn't return
-            if (intel.epcRating && !d.epcRating) {
-              setNdData(nd => ({ ...nd, epcRating: intel.epcRating }))
-              setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
-            }
-            if (intel.tenure && !d.tenure) {
-              setNdData(nd => ({ ...nd, tenure: intel.tenure }))
-              setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
-            }
-            if (intel.country && !d.country) {
-              const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-              const mc = cmap[intel.country as string] ?? 'England'
-              setNdData(nd => ({ ...nd, country: mc }))
-              setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
-            }
-            if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
+        void fetchPropertyIntelligence(pcForLookup, addressForLookup).then(intel => {
+          if (!intel || intel.error) return
+          console.log('[intel] result after URL fill:', JSON.stringify(intel))
+          const intelligenceUpdate: { epcRating?: string; floodRisk?: string; floodZone?: string; region?: string } = {}
+          if (intel.epcRating) intelligenceUpdate.epcRating = intel.epcRating
+          if (intel.floodRisk) intelligenceUpdate.floodRisk = intel.floodRisk
+          if (intel.floodZone) intelligenceUpdate.floodZone = intel.floodZone
+          if (intel.region)    intelligenceUpdate.region    = intel.region
+          setScrapeIntelligence(intelligenceUpdate)
+          // Fill gaps — only set fields the scraper didn't return
+          if (intel.epcRating && !d.epcRating) {
+            setNdData(nd => ({ ...nd, epcRating: intel.epcRating }))
+            setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
           }
+          if (intel.tenure && !d.tenure) {
+            setNdData(nd => ({ ...nd, tenure: intel.tenure }))
+            setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
+          }
+          if (intel.country && !d.country) {
+            const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+            const mc = cmap[intel.country as string] ?? 'England'
+            setNdData(nd => ({ ...nd, country: mc }))
+            setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+          }
+          if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
         }).catch(() => {})
+      }
 
+      if (d.postcode) {
         supabase.functions.invoke('land-registry-comps', {
           body: { postcode: d.postcode }
         }).catch(() => {})
