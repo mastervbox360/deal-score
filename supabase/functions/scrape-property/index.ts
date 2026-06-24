@@ -309,27 +309,30 @@ function parseOTM(html: string, url: string): PropertyData {
 function normaliseType(raw: string): string {
   if (!raw) return ''
   const t = raw.toLowerCase().trim()
-  // Check most-specific patterns first to avoid mis-matching substrings
+
+  // Multi-word checks first (more specific → less specific)
   if (t.includes('end of terrace') || t.includes('end-of-terrace') || t === 'end terrace') return 'End-of-terrace house'
+  if (t.includes('link') && t.includes('detached')) return 'Link-detached house'
+  if (t.includes('semi')) return 'Semi-detached house'
+  if (t.includes('detached')) return 'Detached house'
+  if (t.includes('town house') || t.includes('townhouse')) return 'Town house'
+  if (t.includes('bungalow') && (t.includes('semi') || t.includes('semi-detached'))) return 'Bungalow (semi-detached)'
+  if (t.includes('chalet bungalow') || t.includes('bungalow')) return 'Bungalow (detached)'
+  if (t.includes('terraced') || t.includes('terrace')) return 'Terraced house'
   if (t.includes('studio')) return 'Studio flat'
+  if (t.includes('penthouse')) return 'Penthouse'
   if (t.includes('maisonette')) return 'Maisonette'
   if (t.includes('converted flat') || t.includes('converted apartment')) return 'Converted flat'
   if (t.includes('purpose-built flat') || t.includes('purpose built flat') || t.includes('purpose built apartment')) return 'Purpose-built flat'
   if (t.includes('block of flat') || t.includes('block of apartment')) return 'Block of flats'
-  // Bungalow variants — check semi before falling through to generic bungalow
-  if (t.includes('bungalow') && (t.includes('semi') || t.includes('semi-detached'))) return 'Bungalow (semi-detached)'
-  if (t.includes('bungalow')) return 'Bungalow (detached)'
-  // House types
-  if (t.includes('semi')) return 'Semi-detached house'
-  if (t.includes('detached')) return 'Detached house'
-  if (t.includes('town house') || t.includes('townhouse')) return 'Town house'
-  if (t.includes('terraced') || t.includes('terrace')) return 'Terraced house'
-  // Flat/apartment (after maisonette/studio/converted/purpose-built checks)
   if (t.includes('flat') || t.includes('apartment')) return 'Flat / Apartment'
-  // Other
-  if (t.includes('hmo')) return 'HMO'
+  if (t.includes('cottage')) return 'Cottage'
+  if (t.includes('park home') || t.includes('mobile home')) return 'Park home'
+  if (t.includes('chalet')) return 'Chalet'
+  if (t.includes('hmo') || t.includes('house in multiple')) return 'HMO'
   if (t.includes('commercial') || t.includes('mixed use') || t.includes('mixed-use')) return 'Commercial / mixed use'
   if (t === 'land' || t.includes('building plot') || t.includes('development site')) return 'Land'
+
   // Return raw value — ISelectOther will display as "Other (entered manually)"
   return raw.trim()
 }

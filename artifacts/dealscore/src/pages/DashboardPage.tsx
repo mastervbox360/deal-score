@@ -1341,19 +1341,24 @@ export default function DashboardPage() {
                   >
                     <option value="">Select…</option>
                     <option value="Terraced house">Terraced house</option>
-                    <option value="Town house">Town house</option>
                     <option value="End-of-terrace house">End-of-terrace house</option>
                     <option value="Semi-detached house">Semi-detached house</option>
                     <option value="Detached house">Detached house</option>
+                    <option value="Link-detached house">Link-detached house</option>
+                    <option value="Town house">Town house</option>
+                    <option value="Bungalow (detached)">Bungalow (detached)</option>
+                    <option value="Bungalow (semi-detached)">Bungalow (semi-detached)</option>
                     <option value="Flat / Apartment">Flat / Apartment</option>
                     <option value="Studio flat">Studio flat</option>
                     <option value="Maisonette">Maisonette</option>
-                    <option value="Bungalow (detached)">Bungalow (detached)</option>
-                    <option value="Bungalow (semi-detached)">Bungalow (semi-detached)</option>
+                    <option value="Penthouse">Penthouse</option>
                     <option value="Converted flat">Converted flat</option>
                     <option value="Purpose-built flat">Purpose-built flat</option>
+                    <option value="Cottage">Cottage</option>
                     <option value="HMO">HMO</option>
                     <option value="Block of flats">Block of flats</option>
+                    <option value="Park home">Park home</option>
+                    <option value="Chalet">Chalet</option>
                     <option value="Commercial / mixed use">Commercial / mixed use</option>
                     <option value="Land">Land</option>
                   </select>
