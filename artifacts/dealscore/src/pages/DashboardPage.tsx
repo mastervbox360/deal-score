@@ -323,7 +323,9 @@ export default function DashboardPage() {
   // ── New Deal slide-over state ──────────────────────────────────────────────
   const [newDealOpen, setNewDealOpen]   = useState(false)
   const [newDealStep, setNewDealStep]   = useState<1 | 2 | 3>(1)
-  const [ndData, setNdData]             = useState<NdData>({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
+  const [ndData, setNdData]             = useState<NdData>({ strat: '', address: '', price: '', country: '', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
+  const [ndSelectedPostcode, setNdSelectedPostcode] = useState('')
+  const [ndSelectedAddress, setNdSelectedAddress]   = useState('')
   const [ndStratErr, setNdStratErr]     = useState(false)
   const [ndCreating, setNdCreating]     = useState(false)
   const [ndSuccess, setNdSuccess]       = useState(false)
@@ -431,36 +433,44 @@ export default function DashboardPage() {
       )
       const postcode = postcodeComp?.long_name || ''
 
+      console.log('[places] selected — postcode:', postcode, '| address:', fullAddress)
+
       setNdData(nd => ({ ...nd, address: fullAddress }))
       setNdDataSource(s => ({ ...s, address: 'Via Google Places' }))
-
-      if (postcode || fullAddress) {
-        fetchPropertyIntelligence(postcode, fullAddress).then(intel => {
-          if (!intel) return
-          console.log('[places] intel result:', JSON.stringify(intel))
-          if (intel.epcRating) {
-            setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string }))
-            setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
-          }
-          if (intel.tenure) {
-            setNdData(nd => ({ ...nd, tenure: intel.tenure as string }))
-            setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
-          }
-          if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
-          if (intel.country) {
-            const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-            const mapped = cmap[intel.country as string] ?? null
-            if (mapped) {
-              setNdData(nd => ({ ...nd, country: mapped }))
-              setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
-            }
-          }
-        }).catch(() => {})
-      }
+      setNdSelectedPostcode(postcode)
+      setNdSelectedAddress(fullAddress)
     })
 
     return () => { maps.event?.clearInstanceListeners(autocomplete) }
   }, [newDealStep])
+
+  // Property-intelligence cascade — fires when a Places address is selected
+  useEffect(() => {
+    if (!ndSelectedPostcode && !ndSelectedAddress) return
+    const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+    console.log('[places] newDealCountryMap:', JSON.stringify(cmap))
+    fetchPropertyIntelligence(ndSelectedPostcode, ndSelectedAddress).then(intel => {
+      if (!intel?.success) return
+      console.log('[places] intel result:', JSON.stringify(intel))
+      console.log('[places] intel.country raw:', intel.country)
+      if (intel.epcRating) {
+        setNdData(nd => ({ ...nd, epcRating: intel.epcRating as string }))
+        setNdDataSource(s => ({ ...s, epcRating: 'Via EPC Register' }))
+      }
+      if (intel.tenure) {
+        setNdData(nd => ({ ...nd, tenure: intel.tenure as string }))
+        setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
+      }
+      if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
+      if (intel.country) {
+        const mapped = cmap[intel.country as string] ?? null
+        if (mapped) {
+          setNdData(nd => ({ ...nd, country: mapped }))
+          setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+        }
+      }
+    }).catch(() => {})
+  }, [ndSelectedPostcode, ndSelectedAddress])
 
   // Fetch deals
   const fetchDeals = useCallback(async () => {
@@ -509,7 +519,9 @@ export default function DashboardPage() {
   function openNd() {
     setNewDealOpen(true)
     setNewDealStep(1)
-    setNdData({ strat: '', address: '', price: '', country: 'England', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
+    setNdData({ strat: '', address: '', price: '', country: '', proptype: '', beds: '', bathrooms: '', tenure: '', epcRating: '' })
+    setNdSelectedPostcode('')
+    setNdSelectedAddress('')
     setNdDataSource({})
     setNdStratErr(false)
     setNdCreating(false)
@@ -743,23 +755,23 @@ export default function DashboardPage() {
       if (d.bathrooms)      extra.bathrooms = d.bathrooms
       setScrapeExtra(extra)
 
-      const populated = [
-        d.address && 'address',
-        d.price && 'price',
-        d.beds && 'beds',
-        d.bathrooms && `${d.bathrooms} bath`,
-        d.propertyType && 'property type',
-        d.country && d.country,
-        d.tenure && 'tenure',
-        d.epcRating && `EPC ${d.epcRating}`,
-        d.floorAreaSqm && `${d.floorAreaSqm}m²`,
-        d.leaseYears && `${d.leaseYears}yr lease`,
-        d.serviceCharge && `SC £${d.serviceCharge.toLocaleString('en-GB')}pa`,
-        d.groundRent && `GR £${d.groundRent.toLocaleString('en-GB')}pa`,
-        d.councilTaxBand && `CT band ${d.councilTaxBand}`,
-        sdEstimate !== null && `SDLT ~£${sdEstimate.toLocaleString('en-GB')}`,
-      ].filter(Boolean)
-      setScrapeResult(`success:${populated.join(', ')}`)
+      const filledParts: string[] = []
+      if (d.address)       filledParts.push('Address')
+      if (d.price)         filledParts.push(`£${Number(d.price).toLocaleString('en-GB')}`)
+      if (d.propertyType)  filledParts.push(d.propertyType)
+      if (d.beds)          filledParts.push(`${d.beds} bed`)
+      if (d.bathrooms)     filledParts.push(`${d.bathrooms} bath`)
+      if (d.tenure)        filledParts.push(d.tenure)
+      if (d.country) {
+        const cmap: Record<string, string> = { 'England': 'England & NI', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England & NI' }
+        filledParts.push(cmap[d.country] ?? d.country)
+      }
+      if (d.epcRating)     filledParts.push(`EPC ${d.epcRating}`)
+      if (sdEstimate !== null) filledParts.push(`SDLT ~£${sdEstimate.toLocaleString('en-GB')}`)
+      const filledText = filledParts.length > 0
+        ? `Auto-filled: ${filledParts.join(' · ')}`
+        : 'Details filled in'
+      setScrapeResult(`success:${filledText}`)
     } catch (_err) {
       setScrapeResult('Could not read that listing — please enter details manually.')
     } finally {
@@ -1149,7 +1161,7 @@ export default function DashboardPage() {
                 {scrapeResult && scrapeResult.startsWith('success:') && (
                   <div style={{ marginTop: 7, fontSize: 11, color: '#1D9E75', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <i className="ti ti-circle-check" style={{ fontSize: 12 }} />
-                    Filled in: {scrapeResult.replace('success:', '')}
+                    {scrapeResult.replace('success:', '')}
                   </div>
                 )}
                 {scrapeResult && !scrapeResult.startsWith('success:') && (
