@@ -450,7 +450,20 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!ndSelectedPostcode && !ndSelectedAddress) return
     const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
-    console.log('[places] newDealCountryMap:', JSON.stringify(cmap))
+
+    // ── Fast: get country instantly from postcodes.io (~200ms) ──────────────
+    if (ndSelectedPostcode) {
+      fetchPostcodeCountry(ndSelectedPostcode).then(countryRaw => {
+        if (!countryRaw) return
+        const mapped = cmap[countryRaw] ?? null
+        if (mapped) {
+          setNdData(nd => ({ ...nd, country: mapped }))
+          setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+        }
+      }).catch(() => {})
+    }
+
+    // ── Background: EPC + flood risk via edge function ──────────────────────
     fetchPropertyIntelligence(ndSelectedPostcode, ndSelectedAddress).then(intel => {
       if (!intel?.success) return
       console.log('[places] intel result:', JSON.stringify(intel))
@@ -464,7 +477,8 @@ export default function DashboardPage() {
         setNdDataSource(s => ({ ...s, tenure: 'Via EPC Register' }))
       }
       if (intel.floodRisk) setScrapeExtra(e => ({ ...e, floodRisk: intel.floodRisk as string }))
-      if (intel.country) {
+      // Only override country if the fast lookup didn't already set it
+      if (intel.country && !ndData.country) {
         const mapped = cmap[intel.country as string] ?? null
         if (mapped) {
           setNdData(nd => ({ ...nd, country: mapped }))
@@ -504,6 +518,15 @@ export default function DashboardPage() {
   }
 
   const stub = (msg = 'Coming soon!') => alert(msg)
+
+  async function fetchPostcodeCountry(postcode: string): Promise<string | null> {
+    try {
+      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`)
+      const json = await res.json()
+      if (json.status === 200 && json.result?.country) return json.result.country as string
+    } catch (_) {}
+    return null
+  }
 
   async function fetchPropertyIntelligence(postcode: string, address?: string) {
     console.log('[intel] fetchPropertyIntelligence entered — postcode:', JSON.stringify(postcode), 'address:', JSON.stringify(address))
@@ -708,6 +731,20 @@ export default function DashboardPage() {
       const pcForLookup      = d.postcode || extractPostcodeFromAddress(d.address || '')
       const addressForLookup = d.address || ''
       console.log('[intel] cascade check — pcForLookup:', JSON.stringify(pcForLookup), 'addressForLookup:', JSON.stringify(addressForLookup))
+
+      // Fast: instant country from postcodes.io
+      if (pcForLookup && !d.country) {
+        const cmap: Record<string, string> = { 'England': 'England', 'Wales': 'Wales', 'Scotland': 'Scotland', 'Northern Ireland': 'England' }
+        fetchPostcodeCountry(pcForLookup).then(countryRaw => {
+          if (!countryRaw) return
+          const mapped = cmap[countryRaw] ?? null
+          if (mapped) {
+            setNdData(nd => ({ ...nd, country: mapped }))
+            setNdDataSource(s => ({ ...s, country: 'Via postcode lookup' }))
+          }
+        }).catch(() => {})
+      }
+
       console.log('[intel] calling with:', pcForLookup, addressForLookup)
       if (pcForLookup || addressForLookup) {
         void scrapeLatLng // held for future flood risk usage
