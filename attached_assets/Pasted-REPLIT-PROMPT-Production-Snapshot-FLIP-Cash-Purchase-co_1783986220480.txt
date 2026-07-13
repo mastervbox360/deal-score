@@ -1,0 +1,48 @@
+REPLIT PROMPT — Production Snapshot: FLIP Cash Purchase copy clarity fix
+
+Branch: production-candidate (you should already be on this branch — confirm with git status before editing, do NOT touch stage-6)
+
+Standing rule: Read the file in full before editing. Only touch the specific text described below — no other logic, state, or styling changes. npx tsc --noEmit must show zero errors before committing.
+
+
+Context
+
+In artifacts/dealscore/src/pages/Home.tsx, the FLIP strategy's "Financing Method" section shows a note when "Cash" is selected. It currently reads something like:
+
+
+"CASH PURCHASE: No financing costs — purchase price and costs paid in full. Refurb and other costs still apply."
+
+
+
+This is functionally correct (Holding Costs/mo and Project Length fields are correctly still shown and used for cash purchases — they drive holding costs during the works and the annualised ROI calculation, not financing interest), but the copy doesn't explicitly say "holding costs" still apply — a user reading "no financing costs" alongside a still-visible "Holding Costs/mo" field could reasonably wonder if that field is a leftover mistake.
+
+Fix
+
+Find the Cash-purchase explanatory note text for the FLIP financing method section (search for "CASH PURCHASE" or "No financing costs" or "paid in full" — whichever matches what's actually in the file).
+
+Update the copy so it explicitly mentions holding costs still apply, not just "refurb and other costs." For example, change it to something like:
+
+
+"No financing costs — purchase price and costs paid in full. Refurb, holding costs, and other costs still apply."
+
+
+
+Keep the exact same styling/wrapper — this is a text-only change. Use your judgment on the precise wording as long as it explicitly names "holding costs" alongside refurb/other costs, so it's clear those fields aren't leftover/irrelevant when Cash is selected.
+
+
+FINAL STEPS
+
+
+npx tsc --noEmit — zero errors required.
+Commit on production-candidate (report the commit command back to Videet to run in Shell, same as before — do not attempt to run git commit yourself):
+
+
+git add -A && git commit -m "fix: clarify FLIP cash-purchase note still requires holding costs"
+
+REPORT BACK
+
+
+Confirm you're on production-candidate.
+The exact original text you found, and the exact new text you replaced it with.
+Confirm no other FLIP financing-method copy (Bridging/Mortgage notes) was touched.
+Any TypeScript errors and how resolved.

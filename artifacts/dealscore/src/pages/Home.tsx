@@ -2254,7 +2254,7 @@ export default function HomePage() {
                     {flipInputs.financingMethod === 'Cash' && (
                       <div className="md:col-span-2">
                         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Cash purchase</p>
-                        <p className="text-xs text-muted-foreground">No financing costs — purchase price and costs paid in full. Refurb and other costs still apply.</p>
+                        <p className="text-xs text-muted-foreground">No financing costs — purchase price and costs paid in full. Refurb, holding costs, and other costs still apply.</p>
                       </div>
                     )}
                     {flipInputs.financingMethod === 'Bridging' && (
