@@ -1,0 +1,148 @@
+REPLIT PROMPT — Production Snapshot Fix: R2R ROI + PDF Stress Test Mortgage Type
+
+IMPORTANT — this targets a SEPARATE branch, not stage-6
+
+This is NOT for the stage-6 branch. This snapshot is being prepared as a production candidate off an older commit (c40d230, 2026-05-27 — the last commit before Supabase/auth was introduced). Your ongoing stage-6 UI rebuild work must not be touched by this.
+
+First, in the Shell, create and switch to the new branch:
+
+git checkout -b production-candidate c40d230
+
+Confirm you're on this branch (git status should show On branch production-candidate) before making any edits. Do NOT run this against stage-6 or main.
+
+Standing rule: Read each file in full before editing. Only touch what's described below. npx tsc --noEmit must show zero errors before committing.
+
+
+FIX 1 — R2R ROI formula missing landlord deposit from the denominator
+
+File: artifacts/dealscore/src/lib/calculations.ts
+
+Problem: calculateR2R's ROI and net yield both divide by inputs.setupCosts alone. Rent-to-Rent deals require a landlord deposit (refundable, typically 1-2 months' rent) as part of the cash invested to secure the arrangement — that deposit isn't tracked as an input at all, so it's silently missing from both the ROI calculation and the "cash invested" total shown in Show Workings. This currently overstates ROI significantly (audit found ~103% shown vs ~60% correct on a real deal).
+
+Step 1 — Add the missing field to R2RInputs:
+
+Find:
+
+typescriptexport interface R2RInputs {
+  monthlyRentPaid: number;
+  rooms: number;
+  rentPerRoom: number;
+  occupancyRate: number;
+  managementFeesPercent: number;
+  monthlyRunningCosts: number;
+  setupCosts: number;
+}
+
+Replace with:
+
+typescriptexport interface R2RInputs {
+  monthlyRentPaid: number;
+  rooms: number;
+  rentPerRoom: number;
+  occupancyRate: number;
+  managementFeesPercent: number;
+  monthlyRunningCosts: number;
+  setupCosts: number;
+  landlordDeposit: number;
+}
+
+Step 2 — Fix the ROI and yield calculations to use total cash invested (setup costs + landlord deposit):
+
+Find:
+
+typescriptexport function calculateR2R(inputs: R2RInputs) {
+  const grossMonthlyIncome = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
+  const managementFees = grossMonthlyIncome * (inputs.managementFeesPercent / 100);
+  const netMonthlyIncome = grossMonthlyIncome - managementFees;
+  const monthlyProfit = netMonthlyIncome - inputs.monthlyRentPaid - inputs.monthlyRunningCosts;
+  const annualProfit = monthlyProfit * 12;
+  const annualGrossIncome = grossMonthlyIncome * 12;
+  const roi = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+  const grossYield = inputs.setupCosts > 0 ? (annualGrossIncome / inputs.setupCosts) * 100 : 0;
+  const netYield = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+
+Replace with:
+
+typescriptexport function calculateR2R(inputs: R2RInputs) {
+  const grossMonthlyIncome = inputs.rooms * inputs.rentPerRoom * (inputs.occupancyRate / 100);
+  const managementFees = grossMonthlyIncome * (inputs.managementFeesPercent / 100);
+  const netMonthlyIncome = grossMonthlyIncome - managementFees;
+  const monthlyProfit = netMonthlyIncome - inputs.monthlyRentPaid - inputs.monthlyRunningCosts;
+  const annualProfit = monthlyProfit * 12;
+  const annualGrossIncome = grossMonthlyIncome * 12;
+  const totalCashInvested = inputs.setupCosts + inputs.landlordDeposit;
+  const roi = totalCashInvested > 0 ? (annualProfit / totalCashInvested) * 100 : 0;
+  const grossYield = totalCashInvested > 0 ? (annualGrossIncome / totalCashInvested) * 100 : 0;
+  const netYield = totalCashInvested > 0 ? (annualProfit / totalCashInvested) * 100 : 0;
+
+Step 3 — Add totalCashInvested to the return object so Show Workings (and anywhere else displaying "cash invested" for R2R) can show the correct figure including the deposit:
+
+Find the return { ... } block at the end of calculateR2R and add totalCashInvested, as the first field.
+
+Step 4 — Find the R2R inputs form/section (wherever R2RInputs fields are collected — likely Home.tsx or the R2R-specific input section) and add a landlordDeposit number field alongside setupCosts, labelled something like "Landlord deposit (refundable)". Read the surrounding fields first to match the existing style exactly.
+
+Step 5 — Find everywhere calculateR2R is called and pass landlordDeposit from whatever state/form object holds it (matching however setupCosts is currently passed in).
+
+Step 6 — Find the R2R Show Workings display (wherever "Setup Costs" or "Cash Invested" is shown in the breakdown for R2R) and update it to show the landlord deposit as a separate line item, with the total (setup costs + deposit) as the cash invested figure — matching whatever section/table structure is already there for other strategies' cash-invested breakdowns.
+
+
+FIX 2 — PDF stress test uses interest-only formula regardless of mortgage type
+
+File: artifacts/dealscore/src/components/DealScorePDF.tsx
+
+Problem: The Stress Testing page's computeStScenario function always calculates the mortgage payment as a pure interest-only figure (stLoanAmount * rate / 100 / 12), even when the deal's mortgageType is 'REPAYMENT'. This produces the wrong stress-test numbers for any deal using a repayment mortgage — the payment shown will be too low, understating risk.
+
+Find:
+
+typescript  const computeStScenario = (offset: number) => {
+    const rate = stBaseRate + offset;
+    const mortgage = stLoanAmount * (rate / 100) / 12;
+    const cf = stEffectiveRent - stTotalOpCosts - mortgage;
+    const roi = stCashInvested > 0 ? (cf * 12 / stCashInvested) * 100 : 0;
+    const payback = (stCashInvested > 0 && cf > 0) ? stCashInvested / (cf * 12) : Infinity;
+    return { rate, mortgage, cf, roi, payback };
+  };
+
+Replace with:
+
+typescript  const computeStScenario = (offset: number) => {
+    const rate = stBaseRate + offset;
+    let mortgage: number;
+    if (props.mortgageType === 'REPAYMENT') {
+      const monthlyRate = rate / 100 / 12;
+      const n = props.mortgageTerm * 12;
+      mortgage = (monthlyRate === 0 || n <= 0)
+        ? (n > 0 ? stLoanAmount / n : 0)
+        : (stLoanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -n));
+    } else {
+      mortgage = stLoanAmount * (rate / 100) / 12;
+    }
+    const cf = stEffectiveRent - stTotalOpCosts - mortgage;
+    const roi = stCashInvested > 0 ? (cf * 12 / stCashInvested) * 100 : 0;
+    const payback = (stCashInvested > 0 && cf > 0) ? stCashInvested / (cf * 12) : Infinity;
+    return { rate, mortgage, cf, roi, payback };
+  };
+
+Before making this change, check one thing: for dealType === 'BRRR', confirm whether props.mortgageType/props.mortgageTerm are the correct fields to use for the refinance mortgage, or whether BRRR tracks its own separate mortgage-type field (since stBaseRate for BRRR already pulls from props.brrrInputs.newMortgageRate rather than the shared props.mortgageRate). If BRRR has its own type/term fields, use those conditionally instead. Read the BRRRInputs interface and how props.brrrInputs is used elsewhere in this file to confirm before finalizing this edit.
+
+
+FINAL STEPS
+
+
+npx tsc --noEmit — zero errors required.
+Manually sanity-check: enter a repayment-mortgage BTL deal and an R2R deal with a landlord deposit value, confirm the stress test page and R2R ROI now produce sensible, different numbers than before.
+Commit on the production-candidate branch (NOT stage-6):
+
+
+git add -A && git commit -m "fix: production snapshot — R2R ROI includes landlord deposit, PDF stress test respects mortgage type"
+
+Do NOT push yet — report back first so we can confirm before this goes anywhere near main.
+
+REPORT BACK
+
+
+Confirm you created and are on the production-candidate branch (not stage-6).
+Any TypeScript errors and how resolved.
+What you found for BRRR's mortgage type/term handling in the PDF, and whether you adjusted Fix 2 accordingly.
+Confirm the R2R input form change — what label/section you added the landlord deposit field to.
+Any other calculateR2R call sites you found and updated.
