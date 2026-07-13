@@ -323,6 +323,7 @@ export default function HomePage() {
     managementFeesPercent: 0,
     monthlyRunningCosts: 0,
     setupCosts: 0,
+    landlordDeposit: 0,
   });
 
   const [socialInputs, setSocialInputs] = useState({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
@@ -684,7 +685,7 @@ export default function HomePage() {
     } else if (dealType === 'BRRR') {
       setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
     } else if (dealType === 'R2R') {
-      setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0 });
+      setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0, landlordDeposit: 0 });
     } else {
       setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
     }
@@ -747,7 +748,7 @@ export default function HomePage() {
     ? (purchasePrice * (brrBridgingLTV / 100)) * (brrBridgingRate / 100) * brrBridgingTerm
     : 0;
   const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrBridgingInterest, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs });
-  const r2rResults = calculateR2R(r2rInputs);
+  const r2rResults = calculateR2R({ ...r2rInputs, landlordDeposit: r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths });
   const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs });
 
   const optimalOffer = React.useMemo(() => {
@@ -1110,12 +1111,12 @@ export default function HomePage() {
 
   const currentCashInLabel: string =
     dealType === 'FLIP' ? 'Total Cost' :
-    dealType === 'R2R' ? 'Setup Costs' :
+    dealType === 'R2R' ? 'Cash Invested' :
     'Cash In';
 
   const liveBarCashInLabel: string =
     dealType === 'FLIP' ? 'Total Cost' :
-    dealType === 'R2R' ? 'Setup Costs' :
+    dealType === 'R2R' ? 'Cash Invested' :
     'Cash In';
 
   const currentCashInValue: number =
@@ -1125,7 +1126,7 @@ export default function HomePage() {
     dealType === 'BRRR' ? brrrResults.cashLeftInDeal :
     dealType === 'SOCIAL' ? socialResults.totalCashInvested :
     dealType === 'FLIP' ? flipResults.totalCost :
-    r2rInputs.setupCosts;
+    r2rResults.totalCashInvested;
 
   const currentCFLabel: string =
     dealType === 'FLIP' ? 'Profit/mo' :
@@ -4220,9 +4221,10 @@ export default function HomePage() {
                   {/* R2R */}
                   {dealType === 'R2R' && (
                     <>
-                      <WSec title="A  SETUP COSTS" />
+                      <WSec title="A  CASH INVESTED" />
                       <WRow label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} />
-                      <WRow label="TOTAL SETUP COSTS" value={formatCurrency(r2rInputs.setupCosts)} bold />
+                      {r2rLandlordDepositMonths > 0 && <WRow label={`Landlord Deposit (${r2rLandlordDepositMonths} month${r2rLandlordDepositMonths !== 1 ? 's' : ''})`} value={formatCurrency(r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths)} />}
+                      <WRow label="TOTAL CASH INVESTED" value={formatCurrency(r2rResults.totalCashInvested)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Gross Monthly Income" value={formatCurrency(r2rResults.grossMonthlyIncome)} />
                       <WRow label="Less: Landlord Rent" value={`(${formatCurrency(r2rInputs.monthlyRentPaid)})`} />
@@ -4231,7 +4233,7 @@ export default function HomePage() {
                       <WRow label="Less: Running Costs" value={`(${formatCurrency(r2rInputs.monthlyRunningCosts)})`} />
                       <WRow label="MONTHLY PROFIT" value={formatCurrency(r2rResults.monthlyProfit)} bold color={r2rResults.monthlyProfit < 0 ? '#EF4444' : '#22C55E'} />
                       <WSec title="C  KEY METRICS" />
-                      <WRow label={`ROI  ${formatCurrency(r2rResults.annualProfit)} ÷ ${formatCurrency(r2rInputs.setupCosts)} × 100`} value={formatPercent(r2rResults.roi)} bold color='#1B3A6B' />
+                      <WRow label={`ROI  ${formatCurrency(r2rResults.annualProfit)} ÷ ${formatCurrency(r2rResults.totalCashInvested)} × 100`} value={formatPercent(r2rResults.roi)} bold color='#1B3A6B' />
                     </>
                   )}
                   {/* SOCIAL */}

@@ -1080,7 +1080,16 @@ export default function DealScorePDF(props: DealScorePDFProps) {
 
   const computeStScenario = (offset: number) => {
     const rate = stBaseRate + offset;
-    const mortgage = stLoanAmount * (rate / 100) / 12;
+    let mortgage: number;
+    if (props.mortgageType === 'REPAYMENT') {
+      const monthlyRate = rate / 100 / 12;
+      const n = props.mortgageTerm * 12;
+      mortgage = (monthlyRate === 0 || n <= 0)
+        ? (n > 0 ? stLoanAmount / n : 0)
+        : (stLoanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -n));
+    } else {
+      mortgage = stLoanAmount * (rate / 100) / 12;
+    }
     const cf = stEffectiveRent - stTotalOpCosts - mortgage;
     const roi = stCashInvested > 0 ? (cf * 12 / stCashInvested) * 100 : 0;
     const payback = (stCashInvested > 0 && cf > 0) ? stCashInvested / (cf * 12) : Infinity;

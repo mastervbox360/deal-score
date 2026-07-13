@@ -478,6 +478,7 @@ export interface R2RInputs {
   managementFeesPercent: number;
   monthlyRunningCosts: number;
   setupCosts: number;
+  landlordDeposit: number;
 }
 
 export interface SocialHousingInputs {
@@ -506,9 +507,10 @@ export function calculateR2R(inputs: R2RInputs) {
   const monthlyProfit = netMonthlyIncome - inputs.monthlyRentPaid - inputs.monthlyRunningCosts;
   const annualProfit = monthlyProfit * 12;
   const annualGrossIncome = grossMonthlyIncome * 12;
-  const roi = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
-  const grossYield = inputs.setupCosts > 0 ? (annualGrossIncome / inputs.setupCosts) * 100 : 0;
-  const netYield = inputs.setupCosts > 0 ? (annualProfit / inputs.setupCosts) * 100 : 0;
+  const totalCashInvested = inputs.setupCosts + inputs.landlordDeposit;
+  const roi = totalCashInvested > 0 ? (annualProfit / totalCashInvested) * 100 : 0;
+  const grossYield = totalCashInvested > 0 ? (annualGrossIncome / totalCashInvested) * 100 : 0;
+  const netYield = totalCashInvested > 0 ? (annualProfit / totalCashInvested) * 100 : 0;
 
   let score: 'Strong' | 'Average' | 'Weak' | 'Incomplete' = 'Weak';
   if (!inputs.rooms || !inputs.rentPerRoom || !inputs.monthlyRentPaid) {
@@ -520,6 +522,7 @@ export function calculateR2R(inputs: R2RInputs) {
   }
 
   return {
+    totalCashInvested,
     grossMonthlyIncome,
     managementFees,
     netMonthlyIncome,
