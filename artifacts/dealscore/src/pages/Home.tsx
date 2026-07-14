@@ -553,31 +553,26 @@ export default function HomePage() {
     }
   }, [dealType]);
 
-  const fetchAddressSuggestions = async (input: string) => {
+  const fetchAddressSuggestions = (input: string) => {
     if (!input || input.length < 3 || !window.google?.maps?.places) {
       setAddressSuggestions([]);
       setShowSuggestions(false);
       return;
     }
     try {
-      const result = await (window.google.maps.places as any).AutocompleteSuggestion.fetchAutocompleteSuggestions({
-        input,
-        includedRegionCodes: ['gb'],
-      });
-      const { suggestions } = result;
-      if (suggestions && suggestions.length > 0) {
-        const descriptions = suggestions.map((s: any) => {
-          const parsed = JSON.parse(JSON.stringify(s));
-          const text = s?.Yz || s?.YC || parsed?.mh?.[0]?.[2]?.[0] || s?.placePrediction?.text?.text || null;
-          const placeId = parsed?.mh?.[0]?.[1] || null;
-          return (typeof text === 'string' && placeId) ? { description: text, placeId } : null;
-        }).filter(Boolean) as {description: string; placeId: string}[];
-        setAddressSuggestions(descriptions);
-        setShowSuggestions(true);
-      } else {
-        setAddressSuggestions([]);
-        setShowSuggestions(false);
-      }
+      const svc = new window.google.maps.places.AutocompleteService();
+      svc.getPlacePredictions(
+        { input, componentRestrictions: { country: 'gb' } },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+            setAddressSuggestions(predictions.map(p => ({ description: p.description, placeId: p.place_id })));
+            setShowSuggestions(true);
+          } else {
+            setAddressSuggestions([]);
+            setShowSuggestions(false);
+          }
+        }
+      );
     } catch (err) {
       console.error('Autocomplete error:', err);
       setAddressSuggestions([]);
@@ -585,46 +580,45 @@ export default function HomePage() {
     }
   };
 
-  const selectSuggestion = async (suggestion: { description: string; placeId: string }) => {
+  const selectSuggestion = (suggestion: { description: string; placeId: string }) => {
     setShowSuggestions(false);
     setAddressSuggestions([]);
     setHighlightedIndex(-1);
     setPropertyAddress(suggestion.description);
     try {
-      const place = new (window.google.maps.places as any).Place({
-        id: suggestion.placeId,
-        requestedLanguage: 'en',
-      });
-      await place.fetchFields({ fields: ['formattedAddress', 'addressComponents'] });
-      if (place.formattedAddress) {
-        let cleaned = place.formattedAddress
-          .replace(/, UK$/, '')
-          .replace(/, United Kingdom$/, '');
-        const comps = JSON.parse(JSON.stringify(place.addressComponents || []));
-        const postcodeComp = comps.find(
-          (c: any) => Array.isArray(c.types) && c.types.includes('postal_code')
-        );
-        const postcode = postcodeComp?.longText || '';
-        if (postcode && !cleaned.includes(postcode)) {
-          cleaned = `${cleaned}, ${postcode}`;
+      const svc = new window.google.maps.places.PlacesService(document.createElement('div'));
+      svc.getDetails(
+        { placeId: suggestion.placeId, fields: ['formatted_address', 'address_components'] },
+        (result, status) => {
+          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !result) return;
+          let cleaned = (result.formatted_address || suggestion.description)
+            .replace(/, UK$/, '')
+            .replace(/, United Kingdom$/, '');
+          const postcodeComp = result.address_components?.find(
+            (c) => c.types.includes('postal_code')
+          );
+          const postcode = postcodeComp?.long_name || '';
+          if (postcode && !cleaned.includes(postcode)) {
+            cleaned = `${cleaned}, ${postcode}`;
+          }
+          setPropertyAddress(cleaned);
+          detectTaxCountryFromPostcode(cleaned);
+          // Pre-populate property description skeleton if field is empty
+          const postcodeArea = postcode.split(/\s+/)[0];
+          if (postcodeArea) {
+            setPropertyDescription((prev) => {
+              if (prev.trim()) return prev;
+              const parts: string[] = [];
+              if (propertyType) parts.push(propertyType);
+              if (tenure) parts.push(tenure);
+              parts.push(`${postcodeArea} area`);
+              return parts.join(', ') + '.';
+            });
+          }
         }
-        setPropertyAddress(cleaned);
-        detectTaxCountryFromPostcode(cleaned);
-        // Pre-populate property description skeleton if field is empty
-        const postcodeArea = postcode.split(/\s+/)[0];
-        if (postcodeArea) {
-          setPropertyDescription((prev) => {
-            if (prev.trim()) return prev;
-            const parts: string[] = [];
-            if (propertyType) parts.push(propertyType);
-            if (tenure) parts.push(tenure);
-            parts.push(`${postcodeArea} area`);
-            return parts.join(', ') + '.';
-          });
-        }
-      }
+      );
     } catch {
-      // Keep suggestion.description if Place Details fails
+      // Keep suggestion.description if PlacesService fails
     }
   };
 
