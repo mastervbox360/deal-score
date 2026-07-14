@@ -5273,7 +5273,7 @@ function PropertyDataPanel({
                   <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.floorArea} m²</span>
                 </div>
               )}
-              {data.epcRating && (
+              {data.epcRating ? (
                 <div>
                   <span style={{ color: '#64748B' }}>EPC rating: </span>
                   <span style={{
@@ -5285,6 +5285,11 @@ function PropertyDataPanel({
                     borderRadius: 4,
                     fontSize: 12,
                   }}>{data.epcRating}</span>
+                </div>
+              ) : (
+                <div>
+                  <span style={{ color: '#64748B' }}>EPC rating: </span>
+                  <span style={{ color: '#94A3B8', fontStyle: 'italic' }}>No certificate found</span>
                 </div>
               )}
               {data.constructionDate && (
