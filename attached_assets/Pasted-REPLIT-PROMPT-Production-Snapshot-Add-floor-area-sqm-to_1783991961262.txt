@@ -1,0 +1,42 @@
+REPLIT PROMPT — Production Snapshot: Add floor area (sqm) to Property Intelligence panel
+
+Branch: production-candidate (confirm with git status before editing — do NOT touch stage-6)
+
+Standing rule: Read each file in full before editing. npx tsc --noEmit must show zero errors before committing. Do NOT push — report back first.
+
+
+Context
+
+EPC lookup is now working correctly (bearer token was added to Netlify env vars, confirmed live — EPC rating "B" displaying correctly alongside Flood risk in the Property Intelligence panel).
+
+The UK EPC Register API response includes a total floor area field for the property (this is a standard field on every EPC certificate — usually named total-floor-area or TOTAL_FLOOR_AREA depending on which version of the field naming the API uses, measured in square metres). We want to surface this in the Property Intelligence panel as an additional data point, since it's already being fetched anyway.
+
+What to do
+
+
+Find the Netlify function at netlify/functions/epc-lookup.js (confirmed location from the earlier EPC bug fix). Read it in full. Check what fields are currently being extracted/passed through from the raw EPC API response — confirm whether floor area is already present in the data being returned to the client, just unused, or whether it needs to be added to the function's response mapping.
+Check the raw EPC API response shape — if unsure of the exact field name, log the full raw response object once (or check it via a test curl call) to confirm the correct key (likely total-floor-area, but confirm rather than assume).
+Add the field to the Netlify function's response if it isn't already being passed through — add it as a clearly-named field (e.g. floorAreaSqm) alongside the existing epcRating field in the response object.
+Find the Property Intelligence panel in the client (artifacts/dealscore/src/pages/Home.tsx, around the EPC rating / Flood risk display section — this was recently touched for the "No certificate found" fallback, so should be easy to relocate). Read the surrounding code to match the existing style exactly (same label formatting as "EPC rating:" and "Flood risk:").
+Add a new row: Floor area: <value> m² (e.g. "Floor area: 74 m²"), positioned logically near the EPC rating row since it comes from the same certificate. Round to a sensible precision (whole number or 1 decimal place — match whatever convention, if any, is used elsewhere in the app for measurements).
+Handle the missing-data case the same way as the EPC "No certificate found" fallback we just added — if floor area isn't available (either because there's no EPC certificate at all, or the specific record doesn't have this field populated), don't show a broken/blank row; either omit it or show a matching muted "not available" style, consistent with the existing EPC no-data messaging.
+
+
+
+FINAL STEPS
+
+
+npx tsc --noEmit — zero errors required.
+Manually verify on a postcode with a known EPC certificate (e.g. the CF24 2LY one already confirmed working) that floor area now displays correctly alongside EPC rating and Flood risk.
+Do NOT push. Report back first.
+
+
+REPORT BACK
+
+
+Confirm you're on production-candidate.
+The exact field name used in the raw EPC API response for floor area, and where you found/confirmed it.
+Whether the Netlify function needed changes to pass this field through, or if it was already there unused.
+The exact new UI row added (label + formatting), and how the missing-data case is handled.
+Confirm no other Property Intelligence rows (EPC rating, Flood risk, Land Registry tenure) were altered.
+Any TypeScript errors and how resolved.

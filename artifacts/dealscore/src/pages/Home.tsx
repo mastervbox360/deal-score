@@ -5270,7 +5270,7 @@ function PropertyDataPanel({
               {data.floorArea && (
                 <div>
                   <span style={{ color: '#64748B' }}>Floor area: </span>
-                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.floorArea} m²</span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{Math.round(data.floorArea)} m²</span>
                 </div>
               )}
               {data.epcRating ? (
