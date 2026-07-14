@@ -1,0 +1,55 @@
+REPLIT PROMPT — Production Snapshot: Address autocomplete dropdown not rendering
+
+Branch: production-candidate (confirm with git status before editing — do NOT touch stage-6)
+
+Standing rule: Read the relevant file(s) in full before editing. npx tsc --noEmit must show zero errors before committing. Do NOT push — report back first.
+
+
+Confirmed diagnosis (already verified live, do not re-diagnose from scratch)
+
+On the live production-candidate Netlify preview, typing a partial address (e.g. "65a horwood") into the Property Address field on the FLIP strategy:
+
+
+Network tab, filtered on googleapis: an AutocompletePlaces XHR request fires on every keystroke, each returning HTTP 200, hitting .../js?key=AIzaSyDHL... (this is the internal request the Google Maps JS SDK's AutocompleteService makes — normal behaviour).
+Response body of one of these requests: contains a valid, well-formed prediction — places/ChIJE0pEXNscbkgRcdCAaTJLD3w with a matching place ID — confirming Google is returning real, usable address predictions.
+But the app shows no suggestion dropdown of its own. Instead, Chrome's native browser-level "Addresses" autofill dropdown appears (with a contact-card icon and a "Manage Addresses…" entry) — this is the browser stepping in, not the app.
+Console tab, filtered to Errors only: the only 2 errors present are Unchecked runtime.lastError: A listener indicated an asynchronous response... and Uncaught (in promise) Error: A listener indicated an asynchronous response... — these are well-known Chrome-extension artifacts (unrelated to app code, commonly caused by installed extensions like password managers/ad blockers). These are not the bug. Do not chase these.
+
+
+Conclusion: this is a front-end rendering bug, not an API key, billing, or referrer-restriction issue. The Places API call succeeds and returns real predictions; the app's own component simply isn't displaying them as a selectable dropdown to the user.
+
+
+What to investigate
+
+
+Find the Property Address input's autocomplete wiring in artifacts/dealscore/src/pages/Home.tsx (or wherever it lives) — search for AutocompleteService, getPlacePredictions, PlacesServiceStatus, or the property address <input> and its onChange/onInput handler.
+Read the full callback that receives predictions from getPlacePredictions(...). Likely culprits, in rough order of likelihood:
+
+The predictions callback checks status !== google.maps.places.PlacesServiceStatus.OK (or similar) and this condition is wrong/inverted, so predictions get discarded even on success.
+The predictions are received and stored in state correctly, but the dropdown's conditional render (e.g. {showSuggestions && predictions.length > 0 && (...)}) has a stale/broken condition, so it never renders.
+The input has native browser autocomplete attribute left enabled (not set to "off" or a nonsense value like "new-password"/"chrome-off"), so Chrome's own autofill dropdown renders on top of / instead of the app's custom dropdown, even if the app's dropdown IS technically present in the DOM (z-index or stacking-context issue — check both).
+A debounce/race condition where an older request's response overwrites a newer one, but since responses seem fast (25–160ms) this is less likely.
+
+
+
+Fix whichever of these is the actual root cause. If it's the native-autocomplete-attribute issue, set autoComplete="off" (or another disabling value that doesn't trigger a fresh browser warning) on the address <input> specifically.
+If the app's dropdown component does render in the DOM but is visually hidden behind the native one, check z-index/stacking context and fix so the app's suggestions are what's visible and clickable.
+
+
+
+FINAL STEPS
+
+
+npx tsc --noEmit — zero errors required.
+Manually verify: type a partial UK address on this branch's own dev/preview and confirm the app's own suggestion dropdown appears and is selectable (not just Chrome's native one).
+Do NOT push. Report back first.
+
+
+REPORT BACK
+
+
+Confirm you're on production-candidate.
+What the actual root cause was (which of the above, or something else found).
+The exact fix applied (before/after code).
+Confirm no other unrelated behavior was changed.
+Any TypeScript errors and how resolved.
