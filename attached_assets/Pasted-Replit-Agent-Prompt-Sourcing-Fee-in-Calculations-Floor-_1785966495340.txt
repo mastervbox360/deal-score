@@ -1,0 +1,47 @@
+Replit Agent Prompt — Sourcing Fee in Calculations + Floor Area Input & Price/Sq
+
+Branch: confirm you are on production-candidate before making any changes. Do NOT touch stage-6.
+
+Read artifacts/dealscore/src/lib/calculations.ts and artifacts/dealscore/src/pages/Home.tsx in full before making any changes. Plan every edit explicitly against what you find, then execute all edits in parallel. This prompt has two parts — do both in the same pass since they touch the same files.
+
+Part 1 — Sourcing fee must reduce cash flow and returns, not just display on the PDF
+
+Problem: sourcingFee is currently captured as a state variable in Home.tsx and printed on the PDF as a disclosed cost line, but it is never included in any totalCashInvested / totalCost / totalCostIn formula in calculations.ts. This means it has zero effect on cash-on-cash ROI, net cash flow, or the Deal Score — it's cosmetic only. It needs to become a real upfront cost across all 7 strategies, since it is money the investor genuinely spends to acquire the deal.
+
+Required changes in calculations.ts:
+
+Add sourcingFee: number; to the shared BaseInputs interface (this automatically covers BTLInputs, HMOInputs, SAInputs, BRRRInputs, FlipInputs since they all extend BaseInputs).
+Add sourcingFee: number; explicitly to SocialHousingInputs (it does not extend BaseInputs — fields are duplicated inline).
+Add sourcingFee: number; explicitly to R2RInputs.
+Update every cash-invested formula to include it:
+calculateBTL, calculateHMO, calculateSA: totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee
+calculateSocialHousing: same pattern, add + inputs.sourcingFee
+calculateBRRR: totalCostIn = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee — and also subtract it in equityCreated the same way refurbCost and otherCosts are currently subtracted, since it's a real cost reducing equity created
+calculateFlip: totalCost = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths)
+calculateR2R: totalCashInvested = inputs.setupCosts + inputs.landlordDeposit + inputs.sourcingFee
+Do NOT change calculatePropertyTax, calculateSDLT, or any yield/rent-based formula — sourcing fee only affects cash-invested-based metrics (CoC ROI, payback period), not yield (which is rent ÷ purchase price and should stay unaffected).
+
+Required changes in Home.tsx:
+
+Find where sourcingFee state is currently read into the calc input objects that get passed to calculateBTL/calculateHMO/etc. (search where deposit, stampDuty, refurbCost, otherCosts are assembled into the inputs object for each strategy call) and add sourcingFee to each one so it actually reaches the updated formulas above.
+On the Results / Show Workings display, add a "Sourcing fee" line item in the cash invested / cost breakdown section (wherever stamp duty, refurb cost, and other costs are currently itemised) so users can see it's now counted, not just disclosed separately.
+Do not remove or change the existing PDF disclosure line for sourcing fee — that display is correct and should stay; this is additive, not a replacement.
+Part 2 — Floor area: manual input with ft²/m² toggle + auto price-per-sq calculation
+
+Problem: Floor area currently only auto-populates from the EPC lookup (propertyData.floorArea), is read-only, always displayed in m² only, and there is no price-per-square-foot or price-per-square-metre calculation anywhere.
+
+Required changes:
+
+In the property details input section of Home.tsx (near where other auto-detected-but-editable fields like tenure/property type live), add a floor area input field that:
+Auto-fills from propertyData.floorArea (m²) when EPC data is available, exactly as now
+Is a manually editable number input, not read-only, so the user can enter or correct it when EPC data is missing or wrong
+Has a unit toggle (ft² / m²) next to it — default to m² when auto-filled from EPC (EPC data is always m²), default to whichever the user last used otherwise
+Converts correctly between units for calculation/display purposes: 1 m² = 10.7639 ft²
+Add a derived calculation: pricePerSqFt = purchasePrice / floorAreaInSqFt and pricePerSqM = purchasePrice / floorAreaInSqM, computed only when floor area is present and greater than 0 (guard against divide-by-zero / null).
+Display price per sq ft (or sq m, matching whichever unit the user has selected) on the Results tab near the other headline metrics, and add it to the PDF property details table (DealScorePDF.tsx and DealScorePDFProPlus.tsx) alongside the existing "Floor Area" row — both files currently have a props.floorArea row conditional on the value being present; add a pricePerSqFt/pricePerSqM prop and row using the same conditional pattern.
+Update the floorArea type across Home.tsx, DealScorePDF.tsx, and DealScorePDFProPlus.tsx prop definitions if needed to carry the unit alongside the value (e.g. { value: number; unit: 'sqft' | 'sqm' } | null) — use your judgement on the cleanest approach that doesn't break existing call sites, and flag clearly in your summary if you chose a different structure than the value/unit pair suggested here.
+Verification before pushing
+Run npx tsc --noEmit — zero errors required before proceeding.
+Confirm git status shows only the files you intended to touch.
+Test at least one strategy (BTL) end-to-end: enter a sourcing fee, confirm CoC ROI drops correctly and matches the updated formula; enter/override a floor area, confirm price per sq ft/m appears correctly on Results and updates the PDF preview.
+Do not push automatically — report back what changed, the tsc result, and screenshots, and I'll verify before you push to production-candidate.

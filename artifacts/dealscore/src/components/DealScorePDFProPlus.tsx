@@ -1251,6 +1251,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               ...(props.tenure === 'Leasehold' && props.leaseLengthYears > 0
                 ? [['Lease Remaining', `${props.leaseLengthYears} yrs`] as RowData] : []),
               ...(props.floorArea ? [['Floor Area', `${props.floorArea} m²`] as RowData] : []),
+              ...(props.floorAreaUnit === 'sqft' && props.pricePerSqFt != null
+                ? [['Price / sq ft', `£${Math.round(props.pricePerSqFt).toLocaleString('en-GB')}`] as RowData]
+                : props.pricePerSqM != null
+                ? [['Price / m²', `£${Math.round(props.pricePerSqM).toLocaleString('en-GB')}`] as RowData]
+                : []),
               ...(props.epcRating ? [['EPC Rating', props.epcRating] as RowData] : []),
               ...(props.constructionDate ? [['Built', props.constructionDate] as RowData] : []),
             ] as RowData[]).map(([label, value, bold], i) => (

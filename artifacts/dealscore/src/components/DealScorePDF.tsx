@@ -32,6 +32,9 @@ export interface DealScorePDFProps {
   epcRating: string | null;
   floodRisk: string | null;
   floorArea: number | null;
+  pricePerSqFt: number | null;
+  pricePerSqM: number | null;
+  floorAreaUnit: 'sqm' | 'sqft';
   constructionDate: string | null;
   purchasePrice: number;
   effectiveTax: number;
@@ -1491,6 +1494,11 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               ...(props.tenure === 'Leasehold' && props.leaseLengthYears > 0
                 ? [['Remaining Lease', `${props.leaseLengthYears} years`] as RowData] : []),
               ...(props.floorArea ? [['Floor Area', `${props.floorArea} m\u00B2`] as RowData] : []),
+              ...(props.floorAreaUnit === 'sqft' && props.pricePerSqFt != null
+                ? [['Price / sq ft', `£${Math.round(props.pricePerSqFt).toLocaleString('en-GB')}`] as RowData]
+                : props.pricePerSqM != null
+                ? [['Price / m²', `£${Math.round(props.pricePerSqM).toLocaleString('en-GB')}`] as RowData]
+                : []),
               ...(props.constructionDate ? [['Construction Date', props.constructionDate] as RowData] : []),
             ] as RowData[]).map(([label, value, bold], i) => (
               <View key={i} style={[base.tableRow, i % 2 === 0 ? base.tableRowAlt : {}]}>

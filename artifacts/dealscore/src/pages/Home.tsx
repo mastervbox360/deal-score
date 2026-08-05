@@ -173,6 +173,8 @@ export default function HomePage() {
   const [auctionReservationFee, setAuctionReservationFee] = useState<number | ''>('');
   const [sourcingFee, setSourcingFee] = useState<number>(0);
   const [sourcingFeeDisclaimer, setSourcingFeeDisclaimer] = useState<string | null>(null);
+  const [manualFloorArea, setManualFloorArea] = useState<number | ''>('');
+  const [floorAreaUnit, setFloorAreaUnit] = useState<'sqm' | 'sqft'>('sqm');
   const [protectAddress, setProtectAddress] = useState<boolean>(false);
   const [protectedAddressDescription, setProtectedAddressDescription] = useState<string>('');
   const [paymentTermsExpanded, setPaymentTermsExpanded] = useState<boolean>(false);
@@ -324,6 +326,7 @@ export default function HomePage() {
     monthlyRunningCosts: 0,
     setupCosts: 0,
     landlordDeposit: 0,
+    sourcingFee: 0,
   });
 
   const [socialInputs, setSocialInputs] = useState({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
@@ -446,6 +449,7 @@ export default function HomePage() {
               const epcRating = row.currentEnergyEfficiencyBand || row['current-energy-rating'] || null;
               const constructionDate = row.constructionAgeBand || row['construction-age-band'] || null;
               if (epcPropertyType) { setPropertyType(epcPropertyType); setAutoFilledPropertyType(true); }
+              if (floorArea != null) { setManualFloorArea(floorArea); setFloorAreaUnit('sqm'); }
               setPropertyData(prev => prev ? {
                 ...prev,
                 floorArea,
@@ -635,6 +639,8 @@ export default function HomePage() {
     setLeaseLengthYears(0);
     setSourcingFee(0);
     setSourcingFeeDisclaimer(null);
+    setManualFloorArea('');
+    setFloorAreaUnit('sqm');
     setProtectAddress(false);
     setProtectedAddressDescription('');
     setPaymentTermsExpanded(false);
@@ -679,7 +685,7 @@ export default function HomePage() {
     } else if (dealType === 'BRRR') {
       setBrrrInputs({ postRefurbValue: 0, refinancePercent: 75, newMortgageRate: 0, monthlyRent: 0, bridgingRate: 0, bridgingTermMonths: 0, bridgingLTV: 70 });
     } else if (dealType === 'R2R') {
-      setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0, landlordDeposit: 0 });
+      setR2rInputs({ monthlyRentPaid: 0, rooms: 0, rentPerRoom: 0, occupancyRate: 90, managementFeesPercent: 0, monthlyRunningCosts: 0, setupCosts: 0, landlordDeposit: 0, sourcingFee: 0 });
     } else {
       setSocialInputs({ leaseIncomePerMonth: 0, leaseLengthYears: 0 });
     }
@@ -719,9 +725,19 @@ export default function HomePage() {
 
   const { purchasePrice, refurbCost, otherCosts } = sharedInputs;
   const sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
-  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+
+  // Floor area & price-per-sq derived values
+  const effectiveFloorAreaSqM = manualFloorArea !== ''
+    ? (floorAreaUnit === 'sqft' ? Number(manualFloorArea) / 10.7639 : Number(manualFloorArea))
+    : null;
+  const effectiveFloorAreaSqFt = effectiveFloorAreaSqM != null ? effectiveFloorAreaSqM * 10.7639 : null;
+  const pricePerSqFt = effectiveFloorAreaSqFt != null && effectiveFloorAreaSqFt > 0 && purchasePrice > 0
+    ? purchasePrice / effectiveFloorAreaSqFt : null;
+  const pricePerSqM = effectiveFloorAreaSqM != null && effectiveFloorAreaSqM > 0 && purchasePrice > 0
+    ? purchasePrice / effectiveFloorAreaSqM : null;
+  const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
-  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs });
+  const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
   const { financingMethod, contingencyPercent, flipBridgingRate, flipBridgingTermMonths, flipBridgingLTV, flipMortgageDeposit, flipMortgageRate, flipMortgageTerm, flipMortgageType, ...flipInputsForCalc } = flipInputs;
   const flipBridgingInterest = financingMethod === 'Bridging' && flipBridgingRate > 0 && flipBridgingTermMonths > 0
     ? (purchasePrice * (flipBridgingLTV / 100)) * (flipBridgingRate / 100) * flipBridgingTermMonths
@@ -735,15 +751,15 @@ export default function HomePage() {
     const monthly = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n;
     return monthly * flipInputs.projectLengthMonths;
   })();
-  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + contingencyPercent / 100), otherCosts: otherCosts + flipBridgingInterest + flipMortgageInterest, stampDuty: effectiveTax, ...flipInputsForCalc });
-  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const flipResults = calculateFlip({ purchasePrice, refurbCost: refurbCost * (1 + contingencyPercent / 100), otherCosts: otherCosts + flipBridgingInterest + flipMortgageInterest, stampDuty: effectiveTax, ...flipInputsForCalc, sourcingFee });
+  const saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
   const { bridgingRate: brrBridgingRate, bridgingTermMonths: brrBridgingTerm, bridgingLTV: brrBridgingLTV, ...brrrInputsForCalc } = brrrInputs;
   const brrrBridgingInterest = purchasePrice > 0 && brrBridgingRate > 0 && brrBridgingTerm > 0
     ? (purchasePrice * (brrBridgingLTV / 100)) * (brrBridgingRate / 100) * brrBridgingTerm
     : 0;
-  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrBridgingInterest, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs });
-  const r2rResults = calculateR2R({ ...r2rInputs, landlordDeposit: r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths });
-  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs });
+  const brrrResults = calculateBRRR({ purchasePrice, refurbCost, otherCosts: otherCosts + brrrBridgingInterest, stampDuty: effectiveTax, ...brrrInputsForCalc, ...sharedCostInputs, sourcingFee });
+  const r2rResults = calculateR2R({ ...r2rInputs, landlordDeposit: r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths, sourcingFee });
+  const socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
 
   const optimalOffer = React.useMemo(() => {
     if (resultsMode[dealType] !== 'offer') return null;
@@ -780,7 +796,7 @@ export default function HomePage() {
         if (adjROI >= effBtlROI && btlResults.monthlyCashFlow >= effBtlCF)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: btlResults.monthlyCashFlow, currentYield: btlResults.grossYield };
       }
-      const calcFn = (p: number, tax: number) => calculateBTL({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...btlInputs, ...sharedCostInputs });
+      const calcFn = (p: number, tax: number) => calculateBTL({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...btlInputs, ...sharedCostInputs, sourcingFee });
       const { maxPrice, binding } = solveBTLLike(calcFn, effBtlROI, effBtlCF, startP);
       if (!maxPrice) return { type: 'no_solution' as const };
       const r = calcFn(maxPrice, getStampDuty(maxPrice));
@@ -799,7 +815,7 @@ export default function HomePage() {
         if (adjROI >= effHmoROI && hmoResults.monthlyCashFlow >= effHmoCF)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: hmoResults.monthlyCashFlow, currentYield: yld };
       }
-      const calcFn = (p: number, tax: number) => calculateHMO({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...hmoInputs, ...sharedCostInputs });
+      const calcFn = (p: number, tax: number) => calculateHMO({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...hmoInputs, ...sharedCostInputs, sourcingFee });
       const { maxPrice: maxROICF, binding: b1 } = solveBTLLike(calcFn, effHmoROI, effHmoCF, startP);
       const maxFromYield: number | null = null;
       let maxPrice = maxROICF;
@@ -880,7 +896,7 @@ export default function HomePage() {
         if (adjROI >= effSaROI && saResults.monthlyCashFlow >= effSaProfit)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: saResults.monthlyCashFlow, currentYield: saResults.netYield };
       }
-      const calcFn = (p: number, tax: number) => calculateSA({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...saInputs, occupancyPercent: saOfferOccupancy, ...sharedCostInputs });
+      const calcFn = (p: number, tax: number) => calculateSA({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...saInputs, occupancyPercent: saOfferOccupancy, ...sharedCostInputs, sourcingFee });
       const { maxPrice, binding } = solveBTLLike(calcFn, effSaROI, effSaProfit, startP);
       if (!maxPrice) return { type: 'no_solution' as const };
       const r = calcFn(maxPrice, getStampDuty(maxPrice));
@@ -911,7 +927,7 @@ export default function HomePage() {
         if (adjROI >= effSocialROI && socialResults.monthlyCashFlow >= effSocialCF)
           return { type: 'already_meets' as const, currentROI: adjROI, currentCF: socialResults.monthlyCashFlow, currentYield: socialResults.grossYield };
       }
-      const calcFn = (p: number, tax: number) => calculateSocialHousing({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...socialInputs, ...sharedCostInputs });
+      const calcFn = (p: number, tax: number) => calculateSocialHousing({ ...sharedInputs, purchasePrice: p, stampDuty: tax, ...socialInputs, ...sharedCostInputs, sourcingFee });
       const { maxPrice, binding } = solveBTLLike(calcFn, effSocialROI, effSocialCF, startP);
       if (!maxPrice) return { type: 'no_solution' as const };
       const r = calcFn(maxPrice, getStampDuty(maxPrice));
@@ -925,23 +941,23 @@ export default function HomePage() {
 
   const stressRentDown = (() => {
     if (dealType === 'BTL') {
-      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'HMO') {
-      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SA') {
-      const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
-      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs });
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SOCIAL') {
-      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -949,23 +965,23 @@ export default function HomePage() {
 
   const stressRateUp = (() => {
     if (dealType === 'BTL') {
-      const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'HMO') {
-      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SA') {
-      const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'BRRR') {
-      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs });
+      const r = calculateBRRR({ purchasePrice, refurbCost, otherCosts, stampDuty: effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     if (dealType === 'SOCIAL') {
-      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs });
+      const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
       return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
     }
     return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -1291,9 +1307,9 @@ export default function HomePage() {
     const _buyerLabel = BUYER_LABEL[buyerType];
 
     const _sharedCostInputs = { managementFeePercent, voidAllowancePercent, maintenanceReserve, buildingsInsurance, serviceCharge, groundRentAnnual };
-    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
     const { licenceCost: _hmoLicenceCost, ...hmoInputsForPdfCalc } = hmoInputs;
-    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForPdfCalc, otherCosts: sharedInputs.otherCosts + _hmoLicenceCost, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
     const { financingMethod: _pdfFlipFM, contingencyPercent: _pdfFlipCP, flipBridgingRate: _pdfFlipBridgingRate, flipBridgingTermMonths: _pdfFlipBridgingTerm, flipBridgingLTV: _pdfFlipBridgingLTV, flipMortgageDeposit: _pdfFlipMortgageDeposit, flipMortgageRate: _pdfFlipMortgageRate, flipMortgageTerm: _pdfFlipMortgageTerm, flipMortgageType: _pdfFlipMortgageType, ...pdfFlipCalcInputs } = flipInputs;
     const _flipBridgingInterest = _pdfFlipFM === 'Bridging' && _pdfFlipBridgingRate > 0 && _pdfFlipBridgingTerm > 0
       ? (sharedInputs.purchasePrice * (_pdfFlipBridgingLTV / 100)) * (_pdfFlipBridgingRate / 100) * _pdfFlipBridgingTerm
@@ -1313,8 +1329,9 @@ export default function HomePage() {
       otherCosts: sharedInputs.otherCosts + _flipBridgingInterest + _flipMortgageInterest,
       stampDuty: _effectiveTax,
       ...pdfFlipCalcInputs,
+      sourcingFee,
     });
-    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _saResults = calculateSA({ ...sharedInputs, ...saInputs, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
     const { bridgingRate: _brrBridgingRate, bridgingTermMonths: _brrBridgingTerm, bridgingLTV: _brrBridgingLTV, ...brrrInputsForPdfCalc } = brrrInputs;
     const _brrrBridgingInterest = sharedInputs.purchasePrice > 0 && _brrBridgingRate > 0 && _brrBridgingTerm > 0
       ? (sharedInputs.purchasePrice * (_brrBridgingLTV / 100)) * (_brrBridgingRate / 100) * _brrBridgingTerm
@@ -1326,31 +1343,32 @@ export default function HomePage() {
       stampDuty: _effectiveTax,
       ...brrrInputsForPdfCalc,
       ..._sharedCostInputs,
+      sourcingFee,
     });
-    const _r2rResults = calculateR2R(r2rInputs);
-    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax, ..._sharedCostInputs });
+    const _r2rResults = calculateR2R({ ...r2rInputs, sourcingFee });
+    const _socialResults = calculateSocialHousing({ ...sharedInputs, ...socialInputs, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
 
     const _stressSupported = dealType === 'BTL' || dealType === 'HMO' || dealType === 'SA' || dealType === 'BRRR' || dealType === 'SOCIAL';
 
     const _stressRentDown = (() => {
       if (dealType === 'BTL') {
-        const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateBTL({ ...sharedInputs, ...btlInputs, monthlyRent: btlInputs.monthlyRent * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'HMO') {
-        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, rentPerRoom: hmoInputs.rentPerRoom * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SA') {
-        const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateSA({ ...sharedInputs, ...saInputs, nightlyRate: saInputs.nightlyRate * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'BRRR') {
-        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs });
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, monthlyRent: brrrInputs.monthlyRent * 0.9, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SOCIAL') {
-        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, leaseIncomePerMonth: socialInputs.leaseIncomePerMonth * 0.9, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -1358,23 +1376,23 @@ export default function HomePage() {
 
     const _stressRateUp = (() => {
       if (dealType === 'BTL') {
-        const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateBTL({ ...sharedInputs, ...btlInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'HMO') {
-        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateHMO({ ...sharedInputs, ...hmoInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SA') {
-        const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateSA({ ...sharedInputs, ...saInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'BRRR') {
-        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs });
+        const r = calculateBRRR({ purchasePrice: sharedInputs.purchasePrice, refurbCost: sharedInputs.refurbCost, otherCosts: sharedInputs.otherCosts, stampDuty: _effectiveTax, ...brrrInputs, newMortgageRate: brrrInputs.newMortgageRate + 1.5, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       if (dealType === 'SOCIAL') {
-        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs });
+        const r = calculateSocialHousing({ ...sharedInputs, ...socialInputs, mortgageRate: sharedInputs.mortgageRate + 1.5, stampDuty: _effectiveTax, ..._sharedCostInputs, sourcingFee });
         return { monthlyCashFlow: r.monthlyCashFlow, cashOnCashROI: r.cashOnCashROI };
       }
       return { monthlyCashFlow: 0, cashOnCashROI: 0 };
@@ -1481,7 +1499,10 @@ export default function HomePage() {
       leaseLengthYears,
       epcRating: propertyData?.epcRating ?? null,
       floodRisk: propertyData?.floodRisk ?? null,
-      floorArea: propertyData?.floorArea ?? null,
+      floorArea: effectiveFloorAreaSqM != null ? Math.round(effectiveFloorAreaSqM) : null,
+      pricePerSqFt,
+      pricePerSqM,
+      floorAreaUnit,
       constructionDate: propertyData?.constructionDate ?? null,
       purchasePrice: _pp,
       effectiveTax: _effectiveTax,
@@ -1947,6 +1968,46 @@ export default function HomePage() {
                     <Input type="number" min={0} max={10} step={1} placeholder="e.g. 1" value={bathrooms === '' ? '' : bathrooms} onChange={(e) => setBathrooms(e.target.value === '' ? '' : Number(e.target.value))} />
                   </div>
                   <TenureSection tenure={tenure} onChange={(v) => { setTenure(v); setAutoFilledTenure(false); setUserSetTenure(true); }} leaseLength={leaseLengthYears} onLeaseLength={(v) => { setLeaseLengthYears(v); setUserSetLeaseLength(true); }} hint={autoFilledTenure ? 'Auto-suggested — please verify' : undefined} />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label>Floor Area</Label>
+                      <InfoIcon id="floor-area" text="Enter the floor area to calculate price per sq ft/m². Auto-filled from EPC data when available — confirm the figure before relying on it." />
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min={1}
+                        step={1}
+                        placeholder={floorAreaUnit === 'sqft' ? 'e.g. 850' : 'e.g. 79'}
+                        value={manualFloorArea === '' ? '' : manualFloorArea}
+                        onChange={(e) => setManualFloorArea(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="flex-1"
+                      />
+                      <div className="flex rounded-md border overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setFloorAreaUnit('sqm')}
+                          className={`px-3 py-2 text-xs font-semibold transition-colors ${floorAreaUnit === 'sqm' ? 'bg-[#1B3A6B] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          m²
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFloorAreaUnit('sqft')}
+                          className={`px-3 py-2 text-xs font-semibold transition-colors ${floorAreaUnit === 'sqft' ? 'bg-[#1B3A6B] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          ft²
+                        </button>
+                      </div>
+                    </div>
+                    {effectiveFloorAreaSqM != null && (
+                      <p className="text-xs text-slate-500">
+                        {floorAreaUnit === 'sqft'
+                          ? `${Number(manualFloorArea).toLocaleString('en-GB')} ft² ≈ ${Math.round(effectiveFloorAreaSqM).toLocaleString('en-GB')} m²`
+                          : `${Number(manualFloorArea).toLocaleString('en-GB')} m² ≈ ${Math.round(effectiveFloorAreaSqM * 10.7639).toLocaleString('en-GB')} ft²`}
+                      </p>
+                    )}
+                  </div>
                   {tenure === 'Leasehold' && (
                     <>
                       <div className="space-y-2">
@@ -3086,6 +3147,22 @@ export default function HomePage() {
                 )}
               </div>
 
+              {(pricePerSqFt != null || pricePerSqM != null) && (
+                <div className="mx-6 mb-3 flex items-center justify-between rounded-lg px-4 py-2.5"
+                  style={{ background: 'rgba(27,58,107,0.06)', border: '1px solid rgba(27,58,107,0.18)' }}>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {floorAreaUnit === 'sqft' ? 'Price / sq ft' : 'Price / m²'}
+                  </span>
+                  <span className="text-base font-bold text-[#1B3A6B]">
+                    {floorAreaUnit === 'sqft' && pricePerSqFt != null
+                      ? `£${Math.round(pricePerSqFt).toLocaleString('en-GB')}/ft²`
+                      : pricePerSqM != null
+                      ? `£${Math.round(pricePerSqM).toLocaleString('en-GB')}/m²`
+                      : '—'}
+                  </span>
+                </div>
+              )}
+
               <div className="px-6 pb-3">
                 <ResultsModeToggle
                   value={resultsMode[dealType]}
@@ -4066,6 +4143,7 @@ export default function HomePage() {
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
                       {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(btlResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Rental Income" value={formatCurrency(btlInputs.monthlyRent)} />
@@ -4099,6 +4177,7 @@ export default function HomePage() {
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
                       {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(hmoResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Total Room Income" value={formatCurrency(hmoResults.grossMonthlyRent)} />
@@ -4136,6 +4215,7 @@ export default function HomePage() {
                         <WRow label={`Bridging Interest (${flipInputs.flipBridgingLTV}% LTV × ${flipInputs.flipBridgingRate}%/mo × ${flipInputs.flipBridgingTermMonths} months)`} value={formatCurrency((sharedInputs.purchasePrice * (flipInputs.flipBridgingLTV / 100)) * (flipInputs.flipBridgingRate / 100) * flipInputs.flipBridgingTermMonths)} />
                       )}
                       <WRow label={`Holding Costs (${flipInputs.projectLengthMonths} months × ${formatCurrency(flipInputs.holdingCostsPerMonth)})`} value={formatCurrency(flipInputs.holdingCostsPerMonth * flipInputs.projectLengthMonths)} />
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL COST IN" value={formatCurrency(flipResults.totalCost)} bold />
                       <WSec title="B  PROFIT CALCULATION" />
                       <WRow label="Expected Sale Price (GDV)" value={formatCurrency(flipInputs.expectedSalePrice)} />
@@ -4159,6 +4239,7 @@ export default function HomePage() {
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
                       {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(saResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label={`Monthly Revenue  ${formatCurrency(saInputs.nightlyRate)} nightly × ${saInputs.occupancyPercent}% occupancy`} value={formatCurrency(saResults.grossMonthlyRevenue)} />
@@ -4190,6 +4271,7 @@ export default function HomePage() {
                       {brrrInputs.bridgingRate > 0 && brrrInputs.bridgingTermMonths > 0 && (
                         <WRow label={`Bridging Interest (${brrrInputs.bridgingLTV}% LTV × ${brrrInputs.bridgingRate}%/mo × ${brrrInputs.bridgingTermMonths} months)`} value={formatCurrency((sharedInputs.purchasePrice * (brrrInputs.bridgingLTV / 100)) * (brrrInputs.bridgingRate / 100) * brrrInputs.bridgingTermMonths)} />
                       )}
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL COST IN" value={formatCurrency(brrrResults.totalCostIn)} bold />
                       <WSec title="B  REFINANCE" />
                       <WRow label="Post-Refurb Value (GDV)" value={formatCurrency(brrrInputs.postRefurbValue)} />
@@ -4218,6 +4300,7 @@ export default function HomePage() {
                       <WSec title="A  CASH INVESTED" />
                       <WRow label="Setup Costs" value={formatCurrency(r2rInputs.setupCosts)} />
                       {r2rLandlordDepositMonths > 0 && <WRow label={`Landlord Deposit (${r2rLandlordDepositMonths} month${r2rLandlordDepositMonths !== 1 ? 's' : ''})`} value={formatCurrency(r2rInputs.monthlyRentPaid * r2rLandlordDepositMonths)} />}
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(r2rResults.totalCashInvested)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Gross Monthly Income" value={formatCurrency(r2rResults.grossMonthlyIncome)} />
@@ -4241,6 +4324,7 @@ export default function HomePage() {
                       {leaseExtensionCost !== '' && (leaseExtensionCost as number) > 0 && <WRow label="Lease Extension Cost" value={formatCurrency(leaseExtensionCost as number)} />}
                       {buyersPremiumValue > 0 && <WRow label="Buyer's Premium" value={formatCurrency(buyersPremiumValue)} />}
                       {auctionReservationFeeValue > 0 && <WRow label="Reservation Fee" value={formatCurrency(auctionReservationFeeValue)} />}
+                      {sourcingFee > 0 && <WRow label="Sourcing Fee" value={formatCurrency(sourcingFee)} />}
                       <WRow label="TOTAL CASH INVESTED" value={formatCurrency(socialResults.totalCashInvested + (leaseExtensionCost === '' ? 0 : leaseExtensionCost as number) + buyersPremiumValue + auctionReservationFeeValue)} bold />
                       <WSec title="B  MONTHLY CASH FLOW" />
                       <WRow label="Monthly Lease Income" value={formatCurrency(socialInputs.leaseIncomePerMonth)} />

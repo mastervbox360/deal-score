@@ -6,6 +6,7 @@ export interface BaseInputs {
   stampDuty: number;
   refurbCost: number;
   otherCosts: number;
+  sourcingFee: number;
 }
 
 export interface BTLInputs extends BaseInputs {
@@ -246,7 +247,7 @@ export function calculateSDLT(price: number, isSecondHome: boolean = true): numb
 
 export function calculateBTL(inputs: BTLInputs) {
   const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
-  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee;
   const mortgageAmount = inputs.purchasePrice - deposit;
   const monthlyMortgageInterest = calculateMonthlyMortgagePayment(
     mortgageAmount,
@@ -307,7 +308,7 @@ export function calculateBTL(inputs: BTLInputs) {
 
 export function calculateHMO(inputs: HMOInputs) {
   const deposit = inputs.purchasePrice * (inputs.depositPercent / 100);
-  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee;
   const mortgageAmount = inputs.purchasePrice - deposit;
   const monthlyMortgageInterest = calculateMonthlyMortgagePayment(
     mortgageAmount,
@@ -370,7 +371,7 @@ export function calculateHMO(inputs: HMOInputs) {
 }
 
 export function calculateFlip(inputs: FlipInputs) {
-  const totalCost = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths);
+  const totalCost = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee + (inputs.holdingCostsPerMonth * inputs.projectLengthMonths);
   const sellingCosts = inputs.expectedSalePrice * (inputs.sellingCostsPercent / 100);
   const netProfit = inputs.expectedSalePrice - totalCost - sellingCosts;
 
@@ -410,7 +411,7 @@ export function calculateSA(inputs: SAInputs) {
     inputs.mortgageTerm,
     inputs.mortgageType,
   );
-  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee;
 
   const nightsPerMonth = 365 / 12;
   const grossMonthlyRevenue = inputs.nightlyRate * (inputs.occupancyPercent / 100) * nightsPerMonth;
@@ -479,6 +480,7 @@ export interface R2RInputs {
   monthlyRunningCosts: number;
   setupCosts: number;
   landlordDeposit: number;
+  sourcingFee: number;
 }
 
 export interface SocialHousingInputs {
@@ -486,6 +488,7 @@ export interface SocialHousingInputs {
   stampDuty: number;
   refurbCost: number;
   otherCosts: number;
+  sourcingFee: number;
   depositPercent: number;
   mortgageRate: number;
   mortgageTerm: number;
@@ -507,7 +510,7 @@ export function calculateR2R(inputs: R2RInputs) {
   const monthlyProfit = netMonthlyIncome - inputs.monthlyRentPaid - inputs.monthlyRunningCosts;
   const annualProfit = monthlyProfit * 12;
   const annualGrossIncome = grossMonthlyIncome * 12;
-  const totalCashInvested = inputs.setupCosts + inputs.landlordDeposit;
+  const totalCashInvested = inputs.setupCosts + inputs.landlordDeposit + inputs.sourcingFee;
   const roi = totalCashInvested > 0 ? (annualProfit / totalCashInvested) * 100 : 0;
   const grossYield = totalCashInvested > 0 ? (annualGrossIncome / totalCashInvested) * 100 : 0;
   const netYield = totalCashInvested > 0 ? (annualProfit / totalCashInvested) * 100 : 0;
@@ -545,7 +548,7 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
     inputs.mortgageTerm,
     inputs.mortgageType,
   );
-  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const totalCashInvested = deposit + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee;
 
   const grossRent = inputs.leaseIncomePerMonth;
   const voidAllowanceAmount = grossRent * (inputs.voidAllowancePercent / 100);
@@ -597,10 +600,10 @@ export function calculateSocialHousing(inputs: SocialHousingInputs) {
 }
 
 export function calculateBRRR(inputs: BRRRInputs) {
-  const totalCostIn = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts;
+  const totalCostIn = inputs.purchasePrice + inputs.stampDuty + inputs.refurbCost + inputs.otherCosts + inputs.sourcingFee;
   const refinanceLoan = inputs.postRefurbValue * (inputs.refinancePercent / 100);
   const cashLeftInDeal = totalCostIn - refinanceLoan;
-  const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.refurbCost - inputs.otherCosts;
+  const equityCreated = inputs.postRefurbValue - inputs.purchasePrice - inputs.refurbCost - inputs.otherCosts - inputs.sourcingFee;
   const monthlyMortgage = refinanceLoan * (inputs.newMortgageRate / 100) / 12;
   const annualRent = inputs.monthlyRent * 12;
 
