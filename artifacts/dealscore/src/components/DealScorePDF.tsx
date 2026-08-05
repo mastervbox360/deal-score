@@ -1007,7 +1007,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const p2CiDeposit = props.purchasePrice * props.depositPercent / 100;
   const p2CiAuctionFees = (props.isAuctionPurchase ? (props.buyersPremiumValue ?? 0) : 0) + (props.auctionReservationFeeValue ?? 0);
   const p2CiLeaseExt = props.leaseExtensionCost ?? 0;
-  const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts + p2CiAuctionFees + p2CiLeaseExt;
+  const p2CiTotal = p2CiDeposit + props.effectiveTax + props.refurbCost + props.otherCosts + p2CiAuctionFees + p2CiLeaseExt + props.sourcingFee;
 
   // ── Financial Detail page derived values ──────────────────────────────────
   const activeResults =
@@ -1647,6 +1647,12 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                     <Text style={{ fontSize: 8, color: tintText }}>Lease Extension</Text>
                     <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.leaseExtensionCost!)}</Text>
+                  </View>
+                )}
+                {props.sourcingFee > 0 && (
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Sourcing Fee</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
                   </View>
                 )}
               </View>
@@ -3215,7 +3221,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 <>
                   <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed into the deal.</Text>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Deposit + Tax + Refurb + Other Costs</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 5 }}>Deposit + Tax + Refurb + Other Costs + Sourcing Fee</Text>
                 </>
               )}
 
