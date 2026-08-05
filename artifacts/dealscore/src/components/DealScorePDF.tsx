@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet, Link } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
+import type { ComparableRow } from '@/lib/types';
 import {
   calculateBTL,
   calculateHMO,
@@ -83,7 +84,7 @@ export interface DealScorePDFProps {
   strategyNotes: string;
   propertyDescription: string;
   vendorSituation: string;
-  comparables: Array<{ address: string; bedsType: string; dateSold: string; price: string }>;
+  comparables: ComparableRow[];
   listingLinks: Array<{ label: string; url: string }>;
   photoFiles: string[];
   heroPhotoIndex: number;
@@ -2546,7 +2547,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
                 <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
                 <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds / Type</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Date Sold</Text>
+                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Date</Text>
                 <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Price</Text>
               </View>
               {props.comparables
@@ -2554,8 +2555,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 .map((row, i) => (
                   <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
                     <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.bedsType}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.dateSold}</Text>
+                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{[row.bedrooms !== '' ? `${row.bedrooms} bed` : '', row.propertyType].filter(Boolean).join(' ')}</Text>
+                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.date}</Text>
                     <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
                   </View>
                 ))}

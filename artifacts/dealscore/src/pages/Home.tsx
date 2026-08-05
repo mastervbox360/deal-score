@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ComparableRow } from '@/lib/types';
 
 declare global {
   interface Window {
@@ -216,11 +217,7 @@ export default function HomePage() {
   const [offerDeadline, setOfferDeadline] = useState('');
   const [viewingAvailable, setViewingAvailable] = useState(false);
   const [refurbScope, setRefurbScope] = useState('');
-  const [comparables, setComparables] = useState<Array<{ address: string; bedsType: string; dateSold: string; price: string }>>([
-    { address: '', bedsType: '', dateSold: '', price: '' },
-    { address: '', bedsType: '', dateSold: '', price: '' },
-    { address: '', bedsType: '', dateSold: '', price: '' },
-  ]);
+  const [comparables, setComparables] = useState<ComparableRow[]>([]);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [heroPhotoIndex, setHeroPhotoIndex] = useState<number>(0);
@@ -649,11 +646,7 @@ export default function HomePage() {
     setStrategyNotes({});
     setPropertyDescription('');
     setVendorSituation('');
-    setComparables([
-      { address: '', bedsType: '', dateSold: '', price: '' },
-      { address: '', bedsType: '', dateSold: '', price: '' },
-      { address: '', bedsType: '', dateSold: '', price: '' },
-    ]);
+    setComparables([]);
     setPhotoFiles([]);
     setHeroPhotoIndex(0);
     setExecutiveSummary({});
@@ -2782,86 +2775,117 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* Comparable Properties — dynamic table */}
+                  {/* Comparable Properties — card-based rows */}
                   {dealType !== 'R2R' && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-1">
                       <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Comparable Properties</Label>
                       <InfoIcon id="comp-info" text={TT.comparables} />
                     </div>
-                    <div className="border border-border rounded-lg overflow-hidden">
-                      <div className="grid gap-2 bg-slate-100 border-b border-border text-xs font-semibold text-foreground px-3 py-2" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
-                        <span>Address</span>
-                        <span>Beds / Type</span>
-                        <span>Date Sold</span>
-                        <span>Price</span>
-                        <span />
-                      </div>
-                      {comparables.map((row, i) => (
-                        <div key={i} className="grid gap-2 px-3 py-2 border-b border-border last:border-b-0 items-center" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr auto' }}>
-                          <Input
-                            type="text"
-                            autoComplete="new-password"
-                            placeholder="e.g. 8 High Street"
-                            value={row.address}
-                            onChange={(e) => {
-                              const next = [...comparables];
-                              next[i] = { ...next[i], address: e.target.value };
-                              setComparables(next);
-                            }}
-                            className="h-9 text-xs"
-                          />
-                          <Input
-                            type="text"
-                            autoComplete="off"
-                            placeholder="e.g. 3-bed terrace"
-                            value={row.bedsType}
-                            onChange={(e) => {
-                              const next = [...comparables];
-                              next[i] = { ...next[i], bedsType: e.target.value };
-                              setComparables(next);
-                            }}
-                            className="h-9 text-xs"
-                          />
-                          <Input
-                            type="text"
-                            autoComplete="off"
-                            placeholder="e.g. Jan 2025"
-                            value={row.dateSold}
-                            onChange={(e) => {
-                              const next = [...comparables];
-                              next[i] = { ...next[i], dateSold: e.target.value };
-                              setComparables(next);
-                            }}
-                            className="h-9 text-xs"
-                          />
-                          <Input
-                            type="text"
-                            autoComplete="off"
-                            placeholder="e.g. £210,000"
-                            value={row.price}
-                            onChange={(e) => {
-                              const next = [...comparables];
-                              next[i] = { ...next[i], price: e.target.value };
-                              setComparables(next);
-                            }}
-                            className="h-9 text-xs"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setComparables(comparables.filter((_, j) => j !== i))}
-                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                            title="Remove row"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                    <div className="space-y-3">
+                      {comparables.map((row, i) => {
+                        const upd = <K extends keyof ComparableRow>(field: K, value: ComparableRow[K]) => {
+                          const next = [...comparables];
+                          next[i] = { ...next[i], [field]: value };
+                          setComparables(next);
+                        };
+                        return (
+                          <div key={row.id} className="border border-border rounded-lg p-3 space-y-2 bg-white">
+                            {/* Sale / Let toggle + index label + delete */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex rounded-md border overflow-hidden">
+                                <button
+                                  type="button"
+                                  onClick={() => upd('type', 'sale')}
+                                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${row.type === 'sale' ? 'bg-[#1B3A6B] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                                >Sale</button>
+                                <button
+                                  type="button"
+                                  onClick={() => upd('type', 'let')}
+                                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${row.type === 'let' ? 'bg-[#1B3A6B] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                                >Let</button>
+                              </div>
+                              <span className="text-xs text-muted-foreground font-medium">Comparable {i + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => setComparables(comparables.filter((_, j) => j !== i))}
+                                className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                title="Remove"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            {/* Address */}
+                            <Input
+                              type="text"
+                              autoComplete="new-password"
+                              placeholder="Address"
+                              value={row.address}
+                              onChange={(e) => upd('address', e.target.value)}
+                              className="h-9 text-xs"
+                            />
+                            {/* Postcode | Property Type | Beds | Floor Area */}
+                            <div className="grid grid-cols-4 gap-2">
+                              <Input
+                                type="text"
+                                placeholder="Postcode"
+                                value={row.postcode}
+                                onChange={(e) => upd('postcode', e.target.value)}
+                                className="h-9 text-xs"
+                              />
+                              <select
+                                value={row.propertyType}
+                                onChange={(e) => upd('propertyType', e.target.value)}
+                                className="h-9 rounded-md border border-input bg-background px-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                              >
+                                <option value="">Type</option>
+                                {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={20}
+                                step={1}
+                                placeholder="Beds"
+                                value={row.bedrooms === '' ? '' : row.bedrooms}
+                                onChange={(e) => upd('bedrooms', e.target.value === '' ? '' : Number(e.target.value))}
+                                className="h-9 text-xs"
+                              />
+                              <Input
+                                type="number"
+                                min={1}
+                                step={1}
+                                placeholder="m²"
+                                value={row.floorArea === '' ? '' : row.floorArea}
+                                onChange={(e) => upd('floorArea', e.target.value === '' ? '' : Number(e.target.value))}
+                                className="h-9 text-xs"
+                              />
+                            </div>
+                            {/* Date | Price — labels switch on type */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="text"
+                                placeholder={row.type === 'sale' ? 'Date Sold (e.g. Jan 2025)' : 'Date Let (e.g. Jan 2025)'}
+                                value={row.date}
+                                onChange={(e) => upd('date', e.target.value)}
+                                className="h-9 text-xs"
+                              />
+                              <Input
+                                type="text"
+                                placeholder={row.type === 'sale' ? 'Sale Price (e.g. £210,000)' : 'Monthly Rent (e.g. £1,200)'}
+                                value={row.price}
+                                onChange={(e) => upd('price', e.target.value)}
+                                className="h-9 text-xs"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                     <button
                       type="button"
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-[#1B3A6B]/40 text-xs font-semibold text-[#1B3A6B] hover:bg-[#1B3A6B]/5 hover:border-[#1B3A6B] transition-colors cursor-pointer"
-                      onClick={() => setComparables([...comparables, { address: '', bedsType: '', dateSold: '', price: '' }])}
+                      onClick={() => setComparables([...comparables, { id: crypto.randomUUID(), type: 'sale', address: '', postcode: '', propertyType: '', bedrooms: '', floorArea: '', date: '', price: '', includeInPdf: null, lat: null, lng: null }])}
                     >
                       <Plus className="w-3.5 h-3.5" /> Add Row
                     </button>
