@@ -938,24 +938,47 @@ export default function HomePage() {
     ? purchasePrice / effectiveFloorAreaSqM : null;
 
   // SubjectContext for comparable scoring — rebuilt whenever any relevant subject field changes
-  const subjectCtx = useMemo<SubjectContext>(() => ({
-    propertyType,
-    tenure,
-    lat: propertyData?.lat ?? null,
-    lng: propertyData?.lng ?? null,
-    floorArea: effectiveFloorAreaSqM,
-    bedrooms: bedrooms !== '' ? bedrooms : null,
-    pricePerSqM,
-    dealType,
-    monthlyRent: dealType === 'BTL' ? (btlInputs.monthlyRent || null)
-               : dealType === 'BRRR' ? (brrrInputs.monthlyRent || null)
-               : null,
-    rentPerRoom: dealType === 'HMO' ? (hmoInputs.rentPerRoom || null)
-               : dealType === 'R2R' ? (r2rInputs.rentPerRoom || null)
-               : null,
-    leaseIncomePerMonth: dealType === 'SOCIAL' ? (socialInputs.leaseIncomePerMonth || null) : null,
-  }), [propertyType, tenure, propertyData, effectiveFloorAreaSqM, bedrooms, pricePerSqM,
-       dealType, btlInputs, brrrInputs, hmoInputs, r2rInputs, socialInputs]);
+  const subjectCtx = useMemo<SubjectContext>(() => {
+    // Strategy-aware reference price per m² for sale comparable scoring:
+    //   FLIP   → expected sale price (validates GDV, not entry price)
+    //   BRRR   → post-refurb value (validates refinance basis)
+    //   R2R    → null (no property purchase; sale comps score without this factor)
+    //   others → purchase price (standard entry-price validation)
+    const refPricePerSqM = (() => {
+      if (dealType === 'R2R') return null;
+      const fa = effectiveFloorAreaSqM;
+      if (!fa || fa <= 0) return null;
+      if (dealType === 'FLIP') {
+        const esp = flipInputs.expectedSalePrice;
+        return esp > 0 ? esp / fa : null;
+      }
+      if (dealType === 'BRRR') {
+        const prv = brrrInputs.postRefurbValue;
+        return prv > 0 ? prv / fa : null;
+      }
+      // BTL, HMO, SA, SOCIAL
+      return purchasePrice > 0 ? purchasePrice / fa : null;
+    })();
+
+    return {
+      propertyType,
+      tenure,
+      lat: propertyData?.lat ?? null,
+      lng: propertyData?.lng ?? null,
+      floorArea: effectiveFloorAreaSqM,
+      bedrooms: bedrooms !== '' ? bedrooms : null,
+      pricePerSqM: refPricePerSqM,
+      dealType,
+      monthlyRent: dealType === 'BTL' ? (btlInputs.monthlyRent || null)
+                 : dealType === 'BRRR' ? (brrrInputs.monthlyRent || null)
+                 : null,
+      rentPerRoom: dealType === 'HMO' ? (hmoInputs.rentPerRoom || null)
+                 : dealType === 'R2R' ? (r2rInputs.rentPerRoom || null)
+                 : null,
+      leaseIncomePerMonth: dealType === 'SOCIAL' ? (socialInputs.leaseIncomePerMonth || null) : null,
+    };
+  }, [propertyType, tenure, propertyData, effectiveFloorAreaSqM, bedrooms,
+      dealType, purchasePrice, flipInputs, brrrInputs, btlInputs, hmoInputs, r2rInputs, socialInputs]);
 
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
@@ -3124,6 +3147,11 @@ export default function HomePage() {
                                 {score.rentMetricUnavailable && (
                                   <div style={{ marginTop: 4, color: '#6d28d9', fontSize: 11 }}>
                                     ℹ️ Rent comparison not available for Serviced Accommodation deals
+                                  </div>
+                                )}
+                                {score.priceMetricUnavailable && (
+                                  <div style={{ marginTop: 4, color: '#6d28d9', fontSize: 11 }}>
+                                    ℹ️ Price comparison not applicable for Rent-to-Rent deals
                                   </div>
                                 )}
                               </div>

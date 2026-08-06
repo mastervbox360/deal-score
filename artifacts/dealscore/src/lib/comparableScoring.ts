@@ -78,7 +78,14 @@ export interface SubjectContext {
   lng: number | null;
   floorArea: number | null;    // sqm
   bedrooms: number | null;     // for bedroom-count factor matching
-  pricePerSqM: number | null;  // purchasePrice / floorArea — sale evidence only
+  /**
+   * Reference price per m² for sale comparable scoring — strategy-aware:
+   *   BTL / HMO / SA / SOCIAL → purchasePrice / floorArea
+   *   FLIP                    → expectedSalePrice / floorArea  (validates exit/GDV, not entry)
+   *   BRRR                    → postRefurbValue / floorArea    (validates refinance basis)
+   *   R2R                     → null (no property purchase; sale comparables score without this factor)
+   */
+  pricePerSqM: number | null;
   dealType: DealType;
   // Rent figures — populate whichever is applicable for the deal type:
   monthlyRent: number | null;          // BTL, BRRR
@@ -96,6 +103,8 @@ export interface ComparableScore {
   distanceUnverified: boolean;
   /** True for let comparables against an SA deal — rent metric cannot be computed. */
   rentMetricUnavailable: boolean;
+  /** True for sale comparables against an R2R deal — no reference purchase price exists. */
+  priceMetricUnavailable: boolean;
   factors: Array<{
     label: string;
     status: 'strong' | 'fair' | 'weak' | 'unavailable';
@@ -140,6 +149,7 @@ export function scoreComparable(comparable: ComparableRow, subject: SubjectConte
     gateFailed: reason,
     distanceUnverified,
     rentMetricUnavailable: false,
+    priceMetricUnavailable: false,
     factors: [],
   });
 
@@ -205,23 +215,41 @@ export function scoreComparable(comparable: ComparableRow, subject: SubjectConte
   // ── Branch on comparable type ─────────────────────────────────────────────
 
   if (comparable.type === 'sale') {
+    // Dynamic label: clarifies which reference price is being validated
+    const psmLabel =
+      subject.dealType === 'FLIP'  ? 'Exit price/m² proximity'        :
+      subject.dealType === 'BRRR'  ? 'Post-refurb price/m² proximity' :
+                                     'Price/m² proximity';
+
     // Factor: Price per m² proximity
+    // R2R has no reference purchase price — mark unavailable and exclude from scoring
     const compPrice = parsePrice(comparable.price);
     const compPSM = compPrice !== null && compFloorArea ? compPrice / compFloorArea : null;
-    const psmPct = pctDev(compPSM, subject.pricePerSqM);
-    const psmScore = psmPct !== null ? interpolate(psmPct, 0.10, 0.20) : null;
-    const psmDetail = psmPct !== null && compPSM !== null && subject.pricePerSqM !== null
-      ? `${Math.round(psmPct * 100)}% difference (£${Math.round(compPSM)}/m² vs £${Math.round(subject.pricePerSqM)}/m²)`
-      : 'Price/m² unavailable — price or floor area missing';
+    let psmScore: number | null = null;
+    let psmDetail: string;
+    let priceMetricUnavailable = false;
+
+    if (subject.dealType === 'R2R') {
+      // No property purchase in R2R — sale comparable price/m² has no valid reference to compare against
+      priceMetricUnavailable = true;
+      psmDetail = 'Price comparison not applicable for Rent-to-Rent deals';
+    } else {
+      const psmPct = pctDev(compPSM, subject.pricePerSqM);
+      psmScore = psmPct !== null ? interpolate(psmPct, 0.10, 0.20) : null;
+      psmDetail = psmPct !== null && compPSM !== null && subject.pricePerSqM !== null
+        ? `${Math.round(psmPct * 100)}% difference (£${Math.round(compPSM)}/m² vs £${Math.round(subject.pricePerSqM)}/m²)`
+        : 'Price/m² unavailable — price or floor area missing';
+    }
 
     const saleFactors: Array<{ label: string; weight: number; score: number | null; detail: string }> = [
-      { label: 'Recency',            weight: 25, score: recencyScore,   detail: recencyDetail },
-      { label: 'Price/m² proximity', weight: 25, score: psmScore,       detail: psmDetail },
-      { label: 'Distance',           weight: 20, score: distanceScore,  detail: distanceDetail },
-      { label: 'Floor area',         weight: 20, score: floorAreaScore, detail: floorAreaDetail },
-      { label: 'Bedrooms',           weight: 10, score: bedroomScore,   detail: bedroomDetail },
+      { label: 'Recency',    weight: 25, score: recencyScore,   detail: recencyDetail },
+      { label: psmLabel,     weight: 25, score: psmScore,       detail: psmDetail },
+      { label: 'Distance',   weight: 20, score: distanceScore,  detail: distanceDetail },
+      { label: 'Floor area', weight: 20, score: floorAreaScore, detail: floorAreaDetail },
+      { label: 'Bedrooms',   weight: 10, score: bedroomScore,   detail: bedroomDetail },
     ];
 
+    // For R2R, psmScore is null → weightedAverage skips it and re-normalises the remaining 75%
     const overallNumeric = Math.round(weightedAverage(saleFactors));
     return {
       overall: band(overallNumeric),
@@ -229,6 +257,7 @@ export function scoreComparable(comparable: ComparableRow, subject: SubjectConte
       gateFailed: null,
       distanceUnverified,
       rentMetricUnavailable: false,
+      priceMetricUnavailable,
       factors: saleFactors.map(f => ({
         label: f.label,
         status: factorStatus(f.score),
@@ -300,6 +329,7 @@ export function scoreComparable(comparable: ComparableRow, subject: SubjectConte
     gateFailed: null,
     distanceUnverified,
     rentMetricUnavailable,
+    priceMetricUnavailable: false,
     factors: letFactors.map(f => ({
       label: f.label,
       status: factorStatus(f.score),
