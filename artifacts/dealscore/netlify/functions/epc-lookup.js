@@ -22,31 +22,40 @@ exports.handler = async (event) => {
     ? norm(addressParam.split(',')[0].trim().split(/\s+/)[0])
     : null;
 
-  // Parse a leading house number + optional letter suffix from a normalised address string.
-  // "65ahorwoodclose" → { num: "65", suffix: "a" }
-  // "65horwoodclose"  → { num: "65", suffix: "" }
-  // "rosecottage"     → null (no leading digit — named property)
-  // The regex matches one-or-more digits then at most one letter, so "650someroad" gives
-  // num "650" (not "65"), and "65bclose" gives suffix "b" (not ""), preventing false positives.
-  const parseHouseNum = (token) => {
-    const m = token.match(/^(\d+)([a-z]?)/);
+  // Parse a leading house number + optional genuine suffix letter from an address string.
+  // Operates on the ORIGINAL (lightly-lowercased) string — NOT the fully-stripped norm() version —
+  // so that the boundary-aware lookahead can distinguish a real suffix letter from the first letter
+  // of the following street name (e.g. "26 Church Crescent" must NOT produce suffix "c").
+  //
+  // The suffix letter, if present, must be IMMEDIATELY followed by a space, comma, or end-of-string
+  // (not another letter, which would indicate it's the start of a street name word):
+  //   "65A Horwood Close"  → { num: "65", suffix: "a" }  ← "A" before space: real suffix
+  //   "65 Horwood Close"   → { num: "65", suffix: "" }   ← "H" before "o": street name, not suffix
+  //   "26, Church Crescent"→ { num: "26", suffix: "" }   ← no letter before comma: no suffix
+  //   "rosecottage"        → null (no leading digit — named property)
+  const parseHouseNum = (s) => {
+    const prepared = (s || '').toLowerCase().trim();
+    const m = prepared.match(/^(\d+)([a-z])?(?=[\s,]|$)/);
     return (m && m[1]) ? { num: m[1], suffix: m[2] || '' } : null;
   };
 
   // Test whether an EPC address string exactly matches the houseToken.
   // For numeric tokens: requires identical house-number AND letter-suffix.
   //   "65" must NOT match "65a", "65b", or "650"; "65a" must NOT match "65" or "65b".
-  // For named-property tokens (no leading digit): falls back to prefix match (no ambiguity risk).
+  // For named-property tokens (no leading digit): falls back to prefix match on the
+  // fully-normalised string.
   const addressMatches = (epcAddr, token) => {
     const a = norm(epcAddr);
     const parsedToken = parseHouseNum(token);
     if (parsedToken) {
-      const parsedAddr = parseHouseNum(a);
+      // Parse from the ORIGINAL EPC address (not fully-stripped) so the word-boundary
+      // lookahead can fire correctly — norm() would strip the spaces needed for it.
+      const parsedAddr = parseHouseNum(epcAddr);
       return parsedAddr !== null &&
              parsedAddr.num === parsedToken.num &&
              parsedAddr.suffix === parsedToken.suffix;
     }
-    // Named property — prefix match is safe (e.g. "rosecottage")
+    // Named property — prefix match on fully-normalised string is safe (e.g. "rosecottage")
     return a.startsWith(token);
   };
 
