@@ -1794,7 +1794,27 @@ export default function HomePage() {
       strategyNotes: strategyNotes[dealType] ?? '',
       propertyDescription,
       vendorSituation,
-      comparables,
+      comparables: comparables
+        .filter(r => r.address.trim())
+        .filter(r => {
+          if (r.includeInPdf === true) return true;
+          if (r.includeInPdf === false) return false;
+          // null = default: include Strong or Fair, exclude Weak
+          const s = scoreComparable(r, subjectCtx);
+          return s.overall === 'Strong' || s.overall === 'Fair';
+        })
+        .map(r => ({
+          type: r.type,
+          address: r.address,
+          postcode: r.postcode,
+          propertyType: r.propertyType,
+          bedrooms: r.bedrooms,
+          floorArea: r.floorArea,
+          date: r.date,
+          price: r.price,
+        })),
+      comparableSaleTypeUsed: comparables.some(r => r.type === 'sale' && r.address.trim()),
+      comparableLetTypeUsed: comparables.some(r => r.type === 'let' && r.address.trim()),
       listingLinks,
       photoFiles,
       heroPhotoIndex,
@@ -1846,7 +1866,7 @@ export default function HomePage() {
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
-    comparables, listingLinks, photoFiles, heroPhotoIndex,
+    subjectCtx, comparables, listingLinks, photoFiles, heroPhotoIndex,
     includeWorkingsInPDF,
     managementFeePercent, voidAllowancePercent, maintenanceReserve,
     buildingsInsurance, serviceCharge, groundRentAnnual,

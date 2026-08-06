@@ -1,7 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet, Link } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
-import type { ComparableRow } from '@/lib/types';
 import {
   calculateBTL,
   calculateHMO,
@@ -84,7 +83,18 @@ export interface DealScorePDFProps {
   strategyNotes: string;
   propertyDescription: string;
   vendorSituation: string;
-  comparables: ComparableRow[];
+  comparables: Array<{
+    type: 'sale' | 'let';
+    address: string;
+    postcode: string;
+    propertyType: string;
+    bedrooms: number | '';
+    floorArea: number | '';
+    date: string;
+    price: string;
+  }>;
+  comparableSaleTypeUsed: boolean;
+  comparableLetTypeUsed: boolean;
   listingLinks: Array<{ label: string; url: string }>;
   photoFiles: string[];
   heroPhotoIndex: number;
@@ -969,7 +979,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   const propertyDescText = props.propertyDescription.trim();
   const vendorSituationText = props.vendorSituation.trim();
   const hasRationale = true;
-  const hasComparables = props.comparables.some(r => r.address.trim());
+  const hasComparables = props.comparableSaleTypeUsed || props.comparableLetTypeUsed;
   const hasLinks = props.listingLinks.some(r => r.url.trim());
   const hasMarketEvidence = hasComparables || hasLinks;
   const hasLegal = !!(props.sourcingFee > 0 || props.preparedBy.name || props.preparedBy.email);
@@ -2567,31 +2577,46 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <Footer />
           <SH title="Market Evidence" />
 
-          {hasComparables && (
-            <View style={[base.notePanel, { padding: 0, overflow: 'hidden' }]}>
-              <Text style={[base.notePanelLabel, { color: structureColour, padding: 10, paddingBottom: 6 }]}>Comparable Properties</Text>
-              <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
-                <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds / Type</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Date</Text>
-                <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Price</Text>
+          {/* ── Comparable Sales ──────────────────────────────────────────────── */}
+          {props.comparableSaleTypeUsed && (() => {
+            const saleComps = props.comparables.filter(r => r.type === 'sale');
+            return (
+              <View style={[base.notePanel, { padding: 0, overflow: 'hidden', marginBottom: 8 }]}>
+                <Text style={[base.notePanelLabel, { color: structureColour, padding: 10, paddingBottom: 6 }]}>Comparable Sales</Text>
+                {saleComps.length === 0 ? (
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#6B7280', paddingHorizontal: 10, paddingBottom: 8 }}>
+                    No comparable sales met the quality threshold for inclusion in this report.
+                  </Text>
+                ) : (
+                  <>
+                    <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+                      <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
+                      <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Property Type</Text>
+                      <Text style={{ flex: 0.5, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds</Text>
+                      <Text style={{ flex: 0.7, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Floor Area</Text>
+                      <Text style={{ flex: 0.9, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Sale Price</Text>
+                      <Text style={{ flex: 0.7, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Date Sold</Text>
+                    </View>
+                    {saleComps.map((row, i) => (
+                      <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
+                        <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}{row.postcode ? `, ${row.postcode}` : ''}</Text>
+                        <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.propertyType || '—'}</Text>
+                        <Text style={{ flex: 0.5, fontSize: 8.5, color: '#333333' }}>{row.bedrooms !== '' ? String(row.bedrooms) : '—'}</Text>
+                        <Text style={{ flex: 0.7, fontSize: 8.5, color: '#333333' }}>{row.floorArea !== '' ? `${row.floorArea} m²` : '—'}</Text>
+                        <Text style={{ flex: 0.9, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
+                        <Text style={{ flex: 0.7, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{row.date || '—'}</Text>
+                      </View>
+                    ))}
+                  </>
+                )}
               </View>
-              {props.comparables
-                .filter(r => r.address.trim())
-                .map((row, i) => (
-                  <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
-                    <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{[row.bedrooms !== '' ? `${row.bedrooms} bed` : '', row.propertyType].filter(Boolean).join(' ')}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.date}</Text>
-                    <Text style={{ flex: 1, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
-                  </View>
-                ))}
-            </View>
-          )}
+            );
+          })()}
 
+          {/* ── Sale price commentary ──────────────────────────────────────────── */}
           {(() => {
-            const validPrices = props.comparables
-              .filter(r => r.address.trim())
+            const saleComps = props.comparables.filter(r => r.type === 'sale');
+            const validPrices = saleComps
               .map(r => parseFloat(r.price.replace(/[£,\s]/g, '')))
               .filter(n => !isNaN(n) && n > 0);
             if (validPrices.length < 2) return null;
@@ -2607,9 +2632,45 @@ export default function DealScorePDF(props: DealScorePDFProps) {
               commentary = `The purchase price of ${fc(props.purchasePrice)} is broadly in line with ${validPrices.length} recent comparable sales averaging ${fc(avgPrice)}, suggesting fair market pricing and a credible entry point.`;
             }
             return (
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#64748B', marginTop: 8 }}>
+              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#64748B', marginTop: 4, marginBottom: 8 }}>
                 {commentary}
               </Text>
+            );
+          })()}
+
+          {/* ── Comparable Lettings ────────────────────────────────────────────── */}
+          {props.comparableLetTypeUsed && (() => {
+            const letComps = props.comparables.filter(r => r.type === 'let');
+            return (
+              <View style={[base.notePanel, { padding: 0, overflow: 'hidden' }]}>
+                <Text style={[base.notePanelLabel, { color: structureColour, padding: 10, paddingBottom: 6 }]}>Comparable Lettings</Text>
+                {letComps.length === 0 ? (
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#6B7280', paddingHorizontal: 10, paddingBottom: 8 }}>
+                    No comparable lettings met the quality threshold for inclusion in this report.
+                  </Text>
+                ) : (
+                  <>
+                    <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
+                      <Text style={{ flex: 2, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
+                      <Text style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Property Type</Text>
+                      <Text style={{ flex: 0.5, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds</Text>
+                      <Text style={{ flex: 0.7, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour }}>Floor Area</Text>
+                      <Text style={{ flex: 0.9, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Monthly Rent</Text>
+                      <Text style={{ flex: 0.7, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Date Let</Text>
+                    </View>
+                    {letComps.map((row, i) => (
+                      <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
+                        <Text style={{ flex: 2, fontSize: 8.5, color: '#333333' }}>{row.address}{row.postcode ? `, ${row.postcode}` : ''}</Text>
+                        <Text style={{ flex: 1, fontSize: 8.5, color: '#333333' }}>{row.propertyType || '—'}</Text>
+                        <Text style={{ flex: 0.5, fontSize: 8.5, color: '#333333' }}>{row.bedrooms !== '' ? String(row.bedrooms) : '—'}</Text>
+                        <Text style={{ flex: 0.7, fontSize: 8.5, color: '#333333' }}>{row.floorArea !== '' ? `${row.floorArea} m²` : '—'}</Text>
+                        <Text style={{ flex: 0.9, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{formatCompPrice(row.price)}</Text>
+                        <Text style={{ flex: 0.7, fontSize: 8.5, color: '#333333', textAlign: 'right' }}>{row.date || '—'}</Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+              </View>
             );
           })()}
 
