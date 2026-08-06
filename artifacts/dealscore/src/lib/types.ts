@@ -13,4 +13,5 @@ export interface ComparableRow {
   includeInPdf: boolean | null; // null = default — used in Prompt 5
   lat: number | null; // populated in Prompt 2
   lng: number | null;
+  geocodeFailed?: boolean; // true when postcode was submitted but postcodes.io returned no coords
 }

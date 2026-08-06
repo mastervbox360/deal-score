@@ -2833,7 +2833,10 @@ export default function HomePage() {
                                 type="text"
                                 placeholder="Postcode"
                                 value={row.postcode}
-                                onChange={(e) => upd('postcode', e.target.value)}
+                                onChange={(e) => {
+                                  // Reset geocode state whenever the user edits the postcode field
+                                  setComparables(prev => prev.map((r, j) => j === i ? { ...r, postcode: e.target.value, lat: null, lng: null, geocodeFailed: false } : r));
+                                }}
                                 onBlur={async (e) => {
                                   const pc = e.target.value.trim().replace(/\s+/g, '').toUpperCase();
                                   if (!pc) return;
@@ -2841,12 +2844,11 @@ export default function HomePage() {
                                     const res = await fetch(`https://api.postcodes.io/postcodes/${pc}`).then(r => r.json());
                                     const lat: number | null = res?.result?.latitude ?? null;
                                     const lng: number | null = res?.result?.longitude ?? null;
-                                    setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat, lng } : r));
-                                    if (lat && lng && propertyData?.lat && propertyData?.lng) {
-                                      const dist = haversineMiles(propertyData.lat, propertyData.lng, lat, lng);
-                                      console.log(`[Dev] Comparable ${i + 1} (${pc}): ${dist.toFixed(2)} miles from subject`);
-                                    }
-                                  } catch { /* silent — invalid postcode leaves lat/lng as null */ }
+                                    // geocodeFailed: true when postcodes.io returned no coords (e.g. 404)
+                                    setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat, lng, geocodeFailed: !lat } : r));
+                                  } catch {
+                                    setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat: null, lng: null, geocodeFailed: true } : r));
+                                  }
                                 }}
                                 className="h-9 text-xs"
                               />
@@ -2878,6 +2880,18 @@ export default function HomePage() {
                                 className="h-9 text-xs"
                               />
                             </div>
+                            {/* Distance label — shown after postcode geocoding */}
+                            {row.postcode.trim() && (
+                              row.lat && row.lng
+                                ? propertyData?.lat && propertyData?.lng
+                                  ? <p className="text-xs text-muted-foreground px-0.5">
+                                      {haversineMiles(propertyData.lat, propertyData.lng, row.lat, row.lng).toFixed(1)} miles from subject property
+                                    </p>
+                                  : null /* comp geocoded but subject not yet — omit */
+                                : row.geocodeFailed
+                                  ? <p className="text-xs text-muted-foreground px-0.5">Distance unavailable — check postcode</p>
+                                  : null /* not yet blurred */
+                            )}
                             {/* Date | Price — labels switch on type */}
                             <div className="grid grid-cols-2 gap-2">
                               <Input
