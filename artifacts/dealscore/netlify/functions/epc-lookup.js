@@ -12,17 +12,43 @@ exports.handler = async (event) => {
   const BASE = 'https://api.get-energy-performance-data.communities.gov.uk';
   const headers = { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
 
-  // Normalise for fuzzy comparison: lowercase, strip all non-alphanumeric characters
+  // Normalise for comparison: lowercase, strip all non-alphanumeric characters
   const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
   // Extract the house number/name token from the entered address.
   // Takes the first comma-part ("65A Horwood Close"), then the first space-delimited token ("65A").
-  // Normalised to "65a" — will match EPC "65A HORWOOD CLOSE" → norm → "65ahorwoodclose".startsWith("65a") ✓
-  // For named properties ("Rose Cottage, High Street") this extracts "rosecottage" which is slightly
-  // aggressive — the starts-with check on a2 handles flat-style cases where a2 has the building number.
+  // Result normalised: "65A" → "65a", "Rose Cottage" → "rosecottage".
   const houseToken = addressParam
     ? norm(addressParam.split(',')[0].trim().split(/\s+/)[0])
     : null;
+
+  // Parse a leading house number + optional letter suffix from a normalised address string.
+  // "65ahorwoodclose" → { num: "65", suffix: "a" }
+  // "65horwoodclose"  → { num: "65", suffix: "" }
+  // "rosecottage"     → null (no leading digit — named property)
+  // The regex matches one-or-more digits then at most one letter, so "650someroad" gives
+  // num "650" (not "65"), and "65bclose" gives suffix "b" (not ""), preventing false positives.
+  const parseHouseNum = (token) => {
+    const m = token.match(/^(\d+)([a-z]?)/);
+    return (m && m[1]) ? { num: m[1], suffix: m[2] || '' } : null;
+  };
+
+  // Test whether an EPC address string exactly matches the houseToken.
+  // For numeric tokens: requires identical house-number AND letter-suffix.
+  //   "65" must NOT match "65a", "65b", or "650"; "65a" must NOT match "65" or "65b".
+  // For named-property tokens (no leading digit): falls back to prefix match (no ambiguity risk).
+  const addressMatches = (epcAddr, token) => {
+    const a = norm(epcAddr);
+    const parsedToken = parseHouseNum(token);
+    if (parsedToken) {
+      const parsedAddr = parseHouseNum(a);
+      return parsedAddr !== null &&
+             parsedAddr.num === parsedToken.num &&
+             parsedAddr.suffix === parsedToken.suffix;
+    }
+    // Named property — prefix match is safe (e.g. "rosecottage")
+    return a.startsWith(token);
+  };
 
   const respond = (body) => ({
     statusCode: 200,
@@ -52,9 +78,8 @@ exports.handler = async (event) => {
       // Multiple results: find the one whose address starts with the house number/name token.
       // Check addressLine1 first (houses), then addressLine2 (flats, where a1 is the flat label).
       matched = results.find(r => {
-        const a1 = norm(r.addressLine1 || '');
-        const a2 = norm(r.addressLine2 || '');
-        return a1.startsWith(houseToken) || a2.startsWith(houseToken);
+        return addressMatches(r.addressLine1, houseToken) ||
+               addressMatches(r.addressLine2, houseToken);
       }) || null;
     } else {
       // No address hint passed — fall back to first result (legacy / no-address-entered path)
