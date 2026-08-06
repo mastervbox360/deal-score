@@ -239,7 +239,9 @@ export default function HomePage() {
   const [aiGenCount, setAiGenCount] = useState<number>(() => parseInt(localStorage.getItem('ds_ai_gen_count') ?? '0', 10));
   const [listingLinks, setListingLinks] = useState<Array<{ label: string; url: string }>>([{ label: '', url: '' }]);
   const [strategyOpen, setStrategyOpen] = useState<boolean>(false);
-  const [dealNotesOpen, setDealNotesOpen] = useState<boolean>(false);
+  const [marketEvidenceOpen, setMarketEvidenceOpen] = useState<boolean>(false);
+  const [investorNarrativeOpen, setInvestorNarrativeOpen] = useState<boolean>(false);
+  const [propertyPhotosOpen, setPropertyPhotosOpen] = useState<boolean>(false);
   const [hasAnalysed, setHasAnalysed] = useState(false);
   const [stressTestOpen, setStressTestOpen] = useState<boolean>(false);
   const [showWorkingsOpen, setShowWorkingsOpen] = useState<boolean>(false);
@@ -865,7 +867,9 @@ export default function HomePage() {
     setTaxOverrideEditing(false);
     setManualTaxValue(0);
     setStrategyOpen(false);
-    setDealNotesOpen(false);
+    setMarketEvidenceOpen(false);
+    setInvestorNarrativeOpen(false);
+    setPropertyPhotosOpen(false);
     setStressTestOpen(false);
     setShowWorkingsOpen(false);
     setIncludeWorkingsInPDF(false);
@@ -2815,51 +2819,15 @@ export default function HomePage() {
                       />
                     </div>
                   )}
-                  {/* Payment terms collapsible */}
-                  <div className="mt-4 w-full border-t border-border pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const opening = !paymentTermsExpanded;
-                        setPaymentTermsExpanded(opening);
-                        if (opening && paymentTerms === '') {
-                          const feeStr = sourcingFee > 0 ? `£${sourcingFee.toLocaleString('en-GB')}` : '[sourcing fee]';
-                          setPaymentTerms(
-                            `A sourcing fee of ${feeStr} is payable upon exchange of contracts. Payment is required in full prior to release of the full property address and vendor contact details. A 14-day cooling off period applies from the date of this investor pack. Should you choose not to proceed within this period, no fee will be charged. After 14 days, the reservation fee of [50% of sourcing fee or a fixed amount — edit as required] becomes non-refundable. Full terms available on request.`
-                          );
-                        }
-                      }}
-                      className="w-full flex items-center justify-between py-2 hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-medium text-slate-700">Payment terms &amp; cooling off period</span>
-                        <InfoIcon id="payment-terms-info" text="Payment terms are shown on the legal page of your investor pack. The 14-day cooling off period is standard practice recommended by the Property Ombudsman for deal sourcers." />
-                      </div>
-                      <ChevronDown
-                        size={16}
-                        style={{ color: '#1B3A6B', transform: paymentTermsExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                      />
-                    </button>
-                    {paymentTermsExpanded && (
-                      <div className="space-y-2 mt-3">
-                        <Label className="text-xs">Payment terms (shown on legal page of investor pack)</Label>
-                        <Textarea
-                          rows={4}
-                          placeholder="Enter payment terms..."
-                          value={paymentTerms}
-                          onChange={(e) => setPaymentTerms(e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
                 </div>
 
-                <div className="mt-6 w-full pb-0 mb-0">
+                {/* 1 — Recommended Strategy */}
+                <div className="w-full">
                   <button
                     type="button"
                     onClick={() => setStrategyOpen((v) => !v)}
                     aria-expanded={strategyOpen}
-                    className="w-full flex items-center justify-between py-3 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
                     data-testid="toggle-strategy"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
@@ -2867,10 +2835,7 @@ export default function HomePage() {
                     </span>
                     <ChevronDown
                       className="h-4 w-4 transition-transform duration-200"
-                      style={{
-                        color: '#1B3A6B',
-                        transform: strategyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      }}
+                      style={{ color: '#1B3A6B', transform: strategyOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                     />
                   </button>
                 </div>
@@ -2908,97 +2873,25 @@ export default function HomePage() {
                 </div>
                 )}
 
-                <div className="w-full pb-2 mb-0">
+                {/* 2 — Market Evidence */}
+                <div className="w-full">
                   <button
                     type="button"
-                    onClick={() => setDealNotesOpen((v) => !v)}
-                    aria-expanded={dealNotesOpen}
+                    onClick={() => setMarketEvidenceOpen((v) => !v)}
+                    aria-expanded={marketEvidenceOpen}
                     className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
-                    data-testid="toggle-deal-notes"
                   >
                     <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
-                      Deal Notes
+                      Market Evidence
                     </span>
                     <ChevronDown
                       className="h-4 w-4 transition-transform duration-200"
-                      style={{
-                        color: '#1B3A6B',
-                        transform: dealNotesOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      }}
+                      style={{ color: '#1B3A6B', transform: marketEvidenceOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                     />
                   </button>
                 </div>
-                {dealNotesOpen && (
+                {marketEvidenceOpen && (
                 <div className="pb-6 space-y-5">
-
-                  {/* Executive Summary */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="executive-summary" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Executive Summary</Label>
-                      {tierOverride === 'free' && aiGenCount >= 3 ? (
-                        <p className="text-xs text-amber-600 font-medium text-right">
-                          You've used your 3 free AI generations. Upgrade to Pro for unlimited.
-                        </p>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleGenerateSummary}
-                          disabled={aiGenerating}
-                          className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
-                          style={{ backgroundColor: '#1B3A6B' }}
-                        >
-                          <Sparkles className="w-3.5 h-3.5" />
-                          {aiGenerating ? 'Generating…' : 'Generate with AI'}
-                        </button>
-                      )}
-                    </div>
-                    <Textarea
-                      id="executive-summary"
-                      placeholder="A professional overview of this deal for investors — click 'Generate with AI' to auto-write, or type your own."
-                      value={executiveSummary[dealType] ?? ''}
-                      onChange={(e) => setExecutiveSummary((prev) => ({ ...prev, [dealType]: e.target.value }))}
-                      rows={4}
-                    />
-                  </div>
-
-                  {/* Property Description */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label htmlFor="property-description" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
-                    <Textarea
-                      id="property-description"
-                      placeholder="e.g. 3-bed mid-terrace, 90 sqm, double glazing, gas central heating, west-facing garden, off-road parking…"
-                      value={propertyDescription}
-                      onChange={(e) => setPropertyDescription(e.target.value)}
-                      rows={3}
-                      data-testid="input-property-description"
-                    />
-                  </div>
-
-                  {/* Vendor Situation */}
-                  {dealType !== 'R2R' && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
-                      <Textarea
-                        id="vendor-situation"
-                        placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
-                        value={vendorSituation}
-                        onChange={(e) => setVendorSituation(e.target.value)}
-                        rows={3}
-                        data-testid="input-vendor-situation"
-                      />
-                    </div>
-                  )}
-
-                  {/* Refurb Scope */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Scope</Label><InfoIcon id="shared-refurb-scope" text="Brief description of planned refurbishment works. Shown on the Deal Rationale page of the investor pack." /></div>
-                    <Textarea
-                      placeholder="e.g. Full kitchen and bathroom replacement, redecoration throughout"
-                      value={refurbScope}
-                      onChange={(e) => setRefurbScope(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
 
                   {/* Area Average Yield */}
                   {dealType !== 'R2R' && dealType !== 'FLIP' && (
@@ -3434,6 +3327,121 @@ export default function HomePage() {
                     </button>
                   </div>
 
+                </div>
+                )}
+
+                {/* 3 — Investor Pack Narrative */}
+                <div className="w-full">
+                  <button
+                    type="button"
+                    onClick={() => setInvestorNarrativeOpen((v) => !v)}
+                    aria-expanded={investorNarrativeOpen}
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
+                      Investor Pack Narrative
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform duration-200"
+                      style={{ color: '#1B3A6B', transform: investorNarrativeOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    />
+                  </button>
+                </div>
+                {investorNarrativeOpen && (
+                <div className="pb-6 space-y-5">
+
+                  {/* Executive Summary */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="executive-summary" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Executive Summary</Label>
+                      {tierOverride === 'free' && aiGenCount >= 3 ? (
+                        <p className="text-xs text-amber-600 font-medium text-right">
+                          You've used your 3 free AI generations. Upgrade to Pro for unlimited.
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleGenerateSummary}
+                          disabled={aiGenerating}
+                          className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
+                          style={{ backgroundColor: '#1B3A6B' }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {aiGenerating ? 'Generating…' : 'Generate with AI'}
+                        </button>
+                      )}
+                    </div>
+                    <Textarea
+                      id="executive-summary"
+                      placeholder="A professional overview of this deal for investors — click 'Generate with AI' to auto-write, or type your own."
+                      value={executiveSummary[dealType] ?? ''}
+                      onChange={(e) => setExecutiveSummary((prev) => ({ ...prev, [dealType]: e.target.value }))}
+                      rows={4}
+                    />
+                  </div>
+
+                  {/* Property Description */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1"><Label htmlFor="property-description" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Property Description</Label><InfoIcon id="shared-propdesc" text={TT.propDescription} /></div>
+                    <Textarea
+                      id="property-description"
+                      placeholder="e.g. 3-bed mid-terrace, 90 sqm, double glazing, gas central heating, west-facing garden, off-road parking…"
+                      value={propertyDescription}
+                      onChange={(e) => setPropertyDescription(e.target.value)}
+                      rows={3}
+                      data-testid="input-property-description"
+                    />
+                  </div>
+
+                  {/* Vendor Situation */}
+                  {dealType !== 'R2R' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label htmlFor="vendor-situation" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vendor Situation</Label><InfoIcon id="shared-vendor" text="Describe the seller's motivation and circumstances. This helps investors understand the deal context and negotiating position." /></div>
+                      <Textarea
+                        id="vendor-situation"
+                        placeholder="e.g. Motivated seller — relocating for work, needs quick completion within 6 weeks, open to offers…"
+                        value={vendorSituation}
+                        onChange={(e) => setVendorSituation(e.target.value)}
+                        rows={3}
+                        data-testid="input-vendor-situation"
+                      />
+                    </div>
+                  )}
+
+                  {/* Refurb Scope */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Refurb Scope</Label><InfoIcon id="shared-refurb-scope" text="Brief description of planned refurbishment works. Shown on the Deal Rationale page of the investor pack." /></div>
+                    <Textarea
+                      placeholder="e.g. Full kitchen and bathroom replacement, redecoration throughout"
+                      value={refurbScope}
+                      onChange={(e) => setRefurbScope(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                </div>
+                )}
+
+                {/* 4 — Property Photos */}
+                <div className="w-full">
+                  <button
+                    type="button"
+                    onClick={() => setPropertyPhotosOpen((v) => !v)}
+                    aria-expanded={propertyPhotosOpen}
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
+                      Property Photos
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform duration-200"
+                      style={{ color: '#1B3A6B', transform: propertyPhotosOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    />
+                  </button>
+                </div>
+                {propertyPhotosOpen && (
+                <div className="pb-6 space-y-5">
+
                   {/* Property Photos */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Property Photos</Label><InfoIcon id="photos-upload" text={TT.photoUpload} /></div>
@@ -3508,7 +3516,47 @@ export default function HomePage() {
                       </div>
                     )}
                   </div>
+                </div>
+                )}
 
+                {/* 5 — Payment Terms & Cooling Off Period */}
+                <div className="w-full">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const opening = !paymentTermsExpanded;
+                      setPaymentTermsExpanded(opening);
+                      if (opening && paymentTerms === '') {
+                        const feeStr = sourcingFee > 0 ? `£${sourcingFee.toLocaleString('en-GB')}` : '[sourcing fee]';
+                        setPaymentTerms(
+                          `A sourcing fee of ${feeStr} is payable upon exchange of contracts. Payment is required in full prior to release of the full property address and vendor contact details. A 14-day cooling off period applies from the date of this investor pack. Should you choose not to proceed within this period, no fee will be charged. After 14 days, the reservation fee of [50% of sourcing fee or a fixed amount — edit as required] becomes non-refundable. Full terms available on request.`
+                        );
+                      }
+                    }}
+                    aria-expanded={paymentTermsExpanded}
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
+                      Payment Terms &amp; Cooling Off Period
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform duration-200"
+                      style={{ color: '#1B3A6B', transform: paymentTermsExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    />
+                  </button>
+                </div>
+                {paymentTermsExpanded && (
+                <div className="pb-6 space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-terms-input" className="text-xs">Payment terms (shown on legal page of investor pack)</Label>
+                    <Textarea
+                      id="payment-terms-input"
+                      rows={4}
+                      placeholder="Enter payment terms..."
+                      value={paymentTerms}
+                      onChange={(e) => setPaymentTerms(e.target.value)}
+                    />
+                  </div>
                 </div>
                 )}
               </CardContent>
