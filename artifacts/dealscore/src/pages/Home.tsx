@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
+import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, haversineMiles, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ComparableRow } from '@/lib/types';
 
@@ -298,6 +298,8 @@ export default function HomePage() {
     epcRating: string | null;
     constructionDate: string | null;
     floodRisk: string | null;
+    lat: number | null;
+    lng: number | null;
   } | null>(null);
   const [propertyDataLoading, setPropertyDataLoading] = useState(false);
   const [propertyDataOpen, setPropertyDataOpen] = useState(true);
@@ -403,7 +405,7 @@ export default function HomePage() {
     if (!address || address.trim().length < 5) return;
     setPropertyDataLoading(true);
     // Show panel immediately with empty state so it appears at once
-    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, constructionDate: null, floodRisk: null });
+    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, constructionDate: null, floodRisk: null, lat: null, lng: null });
 
     try {
       const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
@@ -505,7 +507,8 @@ export default function HomePage() {
               const floodRisk = floodItems && floodItems.length > 0
                 ? 'Flood risk area detected nearby — check Environment Agency for full assessment'
                 : 'No flood risk areas detected nearby';
-              setPropertyData(prev => prev ? { ...prev, floodRisk } : null);
+              // Persist subject coords alongside flood risk in one update
+              setPropertyData(prev => prev ? { ...prev, lat, lng, floodRisk } : null);
             }
           } catch { /* silent */ }
         })
@@ -2831,6 +2834,20 @@ export default function HomePage() {
                                 placeholder="Postcode"
                                 value={row.postcode}
                                 onChange={(e) => upd('postcode', e.target.value)}
+                                onBlur={async (e) => {
+                                  const pc = e.target.value.trim().replace(/\s+/g, '').toUpperCase();
+                                  if (!pc) return;
+                                  try {
+                                    const res = await fetch(`https://api.postcodes.io/postcodes/${pc}`).then(r => r.json());
+                                    const lat: number | null = res?.result?.latitude ?? null;
+                                    const lng: number | null = res?.result?.longitude ?? null;
+                                    setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat, lng } : r));
+                                    if (lat && lng && propertyData?.lat && propertyData?.lng) {
+                                      const dist = haversineMiles(propertyData.lat, propertyData.lng, lat, lng);
+                                      console.log(`[Dev] Comparable ${i + 1} (${pc}): ${dist.toFixed(2)} miles from subject`);
+                                    }
+                                  } catch { /* silent — invalid postcode leaves lat/lng as null */ }
+                                }}
                                 className="h-9 text-xs"
                               />
                               <select
