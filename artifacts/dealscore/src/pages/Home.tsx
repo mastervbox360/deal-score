@@ -302,6 +302,7 @@ export default function HomePage() {
     heatingCostCurrent: number | null;
     environmentalImpactCurrent: number | null;
     energyConsumptionCurrent: number | null;
+    epcMatchStatus: 'no_match' | null; // 'no_match' = certs found for postcode but none matched this address
     floodRisk: string | null;
     lat: number | null;
     lng: number | null;
@@ -410,7 +411,7 @@ export default function HomePage() {
     if (!address || address.trim().length < 5) return;
     setPropertyDataLoading(true);
     // Show panel immediately with empty state so it appears at once
-    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, potentialEpcRating: null, constructionDate: null, mainHeating: null, heatingCostCurrent: null, environmentalImpactCurrent: null, energyConsumptionCurrent: null, floodRisk: null, lat: null, lng: null });
+    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, potentialEpcRating: null, constructionDate: null, mainHeating: null, heatingCostCurrent: null, environmentalImpactCurrent: null, energyConsumptionCurrent: null, epcMatchStatus: null, floodRisk: null, lat: null, lng: null });
 
     try {
       const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
@@ -434,14 +435,26 @@ export default function HomePage() {
       };
 
       // EPC — typically fast; updates rating, floor area, construction date
-      // EPC — two-step flow handled server-side: search by postcode → fetch full certificate
-      // The function returns { data: <certificate object in snake_case> } or { data: null } if no cert found
-      const epcFetch = fetch(`/.netlify/functions/epc-lookup?postcode=${postcode}`)
+      // EPC — two-step flow handled server-side: search by postcode → match address → fetch full certificate
+      // Pass the full address so the function can match the specific property, not just first for postcode
+      // Returns { data: <cert in snake_case>, matchStatus: 'matched' | 'no_match' | 'no_certificate' }
+      const epcFetch = fetch(
+        `/.netlify/functions/epc-lookup?postcode=${postcode}&address=${encodeURIComponent(address)}`
+      )
         .then(r => r.json())
         .then(epc => {
           try {
             const cert = epc?.data;
-            if (!cert) return; // No EPC certificate found — leave all fields null (UI shows "No certificate found")
+            const matchStatus: string | undefined = epc?.matchStatus;
+
+            if (!cert) {
+              // If certs exist for the postcode but none matched this address, flag it so the
+              // UI can show a distinct "couldn't confirm" warning instead of "no certificate"
+              if (matchStatus === 'no_match') {
+                setPropertyData(prev => prev ? { ...prev, epcMatchStatus: 'no_match' } : null);
+              }
+              return;
+            }
 
             // Helper: some string fields vary by schema version — newer certs return a plain string,
             // older ones return { value: string, language: "1" }. Handle both gracefully.
@@ -511,6 +524,7 @@ export default function HomePage() {
               heatingCostCurrent,
               environmentalImpactCurrent,
               energyConsumptionCurrent,
+              epcMatchStatus: null, // successful match — clear any prior no_match state
               ...(epcPropertyType ? { detectedPropertyType: epcPropertyType } : {}),
             } : null);
           } catch { /* silent */ }
@@ -5416,6 +5430,7 @@ function PropertyDataPanel({
     heatingCostCurrent: number | null;
     environmentalImpactCurrent: number | null;
     energyConsumptionCurrent: number | null;
+    epcMatchStatus: 'no_match' | null;
     floodRisk: string | null;
   } | null;
   loading: boolean;
@@ -5495,6 +5510,12 @@ function PropertyDataPanel({
                       <span style={{ color: '#94A3B8', fontSize: 11, marginLeft: 3 }}>potential</span>
                     </span>
                   )}
+                </div>
+              ) : data.epcMatchStatus === 'no_match' ? (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <span style={{ color: '#92400e', fontStyle: 'italic' }}>
+                    ⚠️ EPC data exists for this postcode but couldn't be matched to this specific address — please verify manually
+                  </span>
                 </div>
               ) : (
                 <div>
