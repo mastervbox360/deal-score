@@ -711,6 +711,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
   const hasLinks = props.listingLinks.some(r => r.url.trim());
   const hasMarketEvidence = hasComparables || hasLinks;
   const hasLegal = !!(props.sourcingFee > 0 || props.preparedBy.name || props.preparedBy.email);
+  const hasContactPage = !!(props.preparedBy.name || props.preparedBy.email || props.preparedBy.phone || props.companyName?.trim() || props.whatsappNumber?.trim());
 
   const formatCompPrice = (price: string): string => {
     const trimmed = price.trim();
@@ -2606,6 +2607,27 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <Image src={src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 3 }} />
               </View>
             ))}
+
+      {/* ── Floorplan Page ─────────────────────────────────────────────────────── */}
+      <Page size="A4" orientation="landscape" style={landscapePage}>
+        <PageHeader />
+        <Footer />
+        <SH title="Floorplan" />
+        {props.floorPlanImage ? (
+          <View style={{ flex: 1 }} wrap={false}>
+            <Image
+              src={props.floorPlanImage}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          </View>
+        ) : (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#6B7280' }}>
+              Floorplan not yet supplied for this deal.
+            </Text>
+          </View>
+        )}
+      </Page>
           </View>
         </Page>
       ))}
@@ -3328,6 +3350,50 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
         )}
       </Page>
       )}
+
+      {/* ── Book a Viewing / Enquiries Page ────────────────────────────────────── */}
+      {hasContactPage && (
+        <Page size="A4" orientation="landscape" style={landscapePage}>
+          <PageHeader />
+          <Footer />
+          <SH title="Book a Viewing / Enquiries" />
+          <View style={{ flex: 1 }}>
+            <View style={{ ...notePanel, maxWidth: 380 }}>
+              {props.companyName?.trim() ? (
+                <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Company</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.companyName.trim()}</Text>
+                </View>
+              ) : null}
+              {props.preparedBy.name ? (
+                <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Contact Name</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.name}</Text>
+                </View>
+              ) : null}
+              {props.preparedBy.email ? (
+                <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Email</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
+                </View>
+              ) : null}
+              {props.preparedBy.phone ? (
+                <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Phone</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
+                </View>
+              ) : null}
+              {props.whatsappNumber?.trim() ? (
+                <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>WhatsApp</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.whatsappNumber.trim()}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        </Page>
+      )}
+
 
       {/* ── Legal Page (last) ────────────────────────────────────────────────── */}
       {hasLegal && (

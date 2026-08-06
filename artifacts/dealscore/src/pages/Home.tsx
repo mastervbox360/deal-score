@@ -256,6 +256,7 @@ export default function HomePage() {
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [photoFiles, setPhotoFiles] = useState<string[]>([]);
   const [heroPhotoIndex, setHeroPhotoIndex] = useState<number>(0);
+  const [floorPlanImage, setFloorPlanImage] = useState<string | null>(null);
   const [photoLimitError, setPhotoLimitError] = useState<boolean>(false);
   const [executiveSummary, setExecutiveSummary] = useState<Record<string, string>>({});
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
@@ -903,6 +904,7 @@ export default function HomePage() {
     setComparables([]);
     setPhotoFiles([]);
     setHeroPhotoIndex(0);
+    setFloorPlanImage(null);
     setExecutiveSummary({});
     setListingLinks([{ label: '', url: '' }]);
     setTaxCountry('ENGLAND');
@@ -1866,6 +1868,7 @@ export default function HomePage() {
       listingLinks,
       photoFiles,
       heroPhotoIndex,
+      floorPlanImage,
       stressTest: _stressSupported ? {
         baseCashFlow: _baseCashFlow,
         baseCoC: _baseCoC,
@@ -1919,7 +1922,7 @@ export default function HomePage() {
     marketValue, sourcingFee, sourcingFeeDisclaimer, preparedBy, companyName, logoBase64, brandColour,
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
-    subjectCtx, comparables, listingLinks, photoFiles, heroPhotoIndex,
+    subjectCtx, comparables, listingLinks, photoFiles, heroPhotoIndex, floorPlanImage,
     includeWorkingsInPDF, includeGlossaryInPDF,
     whatsappNumber, prsNumber, icoNumber, companyRegNumber,
     managementFeePercent, voidAllowancePercent, maintenanceReserve,
@@ -3566,6 +3569,40 @@ export default function HomePage() {
                           </div>
                         ))}
                       </div>
+                    )}
+                  </div>
+
+                  {/* Floor Plan */}
+                  <div className="space-y-2 pt-4 border-t border-border">
+                    <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Floor Plan</Label>
+                    {floorPlanImage ? (
+                      <div className="relative group w-full">
+                        <img src={floorPlanImage} alt="Floor plan" className="w-full max-h-48 object-contain rounded-lg border border-border cursor-pointer" onClick={() => setLightboxPhoto(floorPlanImage)} />
+                        <button
+                          type="button"
+                          onClick={() => setFloorPlanImage(null)}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove floor plan"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="block w-full border-2 border-dashed border-[#1B3A6B]/30 rounded-xl p-6 text-center cursor-pointer hover:border-[#1B3A6B] hover:bg-[#1B3A6B]/5 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = '';
+                            if (!file) return;
+                            const compressed = await compressImage(file);
+                            if (compressed) setFloorPlanImage(compressed);
+                          }}
+                        />
+                        <span className="text-sm font-medium text-[#1B3A6B]/70">Click to upload floor plan (JPG / PNG)</span>
+                      </label>
                     )}
                   </div>
                 </div>
