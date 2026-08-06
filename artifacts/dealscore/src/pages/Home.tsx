@@ -2821,59 +2821,7 @@ export default function HomePage() {
                   )}
                 </div>
 
-                {/* 1 — Recommended Strategy */}
-                <div className="w-full">
-                  <button
-                    type="button"
-                    onClick={() => setStrategyOpen((v) => !v)}
-                    aria-expanded={strategyOpen}
-                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
-                    data-testid="toggle-strategy"
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
-                      Recommended Strategy
-                    </span>
-                    <ChevronDown
-                      className="h-4 w-4 transition-transform duration-200"
-                      style={{ color: '#1B3A6B', transform: strategyOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                    />
-                  </button>
-                </div>
-                {strategyOpen && (
-                <div className="pb-6 space-y-5">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="strategy-notes" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why This Strategy?</Label>
-                      {tierOverride === 'free' && aiGenCount >= 3 ? (
-                        <p className="text-xs text-amber-600 font-medium text-right">
-                          You've used your 3 free AI generations. Upgrade to Pro for unlimited.
-                        </p>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleGenerateStrategy}
-                          disabled={strategyAiGenerating}
-                          className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
-                          style={{ backgroundColor: '#1B3A6B' }}
-                        >
-                          <Sparkles className="w-3.5 h-3.5" />
-                          {strategyAiGenerating ? 'Generating…' : 'Generate with AI'}
-                        </button>
-                      )}
-                    </div>
-                    <Textarea
-                      id="strategy-notes"
-                      placeholder="Explain why this strategy fits the deal — e.g. strong rental demand, room to add value, exit options, etc."
-                      value={strategyNotes[dealType] ?? ''}
-                      onChange={(e) => setStrategyNotes(prev => ({ ...prev, [dealType]: e.target.value }))}
-                      rows={4}
-                      data-testid="input-strategy-notes"
-                    />
-                  </div>
-                </div>
-                )}
-
-                {/* 2 — Market Evidence */}
+                {/* 1 — Market Evidence */}
                 <div className="w-full">
                   <button
                     type="button"
@@ -2892,54 +2840,6 @@ export default function HomePage() {
                 </div>
                 {marketEvidenceOpen && (
                 <div className="pb-6 space-y-5">
-
-                  {/* Area Average Yield */}
-                  {dealType !== 'R2R' && dealType !== 'FLIP' && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Area Average Yield (%)</Label><InfoIcon id="shared-area-yield" text="Average gross yield for comparable BTL properties in this area. Used for market context in the investor pack. Leave blank to omit." /></div>
-                      <Input
-                        type="number"
-                        placeholder="e.g. 5.8"
-                        value={areaAverageYield || ''}
-                        onChange={(e) => setAreaAverageYield(parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                  )}
-
-                  {/* Investment Timeline */}
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Investment Timeline</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Optional — leave blank to omit from investor pack</p>
-                    </div>
-                    <div className="space-y-2">
-                      {timelineStages.map((stage, i) => (
-                        <div key={i} className="flex gap-2 items-center">
-                          <Input
-                            type="text"
-                            className="flex-grow text-xs"
-                            placeholder="Stage label"
-                            value={stage.label}
-                            onChange={(e) => {
-                              const next = timelineStages.map((s, j) => j === i ? { ...s, label: e.target.value } : s);
-                              setTimelineStages(next);
-                            }}
-                          />
-                          <Input
-                            type="number"
-                            className="w-20 text-xs"
-                            placeholder="Month"
-                            value={stage.month}
-                            onChange={(e) => {
-                              const next = timelineStages.map((s, j) => j === i ? { ...s, month: parseInt(e.target.value) || 0 } : s);
-                              setTimelineStages(next);
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Comparable Properties — card-based rows */}
                   {dealType !== 'R2R' && (
                   <div className="space-y-2">
@@ -3327,8 +3227,75 @@ export default function HomePage() {
                     </button>
                   </div>
 
+                  {/* Area Average Yield */}
+                  {dealType !== 'R2R' && dealType !== 'FLIP' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1"><Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Area Average Yield (%)</Label><InfoIcon id="shared-area-yield" text="Average gross yield for comparable BTL properties in this area. Used for market context in the investor pack. Leave blank to omit." /></div>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 5.8"
+                        value={areaAverageYield || ''}
+                        onChange={(e) => setAreaAverageYield(parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  )}
+
                 </div>
                 )}
+
+
+                {/* 2 — Recommended Strategy */}
+                <div className="w-full">
+                  <button
+                    type="button"
+                    onClick={() => setStrategyOpen((v) => !v)}
+                    aria-expanded={strategyOpen}
+                    className="w-full flex items-center justify-between py-4 border-t border-border hover:bg-slate-50 focus:outline-none focus:ring-0 transition-colors"
+                    data-testid="toggle-strategy"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#1B3A6B]">
+                      Recommended Strategy
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform duration-200"
+                      style={{ color: '#1B3A6B', transform: strategyOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                    />
+                  </button>
+                </div>
+                {strategyOpen && (
+                <div className="pb-6 space-y-5">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="strategy-notes" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Why This Strategy?</Label>
+                      {tierOverride === 'free' && aiGenCount >= 3 ? (
+                        <p className="text-xs text-amber-600 font-medium text-right">
+                          You've used your 3 free AI generations. Upgrade to Pro for unlimited.
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleGenerateStrategy}
+                          disabled={strategyAiGenerating}
+                          className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg text-white disabled:opacity-60 transition-colors"
+                          style={{ backgroundColor: '#1B3A6B' }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {strategyAiGenerating ? 'Generating…' : 'Generate with AI'}
+                        </button>
+                      )}
+                    </div>
+                    <Textarea
+                      id="strategy-notes"
+                      placeholder="Explain why this strategy fits the deal — e.g. strong rental demand, room to add value, exit options, etc."
+                      value={strategyNotes[dealType] ?? ''}
+                      onChange={(e) => setStrategyNotes(prev => ({ ...prev, [dealType]: e.target.value }))}
+                      rows={4}
+                      data-testid="input-strategy-notes"
+                    />
+                  </div>
+                </div>
+                )}
+
 
                 {/* 3 — Investor Pack Narrative */}
                 <div className="w-full">
@@ -3419,8 +3386,43 @@ export default function HomePage() {
                     />
                   </div>
 
+                  {/* Investment Timeline */}
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Investment Timeline</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">Optional — leave blank to omit from investor pack</p>
+                    </div>
+                    <div className="space-y-2">
+                      {timelineStages.map((stage, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <Input
+                            type="text"
+                            className="flex-grow text-xs"
+                            placeholder="Stage label"
+                            value={stage.label}
+                            onChange={(e) => {
+                              const next = timelineStages.map((s, j) => j === i ? { ...s, label: e.target.value } : s);
+                              setTimelineStages(next);
+                            }}
+                          />
+                          <Input
+                            type="number"
+                            className="w-20 text-xs"
+                            placeholder="Month"
+                            value={stage.month}
+                            onChange={(e) => {
+                              const next = timelineStages.map((s, j) => j === i ? { ...s, month: parseInt(e.target.value) || 0 } : s);
+                              setTimelineStages(next);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
                 )}
+
 
                 {/* 4 — Property Photos */}
                 <div className="w-full">
@@ -3518,6 +3520,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 )}
+
 
                 {/* 5 — Payment Terms & Cooling Off Period */}
                 <div className="w-full">
