@@ -132,6 +132,16 @@ function iterativeSolve(
   return null;
 }
 
+// EPC dwelling_type → internal property type mapping — shared by subject property and comparable EPC auto-fill
+const EPC_TYPE_MAP: Record<string, string> = {
+  'Top-floor flat': 'Flat/Apartment', 'Mid-floor flat': 'Flat/Apartment',
+  'Ground-floor flat': 'Flat/Apartment', 'Basement flat': 'Flat/Apartment',
+  'Flat': 'Flat/Apartment', 'Maisonette': 'Flat/Apartment',
+  'Mid-terrace house': 'Terraced', 'End-terrace house': 'Terraced',
+  'Semi-detached house': 'Semi-Detached', 'Detached house': 'Detached',
+  'Bungalow': 'Bungalow', 'Park home': 'Terraced',
+};
+
 export default function HomePage() {
   const [dealType, setDealType] = useState<DealType>('BTL');
 
@@ -314,6 +324,15 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
+  // Rooftop-level coords captured from Places getDetails when user selects subject address from autocomplete.
+  // Preferred over postcodes.io postcode-centroid coords for flood lookup and distance calculations.
+  const subjectPlacesCoords = useRef<{ lat: number; lng: number } | null>(null);
+
+  // Per-comparable-row autocomplete state — keyed by row.id
+  const [compSuggestions, setCompSuggestions] = useState<Record<string, { description: string; placeId: string }[]>>({});
+  const [compShowSuggestions, setCompShowSuggestions] = useState<Record<string, boolean>>({});
+  const [compHighlightedIndex, setCompHighlightedIndex] = useState<Record<string, number>>({});
+
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO' as 'IO' | 'Repayment' });
 
   const [saInputs, setSaInputs] = useState({ nightlyRate: 0, occupancyPercent: 75, platformFeesPercent: 0 });
@@ -462,17 +481,9 @@ export default function HomePage() {
               typeof v === 'string' ? (v || null) : ((v as Record<string, unknown>)?.value as string) ?? null;
 
             // Property type: use dwelling_type (human-readable) rather than property_type (integer code)
-            const epcTypeMap: Record<string, string> = {
-              'Top-floor flat': 'Flat/Apartment', 'Mid-floor flat': 'Flat/Apartment',
-              'Ground-floor flat': 'Flat/Apartment', 'Basement flat': 'Flat/Apartment',
-              'Flat': 'Flat/Apartment', 'Maisonette': 'Flat/Apartment',
-              'Mid-terrace house': 'Terraced', 'End-terrace house': 'Terraced',
-              'Semi-detached house': 'Semi-Detached', 'Detached house': 'Detached',
-              'Bungalow': 'Bungalow', 'Park home': 'Terraced',
-            };
             const rawDwellingType = strVal(cert.dwelling_type);
             const epcPropertyType = rawDwellingType
-              ? (epcTypeMap[rawDwellingType] || rawDwellingType)
+              ? (EPC_TYPE_MAP[rawDwellingType] || rawDwellingType)
               : null;
 
             // Floor area: plain number in sqm
@@ -562,13 +573,18 @@ export default function HomePage() {
         })
         .catch(() => null);
 
-      // Geo + Flood — chains geo lookup into flood check; updates flood risk
+      // Geo + Flood — chains geo lookup into flood check; updates flood risk.
+      // If the user selected the address from the autocomplete dropdown, subjectPlacesCoords.current
+      // holds rooftop-level coords (more accurate than postcode centroid). Those are preferred for both
+      // the flood proximity query and the stored lat/lng used in distance calculations.
       const geoFloodFetch = fetch(`https://api.postcodes.io/postcodes/${postcode}`)
         .then(r => r.json())
         .then(async geoResult => {
           try {
-            const lat = geoResult?.result?.latitude;
-            const lng = geoResult?.result?.longitude;
+            // Prefer Places rooftop coords; fall back to postcodes.io centroid
+            const placesCoords = subjectPlacesCoords.current;
+            const lat: number | null = placesCoords?.lat ?? geoResult?.result?.latitude ?? null;
+            const lng: number | null = placesCoords?.lng ?? geoResult?.result?.longitude ?? null;
             if (lat && lng) {
               const floodRes = await fetch(
                 `https://environment.data.gov.uk/flood-monitoring/id/floodAreas?lat=${lat}&long=${lng}&dist=1`
@@ -577,7 +593,6 @@ export default function HomePage() {
               const floodRisk = floodItems && floodItems.length > 0
                 ? 'Flood risk area detected nearby — check Environment Agency for full assessment'
                 : 'No flood risk areas detected nearby';
-              // Persist subject coords alongside flood risk in one update
               setPropertyData(prev => prev ? { ...prev, lat, lng, floodRisk } : null);
             }
           } catch { /* silent */ }
@@ -662,7 +677,7 @@ export default function HomePage() {
     try {
       const svc = new window.google.maps.places.PlacesService(document.createElement('div'));
       svc.getDetails(
-        { placeId: suggestion.placeId, fields: ['formatted_address', 'address_components'] },
+        { placeId: suggestion.placeId, fields: ['formatted_address', 'address_components', 'geometry'] },
         (result, status) => {
           if (status !== window.google.maps.places.PlacesServiceStatus.OK || !result) return;
           let cleaned = (result.formatted_address || suggestion.description)
@@ -674,6 +689,15 @@ export default function HomePage() {
           const postcode = postcodeComp?.long_name || '';
           if (postcode && !cleaned.includes(postcode)) {
             cleaned = `${cleaned}, ${postcode}`;
+          }
+          // Store rooftop-level coords for use in subsequent flood lookup + distance calculations.
+          // These are more accurate than the postcode-centroid coords postcodes.io returns.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const placesLat = (result.geometry as any)?.location?.lat?.();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const placesLng = (result.geometry as any)?.location?.lng?.();
+          if (placesLat && placesLng) {
+            subjectPlacesCoords.current = { lat: placesLat, lng: placesLng };
           }
           setPropertyAddress(cleaned);
           detectTaxCountryFromPostcode(cleaned);
@@ -695,6 +719,106 @@ export default function HomePage() {
       // Keep suggestion.description if PlacesService fails
     }
   };
+
+  // ── Comparable row autocomplete helpers ─────────────────────────────────────
+  // Mirrors the subject property autocomplete pattern; operates per-row by row.id.
+
+  const fetchCompSuggestions = (rowId: string, input: string) => {
+    if (!input || input.length < 3 || !window.google?.maps?.places) {
+      setCompSuggestions(prev => ({ ...prev, [rowId]: [] }));
+      setCompShowSuggestions(prev => ({ ...prev, [rowId]: false }));
+      return;
+    }
+    try {
+      const svc = new window.google.maps.places.AutocompleteService();
+      svc.getPlacePredictions(
+        { input, componentRestrictions: { country: 'gb' } },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+            setCompSuggestions(prev => ({ ...prev, [rowId]: predictions.map(p => ({ description: p.description, placeId: p.place_id })) }));
+            setCompShowSuggestions(prev => ({ ...prev, [rowId]: true }));
+          } else {
+            setCompSuggestions(prev => ({ ...prev, [rowId]: [] }));
+            setCompShowSuggestions(prev => ({ ...prev, [rowId]: false }));
+          }
+        }
+      );
+    } catch (err) {
+      console.error('Comparable autocomplete error:', err);
+      setCompSuggestions(prev => ({ ...prev, [rowId]: [] }));
+      setCompShowSuggestions(prev => ({ ...prev, [rowId]: false }));
+    }
+  };
+
+  // Fetches EPC data for a comparable row and auto-fills floor area + property type if empty.
+  // Only fires when matchStatus === 'matched'; no error is shown for no_match / no_certificate.
+  const fetchCompEpc = (rowId: string, postcode: string, address: string) => {
+    if (!postcode || !address) return;
+    fetch(`/.netlify/functions/epc-lookup?postcode=${encodeURIComponent(postcode)}&address=${encodeURIComponent(address)}`)
+      .then(r => r.json())
+      .then(epc => {
+        try {
+          if (epc?.matchStatus !== 'matched' || !epc?.data) return;
+          const cert = epc.data;
+          const rawDwellingType = typeof cert.dwelling_type === 'string'
+            ? cert.dwelling_type
+            : (cert.dwelling_type as Record<string, unknown>)?.value as string ?? null;
+          const epcPropertyType = rawDwellingType ? (EPC_TYPE_MAP[rawDwellingType] || null) : null;
+          const floorArea = cert.total_floor_area != null ? Number(cert.total_floor_area) : null;
+          setComparables(prev => prev.map(r => {
+            if (r.id !== rowId) return r;
+            return {
+              ...r,
+              // Only fill if the field is currently empty — never overwrite a user-entered value
+              ...(epcPropertyType && !r.propertyType ? { propertyType: epcPropertyType } : {}),
+              ...(floorArea != null && r.floorArea === '' ? { floorArea } : {}),
+            };
+          }));
+        } catch { /* silent */ }
+      })
+      .catch(() => null);
+  };
+
+  const selectCompSuggestion = (rowId: string, suggestion: { description: string; placeId: string }) => {
+    setCompShowSuggestions(prev => ({ ...prev, [rowId]: false }));
+    setCompSuggestions(prev => ({ ...prev, [rowId]: [] }));
+    setCompHighlightedIndex(prev => ({ ...prev, [rowId]: -1 }));
+    // Set address immediately from suggestion description while getDetails loads
+    setComparables(prev => prev.map(r => r.id === rowId ? { ...r, address: suggestion.description } : r));
+    try {
+      const svc = new window.google.maps.places.PlacesService(document.createElement('div'));
+      svc.getDetails(
+        { placeId: suggestion.placeId, fields: ['formatted_address', 'address_components', 'geometry'] },
+        (result, status) => {
+          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !result) return;
+          let cleaned = (result.formatted_address || suggestion.description)
+            .replace(/, UK$/, '')
+            .replace(/, United Kingdom$/, '');
+          const postcodeComp = result.address_components?.find(c => c.types.includes('postal_code'));
+          const postcode = postcodeComp?.long_name || '';
+          if (postcode && !cleaned.includes(postcode)) {
+            cleaned = `${cleaned}, ${postcode}`;
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const placesLat = (result.geometry as any)?.location?.lat?.();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const placesLng = (result.geometry as any)?.location?.lng?.();
+          setComparables(prev => prev.map(r => {
+            if (r.id !== rowId) return r;
+            return {
+              ...r,
+              address: cleaned,
+              ...(postcode ? { postcode } : {}),
+              ...(placesLat && placesLng ? { lat: placesLat, lng: placesLng, geocodeFailed: false } : {}),
+            };
+          }));
+          // Trigger EPC auto-fill now that we have a confirmed address + postcode
+          if (postcode) fetchCompEpc(rowId, postcode, cleaned);
+        }
+      );
+    } catch { /* silent — address already set from suggestion.description above */ }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
 
   const handleReset = () => {
     setPropertyAddress('');
@@ -2888,15 +3012,82 @@ export default function HomePage() {
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                            {/* Address */}
-                            <Input
-                              type="text"
-                              autoComplete="new-password"
-                              placeholder="Address"
-                              value={row.address}
-                              onChange={(e) => upd('address', e.target.value)}
-                              className="h-9 text-xs"
-                            />
+                            {/* Address — with Places autocomplete dropdown */}
+                            <div style={{ position: 'relative' }}>
+                              <Input
+                                type="text"
+                                autoComplete="off"
+                                placeholder="Address"
+                                value={row.address}
+                                onChange={(e) => {
+                                  upd('address', e.target.value);
+                                  fetchCompSuggestions(row.id, e.target.value);
+                                }}
+                                onKeyDown={(e) => {
+                                  const suggs = compSuggestions[row.id] || [];
+                                  const hi = compHighlightedIndex[row.id] ?? -1;
+                                  if (!compShowSuggestions[row.id] || suggs.length === 0) return;
+                                  if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    setCompHighlightedIndex(prev => ({ ...prev, [row.id]: Math.min(hi + 1, suggs.length - 1) }));
+                                  } else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    setCompHighlightedIndex(prev => ({ ...prev, [row.id]: Math.max(hi - 1, 0) }));
+                                  } else if (e.key === 'Enter') {
+                                    if (hi >= 0) { e.preventDefault(); selectCompSuggestion(row.id, suggs[hi]); }
+                                  } else if (e.key === 'Escape') {
+                                    setCompShowSuggestions(prev => ({ ...prev, [row.id]: false }));
+                                    setCompSuggestions(prev => ({ ...prev, [row.id]: [] }));
+                                    setCompHighlightedIndex(prev => ({ ...prev, [row.id]: -1 }));
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const related = e.relatedTarget as HTMLElement | null;
+                                  if (related && related.closest(`[data-comp-suggestions="${row.id}"]`)) return;
+                                  setTimeout(() => setCompShowSuggestions(prev => ({ ...prev, [row.id]: false })), 200);
+                                }}
+                                className="h-9 text-xs"
+                              />
+                              {compShowSuggestions[row.id] && (compSuggestions[row.id] || []).length > 0 && (
+                                <div
+                                  data-comp-suggestions={row.id}
+                                  tabIndex={-1}
+                                  style={{
+                                    position: 'absolute',
+                                    zIndex: 1000,
+                                    background: '#fff',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '0 0 6px 6px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                    width: '100%',
+                                    maxHeight: 180,
+                                    overflowY: 'auto',
+                                  }}
+                                >
+                                  {(compSuggestions[row.id] || []).map((suggestion, si) => {
+                                    const hi = compHighlightedIndex[row.id] ?? -1;
+                                    return (
+                                      <div
+                                        key={si}
+                                        onPointerDown={(e) => { e.preventDefault(); selectCompSuggestion(row.id, suggestion); }}
+                                        style={{
+                                          padding: '8px 12px',
+                                          fontSize: 12,
+                                          cursor: 'pointer',
+                                          borderBottom: si < (compSuggestions[row.id] || []).length - 1 ? '1px solid #f1f5f9' : 'none',
+                                          color: '#1a1a1a',
+                                          background: si === hi ? '#e8edf5' : '#fff',
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.background = si === hi ? '#e8edf5' : '#fff')}
+                                      >
+                                        {suggestion.description}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                             {/* Postcode | Property Type | Beds | Floor Area */}
                             <div className="grid grid-cols-4 gap-2">
                               <Input
@@ -2910,14 +3101,25 @@ export default function HomePage() {
                                 onBlur={async (e) => {
                                   const pc = e.target.value.trim().replace(/\s+/g, '').toUpperCase();
                                   if (!pc) return;
-                                  try {
-                                    const res = await fetch(`https://api.postcodes.io/postcodes/${pc}`).then(r => r.json());
-                                    const lat: number | null = res?.result?.latitude ?? null;
-                                    const lng: number | null = res?.result?.longitude ?? null;
-                                    // geocodeFailed: true when postcodes.io returned no coords (e.g. 404)
-                                    setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat, lng, geocodeFailed: !lat } : r));
-                                  } catch {
-                                    setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat: null, lng: null, geocodeFailed: true } : r));
+                                  // Skip postcodes.io geocoding if we already have rooftop-level coords
+                                  // from Places autocomplete selection — those are more accurate
+                                  const currentRow = comparables[i];
+                                  if (!currentRow.lat || !currentRow.lng) {
+                                    try {
+                                      const res = await fetch(`https://api.postcodes.io/postcodes/${pc}`).then(r => r.json());
+                                      const lat: number | null = res?.result?.latitude ?? null;
+                                      const lng: number | null = res?.result?.longitude ?? null;
+                                      // geocodeFailed: true when postcodes.io returned no coords (e.g. 404)
+                                      setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat, lng, geocodeFailed: !lat } : r));
+                                    } catch {
+                                      setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat: null, lng: null, geocodeFailed: true } : r));
+                                    }
+                                  }
+                                  // Trigger EPC auto-fill for manually-typed postcodes.
+                                  // (Autocomplete selection triggers its own EPC call immediately; this catches
+                                  // rows where the user typed address + postcode by hand instead.)
+                                  if (currentRow.address) {
+                                    fetchCompEpc(row.id, pc, currentRow.address);
                                   }
                                 }}
                                 className="h-9 text-xs"
@@ -5558,7 +5760,7 @@ function PropertyDataPanel({
               )}
               <div style={{ gridColumn: '1 / -1', marginTop: 4, paddingTop: 6, borderTop: '1px solid #E2E8F0' }}>
                 <span style={{ color: '#94A3B8', fontSize: 11 }}>
-                  Source: Land Registry, EPC Register, Environment Agency. All fields remain editable.
+                  Source: Land Registry, EPC Register, Environment Agency. Address suggestions may occasionally show an incorrect postcode on streets with more than one postcode. All fields remain editable.
                 </span>
               </div>
             </div>
