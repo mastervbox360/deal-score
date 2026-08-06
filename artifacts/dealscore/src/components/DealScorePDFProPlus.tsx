@@ -1,8 +1,16 @@
 import React from 'react';
-import { Document, Page, Text, View, Image, Link, Svg, Rect, Circle, Line, Polyline } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, Link, Svg, Rect, Circle, Line, Polyline, Font } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import type { DealScorePDFProps } from './DealScorePDF';
 import { hasMeaningfulInputs } from './DealScorePDF';
+Font.register({
+  family: 'DM Sans',
+  fonts: [
+    { src: new URL('../fonts/DMSans-Regular.ttf', import.meta.url).href, fontWeight: 'normal' },
+    { src: new URL('../fonts/DMSans-Bold.ttf', import.meta.url).href, fontWeight: 'bold' },
+  ],
+});
+
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 const fc = (n: number) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -738,14 +746,14 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
   // ── Shared panel styles ────────────────────────────────────────────────────
   const notePanel = { backgroundColor: '#f5f7fa', borderRadius: 3, padding: 10, marginBottom: 8 };
-  const notePanelLabel = { fontSize: 9, fontFamily: 'Helvetica-Bold' as const, marginBottom: 4 };
+  const notePanelLabel = { fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700 as const, marginBottom: 4 };
   const notePanelText = { fontSize: 9, color: '#444444', lineHeight: 1.5 };
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
   const SH = ({ title, mt, mb }: { title: string; mt?: number; mb?: number }) => (
     <View style={{ marginBottom: mb ?? 10, marginTop: mt ?? 0 }}>
-      <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: structureColour, marginBottom: 3 }}>{title}</Text>
+      <Text style={{ fontSize: 11, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, marginBottom: 3 }}>{title}</Text>
       <View style={{ borderBottom: `1pt solid ${structureColour}` }} />
     </View>
   );
@@ -758,7 +766,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
       backgroundColor: alt ? '#f5f7fa' : '#ffffff',
     }}>
       <Text style={{ flex: 1, fontSize: 8, color: '#555555' }}>{label}</Text>
-      <Text style={{ fontSize: 8, fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica', color: bold ? '#1B3A6B' : '#333333', textAlign: 'right' }}>{value}</Text>
+      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: bold ? 'bold' : 'normal', color: bold ? structureColour : '#333333', textAlign: 'right' }}>{value}</Text>
     </View>
   );
 
@@ -774,7 +782,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
       paddingTop: 5,
     }} fixed>
       <Text style={{ flex: 1, fontSize: 7, color: '#9ca3af' }}>{props.dateStr}</Text>
-      <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
+      <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
       <Text
         style={{ flex: 1, fontSize: 7, color: '#9ca3af', textAlign: 'right' }}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
@@ -787,7 +795,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
   const PageHeader = () => (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingBottom: 5, borderBottom: '0.5pt solid #E2E8F0' }}>
       <Text style={{ flex: 1, fontSize: 7, color: '#9ca3af' }}>{props.dateStr}</Text>
-      <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
+      <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
       <Text
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}`}
         style={{ flex: 1, fontSize: 7, color: '#9ca3af', textAlign: 'right' }}
@@ -797,7 +805,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
   // ── Landscape page style ────────────────────────────────────────────────────
   const landscapePage = {
-    fontFamily: 'Helvetica',
+    fontFamily: 'DM Sans',
     backgroundColor: '#ffffff',
     paddingTop: 32,
     paddingBottom: 56,
@@ -808,7 +816,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
   // ── Derived for right-panel cover ──────────────────────────────────────────
   // cover style: always "bold" two-panel for ProPlus landscape
-  const leftPanelBg = props.tierOverride === 'pro' ? DEALSCORE_BRAND.primaryColour : coverBg;
+  const leftPanelBg = props.tierOverride === 'pro' ? brand : coverBg;
   const leftPanelText = getContrastText(leftPanelBg);
 
   return (
@@ -819,9 +827,9 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
         size="A4"
         orientation="landscape"
         style={{
-          fontFamily: 'Helvetica',
+          fontFamily: 'DM Sans',
           backgroundColor: props.tierOverride === 'pro'
-            ? DEALSCORE_BRAND.primaryColour
+            ? brand
             : (props.coverStyle === 'classic' ? coverBg : '#ffffff'),
         }}
       >
@@ -845,11 +853,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   {DEAL_LABELS[props.dealType].replace(' Analysis', '').toUpperCase()}
                 </Text>
                 <View style={{ width: 32, borderBottom: `2pt solid ${coverMuted(leftPanelBg, 0.4)}`, marginBottom: 12 }} />
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 17, fontFamily: 'Helvetica-Bold', color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
+                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 17, fontFamily: 'DM Sans', fontWeight: 700, color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
                   {coverLine1}
                 </Text>
                 {coverLine2 ? (
-                  <Text style={{ fontSize: 17, fontFamily: 'Helvetica-Bold', color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
+                  <Text style={{ fontSize: 17, fontFamily: 'DM Sans', fontWeight: 700, color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
                     {coverLine2}
                   </Text>
                 ) : null}
@@ -878,7 +886,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
                 {heroMetrics.map(({ label, value }) => (
                   <View key={label} style={{ flex: 1, backgroundColor: '#ffffff', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 10 }}>
-                    <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', lineHeight: 1, marginBottom: 4 }}>{value}</Text>
+                    <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', lineHeight: 1, marginBottom: 4 }}>{value}</Text>
                     <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
                   </View>
                 ))}
@@ -887,10 +895,10 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: SCORE_TINT[props.currentScore] ?? 'rgba(107,114,128,0.09)', borderLeft: `4pt solid ${scoreColor}`, borderRadius: 3, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 16 }}>
                   <View>
                     <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>Deal Score</Text>
-                    <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1B2B4B' }}>{VERDICT_LABELS[props.currentScore] ?? props.currentScore}</Text>
+                    <Text style={{ fontSize: 14, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B' }}>{VERDICT_LABELS[props.currentScore] ?? props.currentScore}</Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                    <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
+                    <Text style={{ fontSize: 28, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
                     <Text style={{ fontSize: 12, color: '#9ca3af' }}>/ 10</Text>
                   </View>
                 </View>
@@ -898,21 +906,21 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
                 {props.propertyType ? (
                   <View style={{ borderRadius: 10, border: '0.5pt solid #d4dae8', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: '#f5f7fa' }}>
-                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'Helvetica-Bold' }}>{props.propertyType}</Text>
+                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'DM Sans', fontWeight: 700 }}>{props.propertyType}</Text>
                   </View>
                 ) : null}
                 {props.tenure ? (
-                  <View style={{ borderRadius: 10, border: props.tenure === 'Freehold' ? '0.5pt solid #2EC4B6' : '0.5pt solid #fbbf24', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: props.tenure === 'Freehold' ? '#E1F5EE' : '#fef3c7' }}>
-                    <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: props.tenure === 'Freehold' ? '#0F6E56' : '#92400e' }}>{props.tenure}</Text>
+                  <View style={{ borderRadius: 10, border: props.tenure === 'Freehold' ? `0.5pt solid ${accent}` : '0.5pt solid #fbbf24', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: props.tenure === 'Freehold' ? '#E1F5EE' : '#fef3c7' }}>
+                    <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: props.tenure === 'Freehold' ? '#0F6E56' : '#92400e' }}>{props.tenure}</Text>
                   </View>
                 ) : null}
                 {props.epcRating ? (
                   <View style={{ borderRadius: 10, border: '0.5pt solid #d4dae8', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: '#f5f7fa' }}>
-                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'Helvetica-Bold' }}>{`${props.epcRating} EPC`}</Text>
+                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'DM Sans', fontWeight: 700 }}>{`${props.epcRating} EPC`}</Text>
                   </View>
                 ) : null}
                 <View style={{ borderRadius: 10, border: `0.5pt solid ${structureColour}`, paddingVertical: 2, paddingHorizontal: 8 }}>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>{DEAL_LABELS[props.dealType].replace(' Analysis', '')}</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>{DEAL_LABELS[props.dealType].replace(' Analysis', '')}</Text>
                 </View>
               </View>
             </View>
@@ -939,11 +947,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 10, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
+                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
                   {coverLine1}
                 </Text>
                 {coverLine2 ? (
-                  <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
+                  <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
                     {coverLine2}
                   </Text>
                 ) : null}
@@ -974,17 +982,17 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               {heroMetrics.map(({ label, value }) => (
                 <View key={label} style={{ backgroundColor: '#ffffff', border: '0.5pt solid #d4dae8', borderLeft: `3pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
-                  <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{value}</Text>
+                  <Text style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{value}</Text>
                 </View>
               ))}
               {props.currentScore !== 'Incomplete' && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: SCORE_TINT[props.currentScore] ?? 'rgba(107,114,128,0.09)', borderLeft: `4pt solid ${scoreColor}`, borderRadius: 3, paddingVertical: 8, paddingHorizontal: 12, marginTop: 4 }}>
                   <View>
                     <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>Deal Score</Text>
-                    <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1B2B4B' }}>{VERDICT_LABELS[props.currentScore] ?? props.currentScore}</Text>
+                    <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B' }}>{VERDICT_LABELS[props.currentScore] ?? props.currentScore}</Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
-                    <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
+                    <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
                     <Text style={{ fontSize: 10, color: '#9ca3af' }}>/ 10</Text>
                   </View>
                 </View>
@@ -1007,11 +1015,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
                   {DEAL_LABELS[props.dealType]}
                 </Text>
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
+                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 20, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
                   {coverLine1}
                 </Text>
                 {coverLine2 ? (
-                  <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
+                  <Text style={{ fontSize: 20, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
                     {coverLine2}
                   </Text>
                 ) : <View style={{ marginBottom: 12 }} />}
@@ -1021,7 +1029,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 20, width: '90%' }}>
                   {heroMetrics.map(({ label, value }) => (
                     <View key={label} style={{ flex: 1, backgroundColor: '#ffffff', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8 }}>
-                      <Text style={{ fontSize: 15, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', lineHeight: 1, marginBottom: 3 }}>{value}</Text>
+                      <Text style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', lineHeight: 1, marginBottom: 3 }}>{value}</Text>
                       <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
                     </View>
                   ))}
@@ -1035,7 +1043,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 ) : null}
                 <View style={{ borderBottom: `1pt solid ${accent}`, marginBottom: 12 }} />
                 {props.preparedBy.name ? (
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#333333', marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#333333', marginBottom: 3 }}>
                     Prepared by {props.preparedBy.name}
                   </Text>
                 ) : null}
@@ -1082,11 +1090,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   {DEAL_LABELS[props.dealType].replace(' Analysis', '').toUpperCase()}
                 </Text>
                 <View style={{ width: 32, borderBottom: `2pt solid ${isProPlus ? accent : coverMuted(leftPanelBg, 0.4)}`, marginBottom: 12 }} />
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 17, fontFamily: 'Helvetica-Bold', color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
+                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 17, fontFamily: 'DM Sans', fontWeight: 700, color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
                   {coverLine1}
                 </Text>
                 {coverLine2 ? (
-                  <Text style={{ fontSize: 17, fontFamily: 'Helvetica-Bold', color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
+                  <Text style={{ fontSize: 17, fontFamily: 'DM Sans', fontWeight: 700, color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
                     {coverLine2}
                   </Text>
                 ) : null}
@@ -1131,7 +1139,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                     paddingVertical: 10,
                     paddingHorizontal: 10,
                   }}>
-                    <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', lineHeight: 1, marginBottom: 4 }}>{value}</Text>
+                    <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', lineHeight: 1, marginBottom: 4 }}>{value}</Text>
                     <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
                   </View>
                 ))}
@@ -1152,12 +1160,12 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 }}>
                   <View>
                     <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>Deal Score</Text>
-                    <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1B2B4B' }}>
+                    <Text style={{ fontSize: 14, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B' }}>
                       {VERDICT_LABELS[props.currentScore] ?? props.currentScore}
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                    <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
+                    <Text style={{ fontSize: 28, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
                     <Text style={{ fontSize: 12, color: '#9ca3af' }}>/ 10</Text>
                   </View>
                 </View>
@@ -1177,11 +1185,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   marginBottom: 16,
                 }}>
                   <View>
-                    <Text style={{ fontSize: 6.5, fontFamily: 'Helvetica-Bold', color: '#166534', marginBottom: 2 }}>BELOW MARKET VALUE</Text>
-                    <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.bmvAmount)}</Text>
+                    <Text style={{ fontSize: 6.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#166534', marginBottom: 2 }}>BELOW MARKET VALUE</Text>
+                    <Text style={{ fontSize: 14, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.bmvAmount)}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.bmvPercent.toFixed(1)}%`}</Text>
+                    <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{`${props.bmvPercent.toFixed(1)}%`}</Text>
                     <Text style={{ fontSize: 7, color: '#6B7280', marginTop: 2 }}>BMV discount</Text>
                   </View>
                 </View>
@@ -1191,26 +1199,26 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
                 {props.propertyType ? (
                   <View style={{ borderRadius: 10, border: '0.5pt solid #d4dae8', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: '#f5f7fa' }}>
-                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'Helvetica-Bold' }}>{props.propertyType}</Text>
+                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'DM Sans', fontWeight: 700 }}>{props.propertyType}</Text>
                   </View>
                 ) : null}
                 {props.tenure ? (
                   <View style={{
                     borderRadius: 10,
-                    border: props.tenure === 'Freehold' ? '0.5pt solid #2EC4B6' : '0.5pt solid #fbbf24',
+                    border: props.tenure === 'Freehold' ? `0.5pt solid ${accent}` : '0.5pt solid #fbbf24',
                     paddingVertical: 2, paddingHorizontal: 8,
                     backgroundColor: props.tenure === 'Freehold' ? '#E1F5EE' : '#fef3c7',
                   }}>
-                    <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: props.tenure === 'Freehold' ? '#0F6E56' : '#92400e' }}>{props.tenure}</Text>
+                    <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: props.tenure === 'Freehold' ? '#0F6E56' : '#92400e' }}>{props.tenure}</Text>
                   </View>
                 ) : null}
                 {props.epcRating ? (
                   <View style={{ borderRadius: 10, border: '0.5pt solid #d4dae8', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: '#f5f7fa' }}>
-                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'Helvetica-Bold' }}>{`${props.epcRating} EPC`}</Text>
+                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'DM Sans', fontWeight: 700 }}>{`${props.epcRating} EPC`}</Text>
                   </View>
                 ) : null}
                 <View style={{ borderRadius: 10, border: `0.5pt solid ${structureColour}`, paddingVertical: 2, paddingHorizontal: 8 }}>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>{DEAL_LABELS[props.dealType].replace(' Analysis', '')}</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>{DEAL_LABELS[props.dealType].replace(' Analysis', '')}</Text>
                 </View>
               </View>
 
@@ -1228,9 +1236,9 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
         {/* Auction callout */}
         {props.isAuctionPurchase && props.auctionDate && (
           <View style={{ backgroundColor: '#FEF3CD', borderLeft: '3pt solid #E29839', borderRadius: 3, paddingVertical: 8, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#E29839', textTransform: 'uppercase', letterSpacing: 0.6 }}>AUCTION</Text>
+            <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#E29839', textTransform: 'uppercase', letterSpacing: 0.6 }}>AUCTION</Text>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{'Auction Date: ' + props.auctionDate}</Text>
+              <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{'Auction Date: ' + props.auctionDate}</Text>
               {props.auctionCompletionDate ? (
                 <Text style={{ fontSize: 8, color: '#6B7280' }}>{'Completion: ' + props.auctionCompletionDate}</Text>
               ) : null}
@@ -1270,7 +1278,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               return (
                 <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 5, backgroundColor: leaseBg ?? '#ffffff' }}>
                   <Text style={{ flex: 1, fontSize: 8, color: leaseColor }}>Remaining Lease</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: leaseColor, textAlign: 'right' }}>{`${yrs} yrs${leaseWarning}`}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: leaseColor, textAlign: 'right' }}>{`${yrs} yrs${leaseWarning}`}</Text>
                 </View>
               );
             })()
@@ -1292,7 +1300,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               const leftRows = inputRows.slice(0, half);
               return (
                 <View>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
                     {props.dealType === 'R2R' ? 'Rental Agreement' : props.dealType === 'FLIP' ? 'Purchase & Project' : props.dealType === 'BRRR' ? 'Purchase & Refinance' : 'Purchase & Mortgage'}
                   </Text>
                   {leftRows.map(([label, value, bold], i) => (
@@ -1311,7 +1319,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               const rightRows = inputRows.slice(half);
               return (
                 <View>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 3, paddingBottom: 3, borderBottom: `1pt solid ${structureColour}` }}>
                     {props.dealType === 'FLIP' ? 'Sale & Returns' : 'Income & Costs'}
                   </Text>
                   {rightRows.map(([label, value, bold], i) => (
@@ -1329,52 +1337,52 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                     <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                       <Text style={{ fontSize: 7.5, color: tintText }}>{`Deposit (${props.depositPercent}%)`}</Text>
-                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(p2CiDeposit)}</Text>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(p2CiDeposit)}</Text>
                     </View>
                     <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                       <Text style={{ fontSize: 7.5, color: tintText }}>{props.taxLabel}</Text>
-                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
                     </View>
                     {props.refurbCost > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Refurb Cost</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.refurbCost)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.refurbCost)}</Text>
                       </View>
                     )}
                     {props.otherCosts > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Other Costs</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.otherCosts)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.otherCosts)}</Text>
                       </View>
                     )}
                     {props.isAuctionPurchase && (props.buyersPremiumValue ?? 0) > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>{"Buyer's Premium"}</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.buyersPremiumValue!)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.buyersPremiumValue!)}</Text>
                       </View>
                     )}
                     {(props.auctionReservationFeeValue ?? 0) > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Reservation Fee</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.auctionReservationFeeValue!)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.auctionReservationFeeValue!)}</Text>
                       </View>
                     )}
                     {(props.leaseExtensionCost ?? 0) > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Lease Extension</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.leaseExtensionCost!)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.leaseExtensionCost!)}</Text>
                       </View>
                     )}
                     {props.sourcingFee > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Sourcing Fee</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
                       </View>
                     )}
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 6, borderTop: `1pt solid ${tintBorder}` }}>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>TOTAL CASH INVESTED</Text>
-                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(p2CiTotal)}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>TOTAL CASH INVESTED</Text>
+                    <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(p2CiTotal)}</Text>
                   </View>
                 </View>
               </View>
@@ -1388,18 +1396,18 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <View style={{ flexDirection: 'row' }}>
                     <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                       <Text style={{ fontSize: 7.5, color: tintText }}>Initial Cash Out</Text>
-                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.brrrResults.totalCostIn)}</Text>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.brrrResults.totalCostIn)}</Text>
                     </View>
                     <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                       <Text style={{ fontSize: 7.5, color: tintText }}>Refinance Proceeds</Text>
-                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`(${fc(props.brrrResults.refinanceLoan)})`}</Text>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{`(${fc(props.brrrResults.refinanceLoan)})`}</Text>
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 6, borderTop: `1pt solid ${tintBorder}` }}>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                    <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>
                       {props.brrrResults.moneyOut ? 'MONEY OUT' : 'CASH LEFT IN DEAL'}
                     </Text>
-                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>
+                    <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>
                       {props.brrrResults.moneyOut ? `${fc(Math.abs(props.brrrResults.cashLeftInDeal))} OUT` : fc(props.brrrResults.cashLeftInDeal)}
                     </Text>
                   </View>
@@ -1422,7 +1430,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                     ].map(([lbl, val], i) => (
                       <View key={i} style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>{lbl}</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{val}</Text>
                       </View>
                     ))}
                   </View>
@@ -1430,24 +1438,24 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingTop: 3, borderTop: `1pt solid ${tintBorder}` }}>
                     <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                       <Text style={{ fontSize: 7.5, color: tintText }}>Setup Costs</Text>
-                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
                     </View>
                     {props.r2rInputs.landlordDeposit > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Landlord Deposit</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.landlordDeposit)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.r2rInputs.landlordDeposit)}</Text>
                       </View>
                     )}
                     {props.sourcingFee > 0 && (
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>Sourcing Fee</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
                       </View>
                     )}
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 6, borderTop: `1pt solid ${tintBorder}` }}>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>TOTAL CASH INVESTED</Text>
-                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.totalCashInvested)}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>TOTAL CASH INVESTED</Text>
+                    <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.r2rResults.totalCashInvested)}</Text>
                   </View>
                 </View>
               </View>
@@ -1469,13 +1477,13 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                     ].map(([lbl, val], i) => (
                       <View key={i} style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 7.5, color: tintText }}>{lbl}</Text>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{val}</Text>
                       </View>
                     ))}
                   </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 6, borderTop: `1pt solid ${tintBorder}` }}>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>NET PROFIT</Text>
-                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.flipResults.netProfit)}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>NET PROFIT</Text>
+                    <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.flipResults.netProfit)}</Text>
                   </View>
                 </View>
               </View>
@@ -1510,11 +1518,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 alignItems: 'center',
                 borderRadius: 3,
               }}>
-                <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: '#1B2B4B' }}>
+                <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B' }}>
                   {VERDICT_LABELS[props.currentScore] ?? props.currentScore}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                  <Text style={{ fontSize: 26, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
+                  <Text style={{ fontSize: 26, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
                   <Text style={{ fontSize: 12, color: '#9ca3af' }}>/ 10</Text>
                 </View>
               </View>
@@ -1524,16 +1532,16 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {props.currentScore !== 'Incomplete' && (
               <View style={{ marginBottom: 12, borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
                 <View style={{ flexDirection: 'row', backgroundColor: '#F9FAFB', paddingVertical: 4, paddingHorizontal: 6, borderBottom: '0.5pt solid #E5E7EB' }}>
-                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#6B7280' }}>DIMENSION</Text>
-                  <Text style={{ width: 44, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#6B7280', textAlign: 'center' }}>SCORE</Text>
-                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#6B7280' }}> </Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#6B7280' }}>DIMENSION</Text>
+                  <Text style={{ width: 44, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#6B7280', textAlign: 'center' }}>SCORE</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#6B7280' }}> </Text>
                 </View>
                 {dealScoreDims.map((dim, i) => {
                   const barColor = dim.score >= 7 ? '#22C55E' : dim.score >= 4 ? '#F59E0B' : '#EF4444';
                   return (
                     <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 3.5, paddingHorizontal: 6, backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#F9FAFB', borderBottom: i < dealScoreDims.length - 1 ? '0.5pt solid #E5E7EB' : undefined }}>
                       <Text style={{ flex: 1, fontSize: 8, color: '#1E2B3C' }}>{dim.name}</Text>
-                      <Text style={{ width: 44, fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', textAlign: 'center' }}>{dim.score} / 10</Text>
+                      <Text style={{ width: 44, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', textAlign: 'center' }}>{dim.score} / 10</Text>
                       <View style={{ flex: 1, height: 6, backgroundColor: '#F3F4F6', borderRadius: 2 }}>
                         <View style={{ width: `${(dim.score / 10) * 100}%`, height: 6, backgroundColor: barColor, borderRadius: 2 }} />
                       </View>
@@ -1638,11 +1646,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <View style={{ marginBottom: 10 }}>
                   {/* Group 1 — What I Commit */}
                   <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, marginBottom: 6, borderTop: `2pt solid ${structureColour}` }}>
-                    <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>What I Commit</Text>
+                    <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>What I Commit</Text>
                     {commitRows.map(([lbl, val]) => (
                       <View key={lbl} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
                         <Text style={{ fontSize: 8, color: '#6B7280' }}>{lbl}</Text>
-                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                        <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{val}</Text>
                       </View>
                     ))}
                   </View>
@@ -1650,23 +1658,23 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   {/* Group 2 — Monthly */}
                   <View style={{ border: '0.5pt solid #E5E7EB', borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
                     <View style={{ paddingVertical: 4, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
-                      <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8 }}>Monthly</Text>
+                      <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8 }}>Monthly</Text>
                     </View>
                     <View style={{ paddingVertical: 5, paddingHorizontal: 8 }}>
                       {mortgageVal !== null && (
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
                           <Text style={{ fontSize: 8, color: '#6B7280' }}>Mortgage</Text>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{mortgageVal}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{mortgageVal}</Text>
                         </View>
                       )}
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
                         <Text style={{ fontSize: 8, color: '#6B7280' }}>{opCostLabel}</Text>
-                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{opCostVal}</Text>
+                        <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{opCostVal}</Text>
                       </View>
                       {dt !== 'FLIP' && (
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2, marginTop: 2, borderTop: '0.5pt solid #E5E7EB' }}>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{cfLabel}</Text>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: cfColor }}>{g(fc(cfVal))}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{cfLabel}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: cfColor }}>{g(fc(cfVal))}</Text>
                         </View>
                       )}
                     </View>
@@ -1675,13 +1683,13 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   {/* Group 3 — Returns */}
                   <View style={{ border: '0.5pt solid #E5E7EB', borderRadius: 4, overflow: 'hidden' }}>
                     <View style={{ paddingVertical: 4, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
-                      <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8 }}>Returns</Text>
+                      <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8 }}>Returns</Text>
                     </View>
                     <View style={{ paddingVertical: 5, paddingHorizontal: 8 }}>
                       {returnRows.map(([lbl, val]) => (
                         <View key={lbl} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
                           <Text style={{ fontSize: 8, color: '#6B7280' }}>{lbl}</Text>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{val}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{val}</Text>
                         </View>
                       ))}
                     </View>
@@ -1707,7 +1715,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {(props.dealType === 'BTL' || props.dealType === 'HMO' || props.dealType === 'SA' || props.dealType === 'BRRR' || props.dealType === 'SOCIAL') && (
               <View style={{ backgroundColor: panelBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, marginTop: 'auto' }}>
                 <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>Net Monthly Cash Flow</Text>
-                <Text style={{ fontSize: 22, fontFamily: 'Helvetica-Bold', color: 'white', lineHeight: 1 }}>
+                <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: 'white', lineHeight: 1 }}>
                   {props.dealType === 'BTL' ? fc(props.btlResults.monthlyCashFlow)
                    : props.dealType === 'HMO' ? fc(props.hmoResults.monthlyCashFlow)
                    : props.dealType === 'SA' ? fc(props.saResults.monthlyCashFlow)
@@ -1732,8 +1740,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* Results table */}
             <View style={{ marginBottom: 12, borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
               <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 7, borderBottom: `1.5pt solid ${structureColour}` }}>
-                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>METRIC</Text>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>VALUE</Text>
+                <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>METRIC</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>VALUE</Text>
               </View>
               {resultsRows.map(([label, value, bold], i) => (
                 <View key={i} style={{
@@ -1744,7 +1752,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   borderBottom: i < resultsRows.length - 1 ? '0.5pt solid #E5E7EB' : undefined,
                 }}>
                   <Text style={{ flex: 1, fontSize: 8.5, color: '#555555' }}>{label}</Text>
-                  <Text style={{ fontSize: 8.5, fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica', color: bold ? '#1B3A6B' : '#333333', textAlign: 'right' }}>{value}</Text>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: bold ? 'bold' : 'normal', color: bold ? structureColour : '#333333', textAlign: 'right' }}>{value}</Text>
                 </View>
               ))}
             </View>
@@ -1755,15 +1763,15 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <SH title="Sensitivity Analysis" mt={4} />
                 <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4 }}>
                   <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 7, borderBottom: `1.5pt solid ${structureColour}` }}>
-                    <Text style={{ flex: 1.8, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour }}>METRIC</Text>
-                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
-                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
-                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
+                    <Text style={{ flex: 1.8, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>METRIC</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
                   </View>
                   <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 7, backgroundColor: '#FFFFFF', borderBottom: '0.5pt solid #E5E7EB' }}>
                     <Text style={{ flex: 1.8, fontSize: 8, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
                     {([props.stressTest.baseCashFlow, props.stressTest.rentDownCashFlow, props.stressTest.rateUpCashFlow] as number[]).map((v, i) => (
-                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
                         {fc(v)}
                       </Text>
                     ))}
@@ -1771,7 +1779,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 7, backgroundColor: '#F9FAFB' }}>
                     <Text style={{ flex: 1.8, fontSize: 8, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
                     {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
-                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>
                         {isFinite(v) ? fp(v) : '\u221E'}
                       </Text>
                     ))}
@@ -1783,7 +1791,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* What This Means */}
             {props.executiveSummary.trim() || props.strategyNotes.trim() ? (
               <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, paddingVertical: 8, paddingHorizontal: 10, borderLeft: `2pt solid ${structureColour}`, marginBottom: 10 }}>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>Strategy Notes</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>Strategy Notes</Text>
                 <Text style={{ fontSize: 8, color: '#1E2B3C', lineHeight: 1.5 }}>
                   {props.strategyNotes.trim() || props.executiveSummary.trim()}
                 </Text>
@@ -1817,7 +1825,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {/* Verdict badge */}
             <View style={{ backgroundColor: scoreColor, borderRadius: 6, paddingVertical: 14, paddingHorizontal: 18, marginBottom: 14, alignItems: 'center' }}>
-              <Text style={{ fontSize: 38, fontFamily: 'Helvetica-Bold', color: '#ffffff', lineHeight: 1 }}>
+              <Text style={{ fontSize: 38, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', lineHeight: 1 }}>
                 {dealScoreOverall.toFixed(1)}
               </Text>
               <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 }}>
@@ -1828,26 +1836,26 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* Score dimensions table */}
             <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
               <View style={{ flexDirection: 'row', backgroundColor: structureColour, paddingVertical: 4, paddingHorizontal: 8 }}>
-                <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>DIMENSION</Text>
-                <Text style={{ width: 40, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>SCORE</Text>
-                <Text style={{ width: 44, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>WEIGHT</Text>
-                <Text style={{ width: 50, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>CONTRIB</Text>
+                <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff' }}>DIMENSION</Text>
+                <Text style={{ width: 40, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>SCORE</Text>
+                <Text style={{ width: 44, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>WEIGHT</Text>
+                <Text style={{ width: 50, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>CONTRIB</Text>
               </View>
               {dealScoreDims.map((d, i) => (
                 <View key={i} style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: i % 2 === 0 ? '#ffffff' : '#F9FAFB', alignItems: 'center' }}>
                   <Text style={{ flex: 1, fontSize: 8, color: '#555555' }}>{d.name}</Text>
                   <View style={{ width: 40, alignItems: 'flex-end' }}>
                     <View style={{ backgroundColor: d.score >= 7 ? '#D1FAE5' : d.score >= 4 ? '#FEF9C3' : '#FEE2E2', borderRadius: 2, paddingHorizontal: 4, paddingVertical: 1 }}>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: d.score >= 7 ? '#166534' : d.score >= 4 ? '#854D0E' : '#991B1B' }}>{d.score.toFixed(0)}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: d.score >= 7 ? '#166534' : d.score >= 4 ? '#854D0E' : '#991B1B' }}>{d.score.toFixed(0)}</Text>
                     </View>
                   </View>
                   <Text style={{ width: 44, fontSize: 8, color: '#6B7280', textAlign: 'right' }}>{`${(d.weight * 100).toFixed(0)}%`}</Text>
-                  <Text style={{ width: 50, fontSize: 8, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>{(d.score * d.weight).toFixed(2)}</Text>
+                  <Text style={{ width: 50, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>{(d.score * d.weight).toFixed(2)}</Text>
                 </View>
               ))}
               <View style={{ flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 8, backgroundColor: '#F0F4FF', borderTop: `1pt solid ${structureColour}` }}>
-                <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Overall DealScore</Text>
-                <Text style={{ width: 40, fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: scoreColor, textAlign: 'right' }}>{dealScoreOverall.toFixed(1)}</Text>
+                <Text style={{ flex: 1, fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Overall DealScore</Text>
+                <Text style={{ width: 40, fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: scoreColor, textAlign: 'right' }}>{dealScoreOverall.toFixed(1)}</Text>
                 <Text style={{ width: 44, fontSize: 8, color: '#9ca3af', textAlign: 'right' }}>/ 10</Text>
                 <Text style={{ width: 50 }} />
               </View>
@@ -1868,7 +1876,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* What This Means */}
             {whatThisMeans ? (
               <View style={{ marginBottom: 14 }}>
-                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>What This Means</Text>
+                <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>What This Means</Text>
                 <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 8 }} />
                 <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{whatThisMeans}</Text>
               </View>
@@ -1907,8 +1915,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               {/* P&L table */}
               <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', backgroundColor: structureColour, paddingVertical: 4, paddingHorizontal: 8 }}>
-                  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>P&L BREAKDOWN</Text>
-                  <Text style={{ width: 70, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>MONTHLY</Text>
+                  <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff' }}>P&L BREAKDOWN</Text>
+                  <Text style={{ width: 70, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>MONTHLY</Text>
                 </View>
                 {[
                   { label: 'Gross Rent', value: fdGrossRent, bold: false, indent: 0 },
@@ -1924,8 +1932,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   { label: 'Net Cash Flow', value: activeResults.monthlyCashFlow, bold: true, indent: 0 },
                 ].map(({ label, value, bold, indent }, i) => (
                   <View key={i} style={{ flexDirection: 'row', paddingVertical: 3.5, paddingHorizontal: 8, backgroundColor: bold ? '#F0F4FF' : i % 2 === 0 ? '#ffffff' : '#F9FAFB', borderTop: bold ? `0.5pt solid ${structureColour}` : undefined }}>
-                    <Text style={{ flex: 1, fontSize: 8, color: bold ? structureColour : indent ? '#6B7280' : '#333333', fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica' }}>{label}</Text>
-                    <Text style={{ width: 70, fontSize: 8, fontFamily: bold ? 'Helvetica-Bold' : 'Helvetica', color: value < 0 ? '#DC2626' : bold ? structureColour : '#333333', textAlign: 'right' }}>{fc(value)}</Text>
+                    <Text style={{ flex: 1, fontSize: 8, color: bold ? structureColour : indent ? '#6B7280' : '#333333', fontFamily: 'DM Sans', fontWeight: bold ? 'bold' : 'normal' }}>{label}</Text>
+                    <Text style={{ width: 70, fontSize: 8, fontFamily: 'DM Sans', fontWeight: bold ? 'bold' : 'normal', color: value < 0 ? '#DC2626' : bold ? structureColour : '#333333', textAlign: 'right' }}>{fc(value)}</Text>
                   </View>
                 ))}
               </View>
@@ -1934,11 +1942,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
                   <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Payback Period</Text>
-                  <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fdPaybackDisplay}</Text>
+                  <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fdPaybackDisplay}</Text>
                 </View>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
                   <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Annual Cash Flow</Text>
-                  <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: activeResults.monthlyCashFlow >= 0 ? '#166534' : '#991B1B' }}>{fc(activeResults.monthlyCashFlow * 12)}</Text>
+                  <Text style={{ fontSize: 16, fontFamily: 'DM Sans', fontWeight: 700, color: activeResults.monthlyCashFlow >= 0 ? '#166534' : '#991B1B' }}>{fc(activeResults.monthlyCashFlow * 12)}</Text>
                 </View>
               </View>
 
@@ -1946,21 +1954,21 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               {props.stressTest && (
                 <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden' }}>
                   <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 8, borderBottom: `1.5pt solid ${structureColour}` }}>
-                    <Text style={{ flex: 1.8, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour }}>SENSITIVITY</Text>
-                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
-                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
-                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
+                    <Text style={{ flex: 1.8, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>SENSITIVITY</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>BASE CASE</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>RENT {'\u221210%'}</Text>
+                    <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>RATE +1.5%</Text>
                   </View>
                   <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#ffffff', borderBottom: '0.5pt solid #E5E7EB' }}>
                     <Text style={{ flex: 1.8, fontSize: 8, color: '#1E2B3C' }}>Monthly Cash Flow</Text>
                     {([props.stressTest.baseCashFlow, props.stressTest.rentDownCashFlow, props.stressTest.rateUpCashFlow] as number[]).map((v, i) => (
-                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{fc(v)}</Text>
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{fc(v)}</Text>
                     ))}
                   </View>
                   <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#F9FAFB' }}>
                     <Text style={{ flex: 1.8, fontSize: 8, color: '#1E2B3C' }}>Cash-on-Cash ROI</Text>
                     {([props.stressTest.baseCoC, props.stressTest.rentDownCoC, props.stressTest.rateUpCoC] as number[]).map((v, i) => (
-                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{isFinite(v) ? fp(v) : '\u221E'}</Text>
+                      <Text key={i} style={{ flex: 1, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: v < 0 ? '#EF4444' : '#22C55E', textAlign: 'right' }}>{isFinite(v) ? fp(v) : '\u221E'}</Text>
                     ))}
                   </View>
                 </View>
@@ -1971,7 +1979,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* Right — Income Waterfall SVG + key metric cards */}
             <View style={{ flex: 1 }}>
 
-              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Income Waterfall</Text>
+              <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Income Waterfall</Text>
               <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 8 }} />
 
               {(() => {
@@ -1993,7 +2001,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 const bars = [
                   { label: 'Gross', value: grossRent, floor: 0, barH: barMaxH, color: '#2D7A4F' },
                   { label: 'Void', value: voidAmt, floor: (effectiveRent / grossRent) * barMaxH, barH: (voidAmt / grossRent) * barMaxH, color: '#DC2626' },
-                  { label: 'Eff.Rent', value: effectiveRent, floor: 0, barH: (effectiveRent / grossRent) * barMaxH, color: '#1B3A6B' },
+                  { label: 'Eff.Rent', value: effectiveRent, floor: 0, barH: (effectiveRent / grossRent) * barMaxH, color: brand },
                   { label: 'Costs', value: totalOpCosts, floor: Math.max(0, noi / grossRent) * barMaxH, barH: (totalOpCosts / grossRent) * barMaxH, color: '#DC2626' },
                   { label: 'NOI', value: noi, floor: 0, barH: Math.max(0, (noi / grossRent) * barMaxH), color: '#2D7A4F' },
                   { label: 'Mortgage', value: fdMortgagePayment, floor: Math.max(0, netCF / grossRent) * barMaxH, barH: (fdMortgagePayment / grossRent) * barMaxH, color: '#6B7280' },
@@ -2035,7 +2043,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 ] as { label: string; value: string }[]).map((m, i) => (
                   <View key={i} style={{ width: '47%', backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10, borderTop: `2pt solid ${structureColour}` }}>
                     <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>{m.label}</Text>
-                    <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{m.value}</Text>
+                    <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{m.value}</Text>
                   </View>
                 ))}
               </View>
@@ -2060,10 +2068,10 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               {/* 3-scenario stress table */}
               <View style={{ borderWidth: 0.5, borderColor: '#E5E7EB', borderStyle: 'solid', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: structureColour }}>
-                  <Text style={{ flex: 1.5, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff' }}>METRIC</Text>
-                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>OPTIMISTIC</Text>
-                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>BASE CASE</Text>
-                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'Helvetica-Bold', color: '#ffffff', textAlign: 'right' }}>STRESS</Text>
+                  <Text style={{ flex: 1.5, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff' }}>METRIC</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>OPTIMISTIC</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>BASE CASE</Text>
+                  <Text style={{ flex: 1, fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#ffffff', textAlign: 'right' }}>STRESS</Text>
                 </View>
                 <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 8, backgroundColor: '#F8FAFC', borderBottom: '0.5pt solid #E5E7EB' }}>
                   <Text style={{ flex: 1.5, fontSize: 7.5, color: '#6B7280' }}>Rate</Text>
@@ -2083,7 +2091,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                       const val = fn(s);
                       const isNeg = colored && s.cf < 0;
                       return (
-                        <Text key={j} style={{ flex: 1, fontSize: 8, fontFamily: 'Helvetica-Bold', color: colored ? stCfColor(s.cf) : '#333333', textAlign: 'right' }}>{val}</Text>
+                        <Text key={j} style={{ flex: 1, fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: colored ? stCfColor(s.cf) : '#333333', textAlign: 'right' }}>{val}</Text>
                       );
                     })}
                   </View>
@@ -2094,17 +2102,17 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${structureColour}` }}>
                   <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Break-Even Rent</Text>
-                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(stBreakEvenRent)}</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(stBreakEvenRent)}</Text>
                   <Text style={{ fontSize: 7, color: '#9ca3af', marginTop: 1 }}>/mo minimum</Text>
                 </View>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${stRentHeadroom >= 0 ? '#16A34A' : '#DC2626'}` }}>
                   <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Rent Headroom</Text>
-                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: stRentHeadroom >= 0 ? '#166534' : '#991B1B' }}>{fc(stRentHeadroom)}</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: stRentHeadroom >= 0 ? '#166534' : '#991B1B' }}>{fc(stRentHeadroom)}</Text>
                   <Text style={{ fontSize: 7, color: '#9ca3af', marginTop: 1 }}>buffer before loss</Text>
                 </View>
                 <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${stStressCF >= 0 ? '#16A34A' : '#DC2626'}` }}>
                   <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>Stress CF ({stStressRate.toFixed(2)}%)</Text>
-                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: stCfColor(stStressCF) }}>{fc(stStressCF)}</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: stCfColor(stStressCF) }}>{fc(stStressCF)}</Text>
                   <Text style={{ fontSize: 7, color: '#9ca3af', marginTop: 1 }}>at peak rate</Text>
                 </View>
               </View>
@@ -2124,7 +2132,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* Right — Cash Flow Rate Curve SVG */}
             <View style={{ flex: 1 }}>
 
-              <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Cash Flow vs. Mortgage Rate</Text>
+              <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Cash Flow vs. Mortgage Rate</Text>
               <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 8 }} />
 
               {(() => {
@@ -2195,7 +2203,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 ].map((m, i) => (
                   <View key={i} style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8, borderTop: `2pt solid ${m.color}` }}>
                     <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 }}>{m.label}</Text>
-                    <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: m.color }}>{m.value}</Text>
+                    <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: 700, color: m.color }}>{m.value}</Text>
                   </View>
                 ))}
               </View>
@@ -2219,7 +2227,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {strategyNotesText ? (
                 <View wrap={false} style={{ marginBottom: 10 }}>
-                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Why This Strategy?</Text>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Why This Strategy?</Text>
                   <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
                   <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{strategyNotesText}</Text>
                 </View>
@@ -2227,7 +2235,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {propertyDescText ? (
                 <View wrap={false} style={{ marginBottom: 10, marginTop: strategyNotesText ? 10 : 0 }}>
-                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Property Description</Text>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Property Description</Text>
                   <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
                   <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{propertyDescText}</Text>
                 </View>
@@ -2235,7 +2243,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {props.refurbScope?.trim() ? (
                 <View wrap={false} style={{ marginBottom: 10, marginTop: 10 }}>
-                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Refurb Scope</Text>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Refurb Scope</Text>
                   <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
                   <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{props.refurbScope}</Text>
                 </View>
@@ -2243,7 +2251,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {vendorSituationText && props.dealType !== 'R2R' ? (
                 <View wrap={false} style={{ marginBottom: 10, marginTop: 10 }}>
-                  <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Vendor Situation</Text>
+                  <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Vendor Situation</Text>
                   <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
                   <Text style={{ fontSize: 8.5, color: '#444444', lineHeight: 1.55 }}>{vendorSituationText}</Text>
                 </View>
@@ -2265,14 +2273,14 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 }
                 return (
                   <View wrap={false} style={{ marginBottom: 6 }}>
-                    <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Investment Timeline</Text>
+                    <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Investment Timeline</Text>
                     <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 10 }} />
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, paddingHorizontal: 14 }}>
                       <View style={{ width: 16, flexShrink: 0 }} />
                       {durations.map((dur, i) => (
                         <View key={i} style={{ flex: dur, alignItems: 'center' }}>
-                          <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>
+                          <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>
                             {dur === 1 ? '1 month' : `${dur} months`}
                           </Text>
                         </View>
@@ -2307,7 +2315,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                           <React.Fragment key={i}>
                             <View style={{ width: 20, flexShrink: 0, alignItems: isFirst ? 'flex-start' : isLast ? 'flex-end' : 'center' }}>
                               <Text style={{
-                                fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C',
+                                fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C',
                                 textAlign: isFirst ? 'left' : isLast ? 'right' : 'center',
                                 width: 60,
                                 marginLeft: isFirst ? 0 : isLast ? -40 : -20,
@@ -2328,7 +2336,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {/* Risk Factors */}
               <View wrap={false} style={{ marginBottom: 10, marginTop: 14 }}>
-                <Text style={{ fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Risk Factors</Text>
+                <Text style={{ fontSize: 8.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Risk Factors</Text>
                 <View style={{ height: 1, backgroundColor: structureColour, marginBottom: 6 }} />
                 <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, paddingVertical: 6, paddingHorizontal: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
@@ -2387,23 +2395,23 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                       {props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
                         <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                           <Text style={{ fontSize: 8, color: tintText }}>Deposit</Text>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.depositPercent}%`}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{`${props.depositPercent}%`}</Text>
                         </View>
                       ) : null}
                       {props.mortgageRate > 0 && props.dealType !== 'R2R' && props.dealType !== 'FLIP' ? (
                         <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                           <Text style={{ fontSize: 8, color: tintText }}>Mortgage Rate</Text>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{`${props.mortgageRate}%`}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{`${props.mortgageRate}%`}</Text>
                         </View>
                       ) : null}
                       <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                         <Text style={{ fontSize: 8, color: tintText }}>{rentLabel}</Text>
-                        <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{rentValue}</Text>
+                        <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{rentValue}</Text>
                       </View>
                       {props.taxLabel && props.dealType !== 'R2R' ? (
                         <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                           <Text style={{ fontSize: 8, color: tintText }}>{props.taxLabel}</Text>
-                          <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
+                          <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.effectiveTax)}</Text>
                         </View>
                       ) : null}
                     </View>
@@ -2441,12 +2449,12 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                     ) : (
                       <>
                         <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
-                          <Text style={{ flex: 2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
-                          <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Property Type</Text>
-                          <Text style={{ flex: 0.5, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds</Text>
-                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Floor Area</Text>
-                          <Text style={{ flex: 0.9, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Sale Price</Text>
-                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Date Sold</Text>
+                          <Text style={{ flex: 2, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Address</Text>
+                          <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Property Type</Text>
+                          <Text style={{ flex: 0.5, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Beds</Text>
+                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Floor Area</Text>
+                          <Text style={{ flex: 0.9, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>Sale Price</Text>
+                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>Date Sold</Text>
                         </View>
                         {saleComps.map((row, i) => (
                           <View key={i} style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
@@ -2502,12 +2510,12 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                     ) : (
                       <>
                         <View style={{ flexDirection: 'row', backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderBottom: `1.5pt solid ${structureColour}` }}>
-                          <Text style={{ flex: 2, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Address</Text>
-                          <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Property Type</Text>
-                          <Text style={{ flex: 0.5, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Beds</Text>
-                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour }}>Floor Area</Text>
-                          <Text style={{ flex: 0.9, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Monthly Rent</Text>
-                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textAlign: 'right' }}>Date Let</Text>
+                          <Text style={{ flex: 2, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Address</Text>
+                          <Text style={{ flex: 1, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Property Type</Text>
+                          <Text style={{ flex: 0.5, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Beds</Text>
+                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>Floor Area</Text>
+                          <Text style={{ flex: 0.9, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>Monthly Rent</Text>
+                          <Text style={{ flex: 0.7, fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textAlign: 'right' }}>Date Let</Text>
                         </View>
                         {letComps.map((row, i) => (
                           <View key={i} style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
@@ -2538,19 +2546,19 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 const diffColor = yieldDiff >= 0 ? '#16A34A' : '#DC2626';
                 return (
                   <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Area Yield Context</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Area Yield Context</Text>
                     <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
                       <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: '2.5pt solid #9ca3af', borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
                         <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>Area Average Yield</Text>
-                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(props.areaAverageYield!)}</Text>
+                        <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fp(props.areaAverageYield!)}</Text>
                       </View>
                       <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
                         <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>This Deal (Gross)</Text>
-                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fp(activeGrossYield)}</Text>
+                        <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fp(activeGrossYield)}</Text>
                       </View>
                       <View style={{ flex: 1, backgroundColor: 'white', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${diffColor}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 10 }}>
                         <Text style={{ fontSize: 7.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 3 }}>Premium / Discount</Text>
-                        <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: diffColor }}>{`${yieldDiff >= 0 ? '+' : ''}${fp(Math.abs(yieldDiff))}`}</Text>
+                        <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: diffColor }}>{`${yieldDiff >= 0 ? '+' : ''}${fp(Math.abs(yieldDiff))}`}</Text>
                       </View>
                     </View>
                     <View style={{ backgroundColor: '#F8FAFC', borderRadius: 3, paddingVertical: 8, paddingHorizontal: 10 }}>
@@ -2559,14 +2567,14 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                         <View style={{ flex: 1, height: 6, backgroundColor: '#E5E7EB', borderRadius: 2 }}>
                           <View style={{ width: `${areaBar}%`, height: 6, backgroundColor: '#9ca3af', borderRadius: 2 }} />
                         </View>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', width: 36, textAlign: 'right' }}>{fp(props.areaAverageYield!)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', width: 36, textAlign: 'right' }}>{fp(props.areaAverageYield!)}</Text>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ fontSize: 7.5, color: '#6B7280', width: 90 }}>This deal</Text>
                         <View style={{ flex: 1, height: 6, backgroundColor: '#E5E7EB', borderRadius: 2 }}>
                           <View style={{ width: `${dealBar}%`, height: 6, backgroundColor: structureColour, borderRadius: 2 }} />
                         </View>
-                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', width: 36, textAlign: 'right' }}>{fp(activeGrossYield)}</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', width: 36, textAlign: 'right' }}>{fp(activeGrossYield)}</Text>
                       </View>
                     </View>
                   </View>
@@ -2646,24 +2654,24 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'HMO') && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual rent as a percentage of purchase price.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage payment.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Years to recover total cash invested from annual cash flow.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Immediate equity created when a property is purchased below market value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Below Market Value. The discount between purchase price and estimated market value.</Text>
               </>
             )}
@@ -2671,116 +2679,116 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* Finance & Structure — HMO only */}
             {props.dealType === 'HMO' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
               </>
             )}
 
             {props.dealType === 'SA' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage payment.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Immediate equity created when a property is purchased below market value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>BMV</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Below Market Value. The discount between purchase price and estimated market value.</Text>
               </>
             )}
 
             {props.dealType === 'BRRR' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Yield &amp; Return</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BRRR Gross Yield</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>BRRR Gross Yield</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Yield calculated on post-refurb value (GDV), not purchase price.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual income minus operating costs divided by post-refurb value. Mortgage excluded.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual cash flow as a percentage of cash left in the deal after refinance.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity Created</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity Created</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The uplift in property value above total cost in, realised through refurbishment.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Money Out / Recycled</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Money Out / Recycled</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>When the refinance loan exceeds total cost in. All capital returned plus a surplus. Cash-on-cash ROI is infinite.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>BRRR Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>BRRR Structure</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The estimated market value of the property after refurbishment is complete.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Capital released by remortgaging against the post-refurb value at a set LTV.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Capital remaining in the deal after subtracting the refinance loan from total cost in.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital deployed into the BRRR: purchase price + tax + refurb + bridging interest + other costs.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Short-term property-secured loan used to fund acquisition and refurbishment before refinancing.</Text>
               </>
             )}
 
             {props.dealType === 'FLIP' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Returns</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Returns</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Net profit as a percentage of total project cost.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Annualised ROI</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Annualised ROI</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total ROI scaled to a 12-month equivalent based on project length in months.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit on Cost</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Profit on Cost</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Net profit expressed as a percentage of total costs. Benchmark: 18%+ with planning permission, 25%+ without.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Profit</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Profit</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Sale proceeds minus all acquisition, build, and selling costs.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>GDV (Gross Development Value)</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The target sale price or estimated open market value after works are complete.</Text>
               </>
             )}
 
             {props.dealType === 'R2R' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>R2R Income</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>R2R Income</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Monthly Spread</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Monthly Spread</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The difference between sub-let income collected and rent paid to the landlord. The core R2R profit driver.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total sub-let rent collected from all rooms at current occupancy.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Profit</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Profit</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly income after rent to landlord, management fees, and running costs.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Annual Profit</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Annual Profit</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Net monthly profit multiplied by 12.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Setup Costs</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Setup Costs</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>One-off costs to establish the R2R agreement: furniture, deposits, compliance, and fit-out.</Text>
               </>
             )}
@@ -2795,172 +2803,172 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'HMO') && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total rental income before any deductions or void allowance.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross rent after void allowance deducted.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including mortgage payment.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Minimum rent required to cover all costs at the current mortgage rate.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The buffer between contracted rent and break-even rent.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The minimum rent or revenue required to cover all costs at the current mortgage rate. Cash flow is exactly zero at this level.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (-10%), applied independently.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The mortgage rate at which monthly cash flow reaches exactly zero.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently.</Text>
               </>
             )}
 
             {props.dealType === 'SA' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>SA Income</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>SA Income</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total nightly income before platform fees and running costs. Calculated as: Nightly Rate × (Occupancy % ÷ 100) × 30.42 days.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Platform Fees</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Platform Fees</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Commission charged by booking platforms such as Airbnb and Booking.com.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Revenue</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Revenue</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross revenue after platform fees deducted.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Occupancy Rate</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Occupancy Rate</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Percentage of nights in a month the property is occupied and generating income. DealScore default: 75%.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including mortgage payment.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Minimum revenue required to cover all costs at the current mortgage rate.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The minimum rent or revenue required to cover all costs at the current mortgage rate. Cash flow is exactly zero at this level.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Analysis of deal performance under a higher mortgage rate (+1.5%) and lower revenue (-10%), applied independently.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The mortgage rate at which monthly cash flow reaches exactly zero.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Shows the impact on cash flow and ROI of a 10% revenue reduction and a 1.5% rate increase independently.</Text>
               </>
             )}
 
             {props.dealType === 'BRRR' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Cash Flow &amp; Expenses</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total rental income before any deductions or void allowance.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Void Allowance</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Estimated cost of vacancy. A 5% void allowance equals approximately 2.5 weeks vacant per year.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Gross rent after void allowance deducted.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income (NOI)</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly surplus after all costs including the refinance mortgage payment.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress Testing &amp; Resilience</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Stress Test</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Analysis of deal performance under a higher mortgage rate (+1.5%) and lower rent (-10%), applied independently.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The mortgage rate at which monthly cash flow reaches exactly zero.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Shows the impact on cash flow and ROI of a 10% rent reduction and a 1.5% rate increase independently.</Text>
               </>
             )}
 
             {props.dealType === 'FLIP' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Costs</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Project Costs</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital deployed: purchase price + tax + refurb + contingency + holding costs + other costs.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Holding Costs</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Holding Costs</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly financing or carrying costs during the project period.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Selling Costs</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Selling Costs</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Agent fees and legal costs on sale, expressed as a percentage of GDV.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Contingency</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Contingency</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>A percentage buffer added to refurb costs to absorb unexpected expenses. DealScore default: 10%.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Bridging Finance</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Short-term property-secured loan used to fund acquisition and/or refurbishment.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress &amp; Sensitivity</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Stress &amp; Sensitivity</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Risk</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Risk</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Impact on profit if build costs increase beyond budget. A 10% overrun on a £30k refurb reduces profit by £3,000.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV Sensitivity</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>GDV Sensitivity</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Impact on profit if the achieved sale price is lower than the GDV estimate.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even GDV</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even GDV</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The minimum sale price at which the project still makes a profit.</Text>
               </>
             )}
 
             {props.dealType === 'R2R' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Returns</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Returns</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Annual profit as a percentage of total setup costs.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Number of months to recover setup costs from monthly profit.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Upfront</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Upfront</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>All capital needed to begin: setup costs + landlord deposit + first month rent.</Text>
 
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Agreement &amp; Risk</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Agreement &amp; Risk</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Landlord Agreement</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Landlord Agreement</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>The lease or licence between the sourcer and the property owner permitting sub-letting. Term, break clauses, and subletting rights must be clearly documented.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Subletting</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Subletting</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Renting out a property or individual rooms that you yourself rent from the owner.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Occupancy Rate</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Occupancy Rate</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Percentage of rooms occupied and generating income. DealScore default: 90%.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Management Fees</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Management Fees</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Platform or agent commission charged on gross income collected.</Text>
               </>
             )}
@@ -2976,18 +2984,18 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* Finance & Structure — BTL / SOCIAL / SA (standard spacing) */}
             {(props.dealType === 'BTL' || props.dealType === 'SOCIAL' || props.dealType === 'SA') && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Finance &amp; Structure</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Interest-Only Mortgage</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers interest only. Capital balance remains unchanged throughout the term.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Repayment Mortgage</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly payment covers both interest and capital. Balance reduces to zero over the term.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed: deposit + tax + refurb + other costs.</Text>
               </>
             )}
@@ -2995,78 +3003,78 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* HMO — HMO only */}
             {props.dealType === 'HMO' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>HMO</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>HMO</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Monthly cash flow divided equally across all rooms. Key HMO efficiency metric.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>HMO Licence</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>HMO Licence</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Required local authority licence for larger HMOs. Cost is a one-off acquisition cost, not monthly.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total room rental income across all rooms at current occupancy rate.</Text>
               </>
             )}
 
             {props.dealType === 'BRRR' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Loan to Value. Mortgage amount expressed as a percentage of property value.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI).</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed into the deal before refinance.</Text>
               </>
             )}
 
             {props.dealType === 'FLIP' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax &amp; Structure</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI). Government purchase tax on property transactions.</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total capital deployed into the project.</Text>
               </>
             )}
 
             {props.dealType === 'R2R' && (
               <>
-                <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Structure</Text>
+                <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Structure</Text>
 
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Total setup costs deployed to establish the agreement.</Text>
               </>
             )}
 
             {/* Universal terms — all strategies */}
-            <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax, Legal &amp; Verdicts</Text>
+            <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 3, marginTop: 10 }}>Tax, Legal &amp; Verdicts</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sourcing Fee</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Sourcing Fee</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Fee payable to the deal sourcer on legal completion.</Text>
 
             {(props.dealType !== 'BRRR' && props.dealType !== 'FLIP') && (
               <>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTT / SDLT</Text>
                 <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Land Transaction Tax (Wales) or Stamp Duty Land Tax (England &amp; NI). Government purchase tax on property transactions.</Text>
               </>
             )}
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Deal Score</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Deal Score</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Weighted composite score from 1 to 10 across six dimensions: Gross Yield, Net Cash Flow, Capital Growth Potential, Tenant Demand, Deal Structure, and Risk Profile.</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Recommended</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Recommended</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Deal meets or exceeds all key thresholds for this strategy. Strong candidate for investor presentation.</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Review</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Review</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Deal partially meets thresholds. Worth progressing with negotiation or cost review.</Text>
 
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Avoid</Text>
+            <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Avoid</Text>
             <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Deal falls below minimum thresholds. Not recommended at current numbers.</Text>
 
           </View>
@@ -3085,37 +3093,37 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
             {/* Left column — Yield & Return */}
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Yield &amp; Return</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Yield &amp; Return</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual rent as a percentage of purchase price.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent ÷ Purchase Price) × 100</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Income after operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Income - Operating Costs) ÷ Purchase Price × 100</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Cash Flow ÷ Cash Invested) × 100</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Years to recover invested capital from annual cash flow.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Cash Invested ÷ Annual Cash Flow</Text>
 
               {props.dealType !== 'BRRR' ? (
                 <>
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Equity when purchased below market value.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Market Value - Purchase Price</Text>
                 </>
               ) : (
                 <>
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Equity Created</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity Created</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Equity generated through refurbishment.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Post-Refurb Value - Total Cost In</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>BRRR Gross Yield</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>BRRR Gross Yield</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Yield calculated on GDV.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent ÷ Post-Refurb Value) × 100</Text>
                 </>
@@ -3123,17 +3131,17 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {props.dealType === 'SA' && (
                 <>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>SA Revenue</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>SA Revenue</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Nightly rate at target occupancy over an average month.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Nightly Rate × (Occupancy % ÷ 100) × 30.42</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Platform Fees</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Platform Fees</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Commission deducted from gross revenue.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue × Platform Fee %</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Revenue</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Revenue</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Revenue after platform fees.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue - Platform Fees</Text>
                 </>
@@ -3144,39 +3152,39 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {/* Centre column — Cash Flow & Expenses + Stress Testing */}
             <View style={{ flex: 1, paddingHorizontal: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Cash Flow &amp; Expenses</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Cash Flow &amp; Expenses</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Gross rent after void allowance deducted.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Rent × (1 - Void %)</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Effective Rent - Operating Costs</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly surplus after all costs including mortgage.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Operating Income - Mortgage Payment</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Monthly Mortgage (Interest-Only)</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Monthly Mortgage (Interest-Only)</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly interest payment.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount × Annual Rate %) ÷ 12</Text>
 
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Stress Testing &amp; Resilience</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Stress Testing &amp; Resilience</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Minimum rent to cover all costs at current rate.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Operating Costs + Mortgage Payment</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Buffer before deal becomes cash-flow negative.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Contracted Rent - Break-Even Rent</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Mortgage rate at which cash flow reaches zero.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Solved from: Rent = Operating Costs + (Mortgage Amount × Rate ÷ 12)</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Performance under rent -10% and rate +1.5% applied independently. See sensitivity table in report.</Text>
             </View>
 
@@ -3184,33 +3192,33 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {/* Right column — Capital & Structure */}
             <View style={{ flex: 1, paddingLeft: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Capital &amp; Structure</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Capital &amp; Structure</Text>
 
               {props.dealType === 'BRRR' ? (
                 <>
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital deployed before refinance.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Purchase Price + Tax + Refurb + Bridging Interest + Other Costs</Text>
                 </>
               ) : (
                 <>
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total capital deployed into the deal.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Deposit + Tax + Refurb + Other Costs + Sourcing Fee</Text>
                 </>
               )}
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Loan to value ratio.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount ÷ Property Value) × 100</Text>
 
               {props.dealType === 'BRRR' && (
                 <>
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Capital released on refinance.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Post-Refurb Value × (Refinance % ÷ 100)</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Capital remaining after refinance.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Total Cost In - Refinance Loan</Text>
                 </>
@@ -3218,13 +3226,13 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {props.dealType === 'HMO' && (
                 <>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>HMO</Text>
+                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>HMO</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly cash flow divided by number of rooms.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Monthly Cash Flow ÷ Number of Rooms</Text>
 
-                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
+                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total room income at current occupancy.</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Rent per Room × Rooms × (Occupancy % ÷ 100)</Text>
                 </>
@@ -3235,21 +3243,21 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
             {/* Left column — Project Returns */}
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Project Returns</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Project Returns</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net profit as a percentage of total cost.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Net Profit ÷ Total Cost In) × 100</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Annualised ROI</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Annualised ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>ROI scaled to a 12-month equivalent.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Total ROI ÷ Project Length in months) × 12</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Profit on Cost</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Profit on Cost</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net profit as a percentage of total project cost.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Net Profit ÷ Total Cost) × 100</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Profit</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Profit</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Sale proceeds minus all costs.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price - Total Cost - Selling Costs</Text>
             </View>
@@ -3258,35 +3266,35 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {/* Centre column — Project Costs + Stress & Sensitivity */}
             <View style={{ flex: 1, paddingHorizontal: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Project Costs</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Project Costs</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital deployed into the project.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Purchase Price + Tax + Refurb + Holding Costs + Other Costs</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Holding Costs</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Holding Costs</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Finance costs during the project period.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Monthly Holding Cost × Project Length (months)</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Selling Costs</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Selling Costs</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Agent and legal fees on sale.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price × Selling Costs %</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Contingency</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Contingency</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Buffer added to refurb costs for unexpected expenses.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Refurb Cost × Contingency %</Text>
 
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Stress &amp; Sensitivity</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Stress &amp; Sensitivity</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Scenario</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Scenario</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit impact if costs increase by 10%.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Profit - (Total Cost × 10%)</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>GDV Sensitivity</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>GDV Sensitivity</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit impact of a 5% lower sale price.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Profit - (Expected Sale Price × 5%)</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Bridging Interest</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Bridging Interest</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Cost of bridging finance during the project.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Purchase Price × LTV %) × (Annual Rate % ÷ 12) × Term (months)</Text>
             </View>
@@ -3300,25 +3308,25 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           <View style={{ flexDirection: 'row', gap: 0, flex: 1 }}>
             {/* Left column — Income & Spread */}
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Income &amp; Spread</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Income &amp; Spread</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Sub-let income at current occupancy.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Rent per Room × Rooms × (Occupancy % ÷ 100)</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Monthly Spread</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Monthly Spread</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Income minus rent paid to landlord.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income - Monthly Rent to Landlord</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Profit</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Profit</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit after all costs.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income - Rent to Landlord - Management Fees - Running Costs</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Annual Profit</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Annual Profit</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net monthly profit scaled annually.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Monthly Profit × 12</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Management Fees</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Management Fees</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Platform or agent commission on gross income.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income × Management Fee %</Text>
             </View>
@@ -3327,17 +3335,17 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
             {/* Centre column — Returns & Recovery */}
             <View style={{ flex: 1, paddingHorizontal: 10 }}>
-              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Returns &amp; Recovery</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6 }}>Returns &amp; Recovery</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual profit as a percentage of setup costs.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Profit ÷ Setup Costs) × 100</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Months to recover setup costs from monthly profit.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Setup Costs ÷ Net Monthly Profit</Text>
 
-              <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#1E2B3C', marginBottom: 0 }}>Total Upfront</Text>
+              <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Upfront</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital needed to begin the agreement.</Text>
               <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Setup Costs + (Landlord Deposit Months × Monthly Rent) + First Month Rent</Text>
             </View>
@@ -3362,31 +3370,31 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               {props.companyName?.trim() ? (
                 <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                   <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Company</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.companyName.trim()}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.companyName.trim()}</Text>
                 </View>
               ) : null}
               {props.preparedBy.name ? (
                 <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                   <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Contact Name</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.name}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.preparedBy.name}</Text>
                 </View>
               ) : null}
               {props.preparedBy.email ? (
                 <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                   <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Email</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
                 </View>
               ) : null}
               {props.preparedBy.phone ? (
                 <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                   <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>Phone</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
                 </View>
               ) : null}
               {props.whatsappNumber?.trim() ? (
                 <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                   <Text style={{ fontSize: 8, color: '#6B7280', width: 100 }}>WhatsApp</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.whatsappNumber.trim()}</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.whatsappNumber.trim()}</Text>
                 </View>
               ) : null}
             </View>
@@ -3415,31 +3423,31 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   {props.preparedBy.email ? (
                     <View style={{ flexDirection: 'row', marginBottom: 4 }}>
                       <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Email</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.preparedBy.email}</Text>
                     </View>
                   ) : null}
                   {props.preparedBy.phone ? (
                     <View style={{ flexDirection: 'row', marginBottom: 4 }}>
                       <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Phone</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.preparedBy.phone}</Text>
                     </View>
                   ) : null}
                   {props.companyName ? (
                     <View style={{ flexDirection: 'row', marginBottom: 4 }}>
                       <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Company</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.companyName}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.companyName}</Text>
                     </View>
                   ) : null}
                   {props.offerDeadline ? (
                     <View style={{ flexDirection: 'row', marginBottom: 4 }}>
                       <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Offer Deadline</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.offerDeadline}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.offerDeadline}</Text>
                     </View>
                   ) : null}
                   {props.viewingAvailable !== undefined && (
                     <View style={{ flexDirection: 'row', marginBottom: 4 }}>
                       <Text style={{ fontSize: 8, color: '#6B7280', width: 80 }}>Viewing Available</Text>
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{props.viewingAvailable ? 'Yes' : 'No'}</Text>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{props.viewingAvailable ? 'Yes' : 'No'}</Text>
                     </View>
                   )}
                 </View>
@@ -3451,7 +3459,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               {props.sourcingFee > 0 && (
                 <View style={notePanel}>
                   <Text style={{ ...notePanelLabel, color: '#1B2B4B' }}>Sourcing Fee</Text>
-                  <Text style={{ fontSize: 13, fontFamily: 'Helvetica-Bold', color: '#1B2B4B', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', marginBottom: 4 }}>
                     {fc(props.sourcingFee)}
                   </Text>
                   <Text style={notePanelText}>Payable on completion.</Text>
