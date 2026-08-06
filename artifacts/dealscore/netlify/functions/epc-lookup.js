@@ -106,7 +106,19 @@ exports.handler = async (event) => {
       registrationDate: matched.registrationDate,
     };
 
-    return respond({ data: merged, matchStatus: 'matched' });
+    // Determine whether the certificate has expired (UK EPCs are valid for exactly 10 years).
+    // The API does not return an explicit expiry field — we calculate it from registrationDate.
+    let expired = false;
+    let expiryDate = null;
+    if (matched.registrationDate) {
+      const reg = new Date(matched.registrationDate);
+      const expiry = new Date(reg);
+      expiry.setFullYear(expiry.getFullYear() + 10);
+      expiryDate = expiry.toISOString().slice(0, 10); // "YYYY-MM-DD"
+      expired = expiry < new Date();
+    }
+
+    return respond({ data: merged, matchStatus: 'matched', expired, expiryDate });
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }

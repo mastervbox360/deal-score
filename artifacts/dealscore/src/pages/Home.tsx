@@ -314,6 +314,8 @@ export default function HomePage() {
     environmentalImpactCurrent: number | null;
     energyConsumptionCurrent: number | null;
     epcMatchStatus: 'no_match' | null; // 'no_match' = certs found for postcode but none matched this address
+    epcExpired: boolean;               // true when matched cert registrationDate + 10 years < today
+    epcExpiryDate: string | null;      // "YYYY-MM-DD" expiry date, present when epcExpired is true
     floodRisk: string | null;
     lat: number | null;
     lng: number | null;
@@ -433,7 +435,7 @@ export default function HomePage() {
     if (!address || address.trim().length < 5) return;
     setPropertyDataLoading(true);
     // Show panel immediately with empty state so it appears at once
-    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, potentialEpcRating: null, constructionDate: null, mainHeating: null, heatingCostCurrent: null, environmentalImpactCurrent: null, energyConsumptionCurrent: null, epcMatchStatus: null, floodRisk: null, lat: null, lng: null });
+    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, potentialEpcRating: null, constructionDate: null, mainHeating: null, heatingCostCurrent: null, environmentalImpactCurrent: null, energyConsumptionCurrent: null, epcMatchStatus: null, epcExpired: false, epcExpiryDate: null, floodRisk: null, lat: null, lng: null });
 
     try {
       const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
@@ -526,6 +528,10 @@ export default function HomePage() {
             const energyConsumptionCurrent = cert.energy_consumption_current != null
               ? Number(cert.energy_consumption_current) : null;
 
+            // Expiry flag — present when the matched certificate is more than 10 years old
+            const epcExpired: boolean = epc?.expired === true;
+            const epcExpiryDate: string | null = epc?.expiryDate ?? null;
+
             if (epcPropertyType) { setPropertyType(epcPropertyType); setAutoFilledPropertyType(true); }
             if (floorArea != null) { setManualFloorArea(floorArea); setFloorAreaUnit('sqm'); }
             setPropertyData(prev => prev ? {
@@ -539,6 +545,8 @@ export default function HomePage() {
               environmentalImpactCurrent,
               energyConsumptionCurrent,
               epcMatchStatus: null, // successful match — clear any prior no_match state
+              epcExpired,
+              epcExpiryDate,
               ...(epcPropertyType ? { detectedPropertyType: epcPropertyType } : {}),
             } : null);
           } catch { /* silent */ }
@@ -5743,6 +5751,8 @@ function PropertyDataPanel({
     environmentalImpactCurrent: number | null;
     energyConsumptionCurrent: number | null;
     epcMatchStatus: 'no_match' | null;
+    epcExpired: boolean;
+    epcExpiryDate: string | null;
     floodRisk: string | null;
   } | null;
   loading: boolean;
@@ -5813,16 +5823,27 @@ function PropertyDataPanel({
                 </div>
               )}
               {data.epcRating ? (
-                <div>
-                  <span style={{ color: '#64748B' }}>EPC rating: </span>
-                  <EpcBadge rating={data.epcRating} />
-                  {data.potentialEpcRating && data.potentialEpcRating !== data.epcRating && (
-                    <span style={{ color: '#64748B', marginLeft: 4 }}>
-                      → <EpcBadge rating={data.potentialEpcRating} />
-                      <span style={{ color: '#94A3B8', fontSize: 11, marginLeft: 3 }}>potential</span>
-                    </span>
+                <>
+                  <div>
+                    <span style={{ color: '#64748B' }}>EPC rating: </span>
+                    <EpcBadge rating={data.epcRating} />
+                    {data.potentialEpcRating && data.potentialEpcRating !== data.epcRating && (
+                      <span style={{ color: '#64748B', marginLeft: 4 }}>
+                        → <EpcBadge rating={data.potentialEpcRating} />
+                        <span style={{ color: '#94A3B8', fontSize: 11, marginLeft: 3 }}>potential</span>
+                      </span>
+                    )}
+                  </div>
+                  {data.epcExpired && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <span style={{ color: '#92400e', fontStyle: 'italic' }}>
+                        ⚠️ This EPC certificate expired on {data.epcExpiryDate
+                          ? new Date(data.epcExpiryDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+                          : 'an unknown date'} — data may be outdated, please verify
+                      </span>
+                    </div>
                   )}
-                </div>
+                </>
               ) : data.epcMatchStatus === 'no_match' ? (
                 <div style={{ gridColumn: '1 / -1' }}>
                   <span style={{ color: '#92400e', fontStyle: 'italic' }}>
