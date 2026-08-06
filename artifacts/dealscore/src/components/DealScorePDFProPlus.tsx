@@ -2611,6 +2611,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
       ))}
 
       {/* ── Glossary Page ────────────────────────────────────────────────────── */}
+      {props.includeGlossary && (
       <Page size="A4" orientation="landscape" style={{ ...landscapePage, paddingTop: 24 }}>
         <PageHeader />
         <Footer />
@@ -3049,8 +3050,10 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           </View>
         </View>
       </Page>
+      )}
 
       {/* ── Formulas & Calculations Page ─────────────────────────────────────── */}
+      {props.includeWorkings && (
       <Page size="A4" orientation="landscape" style={{ ...landscapePage, paddingTop: 28 }}>
         <PageHeader />
         <Footer />
@@ -3324,6 +3327,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           </View>
         )}
       </Page>
+      )}
 
       {/* ── Legal Page (last) ────────────────────────────────────────────────── */}
       {hasLegal && (

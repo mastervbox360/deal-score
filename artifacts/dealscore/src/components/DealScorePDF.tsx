@@ -107,6 +107,11 @@ export interface DealScorePDFProps {
     rateUpCoC: number;
   };
   includeWorkings?: boolean;
+  includeGlossary?: boolean;
+  whatsappNumber?: string;
+  prsNumber?: string;
+  icoNumber?: string;
+  companyRegNumber?: string;
   managementFeePercent?: number;
   voidAllowancePercent?: number;
   maintenanceReserve?: number;
@@ -2751,6 +2756,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ))}
 
       {/* ── Glossary Page ────────────────────────────────────────────────────── */}
+      {props.includeGlossary && (
       <Page size="A4" style={base.page}>
         <Footer />
         <SH title="Glossary" />
@@ -3188,8 +3194,10 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         </View>
       </Page>
+      )}
 
       {/* ── Formulas & Calculations Page ─────────────────────────────────────── */}
+      {props.includeWorkings && (
       <Page size="A4" style={base.page}>
         <Footer />
         <SH title="Formulas &amp; Calculations" />
@@ -3441,6 +3449,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
       </Page>
+      )}
 
       {/* ── Page 7: Legal & Disclosure ─────────────────────────────────────── */}
       {hasLegal && (

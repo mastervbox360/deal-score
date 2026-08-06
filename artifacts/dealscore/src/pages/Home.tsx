@@ -160,8 +160,32 @@ export default function HomePage() {
 
   const [hmoInputs, setHmoInputs] = useState({ rooms: 0, rentPerRoom: 0, occupancyRate: 90, licenceCost: 0 });
 
-  const [preparedBy, setPreparedBy] = useState({ name: '', email: '', phone: '' });
-  const [companyName, setCompanyName] = useState<string>('');
+  const [preparedBy, setPreparedBy] = useState<{ name: string; email: string; phone: string }>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('ds_sourcer_identity') ?? '{}');
+      return { name: saved.name ?? '', email: saved.email ?? '', phone: saved.phone ?? '' };
+    } catch { return { name: '', email: '', phone: '' }; }
+  });
+  const [companyName, setCompanyName] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('ds_sourcer_identity') ?? '{}').companyName ?? ''; }
+    catch { return ''; }
+  });
+  const [whatsappNumber, setWhatsappNumber] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('ds_sourcer_identity') ?? '{}').whatsappNumber ?? ''; }
+    catch { return ''; }
+  });
+  const [prsNumber, setPrsNumber] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('ds_sourcer_identity') ?? '{}').prsNumber ?? ''; }
+    catch { return ''; }
+  });
+  const [icoNumber, setIcoNumber] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('ds_sourcer_identity') ?? '{}').icoNumber ?? ''; }
+    catch { return ''; }
+  });
+  const [companyRegNumber, setCompanyRegNumber] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('ds_sourcer_identity') ?? '{}').companyRegNumber ?? ''; }
+    catch { return ''; }
+  });
   const [propertyAddress, setPropertyAddress] = useState('');
   const [propertyType, setPropertyType] = useState<string>('Terraced');
   const [tenure, setTenure] = useState<'Freehold' | 'Leasehold'>('Freehold');
@@ -248,6 +272,7 @@ export default function HomePage() {
   const [whyScoreOpen, setWhyScoreOpen] = useState<boolean>(false);
   const [showAnnual, setShowAnnual] = useState<boolean>(false);
   const [includeWorkingsInPDF, setIncludeWorkingsInPDF] = useState<boolean>(false);
+  const [includeGlossaryInPDF, setIncludeGlossaryInPDF] = useState<boolean>(false);
   const [taxCountry, setTaxCountry] = useState<Country>('ENGLAND');
   const [buyerType, setBuyerType] = useState<BuyerType>('ADDITIONAL');
   const [taxOverrideActive, setTaxOverrideActive] = useState(false);
@@ -277,6 +302,25 @@ export default function HomePage() {
     const timer = setTimeout(() => setAccentColour(accentColourDraft), 500);
     return () => clearTimeout(timer);
   }, [accentColourDraft]);
+
+  // Persist sourcer identity fields to localStorage (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('ds_sourcer_identity', JSON.stringify({
+          name: preparedBy.name,
+          email: preparedBy.email,
+          phone: preparedBy.phone,
+          companyName,
+          whatsappNumber,
+          prsNumber,
+          icoNumber,
+          companyRegNumber,
+        }));
+      } catch { /* ignore storage errors */ }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [preparedBy, companyName, whatsappNumber, prsNumber, icoNumber, companyRegNumber]);
 
   useEffect(() => {
     if (isUninhabitable) {
@@ -1831,6 +1875,11 @@ export default function HomePage() {
         rateUpCoC: _stressRateUp.cashOnCashROI,
       } : undefined,
       includeWorkings: includeWorkingsInPDF,
+      includeGlossary: includeGlossaryInPDF,
+      whatsappNumber,
+      prsNumber,
+      icoNumber,
+      companyRegNumber,
       managementFeePercent,
       areaAverageYield,
       timelineStages: timelineStages.filter(s => s.label.trim() !== ''),
@@ -1871,7 +1920,8 @@ export default function HomePage() {
     accentColour, logoSize, coverStyle, tierOverride,
     executiveSummary, strategyNotes, propertyDescription, vendorSituation,
     subjectCtx, comparables, listingLinks, photoFiles, heroPhotoIndex,
-    includeWorkingsInPDF,
+    includeWorkingsInPDF, includeGlossaryInPDF,
+    whatsappNumber, prsNumber, icoNumber, companyRegNumber,
     managementFeePercent, voidAllowancePercent, maintenanceReserve,
     buildingsInsurance, serviceCharge, groundRentAnnual,
     areaAverageYield, timelineStages, offerDeadline, viewingAvailable, refurbScope,
@@ -4954,6 +5004,53 @@ export default function HomePage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-whatsapp" className="text-xs">WhatsApp Number</Label>
+              <Input
+                id="prepared-whatsapp"
+                type="tel"
+                placeholder="WhatsApp number (optional)"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                data-testid="input-prepared-whatsapp"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-prs" className="text-xs">Property Redress Scheme Number</Label>
+              <Input
+                id="prepared-prs"
+                type="text"
+                placeholder="PRS membership number (optional)"
+                value={prsNumber}
+                onChange={(e) => setPrsNumber(e.target.value)}
+                data-testid="input-prepared-prs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-ico" className="text-xs">ICO Registration Number</Label>
+              <Input
+                id="prepared-ico"
+                type="text"
+                placeholder="ICO reg. number (optional)"
+                value={icoNumber}
+                onChange={(e) => setIcoNumber(e.target.value)}
+                data-testid="input-prepared-ico"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="prepared-company-reg" className="text-xs">Company Registration Number</Label>
+              <Input
+                id="prepared-company-reg"
+                type="text"
+                placeholder="Companies House number (optional)"
+                value={companyRegNumber}
+                onChange={(e) => setCompanyRegNumber(e.target.value)}
+                data-testid="input-prepared-company-reg"
+              />
+            </div>
+          </div>
+
           {/* Address Protection */}
           <div className="mt-4 space-y-2 pt-4 border-t border-border">
             <div className="flex items-center gap-2">
@@ -5330,6 +5427,18 @@ export default function HomePage() {
                   data-testid="checkbox-include-workings"
                 />
                 <span className="text-xs text-slate-600">Include full calculation workings as a PDF appendix</span>
+              </label>
+            )}
+            {tierOverride !== 'free' && (
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeGlossaryInPDF}
+                  onChange={(e) => setIncludeGlossaryInPDF(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-[#1B3A6B]"
+                  data-testid="checkbox-include-glossary"
+                />
+                <span className="text-xs text-slate-600">Include glossary as a PDF appendix</span>
               </label>
             )}
             {tierOverride !== 'free' && (
