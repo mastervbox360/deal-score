@@ -296,7 +296,12 @@ export default function HomePage() {
     detectedPropertyType: string | null;
     floorArea: number | null;
     epcRating: string | null;
+    potentialEpcRating: string | null;
     constructionDate: string | null;
+    mainHeating: string | null;
+    heatingCostCurrent: number | null;
+    environmentalImpactCurrent: number | null;
+    energyConsumptionCurrent: number | null;
     floodRisk: string | null;
     lat: number | null;
     lng: number | null;
@@ -405,7 +410,7 @@ export default function HomePage() {
     if (!address || address.trim().length < 5) return;
     setPropertyDataLoading(true);
     // Show panel immediately with empty state so it appears at once
-    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, constructionDate: null, floodRisk: null, lat: null, lng: null });
+    setPropertyData({ detectedTenure: null, detectedPropertyType: null, floorArea: null, epcRating: null, potentialEpcRating: null, constructionDate: null, mainHeating: null, heatingCostCurrent: null, environmentalImpactCurrent: null, energyConsumptionCurrent: null, floodRisk: null, lat: null, lng: null });
 
     try {
       const postcodeMatch = address.match(/[A-Z]{1,2}[0-9][0-9A-Z]?\s*[0-9][A-Z]{2}/i);
@@ -429,34 +434,85 @@ export default function HomePage() {
       };
 
       // EPC — typically fast; updates rating, floor area, construction date
+      // EPC — two-step flow handled server-side: search by postcode → fetch full certificate
+      // The function returns { data: <certificate object in snake_case> } or { data: null } if no cert found
       const epcFetch = fetch(`/.netlify/functions/epc-lookup?postcode=${postcode}`)
         .then(r => r.json())
         .then(epc => {
           try {
-            const rows = epc?.data ?? epc?.rows;
-            if (rows && rows.length > 0) {
-              const row = rows[0];
-              const epcTypeMap: Record<string, string> = {
-                'Detached House': 'Detached', 'Semi-Detached House': 'Semi-Detached',
-                'Terraced House': 'Terraced', 'Flat': 'Flat/Apartment',
-                'Maisonette': 'Flat/Apartment', 'Bungalow': 'Bungalow', 'Park home': 'Terraced',
-              };
-              const rawType = row.propertyType || row['property-type'] || '';
-              const epcPropertyType = epcTypeMap[rawType] || rawType || null;
-              const rawFloor = row.totalFloorArea ?? row['total-floor-area'];
-              const floorArea = rawFloor != null ? Number(rawFloor) : null;
-              const epcRating = row.currentEnergyEfficiencyBand || row['current-energy-rating'] || null;
-              const constructionDate = row.constructionAgeBand || row['construction-age-band'] || null;
-              if (epcPropertyType) { setPropertyType(epcPropertyType); setAutoFilledPropertyType(true); }
-              if (floorArea != null) { setManualFloorArea(floorArea); setFloorAreaUnit('sqm'); }
-              setPropertyData(prev => prev ? {
-                ...prev,
-                floorArea,
-                epcRating,
-                constructionDate,
-                ...(epcPropertyType ? { detectedPropertyType: epcPropertyType } : {}),
-              } : null);
-            }
+            const cert = epc?.data;
+            if (!cert) return; // No EPC certificate found — leave all fields null (UI shows "No certificate found")
+
+            // Helper: some string fields vary by schema version — newer certs return a plain string,
+            // older ones return { value: string, language: "1" }. Handle both gracefully.
+            const strVal = (v: unknown): string | null =>
+              typeof v === 'string' ? (v || null) : ((v as Record<string, unknown>)?.value as string) ?? null;
+
+            // Property type: use dwelling_type (human-readable) rather than property_type (integer code)
+            const epcTypeMap: Record<string, string> = {
+              'Top-floor flat': 'Flat/Apartment', 'Mid-floor flat': 'Flat/Apartment',
+              'Ground-floor flat': 'Flat/Apartment', 'Basement flat': 'Flat/Apartment',
+              'Flat': 'Flat/Apartment', 'Maisonette': 'Flat/Apartment',
+              'Mid-terrace house': 'Terraced', 'End-terrace house': 'Terraced',
+              'Semi-detached house': 'Semi-Detached', 'Detached house': 'Detached',
+              'Bungalow': 'Bungalow', 'Park home': 'Terraced',
+            };
+            const rawDwellingType = strVal(cert.dwelling_type);
+            const epcPropertyType = rawDwellingType
+              ? (epcTypeMap[rawDwellingType] || rawDwellingType)
+              : null;
+
+            // Floor area: plain number in sqm
+            const floorArea = cert.total_floor_area != null ? Number(cert.total_floor_area) : null;
+
+            // EPC rating (current and potential)
+            const epcRating: string | null = cert.current_energy_efficiency_band || null;
+            const potentialEpcRating: string | null = cert.potential_energy_efficiency_band || null;
+
+            // Construction age band: letter code (A–L) in sap_building_parts[0]
+            const AGE_BAND: Record<string, string> = {
+              A: 'Pre-1900', B: '1900–1929', C: '1930–1949', D: '1950–1966',
+              E: '1967–1975', F: '1976–1982', G: '1983–1990', H: '1991–1995',
+              I: '1996–2002', J: '2003–2006', K: '2007–2011', L: '2012 onwards',
+            };
+            const parts = cert.sap_building_parts as Record<string, unknown> | unknown[] | null;
+            const firstPart = parts
+              ? (Array.isArray(parts) ? parts[0] : Object.values(parts)[0]) as Record<string, unknown>
+              : null;
+            const ageBandCode = firstPart?.construction_age_band as string | null ?? null;
+            const constructionDate = ageBandCode ? (AGE_BAND[ageBandCode] || ageBandCode) : null;
+
+            // Main heating description (array, take first; same string-or-object duality)
+            const heatingArr = cert.main_heating as unknown[] | null;
+            const firstHeating = heatingArr && heatingArr.length > 0
+              ? heatingArr[0] as Record<string, unknown>
+              : null;
+            const mainHeating = firstHeating ? strVal(firstHeating.description) : null;
+
+            // Annual heating cost (current) — { value: number, currency: "GBP" }
+            const heatingCostRaw = cert.heating_cost_current as { value?: number } | null;
+            const heatingCostCurrent = heatingCostRaw?.value != null ? Number(heatingCostRaw.value) : null;
+
+            // Environmental impact rating (current) and energy consumption
+            const environmentalImpactCurrent = cert.environmental_impact_current != null
+              ? Number(cert.environmental_impact_current) : null;
+            const energyConsumptionCurrent = cert.energy_consumption_current != null
+              ? Number(cert.energy_consumption_current) : null;
+
+            if (epcPropertyType) { setPropertyType(epcPropertyType); setAutoFilledPropertyType(true); }
+            if (floorArea != null) { setManualFloorArea(floorArea); setFloorAreaUnit('sqm'); }
+            setPropertyData(prev => prev ? {
+              ...prev,
+              floorArea,
+              epcRating,
+              potentialEpcRating,
+              constructionDate,
+              mainHeating,
+              heatingCostCurrent,
+              environmentalImpactCurrent,
+              energyConsumptionCurrent,
+              ...(epcPropertyType ? { detectedPropertyType: epcPropertyType } : {}),
+            } : null);
           } catch { /* silent */ }
         })
         .catch(() => null);
@@ -5354,7 +5410,12 @@ function PropertyDataPanel({
     detectedPropertyType: string | null;
     floorArea: number | null;
     epcRating: string | null;
+    potentialEpcRating: string | null;
     constructionDate: string | null;
+    mainHeating: string | null;
+    heatingCostCurrent: number | null;
+    environmentalImpactCurrent: number | null;
+    energyConsumptionCurrent: number | null;
     floodRisk: string | null;
   } | null;
   loading: boolean;
@@ -5367,6 +5428,18 @@ function PropertyDataPanel({
     A: '#008054', B: '#19b459', C: '#8dce46',
     D: '#ffd500', E: '#fcaa65', F: '#ef8023', G: '#e9153b',
   };
+
+  const EpcBadge = ({ rating }: { rating: string }) => (
+    <span style={{
+      display: 'inline-block',
+      background: epcColors[rating] || '#888',
+      color: '#fff',
+      fontWeight: 700,
+      padding: '1px 7px',
+      borderRadius: 4,
+      fontSize: 12,
+    }}>{rating}</span>
+  );
 
   return (
     <div style={{ marginBottom: 16, gridColumn: '1 / -1' }}>
@@ -5415,15 +5488,13 @@ function PropertyDataPanel({
               {data.epcRating ? (
                 <div>
                   <span style={{ color: '#64748B' }}>EPC rating: </span>
-                  <span style={{
-                    display: 'inline-block',
-                    background: epcColors[data.epcRating] || '#888',
-                    color: '#fff',
-                    fontWeight: 700,
-                    padding: '1px 7px',
-                    borderRadius: 4,
-                    fontSize: 12,
-                  }}>{data.epcRating}</span>
+                  <EpcBadge rating={data.epcRating} />
+                  {data.potentialEpcRating && data.potentialEpcRating !== data.epcRating && (
+                    <span style={{ color: '#64748B', marginLeft: 4 }}>
+                      → <EpcBadge rating={data.potentialEpcRating} />
+                      <span style={{ color: '#94A3B8', fontSize: 11, marginLeft: 3 }}>potential</span>
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -5435,6 +5506,24 @@ function PropertyDataPanel({
                 <div>
                   <span style={{ color: '#64748B' }}>Built: </span>
                   <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.constructionDate}</span>
+                </div>
+              )}
+              {data.mainHeating && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Heating: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.mainHeating}</span>
+                </div>
+              )}
+              {data.heatingCostCurrent != null && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Est. heating cost: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>£{data.heatingCostCurrent.toLocaleString()}/yr</span>
+                </div>
+              )}
+              {data.energyConsumptionCurrent != null && (
+                <div>
+                  <span style={{ color: '#64748B' }}>Energy use: </span>
+                  <span style={{ color: '#1B3A6B', fontWeight: 700 }}>{data.energyConsumptionCurrent} kWh/m²/yr</span>
                 </div>
               )}
               {data.floodRisk && (
