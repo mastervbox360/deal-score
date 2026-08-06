@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { calculateBTL, calculateHMO, calculateFlip, calculateSA, calculateBRRR, calculateR2R, calculateSocialHousing, calculatePropertyTax, haversineMiles, TAX_LABEL, COUNTRY_LABEL, BUYER_LABEL, type DealType, type BTLInputs, type HMOInputs, type FlipInputs, type SAInputs, type BRRRInputs, type R2RInputs, type SocialHousingInputs, type Country, type BuyerType } from '@/lib/calculations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ComparableRow } from '@/lib/types';
+import { scoreComparable, type SubjectContext } from '@/lib/comparableScoring';
 
 declare global {
   interface Window {
@@ -332,6 +333,8 @@ export default function HomePage() {
   const [compSuggestions, setCompSuggestions] = useState<Record<string, { description: string; placeId: string }[]>>({});
   const [compShowSuggestions, setCompShowSuggestions] = useState<Record<string, boolean>>({});
   const [compHighlightedIndex, setCompHighlightedIndex] = useState<Record<string, number>>({});
+  // Which comparable rows have their score breakdown expanded
+  const [expandedComps, setExpandedComps] = useState<Record<string, boolean>>({});
 
   const [flipInputs, setFlipInputs] = useState({ holdingCostsPerMonth: 0, projectLengthMonths: 0, expectedSalePrice: 0, sellingCostsPercent: 2, financingMethod: 'Bridging' as 'Cash' | 'Bridging' | 'Mortgage', contingencyPercent: 10, flipBridgingRate: 0, flipBridgingTermMonths: 0, flipBridgingLTV: 70, flipMortgageDeposit: 25, flipMortgageRate: 0, flipMortgageTerm: 25, flipMortgageType: 'IO' as 'IO' | 'Repayment' });
 
@@ -925,6 +928,27 @@ export default function HomePage() {
     ? purchasePrice / effectiveFloorAreaSqFt : null;
   const pricePerSqM = effectiveFloorAreaSqM != null && effectiveFloorAreaSqM > 0 && purchasePrice > 0
     ? purchasePrice / effectiveFloorAreaSqM : null;
+
+  // SubjectContext for comparable scoring — rebuilt whenever any relevant subject field changes
+  const subjectCtx = useMemo<SubjectContext>(() => ({
+    propertyType,
+    tenure,
+    lat: propertyData?.lat ?? null,
+    lng: propertyData?.lng ?? null,
+    floorArea: effectiveFloorAreaSqM,
+    bedrooms: bedrooms !== '' ? bedrooms : null,
+    pricePerSqM,
+    dealType,
+    monthlyRent: dealType === 'BTL' ? (btlInputs.monthlyRent || null)
+               : dealType === 'BRRR' ? (brrrInputs.monthlyRent || null)
+               : null,
+    rentPerRoom: dealType === 'HMO' ? (hmoInputs.rentPerRoom || null)
+               : dealType === 'R2R' ? (r2rInputs.rentPerRoom || null)
+               : null,
+    leaseIncomePerMonth: dealType === 'SOCIAL' ? (socialInputs.leaseIncomePerMonth || null) : null,
+  }), [propertyType, tenure, propertyData, effectiveFloorAreaSqM, bedrooms, pricePerSqM,
+       dealType, btlInputs, brrrInputs, hmoInputs, r2rInputs, socialInputs]);
+
   const btlResults = calculateBTL({ ...sharedInputs, ...btlInputs, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
   const { licenceCost: hmoLicenceCost, ...hmoInputsForCalc } = hmoInputs;
   const hmoResults = calculateHMO({ ...sharedInputs, ...hmoInputsForCalc, otherCosts: sharedInputs.otherCosts + hmoLicenceCost, stampDuty: effectiveTax, ...sharedCostInputs, sourcingFee });
@@ -2986,11 +3010,32 @@ export default function HomePage() {
                           next[i] = { ...next[i], [field]: value };
                           setComparables(next);
                         };
+
+                        // Live score — recomputed whenever any field on this row or subject context changes
+                        const score = scoreComparable(row, subjectCtx);
+
+                        // Default includeInPdf: Strong/Fair → true, Weak → false (only when still null)
+                        const isIncluded = row.includeInPdf !== null
+                          ? row.includeInPdf
+                          : score.overall !== 'Weak';
+
+                        const badgeColor = score.overall === 'Strong' ? '#16a34a'
+                          : score.overall === 'Fair' ? '#d97706'
+                          : '#dc2626';
+                        const badgeBg = score.overall === 'Strong' ? '#f0fdf4'
+                          : score.overall === 'Fair' ? '#fffbeb'
+                          : '#fef2f2';
+
+                        const statusIcon = (s: string) =>
+                          s === 'strong' ? '✅' : s === 'fair' ? '⚠️' : s === 'weak' ? '❌' : '○';
+
+                        const isExpanded = !!expandedComps[row.id];
+
                         return (
                           <div key={row.id} className="border border-border rounded-lg p-3 space-y-2 bg-white">
-                            {/* Sale / Let toggle + index label + delete */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex rounded-md border overflow-hidden">
+                            {/* Sale / Let toggle + Comparable N label + badge + delete */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex rounded-md border overflow-hidden flex-shrink-0">
                                 <button
                                   type="button"
                                   onClick={() => upd('type', 'sale')}
@@ -3002,16 +3047,80 @@ export default function HomePage() {
                                   className={`px-3 py-1.5 text-xs font-semibold transition-colors ${row.type === 'let' ? 'bg-[#1B3A6B] text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
                                 >Let</button>
                               </div>
-                              <span className="text-xs text-muted-foreground font-medium">Comparable {i + 1}</span>
+
+                              {/* Centre: label + traffic light badge */}
+                              <div className="flex items-center gap-1.5 flex-1 justify-center">
+                                <span className="text-xs text-muted-foreground font-medium">Comparable {i + 1}</span>
+                                <button
+                                  type="button"
+                                  title="Click to see scoring breakdown"
+                                  onClick={() => setExpandedComps(prev => ({ ...prev, [row.id]: !prev[row.id] }))}
+                                  style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                    padding: '2px 8px', borderRadius: 99,
+                                    background: badgeBg, border: `1px solid ${badgeColor}33`,
+                                    color: badgeColor, fontSize: 11, fontWeight: 600,
+                                    cursor: 'pointer', lineHeight: 1.4,
+                                  }}
+                                >
+                                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: badgeColor, display: 'inline-block', flexShrink: 0 }} />
+                                  {score.overall}
+                                  <span style={{ fontSize: 9, opacity: 0.6, marginLeft: 1 }}>{isExpanded ? '▲' : '▼'}</span>
+                                </button>
+                              </div>
+
                               <button
                                 type="button"
                                 onClick={() => setComparables(comparables.filter((_, j) => j !== i))}
-                                className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                className="text-slate-400 hover:text-red-500 transition-colors p-1 flex-shrink-0"
                                 title="Remove"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
+
+                            {/* Expanded score breakdown */}
+                            {isExpanded && (
+                              <div style={{
+                                background: '#f8fafc', borderRadius: 6, padding: '8px 10px',
+                                border: '1px solid #e2e8f0', fontSize: 12,
+                              }}>
+                                {score.gateFailed ? (
+                                  <div style={{ color: '#dc2626', fontWeight: 600 }}>
+                                    ❌ {score.gateFailed}
+                                    <span style={{ fontWeight: 400, color: '#64748b', marginLeft: 6 }}>— comparable excluded from evidence</span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                      {score.factors.map((f, fi) => (
+                                        <div key={fi} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                                          <span style={{ flexShrink: 0, width: 18 }}>{statusIcon(f.status)}</span>
+                                          <span style={{ color: '#334155', fontWeight: 500, minWidth: 120 }}>{f.label}:</span>
+                                          <span style={{ color: '#64748b' }}>{f.detail}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    {score.overallNumeric >= 0 && (
+                                      <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #e2e8f0', color: '#475569', fontWeight: 600 }}>
+                                        Overall: {score.overallNumeric}/100 — {score.overall}
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                                {score.distanceUnverified && (
+                                  <div style={{ marginTop: 4, color: '#92400e', fontSize: 11 }}>
+                                    ⚠️ Distance unverified — postcode not geocoded yet
+                                  </div>
+                                )}
+                                {score.rentMetricUnavailable && (
+                                  <div style={{ marginTop: 4, color: '#6d28d9', fontSize: 11 }}>
+                                    ℹ️ Rent comparison not available for Serviced Accommodation deals
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             {/* Address — with Places autocomplete dropdown */}
                             <div style={{ position: 'relative' }}>
                               <Input
@@ -3088,6 +3197,7 @@ export default function HomePage() {
                                 </div>
                               )}
                             </div>
+
                             {/* Postcode | Property Type | Beds | Floor Area */}
                             <div className="grid grid-cols-4 gap-2">
                               <Input
@@ -3095,32 +3205,23 @@ export default function HomePage() {
                                 placeholder="Postcode"
                                 value={row.postcode}
                                 onChange={(e) => {
-                                  // Reset geocode state whenever the user edits the postcode field
                                   setComparables(prev => prev.map((r, j) => j === i ? { ...r, postcode: e.target.value, lat: null, lng: null, geocodeFailed: false } : r));
                                 }}
                                 onBlur={async (e) => {
                                   const pc = e.target.value.trim().replace(/\s+/g, '').toUpperCase();
                                   if (!pc) return;
-                                  // Skip postcodes.io geocoding if we already have rooftop-level coords
-                                  // from Places autocomplete selection — those are more accurate
                                   const currentRow = comparables[i];
                                   if (!currentRow.lat || !currentRow.lng) {
                                     try {
                                       const res = await fetch(`https://api.postcodes.io/postcodes/${pc}`).then(r => r.json());
                                       const lat: number | null = res?.result?.latitude ?? null;
                                       const lng: number | null = res?.result?.longitude ?? null;
-                                      // geocodeFailed: true when postcodes.io returned no coords (e.g. 404)
                                       setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat, lng, geocodeFailed: !lat } : r));
                                     } catch {
                                       setComparables(prev => prev.map((r, j) => j === i ? { ...r, lat: null, lng: null, geocodeFailed: true } : r));
                                     }
                                   }
-                                  // Trigger EPC auto-fill for manually-typed postcodes.
-                                  // (Autocomplete selection triggers its own EPC call immediately; this catches
-                                  // rows where the user typed address + postcode by hand instead.)
-                                  if (currentRow.address) {
-                                    fetchCompEpc(row.id, pc, currentRow.address);
-                                  }
+                                  if (currentRow.address) fetchCompEpc(row.id, pc, currentRow.address);
                                 }}
                                 className="h-9 text-xs"
                               />
@@ -3152,18 +3253,7 @@ export default function HomePage() {
                                 className="h-9 text-xs"
                               />
                             </div>
-                            {/* Distance label — shown after postcode geocoding */}
-                            {row.postcode.trim() && (
-                              row.lat && row.lng
-                                ? propertyData?.lat && propertyData?.lng
-                                  ? <p className="text-xs text-muted-foreground px-0.5">
-                                      {haversineMiles(propertyData.lat, propertyData.lng, row.lat, row.lng).toFixed(1)} miles from subject property
-                                    </p>
-                                  : null /* comp geocoded but subject not yet — omit */
-                                : row.geocodeFailed
-                                  ? <p className="text-xs text-muted-foreground px-0.5">Distance unavailable — check postcode</p>
-                                  : null /* not yet blurred */
-                            )}
+
                             {/* Date | Price — labels switch on type */}
                             <div className="grid grid-cols-2 gap-2">
                               <Input
@@ -3180,6 +3270,26 @@ export default function HomePage() {
                                 onChange={(e) => upd('price', e.target.value)}
                                 className="h-9 text-xs"
                               />
+                            </div>
+
+                            {/* Include in PDF checkbox */}
+                            <div className="flex items-center gap-2 pt-0.5">
+                              <input
+                                id={`incpdf-${row.id}`}
+                                type="checkbox"
+                                checked={isIncluded}
+                                onChange={(e) => upd('includeInPdf', e.target.checked)}
+                                className="w-3.5 h-3.5 accent-[#1B3A6B] cursor-pointer"
+                              />
+                              <label
+                                htmlFor={`incpdf-${row.id}`}
+                                className="text-xs text-muted-foreground cursor-pointer select-none"
+                              >
+                                Include in PDF report
+                                {row.includeInPdf === null && (
+                                  <span style={{ color: '#94a3b8', marginLeft: 4 }}>(auto)</span>
+                                )}
+                              </label>
                             </div>
                           </div>
                         );
