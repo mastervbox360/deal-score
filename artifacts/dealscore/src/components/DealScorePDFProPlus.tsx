@@ -8,6 +8,7 @@ Font.register({
   fonts: [
     { src: new URL('../fonts/DMSans-Regular.ttf', import.meta.url).href, fontWeight: 'normal' },
     { src: new URL('../fonts/DMSans-Bold.ttf', import.meta.url).href, fontWeight: 'bold' },
+    { src: new URL('../fonts/DMSans-Italic.ttf', import.meta.url).href, fontStyle: 'italic' },
   ],
 });
 
@@ -1801,7 +1802,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
             {/* DealScore Pro Plus watermark line */}
             <View style={{ marginTop: 'auto', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <View style={{ flex: 1, height: 0.5, backgroundColor: '#E5E7EB' }} />
-              <Text style={{ fontSize: 7, color: '#9ca3af', fontFamily: 'Helvetica-Oblique' }}>
+              <Text style={{ fontSize: 7, color: '#9ca3af', fontFamily: 'DM Sans', fontStyle: 'italic' }}>
                 {isProPlus ? `${DEALSCORE_BRAND.name} Pro Plus Report` : `${DEALSCORE_BRAND.name} Report`}
               </Text>
               <View style={{ flex: 1, height: 0.5, backgroundColor: '#E5E7EB' }} />
@@ -2443,7 +2444,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <View style={{ ...notePanel, padding: 0, overflow: 'hidden', marginBottom: 8 }}>
                     <Text style={{ ...notePanelLabel, color: structureColour, padding: 10, paddingBottom: 6 }}>Comparable Sales</Text>
                     {saleComps.length === 0 ? (
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#6B7280', paddingHorizontal: 10, paddingBottom: 8 }}>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#6B7280', paddingHorizontal: 10, paddingBottom: 8 }}>
                         No comparable sales met the quality threshold for inclusion in this report.
                       </Text>
                     ) : (
@@ -2491,7 +2492,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   commentary = `The purchase price of ${fc(props.purchasePrice)} is broadly in line with ${validPrices.length} recent comparable sales averaging ${fc(avgPrice)}, suggesting fair market pricing and a credible entry point.`;
                 }
                 return (
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#64748B', marginTop: 4, marginBottom: 8 }}>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#64748B', marginTop: 4, marginBottom: 8 }}>
                     {commentary}
                   </Text>
                 );
@@ -2504,7 +2505,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   <View style={{ ...notePanel, padding: 0, overflow: 'hidden' }}>
                     <Text style={{ ...notePanelLabel, color: structureColour, padding: 10, paddingBottom: 6 }}>Comparable Lettings</Text>
                     {letComps.length === 0 ? (
-                      <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#6B7280', paddingHorizontal: 10, paddingBottom: 8 }}>
+                      <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#6B7280', paddingHorizontal: 10, paddingBottom: 8 }}>
                         No comparable lettings met the quality threshold for inclusion in this report.
                       </Text>
                     ) : (
@@ -2630,7 +2631,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           </View>
         ) : (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#6B7280' }}>
+            <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#6B7280' }}>
               Floorplan not yet supplied for this deal.
             </Text>
           </View>
@@ -3097,35 +3098,35 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Yield</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual rent as a percentage of purchase price.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent ÷ Purchase Price) × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent ÷ Purchase Price) × 100</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Yield</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Income after operating costs divided by purchase price. Mortgage excluded (UK standard).</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Income - Operating Costs) ÷ Purchase Price × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Annual Income - Operating Costs) ÷ Purchase Price × 100</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash-on-Cash ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual cash flow as a percentage of total cash invested. Includes mortgage.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Cash Flow ÷ Cash Invested) × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Annual Cash Flow ÷ Cash Invested) × 100</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Years to recover invested capital from annual cash flow.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Cash Invested ÷ Annual Cash Flow</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Cash Invested ÷ Annual Cash Flow</Text>
 
               {props.dealType !== 'BRRR' ? (
                 <>
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity on Day One</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Equity when purchased below market value.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Market Value - Purchase Price</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Market Value - Purchase Price</Text>
                 </>
               ) : (
                 <>
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Equity Created</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Equity generated through refurbishment.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Post-Refurb Value - Total Cost In</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Post-Refurb Value - Total Cost In</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>BRRR Gross Yield</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Yield calculated on GDV.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent ÷ Post-Refurb Value) × 100</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Annual Rent ÷ Post-Refurb Value) × 100</Text>
                 </>
               )}
 
@@ -3135,15 +3136,15 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Revenue</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Nightly rate at target occupancy over an average month.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Nightly Rate × (Occupancy % ÷ 100) × 30.42</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Nightly Rate × (Occupancy % ÷ 100) × 30.42</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Platform Fees</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Commission deducted from gross revenue.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue × Platform Fee %</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue × Platform Fee %</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Revenue</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Revenue after platform fees.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue - Platform Fees</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Revenue - Platform Fees</Text>
                 </>
               )}
             </View>
@@ -3156,33 +3157,33 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Effective Rent</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Gross rent after void allowance deducted.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Rent × (1 - Void %)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Gross Rent × (1 - Void %)</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Operating Income</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Effective rent minus all operating costs, excluding mortgage.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Effective Rent - Operating Costs</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Effective Rent - Operating Costs</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Cash Flow</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly surplus after all costs including mortgage.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Operating Income - Mortgage Payment</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Net Operating Income - Mortgage Payment</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Monthly Mortgage (Interest-Only)</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly interest payment.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount × Annual Rate %) ÷ 12</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount × Annual Rate %) ÷ 12</Text>
 
               <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Stress Testing &amp; Resilience</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rent</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Minimum rent to cover all costs at current rate.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Operating Costs + Mortgage Payment</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Operating Costs + Mortgage Payment</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Rent Headroom</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Buffer before deal becomes cash-flow negative.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Contracted Rent - Break-Even Rent</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Contracted Rent - Break-Even Rent</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Break-Even Rate</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Mortgage rate at which cash flow reaches zero.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Solved from: Rent = Operating Costs + (Mortgage Amount × Rate ÷ 12)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Solved from: Rent = Operating Costs + (Mortgage Amount × Rate ÷ 12)</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Sensitivity Analysis</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 2 }}>Performance under rent -10% and rate +1.5% applied independently. See sensitivity table in report.</Text>
@@ -3198,29 +3199,29 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                 <>
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital deployed before refinance.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Purchase Price + Tax + Refurb + Bridging Interest + Other Costs</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Purchase Price + Tax + Refurb + Bridging Interest + Other Costs</Text>
                 </>
               ) : (
                 <>
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Invested</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total capital deployed into the deal.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Deposit + Tax + Refurb + Other Costs + Sourcing Fee</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Deposit + Tax + Refurb + Other Costs + Sourcing Fee</Text>
                 </>
               )}
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>LTV</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Loan to value ratio.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount ÷ Property Value) × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Mortgage Amount ÷ Property Value) × 100</Text>
 
               {props.dealType === 'BRRR' && (
                 <>
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Refinance Loan</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Capital released on refinance.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Post-Refurb Value × (Refinance % ÷ 100)</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Post-Refurb Value × (Refinance % ÷ 100)</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cash Left In</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Capital remaining after refinance.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Total Cost In - Refinance Loan</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Total Cost In - Refinance Loan</Text>
                 </>
               )}
 
@@ -3230,11 +3231,11 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Profit Per Room</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Monthly cash flow divided by number of rooms.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Monthly Cash Flow ÷ Number of Rooms</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Monthly Cash Flow ÷ Number of Rooms</Text>
 
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Rent</Text>
                   <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Total room income at current occupancy.</Text>
-                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Rent per Room × Rooms × (Occupancy % ÷ 100)</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Rent per Room × Rooms × (Occupancy % ÷ 100)</Text>
                 </>
               )}
             </View>
@@ -3247,19 +3248,19 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net profit as a percentage of total cost.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Net Profit ÷ Total Cost In) × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Net Profit ÷ Total Cost In) × 100</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Annualised ROI</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>ROI scaled to a 12-month equivalent.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Total ROI ÷ Project Length in months) × 12</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Total ROI ÷ Project Length in months) × 12</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Profit on Cost</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net profit as a percentage of total project cost.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Net Profit ÷ Total Cost) × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Net Profit ÷ Total Cost) × 100</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Profit</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Sale proceeds minus all costs.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price - Total Cost - Selling Costs</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price - Total Cost - Selling Costs</Text>
             </View>
 
             <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
@@ -3270,33 +3271,33 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Cost In</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital deployed into the project.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Purchase Price + Tax + Refurb + Holding Costs + Other Costs</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Purchase Price + Tax + Refurb + Holding Costs + Other Costs</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Holding Costs</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Finance costs during the project period.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Monthly Holding Cost × Project Length (months)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Monthly Holding Cost × Project Length (months)</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Selling Costs</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Agent and legal fees on sale.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price × Selling Costs %</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Expected Sale Price × Selling Costs %</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Contingency</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Buffer added to refurb costs for unexpected expenses.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Refurb Cost × Contingency %</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Refurb Cost × Contingency %</Text>
 
               <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour, textTransform: 'uppercase', letterSpacing: 0.8, paddingBottom: 3, borderBottom: `0.5pt solid ${structureColour}`, marginBottom: 6, marginTop: 12 }}>Stress &amp; Sensitivity</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Cost Overrun Scenario</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit impact if costs increase by 10%.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Profit - (Total Cost × 10%)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Net Profit - (Total Cost × 10%)</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>GDV Sensitivity</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit impact of a 5% lower sale price.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Profit - (Expected Sale Price × 5%)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Net Profit - (Expected Sale Price × 5%)</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Bridging Interest</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Cost of bridging finance during the project.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Purchase Price × LTV %) × (Annual Rate % ÷ 12) × Term (months)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Purchase Price × LTV %) × (Annual Rate % ÷ 12) × Term (months)</Text>
             </View>
 
             <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
@@ -3312,23 +3313,23 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Gross Monthly Income</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Sub-let income at current occupancy.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Rent per Room × Rooms × (Occupancy % ÷ 100)</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Rent per Room × Rooms × (Occupancy % ÷ 100)</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Monthly Spread</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Income minus rent paid to landlord.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income - Monthly Rent to Landlord</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income - Monthly Rent to Landlord</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Net Monthly Profit</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Profit after all costs.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income - Rent to Landlord - Management Fees - Running Costs</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income - Rent to Landlord - Management Fees - Running Costs</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Annual Profit</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Net monthly profit scaled annually.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Net Monthly Profit × 12</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Net Monthly Profit × 12</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Management Fees</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Platform or agent commission on gross income.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income × Management Fee %</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Gross Monthly Income × Management Fee %</Text>
             </View>
 
             <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
@@ -3339,15 +3340,15 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>ROI on Setup</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Annual profit as a percentage of setup costs.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>(Annual Profit ÷ Setup Costs) × 100</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>(Annual Profit ÷ Setup Costs) × 100</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Payback Period</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>Months to recover setup costs from monthly profit.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Setup Costs ÷ Net Monthly Profit</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Setup Costs ÷ Net Monthly Profit</Text>
 
               <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', marginBottom: 0 }}>Total Upfront</Text>
               <Text style={{ fontSize: 8, color: '#6B7280', lineHeight: 1.45, marginBottom: 1 }}>All capital needed to begin the agreement.</Text>
-              <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Oblique', color: '#3B82F6', marginBottom: 6 }}>Setup Costs + (Landlord Deposit Months × Monthly Rent) + First Month Rent</Text>
+              <Text style={{ fontSize: 8, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#3B82F6', marginBottom: 6 }}>Setup Costs + (Landlord Deposit Months × Monthly Rent) + First Month Rent</Text>
             </View>
 
             <View style={{ width: 0.5, backgroundColor: '#E5E7EB', marginHorizontal: 0 }} />
@@ -3464,7 +3465,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   </Text>
                   <Text style={notePanelText}>Payable on completion.</Text>
                   {props.sourcingFeeDisclaimer.trim().length > 0 && (
-                    <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Oblique', color: '#888888', marginTop: 6, lineHeight: 1.5 }}>
+                    <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontStyle: 'italic', color: '#888888', marginTop: 6, lineHeight: 1.5 }}>
                       {props.sourcingFeeDisclaimer.trim()}
                     </Text>
                   )}
