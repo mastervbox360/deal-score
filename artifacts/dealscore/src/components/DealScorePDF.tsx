@@ -494,9 +494,9 @@ function generateWhatThisMeans(props: DealScorePDFProps): string {
   if (dt === 'R2R') {
     const r = props.r2rResults;
     const spread = r.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
-    const paybackMonths = r.monthlyProfit > 0 ? Math.ceil(props.r2rInputs.setupCosts / r.monthlyProfit) : 0;
+    const paybackMonths = r.monthlyProfit > 0 ? Math.ceil(r.totalCashInvested / r.monthlyProfit) : 0;
     const paybackStr = paybackMonths > 0 ? `${paybackMonths} months` : 'not applicable at current profit';
-    return `Monthly rent to landlord of ${fc(props.r2rInputs.monthlyRentPaid)}, sub-let for ${fc(r.grossMonthlyIncome)}, generating a monthly spread of ${fc(spread)}. After management fees and running costs, monthly profit is ${fc(r.monthlyProfit)}. Setup costs of ${fc(props.r2rInputs.setupCosts)} recover in ${paybackStr}.`;
+    return `Monthly rent to landlord of ${fc(props.r2rInputs.monthlyRentPaid)}, sub-let for ${fc(r.grossMonthlyIncome)}, generating a monthly spread of ${fc(spread)}. After management fees and running costs, monthly profit is ${fc(r.monthlyProfit)}. Total cash invested of ${fc(r.totalCashInvested)} recovers in ${paybackStr}.`;
   }
   const r = props.socialResults;
   const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
@@ -944,7 +944,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       ['Net Monthly Income', fc(props.r2rResults.netMonthlyIncome)],
       ['Monthly Profit', fc(props.r2rResults.monthlyProfit), true],
       ['Annual Profit', fc(props.r2rResults.annualProfit)],
-      ['Setup Costs', fc(props.r2rInputs.setupCosts)],
+      ['Total Cash Invested', fc(props.r2rResults.totalCashInvested)],
       ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
       ['Net Return on Setup Costs', fp(props.r2rResults.roi), true],
     ];
@@ -1693,12 +1693,13 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
-        {/* Setup Costs panel — R2R only */}
+        {/* Cash Invested panel — R2R only */}
         {props.dealType === 'R2R' && (
           <View wrap={false}>
-            <SH title="Setup Costs" mt={8} mb={8} />
+            <SH title="Cash Invested" mt={8} mb={8} />
             <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 14, borderTop: `2pt solid ${structureColour}` }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {/* Monthly income / cost summary */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 6 }}>
                 <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
                   <Text style={{ fontSize: 8, color: tintText }}>Monthly Rent to Landlord</Text>
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.monthlyRentPaid)}</Text>
@@ -1716,9 +1717,28 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                   <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.monthlyRunningCosts)}</Text>
                 </View>
               </View>
+              {/* Capital committed breakdown */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingTop: 4, borderTop: `1pt solid ${tintBorder}` }}>
+                <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                  <Text style={{ fontSize: 8, color: tintText }}>Setup Costs</Text>
+                  <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+                </View>
+                {props.r2rInputs.landlordDeposit > 0 && (
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Landlord Deposit</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.landlordDeposit)}</Text>
+                  </View>
+                )}
+                {props.sourcingFee > 0 && (
+                  <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, paddingRight: 10, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                    <Text style={{ fontSize: 8, color: tintText }}>Sourcing Fee</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
+                  </View>
+                )}
+              </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 8, borderTop: `1pt solid ${tintBorder}` }}>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>TOTAL SETUP COSTS</Text>
-                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.5 }}>TOTAL CASH INVESTED</Text>
+                <Text style={{ fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.totalCashInvested)}</Text>
               </View>
             </View>
           </View>
@@ -1780,7 +1800,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           } else if (props.dealType === 'SA') {
             insightText = `At ${props.saInputs.occupancyPercent}% occupancy and ${fc(props.saInputs.nightlyRate)}/night, gross monthly revenue is ${fc(props.saResults.grossMonthlyRevenue)}. After platform fees of ${fp(props.saInputs.platformFeesPercent)} and running costs, net monthly cash flow is ${fc(props.saResults.monthlyCashFlow)}.`;
           } else if (props.dealType === 'R2R') {
-            insightText = `Monthly rent paid to landlord of ${fc(props.r2rInputs.monthlyRentPaid)} sub-let for ${fc(props.r2rResults.grossMonthlyIncome)}, generating a monthly spread of ${fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)}. Setup costs of ${fc(props.r2rInputs.setupCosts)} recover in ${props.r2rResults.monthlyProfit > 0 ? Math.ceil(props.r2rInputs.setupCosts / props.r2rResults.monthlyProfit) + ' months' : 'N/A'} at current profit.`;
+            insightText = `Monthly rent paid to landlord of ${fc(props.r2rInputs.monthlyRentPaid)} sub-let for ${fc(props.r2rResults.grossMonthlyIncome)}, generating a monthly spread of ${fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)}. Total cash invested of ${fc(props.r2rResults.totalCashInvested)} recovers in ${props.r2rResults.monthlyProfit > 0 ? Math.ceil(props.r2rResults.totalCashInvested / props.r2rResults.monthlyProfit) + ' months' : 'N/A'} at current profit.`;
           } else if (props.dealType === 'FLIP') {
             insightText = `Total project cost of ${fc(props.flipResults.totalCost)} against a GDV of ${fc(props.flipInputs.expectedSalePrice)} produces a gross margin of ${((props.flipResults.netProfit / props.flipInputs.expectedSalePrice) * 100).toFixed(1)}%. ROI of ${fp(props.flipResults.roi)} ${props.flipResults.roi >= 12 ? 'exceeds' : 'falls short of'} the 12% minimum threshold.`;
           } else {
@@ -1894,7 +1914,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ['Refinance Loan', g(fc(props.brrrResults.refinanceLoan))],
               ];
             }
-            return [['Setup Costs', g(fc(props.r2rInputs.setupCosts))]];
+            return [['Total Cash Invested', g(fc(props.r2rResults.totalCashInvested))]];
           })();
 
           // Group 2 — Monthly

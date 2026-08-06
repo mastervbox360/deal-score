@@ -306,7 +306,7 @@ function computeResultsRows(props: DealScorePDFProps): RowData[] {
     ['Net Monthly Income', fc(props.r2rResults.netMonthlyIncome)],
     ['Monthly Profit', fc(props.r2rResults.monthlyProfit), true],
     ['Annual Profit', fc(props.r2rResults.annualProfit)],
-    ['Setup Costs', fc(props.r2rInputs.setupCosts)],
+    ['Total Cash Invested', fc(props.r2rResults.totalCashInvested)],
     ['Monthly Spread', fc(props.r2rResults.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid)],
     ['Net Return on Setup', fp(props.r2rResults.roi), true],
   ];
@@ -519,9 +519,9 @@ function generateWhatThisMeans(props: DealScorePDFProps): string {
   if (dt === 'R2R') {
     const r = props.r2rResults;
     const spread = r.grossMonthlyIncome - props.r2rInputs.monthlyRentPaid;
-    const paybackMonths = r.monthlyProfit > 0 ? Math.ceil(props.r2rInputs.setupCosts / r.monthlyProfit) : 0;
+    const paybackMonths = r.monthlyProfit > 0 ? Math.ceil(r.totalCashInvested / r.monthlyProfit) : 0;
     const paybackStr = paybackMonths > 0 ? `${paybackMonths} months` : 'not applicable at current profit';
-    return `Monthly rent to landlord of ${fc(props.r2rInputs.monthlyRentPaid)}, sub-let for ${fc(r.grossMonthlyIncome)}, generating a monthly spread of ${fc(spread)}. After management fees and running costs, monthly profit is ${fc(r.monthlyProfit)}. Setup costs of ${fc(props.r2rInputs.setupCosts)} recover in ${paybackStr}.`;
+    return `Monthly rent to landlord of ${fc(props.r2rInputs.monthlyRentPaid)}, sub-let for ${fc(r.grossMonthlyIncome)}, generating a monthly spread of ${fc(spread)}. After management fees and running costs, monthly profit is ${fc(r.monthlyProfit)}. Total cash invested of ${fc(r.totalCashInvested)} recovers in ${paybackStr}.`;
   }
   const r = props.socialResults;
   const yieldVs = r.grossYield >= 6 ? 'exceeds' : 'falls short of';
@@ -1406,12 +1406,13 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
               </View>
             )}
 
-            {/* Setup Costs — R2R */}
+            {/* Cash Invested — R2R */}
             {props.dealType === 'R2R' && (
               <View style={{ marginTop: 14 }}>
-                <SH title="Setup Costs" />
+                <SH title="Cash Invested" />
                 <View style={{ backgroundColor: tintBg, borderRadius: 4, paddingVertical: 10, paddingHorizontal: 12, borderTop: `2pt solid ${structureColour}` }}>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {/* Monthly income / cost summary */}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 5 }}>
                     {[
                       ['Rent to Landlord', fc(props.r2rInputs.monthlyRentPaid)],
                       ['Gross Monthly Income', fc(props.r2rResults.grossMonthlyIncome)],
@@ -1424,9 +1425,28 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                       </View>
                     ))}
                   </View>
+                  {/* Capital committed breakdown */}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingTop: 3, borderTop: `1pt solid ${tintBorder}` }}>
+                    <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                      <Text style={{ fontSize: 7.5, color: tintText }}>Setup Costs</Text>
+                      <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+                    </View>
+                    {props.r2rInputs.landlordDeposit > 0 && (
+                      <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                        <Text style={{ fontSize: 7.5, color: tintText }}>Landlord Deposit</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.landlordDeposit)}</Text>
+                      </View>
+                    )}
+                    {props.sourcingFee > 0 && (
+                      <View style={{ width: '50%', flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2.5, paddingRight: 8, borderBottom: `0.5pt solid ${tintBorder}` }}>
+                        <Text style={{ fontSize: 7.5, color: tintText }}>Sourcing Fee</Text>
+                        <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.sourcingFee)}</Text>
+                      </View>
+                    )}
+                  </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 6, borderTop: `1pt solid ${tintBorder}` }}>
-                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>TOTAL SETUP COSTS</Text>
-                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rInputs.setupCosts)}</Text>
+                    <Text style={{ fontSize: 8, fontFamily: 'Helvetica-Bold', color: tintText, textTransform: 'uppercase', letterSpacing: 0.4 }}>TOTAL CASH INVESTED</Text>
+                    <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#1E2B3C' }}>{fc(props.r2rResults.totalCashInvested)}</Text>
                   </View>
                 </View>
               </View>
@@ -1548,7 +1568,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                     ['Refinance Loan', g(fc(props.brrrResults.refinanceLoan))],
                   ];
                 }
-                return [['Setup Costs', g(fc(props.r2rInputs.setupCosts))]];
+                return [['Total Cash Invested', g(fc(props.r2rResults.totalCashInvested))]];
               })();
 
               const btlMortgage = Math.max(0, props.btlInputs.monthlyRent - props.btlResults.monthlyCashFlow - props.btlInputs.monthlyExpenses);
