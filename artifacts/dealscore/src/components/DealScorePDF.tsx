@@ -562,7 +562,7 @@ const base = StyleSheet.create({
   },
   footerLeft: { flex: 1, fontSize: 7.5, color: '#9ca3af', fontFamily: 'DM Sans' },
   footerCentre: { fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, textAlign: 'center' },
-  footerRight: { flex: 1, fontSize: 7.5, color: '#9ca3af', fontFamily: 'DM Sans', textAlign: 'right' },
+  footerRight: { flex: 1, fontSize: 7.5, color: '#9ca3af', fontFamily: 'DM Sans', textAlign: 'right', letterSpacing: 0.8 },
   sectionLabel: {
     fontSize: 8.5,
     fontFamily: 'DM Sans', fontWeight: 700,
@@ -697,7 +697,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       <Text
         style={base.footerRight}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-          `Page ${pageNumber} of ${totalPages}`
+          `PAGE ${pageNumber} OF ${totalPages}`
         }
       />
     </View>
@@ -1174,9 +1174,9 @@ export default function DealScorePDF(props: DealScorePDFProps) {
                 ) : null}
               </View>
               <Text
-                style={{ fontSize: 7.5, color: '#9ca3af', fontFamily: 'DM Sans' }}
+                style={{ fontSize: 7.5, color: '#9ca3af', fontFamily: 'DM Sans', letterSpacing: 0.8 }}
                 render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-                  `Page ${pageNumber} of ${totalPages}`
+                  `PAGE ${pageNumber} OF ${totalPages}`
                 }
               />
             </View>
@@ -1251,8 +1251,8 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           <Text style={{ flex: 1, fontSize: 7.5, color: '#9ca3af' }}>{props.dateStr}</Text>
           <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
           <Text
-            render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}`}
-            style={{ flex: 1, fontSize: 7.5, color: '#9ca3af', textAlign: 'right' }}
+            render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `PAGE ${pageNumber} OF ${totalPages}`}
+            style={{ flex: 1, fontSize: 7.5, color: '#9ca3af', textAlign: 'right', letterSpacing: 0.8 }}
           />
         </View>
 

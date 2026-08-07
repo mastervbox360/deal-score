@@ -786,9 +786,9 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
       <Text style={{ flex: 1, fontSize: 7, color: '#9ca3af' }}>{props.dateStr}</Text>
       <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
       <Text
-        style={{ flex: 1, fontSize: 7, color: '#9ca3af', textAlign: 'right' }}
+        style={{ flex: 1, fontSize: 7, color: '#9ca3af', textAlign: 'right', letterSpacing: 0.8 }}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-          `Page ${pageNumber} of ${totalPages}`
+          `PAGE ${pageNumber} OF ${totalPages}`
         }
       />
     </View>
@@ -799,8 +799,8 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
       <Text style={{ flex: 1, fontSize: 7, color: '#9ca3af' }}>{props.dateStr}</Text>
       <Text style={{ fontSize: 7, fontFamily: 'DM Sans', fontWeight: 700, color: '#9ca3af', textAlign: 'center' }}>{footerCentreText}</Text>
       <Text
-        render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}`}
-        style={{ flex: 1, fontSize: 7, color: '#9ca3af', textAlign: 'right' }}
+        render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `PAGE ${pageNumber} OF ${totalPages}`}
+        style={{ flex: 1, fontSize: 7, color: '#9ca3af', textAlign: 'right', letterSpacing: 0.8 }}
       />
     </View>
   );
@@ -945,9 +945,9 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                   ) : null}
                 </View>
                 <Text
-                  style={{ fontSize: 7, color: '#9ca3af', fontFamily: 'DM Sans' }}
+                  style={{ fontSize: 7, color: '#9ca3af', fontFamily: 'DM Sans', letterSpacing: 0.8 }}
                   render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-                    `Page ${pageNumber} of ${totalPages}`
+                    `PAGE ${pageNumber} OF ${totalPages}`
                   }
                 />
               </View>
