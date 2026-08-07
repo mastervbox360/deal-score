@@ -455,7 +455,7 @@ function generateVerdictSummary(props: DealScorePDFProps): string {
 }
 
 
-function computeCoverKeyMetric(props: DealScorePDFProps): { label: string; value: string } {
+export function computeCoverKeyMetric(props: DealScorePDFProps): { label: string; value: string } {
   const dt = props.dealType;
   const mh = hasMeaningfulInputs(props);
   if (dt === 'BTL' || dt === 'HMO' || dt === 'SA' || dt === 'SOCIAL') {

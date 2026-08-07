@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, Image, Link, Svg, Rect, Circle, Line, Polyline, Font } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import type { DealScorePDFProps } from './DealScorePDF';
-import { hasMeaningfulInputs } from './DealScorePDF';
+import { hasMeaningfulInputs, computeCoverKeyMetric } from './DealScorePDF';
 Font.register({
   family: 'DM Sans',
   fonts: [
@@ -591,6 +591,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
   const footerCentreText = isProPlus ? props.companyName.trim() : 'DealScore';
 
   const heroMetrics = computeHeroMetrics(props);
+  const coverKeyMetric = computeCoverKeyMetric(props);
   const { dims: dealScoreDims, overall: dealScoreOverall } = computeDealScoreBreakdown(props);
   const resultsRows = computeResultsRows(props);
   const inputRows = computeInputRows(props);
@@ -971,7 +972,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {/* Key stats line */}
               <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 28 }}>
-                {fc(props.purchasePrice)} purchase{props.refurbCost > 0 ? ` · ${fc(props.refurbCost)} refurb` : ''}{heroMetrics.length > 0 ? ` · ${heroMetrics[0].label}: ${heroMetrics[0].value}` : ''}
+                {fc(props.purchasePrice)} purchase{props.refurbCost > 0 ? ` · ${fc(props.refurbCost)} refurb` : ''}{` · ${coverKeyMetric.label}: ${coverKeyMetric.value}`}
               </Text>
 
               {/* Overview section */}
