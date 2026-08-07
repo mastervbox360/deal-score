@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, Image, Link, Svg, Rect, Circle, Line, Polyline, Font } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import type { DealScorePDFProps } from './DealScorePDF';
-import { hasMeaningfulInputs, computeCoverKeyMetric } from './DealScorePDF';
+import { hasMeaningfulInputs, computeCoverKeyMetric, splitAddressThreeLines } from './DealScorePDF';
 Font.register({
   family: 'DM Sans',
   fonts: [
@@ -587,6 +587,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
     ? props.protectedAddressDescription
     : addressPlain;
   const { line1: coverLine1, line2: coverLine2 } = splitAddressForCover(displayAddress);
+  const [, city] = splitAddressThreeLines(displayAddress); // city/area hint for breadcrumb
 
   const footerCentreText = isProPlus ? props.companyName.trim() : 'DealScore';
 
@@ -953,7 +954,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
               {/* Breadcrumb */}
               <Text style={{ fontSize: 8, color: '#9ca3af', fontFamily: 'DM Sans', marginBottom: 10 }}>
-                {DEAL_LABELS[props.dealType]}
+                {DEAL_LABELS[props.dealType]}{city ? ` · ${city}` : ''}
               </Text>
 
               {/* Address heading — brand colour */}

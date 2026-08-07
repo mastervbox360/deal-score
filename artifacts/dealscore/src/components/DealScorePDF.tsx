@@ -305,7 +305,7 @@ function expandAddress(address: string): string {
   return s;
 }
 
-function splitAddressThreeLines(address: string): [string, string, string] {
+export function splitAddressThreeLines(address: string): [string, string, string] {
   const postcodeRegex = /\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b/;
   const postcodeMatch = address.match(postcodeRegex);
   const postcode = postcodeMatch ? postcodeMatch[0] : '';
