@@ -225,14 +225,6 @@ function getReadableBrandColour(hex: string): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-/** Returns a muted/semi-transparent-equivalent colour for cover page text.
- *  Uses rgba so it works on the brand-coloured background. */
-function coverMuted(bgHex: string, opacity: number): string {
-  const isDark = getLuminance(bgHex) <= 0.35;
-  return isDark
-    ? `rgba(255,255,255,${opacity})`
-    : `rgba(26,26,26,${opacity})`;
-}
 
 /** Darkens a hex colour by blending toward black by `amount` (0–1). */
 function darkenColour(hex: string, amount: number = 0.5): string {
@@ -602,9 +594,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
   console.log('[DealScorePDF] props:', props);
 
   const brand = props.brandColour;
-  const coverBg = darkenColour(brand, 0.4);           // darkened brand for cover backgrounds
   const readableBrand = getReadableBrandColour(brand); // brand colour safe as TEXT on white
-  const coverBgText = getContrastText(coverBg);        // text colour on darkened cover bg
   const isProPlus = props.tierOverride === 'pro_plus';
   const accent = props.accentColour;
 
@@ -658,7 +648,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
     ? addressForCover.replace(postcodeMatch[0], '').replace(/,\s*$/, '').trim()
     : addressForCover;
   const addressLine2 = postcodeMatch ? postcodeMatch[0] : '';
-  const [boldLine1, boldLine2, boldLine3] = splitAddressThreeLines(addressForCover);
+  const [, boldLine2] = splitAddressThreeLines(addressForCover); // city/area hint for breadcrumb
 
   // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -1105,7 +1095,7 @@ export default function DealScorePDF(props: DealScorePDFProps) {
       {/* Single unconditional Page — React-PDF requires Page as direct Document child */}
       <Page
         size="A4"
-        style={{ fontFamily: 'DM Sans', backgroundColor: props.tierOverride === 'pro' ? brand : (props.coverStyle === 'classic' ? coverBg : '#ffffff') }}
+        style={{ fontFamily: 'DM Sans', backgroundColor: props.tierOverride === 'pro' ? brand : '#ffffff' }}
       >
         {/* Pro — DealScore branded cover */}
         {props.tierOverride === 'pro' && (
@@ -1170,215 +1160,85 @@ export default function DealScorePDF(props: DealScorePDFProps) {
           </View>
         )}
 
-        {/* Classic */}
-        {props.coverStyle === 'classic' && props.tierOverride !== 'pro' && (
-          <View style={{ flex: 1, padding: 40, flexDirection: 'column', justifyContent: 'space-between' }}>
-            <View style={{ minHeight: 20 }}>
-              {props.logoBase64 ? (
-                <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'center' }} />
-              ) : null}
-              {isProPlus && props.companyName.trim() ? (
-                <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)', textAlign: 'center', letterSpacing: 1.8, marginTop: 8 }}>
-                  {props.companyName.trim().toUpperCase()}
-                </Text>
-              ) : null}
-            </View>
-            <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ fontSize: 11, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
-                {DEAL_LABELS[props.dealType]}
-              </Text>
-              <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
-                {addressLine1}
-              </Text>
-              {addressLine2 ? (
-                <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                  {addressLine2}
-                </Text>
-              ) : <View style={{ marginBottom: 12 }} />}
-              <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center' }}>
-                Date Prepared: {props.dateStr}
-              </Text>
-            </View>
-            <View>
-              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'center' }}>
-                <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
-                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: scoreColor }}>
-                    {VERDICT_LABELS[props.currentScore] ?? ''}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.55), marginBottom: 1 }}>
-                    {coverKeyMetric.label}
-                  </Text>
-                  <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText }}>
-                    {coverKeyMetric.value}
-                  </Text>
-                </View>
-              </View>
-              <View style={{ paddingBottom: 16 }}>
-                <View style={{ borderBottomWidth: 1, borderBottomColor: isProPlus ? accent : 'rgba(255,255,255,0.2)', borderBottomStyle: 'solid', marginBottom: 20 }} />
-                {preparedLine ? (
-                  <Text style={{ fontSize: 9, color: '#CCCCCC', textAlign: 'center', marginBottom: 10 }}>
-                    {preparedLine}
-                  </Text>
-                ) : null}
-                <Text style={{ fontSize: 8, color: '#AAAAAA', textAlign: 'center' }}>
-                  Confidential — Prepared for investor review only
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
+        {/* ── Editorial cover (unified) ───────────────────────────────────────
+             Replaces coverStyle='classic'|'clean'|'bold'. The coverStyle prop
+             is retained on the interface for backward compat; the UI selector
+             can be removed in a follow-up sweep. */}
+        {props.tierOverride !== 'pro' && (
+          <View style={{ flex: 1, flexDirection: 'column', paddingHorizontal: 40, paddingTop: 32, paddingBottom: 40 }}>
 
-        {/* Clean */}
-        {props.coverStyle === 'clean' && props.tierOverride !== 'pro' && (
-          <View style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
-            <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: coverBg }} />
-            <View style={{ flex: 1, paddingLeft: 44, paddingRight: 40, paddingTop: 32, paddingBottom: 40 }}>
-              {props.logoBase64 ? (
-                <View style={{ alignItems: 'center' }}>
-                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
-                </View>
-              ) : <View style={{ height: 20 }} />}
-              <View style={{ position: 'absolute', top: 0, left: 40, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
-                  {DEAL_LABELS[props.dealType]}
-                </Text>
-                <Text style={{ fontSize: 20, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
-                  {addressLine1}
-                </Text>
-                {addressLine2 ? (
-                  <Text style={{ fontSize: 20, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                    {addressLine2}
-                  </Text>
-                ) : <View style={{ marginBottom: 12 }} />}
-                <Text style={{ fontSize: 10, color: '#666666', textAlign: 'center' }}>
-                  Date Prepared: {props.dateStr}
-                </Text>
-              </View>
-              <View style={{ position: 'absolute', bottom: 28, left: 40, right: 40 }}>
-                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'center' }}>
-                  <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
-                    <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: scoreColor }}>
-                      {VERDICT_LABELS[props.currentScore] ?? ''}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 8, color: '#777777', marginBottom: 1 }}>
-                      {coverKeyMetric.label}
-                    </Text>
-                    <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: readableBrand }}>
-                      {coverKeyMetric.value}
-                    </Text>
-                  </View>
-                </View>
-                {isProPlus && props.companyName.trim() ? (
-                  <Text style={{ fontSize: 8, color: '#777777', letterSpacing: 1.4, marginBottom: 8 }}>
-                    {props.companyName.trim().toUpperCase()}
-                  </Text>
-                ) : null}
-                <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : brand}`, marginBottom: 12 }} />
-                {props.preparedBy.name ? (
-                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#333333', marginBottom: 3 }}>
-                    Prepared by {props.preparedBy.name}
-                  </Text>
-                ) : null}
-                {props.preparedBy.email ? (
-                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 2 }}>
-                    {props.preparedBy.email}
-                  </Text>
-                ) : null}
-                {props.preparedBy.phone ? (
-                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 10 }}>
-                    {props.preparedBy.phone}
-                  </Text>
-                ) : null}
-                <Text style={{ fontSize: 8, color: '#999999' }}>
-                  Confidential — Prepared for investor review only
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Bold */}
-        {props.coverStyle === 'bold' && props.tierOverride !== 'pro' && (
-          <View style={{ flex: 1, flexDirection: 'row' }}>
-            <View style={{ width: '45%', backgroundColor: coverBg, padding: 40, justifyContent: 'space-between' }}>
-              <View style={{ width: '100%', alignItems: 'center' }}>
+            {/* HEADER ROW — logo top-left · page indicator top-right */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 12, marginBottom: 24, borderBottom: '0.5pt solid #E2E8F0' }}>
+              <View style={{ flex: 1 }}>
                 {props.logoBase64 ? (
-                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'center' }} />
-                ) : null}
-                {isProPlus && props.companyName.trim() ? (
-                  <Text style={{ fontSize: 7.5, color: coverMuted(coverBg, 0.6), textAlign: 'center', letterSpacing: 1.6, marginTop: 8 }}>
-                    {props.companyName.trim().toUpperCase()}
-                  </Text>
+                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'flex-start' }} />
                 ) : null}
               </View>
-              <View>
-                <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, marginBottom: 6, lineHeight: 1.4 }}>
-                  {DEAL_LABELS[props.dealType]}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 10, alignItems: 'center' }}>
-                  <View style={{ backgroundColor: scoreColor + '25', borderRadius: 4, paddingVertical: 4, paddingHorizontal: 10, border: `0.5pt solid ${scoreColor}50` }}>
-                    <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: scoreColor }}>
-                      {VERDICT_LABELS[props.currentScore] ?? ''}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.55), marginBottom: 1 }}>
-                      {coverKeyMetric.label}
-                    </Text>
-                    <Text style={{ fontSize: 13, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText }}>
-                      {coverKeyMetric.value}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={{ fontSize: 9, color: coverMuted(coverBg, 0.7) }}>
-                  Date Prepared: {props.dateStr}
-                </Text>
-                <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : coverMuted(coverBg, 0.3)}`, marginTop: 20 }} />
-              </View>
+              <Text
+                style={{ fontSize: 7.5, color: '#9ca3af', fontFamily: 'DM Sans' }}
+                render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+                  `Page ${pageNumber} of ${totalPages}`
+                }
+              />
             </View>
-            <View style={{ width: '55%', backgroundColor: '#ffffff', padding: 40, position: 'relative' }}>
-              <Text style={{ fontSize: 8, color: '#999999', textAlign: 'right' }}>
+
+            {/* BREADCRUMB — deal type · city/area extracted from address */}
+            <Text style={{ fontSize: 8.5, color: '#9ca3af', fontFamily: 'DM Sans', marginBottom: 10 }}>
+              {DEAL_LABELS[props.dealType]}{boldLine2 ? ` · ${boldLine2}` : ''}
+            </Text>
+
+            {/* ADDRESS HEADING — brand colour, always legible on white */}
+            <Text style={{ fontSize: 28, fontFamily: 'DM Sans', fontWeight: 700, color: readableBrand, lineHeight: 1.2, marginBottom: 2 }}>
+              {addressLine1}
+            </Text>
+            {addressLine2 ? (
+              <Text style={{ fontSize: 28, fontFamily: 'DM Sans', fontWeight: 700, color: readableBrand, lineHeight: 1.2, marginBottom: 16 }}>
+                {addressLine2}
+              </Text>
+            ) : <View style={{ marginBottom: 16 }} />}
+
+            {/* KEY STATS LINE — purchase price · optional refurb · primary deal metric */}
+            <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 28 }}>
+              {fc(props.purchasePrice)} purchase{props.refurbCost > 0 ? ` · ${fc(props.refurbCost)} refurb` : ''}{` · ${coverKeyMetric.label}: ${coverKeyMetric.value}`}
+            </Text>
+
+            {/* OVERVIEW SECTION — accent-underlined heading + verdict sentence */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{ fontSize: 11, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', marginBottom: 4 }}>
+                Overview
+              </Text>
+              <View style={{ width: 32, borderBottom: `2pt solid ${accent}`, marginBottom: 12 }} />
+              {props.currentScore !== 'Incomplete' ? (
+                <Text style={{ fontSize: 9, color: '#444444', fontFamily: 'DM Sans', lineHeight: 1.55 }}>
+                  {verdictSummary}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* SPACER — pushes footer to bottom of page */}
+            <View style={{ flex: 1 }} />
+
+            {/* FOOTER — preparedBy + confidential note */}
+            <View>
+              <View style={{ borderBottom: '0.5pt solid #E2E8F0', marginBottom: 12 }} />
+              {props.preparedBy.name ? (
+                <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#333333', marginBottom: 3 }}>
+                  Prepared by {props.preparedBy.name}
+                </Text>
+              ) : null}
+              {props.preparedBy.email ? (
+                <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 2 }}>
+                  {props.preparedBy.email}
+                </Text>
+              ) : null}
+              {props.preparedBy.phone ? (
+                <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 10 }}>
+                  {props.preparedBy.phone}
+                </Text>
+              ) : null}
+              <Text style={{ fontSize: 8, color: '#999999', fontFamily: 'DM Sans' }}>
                 Confidential — Prepared for investor review only
               </Text>
-              <View style={{ position: 'absolute', top: 260, left: 40, right: 40, alignItems: 'center' }}>
-                <View style={{ width: 40, borderBottom: `2pt solid ${isProPlus ? accent : readableBrand}`, marginBottom: 16 }} />
-                {boldLine1 ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
-                    {boldLine1}
-                  </Text>
-                ) : null}
-                {boldLine2 ? (
-                  <Text hyphenationCallback={(word) => [word]} style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
-                    {boldLine2}
-                  </Text>
-                ) : null}
-                {boldLine3 ? (
-                  <Text style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.4 }}>
-                    {boldLine3}
-                  </Text>
-                ) : null}
-              </View>
-              <View style={{ position: 'absolute', bottom: 40, left: 40, right: 40 }}>
-                {props.preparedBy.name ? (
-                  <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#333333', marginBottom: 3 }}>
-                    Prepared by {props.preparedBy.name}
-                  </Text>
-                ) : null}
-                {props.preparedBy.email ? (
-                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 2 }}>
-                    {props.preparedBy.email}
-                  </Text>
-                ) : null}
-                {props.preparedBy.phone ? (
-                  <Text style={{ fontSize: 9, color: '#555555' }}>
-                    {props.preparedBy.phone}
-                  </Text>
-                ) : null}
-              </View>
             </View>
           </View>
         )}

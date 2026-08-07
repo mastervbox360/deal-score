@@ -555,7 +555,6 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
 
   const brand = props.brandColour;
   const coverBg = darkenColour(brand, 0.4);
-  const coverBgText = getContrastText(coverBg);
   const readableBrand = getReadableBrandColour(brand);
   const accent = props.accentColour;
   const isProPlus = props.tierOverride === 'pro_plus';
@@ -829,9 +828,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
         orientation="landscape"
         style={{
           fontFamily: 'DM Sans',
-          backgroundColor: props.tierOverride === 'pro'
-            ? brand
-            : (props.coverStyle === 'classic' ? coverBg : '#ffffff'),
+          backgroundColor: props.tierOverride === 'pro' ? brand : '#ffffff',
         }}
       >
 
@@ -928,301 +925,93 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
           </View>
         )}
 
-        {/* ── Classic landscape cover ──────────────────────────────────────── */}
-        {props.coverStyle === 'classic' && props.tierOverride !== 'pro' && (
+        {/* ── Editorial cover (unified landscape) ─────────────────────────────
+             Replaces coverStyle='classic'|'clean'|'bold'. The coverStyle prop
+             is retained on the interface for backward compat; the UI selector
+             can be removed in a follow-up sweep. */}
+        {props.tierOverride !== 'pro' && (
           <View style={{ flex: 1, flexDirection: 'row' }}>
 
-            {/* Left — branding + address */}
-            <View style={{ width: '56%', paddingTop: 40, paddingBottom: 36, paddingLeft: 40, paddingRight: 24, flexDirection: 'column', justifyContent: 'space-between' }}>
-              <View style={{ alignItems: 'center' }}>
-                {props.logoBase64 ? (
-                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
-                ) : null}
-                {props.companyName.trim() ? (
-                  <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.55), textAlign: 'center', letterSpacing: 1.6, marginTop: props.logoBase64 ? 8 : 0 }}>
-                    {props.companyName.trim().toUpperCase()}
-                  </Text>
-                ) : null}
-              </View>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 10, color: '#CCCCCC', textAlign: 'center', marginBottom: 12 }}>
-                  {DEAL_LABELS[props.dealType]}
-                </Text>
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
-                  {coverLine1}
-                </Text>
-                {coverLine2 ? (
-                  <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: coverBgText, textAlign: 'center', lineHeight: 1.3 }}>
-                    {coverLine2}
-                  </Text>
-                ) : null}
-                <Text style={{ fontSize: 10, color: '#AAAAAA', textAlign: 'center', marginTop: 10 }}>
-                  Date Prepared: {props.dateStr}
-                </Text>
-              </View>
-              <View>
-                <View style={{ borderBottom: `1pt solid ${accent}`, marginBottom: 10 }} />
-                {preparedLine ? (
-                  <Text style={{ fontSize: 8, color: coverMuted(coverBg, 0.55), textAlign: 'center', marginBottom: 6 }}>
-                    {preparedLine}
-                  </Text>
-                ) : null}
-                <Text style={{ fontSize: 7, color: coverMuted(coverBg, 0.4), textAlign: 'center' }}>
-                  Confidential — Prepared for investor review only
-                </Text>
-              </View>
-            </View>
+            {/* LEFT PANEL — logo + breadcrumb + address */}
+            <View style={{ width: '48%', paddingTop: 36, paddingBottom: 36, paddingLeft: 40, paddingRight: 24, flexDirection: 'column', borderRight: '0.5pt solid #E2E8F0' }}>
 
-            {/* Right — metric cards + score floating on dark bg */}
-            <View style={{ width: '44%', paddingTop: 40, paddingBottom: 36, paddingLeft: 24, paddingRight: 40, flexDirection: 'column', justifyContent: 'center', gap: 10 }}>
-              {heroPhoto ? (
-                <View style={{ height: 110, borderRadius: 4, overflow: 'hidden', marginBottom: 10 }}>
-                  <Image src={heroPhoto} style={{ width: '100%', height: 110, objectFit: 'cover' }} />
+              {/* Header row: logo + page indicator */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 10, marginBottom: 20, borderBottom: '0.5pt solid #E2E8F0' }}>
+                <View style={{ flex: 1 }}>
+                  {props.logoBase64 ? (
+                    <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain', alignSelf: 'flex-start' }} />
+                  ) : null}
                 </View>
+                <Text
+                  style={{ fontSize: 7, color: '#9ca3af', fontFamily: 'DM Sans' }}
+                  render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+                    `Page ${pageNumber} of ${totalPages}`
+                  }
+                />
+              </View>
+
+              {/* Breadcrumb */}
+              <Text style={{ fontSize: 8, color: '#9ca3af', fontFamily: 'DM Sans', marginBottom: 10 }}>
+                {DEAL_LABELS[props.dealType]}
+              </Text>
+
+              {/* Address heading — brand colour */}
+              <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: readableBrand, lineHeight: 1.2, marginBottom: 2 }}>
+                {coverLine1}
+              </Text>
+              {coverLine2 ? (
+                <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: readableBrand, lineHeight: 1.2 }}>
+                  {coverLine2}
+                </Text>
               ) : null}
-              {heroMetrics.map(({ label, value }) => (
-                <View key={label} style={{ backgroundColor: '#ffffff', border: '0.5pt solid #d4dae8', borderLeft: `3pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
-                  <Text style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{value}</Text>
-                </View>
-              ))}
-              {props.currentScore !== 'Incomplete' && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: SCORE_TINT[props.currentScore] ?? 'rgba(107,114,128,0.09)', borderLeft: `4pt solid ${scoreColor}`, borderRadius: 3, paddingVertical: 8, paddingHorizontal: 12, marginTop: 4 }}>
-                  <View>
-                    <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>Deal Score</Text>
-                    <Text style={{ fontSize: 12, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B' }}>{VERDICT_LABELS[props.currentScore] ?? props.currentScore}</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
-                    <Text style={{ fontSize: 22, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
-                    <Text style={{ fontSize: 10, color: '#9ca3af' }}>/ 10</Text>
-                  </View>
-                </View>
-              )}
             </View>
-          </View>
-        )}
 
-        {/* ── Clean landscape cover ────────────────────────────────────────── */}
-        {props.coverStyle === 'clean' && props.tierOverride !== 'pro' && (
-          <View style={{ flex: 1, flexDirection: 'column', position: 'relative' }}>
-            <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, backgroundColor: coverBg }} />
-            <View style={{ flex: 1, paddingLeft: 44, paddingRight: 40, paddingTop: 32, paddingBottom: 40 }}>
-              {props.logoBase64 ? (
-                <View style={{ alignItems: 'center' }}>
-                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
-                </View>
-              ) : <View style={{ height: 20 }} />}
-              <View style={{ position: 'absolute', top: 0, left: 44, right: 40, bottom: 0, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: readableBrand, textAlign: 'center', marginBottom: 12 }}>
-                  {DEAL_LABELS[props.dealType]}
+            {/* RIGHT PANEL — key stats + overview + footer */}
+            <View style={{ width: '52%', paddingTop: 36, paddingBottom: 36, paddingLeft: 28, paddingRight: 40, flexDirection: 'column' }}>
+
+              {/* Key stats line */}
+              <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 28 }}>
+                {fc(props.purchasePrice)} purchase{props.refurbCost > 0 ? ` · ${fc(props.refurbCost)} refurb` : ''}{heroMetrics.length > 0 ? ` · ${heroMetrics[0].label}: ${heroMetrics[0].value}` : ''}
+              </Text>
+
+              {/* Overview section */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontSize: 10, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', marginBottom: 4 }}>
+                  Overview
                 </Text>
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 20, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3 }}>
-                  {coverLine1}
-                </Text>
-                {coverLine2 ? (
-                  <Text style={{ fontSize: 20, fontFamily: 'DM Sans', fontWeight: 700, color: '#1A1A1A', textAlign: 'center', lineHeight: 1.3, marginBottom: 12 }}>
-                    {coverLine2}
-                  </Text>
-                ) : <View style={{ marginBottom: 12 }} />}
-                <Text style={{ fontSize: 10, color: '#666666', textAlign: 'center' }}>
-                  Date Prepared: {props.dateStr}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 8, marginTop: 20, width: '90%' }}>
-                  {heroMetrics.map(({ label, value }) => (
-                    <View key={label} style={{ flex: 1, backgroundColor: '#ffffff', border: '0.5pt solid #d4dae8', borderTop: `2.5pt solid ${structureColour}`, borderRadius: 4, paddingVertical: 8, paddingHorizontal: 8 }}>
-                      <Text style={{ fontSize: 15, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', lineHeight: 1, marginBottom: 3 }}>{value}</Text>
-                      <Text style={{ fontSize: 6.5, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-              <View style={{ position: 'absolute', bottom: 28, left: 44, right: 40 }}>
-                {props.companyName.trim() ? (
-                  <Text style={{ fontSize: 8, color: '#777777', letterSpacing: 1.4, marginBottom: 8 }}>
-                    {props.companyName.trim().toUpperCase()}
+                <View style={{ width: 28, borderBottom: `2pt solid ${accent}`, marginBottom: 10 }} />
+                {props.currentScore !== 'Incomplete' ? (
+                  <Text style={{ fontSize: 8.5, color: '#444444', fontFamily: 'DM Sans', lineHeight: 1.5 }}>
+                    {verdictSummary}
                   </Text>
                 ) : null}
-                <View style={{ borderBottom: `1pt solid ${accent}`, marginBottom: 12 }} />
+              </View>
+
+              {/* Spacer — pushes footer to bottom */}
+              <View style={{ flex: 1 }} />
+
+              {/* Footer */}
+              <View>
+                <View style={{ borderBottom: '0.5pt solid #E2E8F0', marginBottom: 10 }} />
                 {props.preparedBy.name ? (
                   <Text style={{ fontSize: 9, fontFamily: 'DM Sans', fontWeight: 700, color: '#333333', marginBottom: 3 }}>
                     Prepared by {props.preparedBy.name}
                   </Text>
                 ) : null}
                 {props.preparedBy.email ? (
-                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 2 }}>
+                  <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 2 }}>
                     {props.preparedBy.email}
                   </Text>
                 ) : null}
                 {props.preparedBy.phone ? (
-                  <Text style={{ fontSize: 9, color: '#555555', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 9, color: '#555555', fontFamily: 'DM Sans', marginBottom: 10 }}>
                     {props.preparedBy.phone}
                   </Text>
                 ) : null}
-                <Text style={{ fontSize: 8, color: '#999999' }}>
+                <Text style={{ fontSize: 7.5, color: '#999999', fontFamily: 'DM Sans' }}>
                   Confidential — Prepared for investor review only
                 </Text>
               </View>
-            </View>
-          </View>
-        )}
-
-        {/* ── Bold landscape cover (default / pro_plus bold) ───────────────── */}
-        {props.coverStyle === 'bold' && props.tierOverride !== 'pro' && (
-          <View style={{ flex: 1, flexDirection: 'row' }}>
-
-            {/* Left panel — dark brand */}
-            <View style={{ width: '42%', backgroundColor: leftPanelBg, paddingTop: 36, paddingBottom: 36, paddingHorizontal: 32, flexDirection: 'column', justifyContent: 'space-between' }}>
-
-              {/* Logo / company name */}
-              <View style={{ alignItems: 'center' }}>
-                {props.logoBase64 ? (
-                  <Image src={props.logoBase64} style={{ maxHeight: logoHeight, maxWidth: logoMaxWidth, objectFit: 'contain' }} />
-                ) : null}
-                {props.companyName.trim() ? (
-                  <Text style={{ fontSize: 8, color: coverMuted(leftPanelBg, 0.55), textAlign: 'center', letterSpacing: 1.6, marginTop: props.logoBase64 ? 8 : 0 }}>
-                    {props.companyName.trim().toUpperCase()}
-                  </Text>
-                ) : null}
-              </View>
-
-              {/* Address block */}
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 10, color: coverMuted(leftPanelBg, 0.65), textAlign: 'center', marginBottom: 10, letterSpacing: 0.3 }}>
-                  {DEAL_LABELS[props.dealType].replace(' Analysis', '').toUpperCase()}
-                </Text>
-                <View style={{ width: 32, borderBottom: `2pt solid ${isProPlus ? accent : coverMuted(leftPanelBg, 0.4)}`, marginBottom: 12 }} />
-                <Text hyphenationCallback={(word: string) => [word]} style={{ fontSize: 17, fontFamily: 'DM Sans', fontWeight: 700, color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
-                  {coverLine1}
-                </Text>
-                {coverLine2 ? (
-                  <Text style={{ fontSize: 17, fontFamily: 'DM Sans', fontWeight: 700, color: leftPanelText, textAlign: 'center', lineHeight: 1.35 }}>
-                    {coverLine2}
-                  </Text>
-                ) : null}
-                <Text style={{ fontSize: 9, color: coverMuted(leftPanelBg, 0.5), textAlign: 'center', marginTop: 10 }}>
-                  {props.dateStr}
-                </Text>
-              </View>
-
-              {/* Footer line */}
-              <View>
-                <View style={{ borderBottom: `1pt solid ${isProPlus ? accent : coverMuted(leftPanelBg, 0.25)}`, marginBottom: 10 }} />
-                {preparedLine ? (
-                  <Text style={{ fontSize: 8, color: coverMuted(leftPanelBg, 0.55), textAlign: 'center', marginBottom: 6 }}>
-                    {preparedLine}
-                  </Text>
-                ) : null}
-                <Text style={{ fontSize: 7, color: coverMuted(leftPanelBg, 0.4), textAlign: 'center' }}>
-                  Confidential — Prepared for investor review only
-                </Text>
-              </View>
-            </View>
-
-            {/* Right panel — white */}
-            <View style={{ width: '58%', backgroundColor: '#ffffff', paddingTop: 36, paddingBottom: 36, paddingHorizontal: 32, flexDirection: 'column', justifyContent: 'space-between' }}>
-
-              {/* Hero photo or top spacer */}
-              {heroPhoto ? (
-                <View style={{ height: 140, borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
-                  <Image src={heroPhoto} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
-                </View>
-              ) : <View style={{ height: 8 }} />}
-
-              {/* 3 key metric cards */}
-              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                {heroMetrics.map(({ label, value }) => (
-                  <View key={label} style={{
-                    flex: 1,
-                    backgroundColor: '#ffffff',
-                    border: '0.5pt solid #d4dae8',
-                    borderTop: `2.5pt solid ${structureColour}`,
-                    borderRadius: 4,
-                    paddingVertical: 10,
-                    paddingHorizontal: 10,
-                  }}>
-                    <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C', lineHeight: 1, marginBottom: 4 }}>{value}</Text>
-                    <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Score badge */}
-              {props.currentScore !== 'Incomplete' && (
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  backgroundColor: SCORE_TINT[props.currentScore] ?? 'rgba(107,114,128,0.09)',
-                  borderLeft: `4pt solid ${scoreColor}`,
-                  borderRadius: 3,
-                  paddingVertical: 10,
-                  paddingHorizontal: 14,
-                  marginBottom: 16,
-                }}>
-                  <View>
-                    <Text style={{ fontSize: 7, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>Deal Score</Text>
-                    <Text style={{ fontSize: 14, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B' }}>
-                      {VERDICT_LABELS[props.currentScore] ?? props.currentScore}
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                    <Text style={{ fontSize: 28, fontFamily: 'DM Sans', fontWeight: 700, color: '#1B2B4B', lineHeight: 1 }}>{dealScoreOverall.toFixed(1)}</Text>
-                    <Text style={{ fontSize: 12, color: '#9ca3af' }}>/ 10</Text>
-                  </View>
-                </View>
-              )}
-
-              {/* BMV strip */}
-              {props.bmvAmount > 0 && props.dealType !== 'R2R' && (
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  backgroundColor: '#f0fdf4',
-                  border: '0.5pt solid #86efac',
-                  borderRadius: 4,
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  marginBottom: 16,
-                }}>
-                  <View>
-                    <Text style={{ fontSize: 6.5, fontFamily: 'DM Sans', fontWeight: 700, color: '#166534', marginBottom: 2 }}>BELOW MARKET VALUE</Text>
-                    <Text style={{ fontSize: 14, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{fc(props.bmvAmount)}</Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 18, fontFamily: 'DM Sans', fontWeight: 700, color: '#1E2B3C' }}>{`${props.bmvPercent.toFixed(1)}%`}</Text>
-                    <Text style={{ fontSize: 7, color: '#6B7280', marginTop: 2 }}>BMV discount</Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Attribute chips */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                {props.propertyType ? (
-                  <View style={{ borderRadius: 10, border: '0.5pt solid #d4dae8', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: '#f5f7fa' }}>
-                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'DM Sans', fontWeight: 700 }}>{props.propertyType}</Text>
-                  </View>
-                ) : null}
-                {props.tenure ? (
-                  <View style={{
-                    borderRadius: 10,
-                    border: props.tenure === 'Freehold' ? `0.5pt solid ${accent}` : '0.5pt solid #fbbf24',
-                    paddingVertical: 2, paddingHorizontal: 8,
-                    backgroundColor: props.tenure === 'Freehold' ? '#E1F5EE' : '#fef3c7',
-                  }}>
-                    <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: props.tenure === 'Freehold' ? '#0F6E56' : '#92400e' }}>{props.tenure}</Text>
-                  </View>
-                ) : null}
-                {props.epcRating ? (
-                  <View style={{ borderRadius: 10, border: '0.5pt solid #d4dae8', paddingVertical: 2, paddingHorizontal: 8, backgroundColor: '#f5f7fa' }}>
-                    <Text style={{ fontSize: 7.5, color: '#1E2B3C', fontFamily: 'DM Sans', fontWeight: 700 }}>{`${props.epcRating} EPC`}</Text>
-                  </View>
-                ) : null}
-                <View style={{ borderRadius: 10, border: `0.5pt solid ${structureColour}`, paddingVertical: 2, paddingHorizontal: 8 }}>
-                  <Text style={{ fontSize: 7.5, fontFamily: 'DM Sans', fontWeight: 700, color: structureColour }}>{DEAL_LABELS[props.dealType].replace(' Analysis', '')}</Text>
-                </View>
-              </View>
-
             </View>
           </View>
         )}
