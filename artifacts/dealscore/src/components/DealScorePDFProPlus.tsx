@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, Image, Link, Svg, Rect, Circle, Line, Polyline, Font } from '@react-pdf/renderer';
 import { DEALSCORE_BRAND } from '@/config/brandConfig';
 import type { DealScorePDFProps } from './DealScorePDF';
-import { hasMeaningfulInputs, computeCoverKeyMetric, splitAddressThreeLines } from './DealScorePDF';
+import { hasMeaningfulInputs, computeCoverKeyMetric, splitAddressThreeLines, formatCompAddress } from './DealScorePDF';
 Font.register({
   family: 'DM Sans',
   fonts: [
@@ -2250,7 +2250,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                         </View>
                         {saleComps.map((row, i) => (
                           <View key={i} style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
-                            <Text style={{ flex: 2, fontSize: 8, color: '#333333' }}>{row.address}{row.postcode ? `, ${row.postcode}` : ''}</Text>
+                            <Text style={{ flex: 2, fontSize: 8, color: '#333333' }}>{formatCompAddress(row.address, row.postcode ?? '')}</Text>
                             <Text style={{ flex: 1, fontSize: 8, color: '#333333' }}>{row.propertyType || '—'}</Text>
                             <Text style={{ flex: 0.5, fontSize: 8, color: '#333333' }}>{row.bedrooms !== '' ? String(row.bedrooms) : '—'}</Text>
                             <Text style={{ flex: 0.7, fontSize: 8, color: '#333333' }}>{row.floorArea !== '' ? `${row.floorArea} m²` : '—'}</Text>
@@ -2311,7 +2311,7 @@ export default function DealScorePDFProPlus(props: DealScorePDFProps) {
                         </View>
                         {letComps.map((row, i) => (
                           <View key={i} style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 10, backgroundColor: i % 2 === 0 ? '#ffffff' : '#f5f7fa' }}>
-                            <Text style={{ flex: 2, fontSize: 8, color: '#333333' }}>{row.address}{row.postcode ? `, ${row.postcode}` : ''}</Text>
+                            <Text style={{ flex: 2, fontSize: 8, color: '#333333' }}>{formatCompAddress(row.address, row.postcode ?? '')}</Text>
                             <Text style={{ flex: 1, fontSize: 8, color: '#333333' }}>{row.propertyType || '—'}</Text>
                             <Text style={{ flex: 0.5, fontSize: 8, color: '#333333' }}>{row.bedrooms !== '' ? String(row.bedrooms) : '—'}</Text>
                             <Text style={{ flex: 0.7, fontSize: 8, color: '#333333' }}>{row.floorArea !== '' ? `${row.floorArea} m²` : '—'}</Text>
